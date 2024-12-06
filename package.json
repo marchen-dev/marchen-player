@@ -96,7 +96,7 @@
     "autoprefixer": "^10.4.20",
     "daisyui": "^4.12.10",
     "dotenv": "^16.4.5",
-    "electron": "^32.0.0",
+    "electron": "^33.0.0",
     "electron-builder": "^25.0.0",
     "electron-vite": "^2.3.0",
     "eslint": "^9.13.0",
