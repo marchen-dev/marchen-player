@@ -91,7 +91,7 @@ export const SubtitleImport = () => {
         </SelectTrigger>
         <SelectContent>
           <SelectGroup>
-            <SelectItem value={'-1'}>默认</SelectItem>
+            <SelectItem value={'-1'}>关闭</SelectItem>
             {subtitlesData?.tags?.map((subtitle) => {
               return (
                 <SelectItem value={subtitle.id.toString()} key={subtitle.id}>

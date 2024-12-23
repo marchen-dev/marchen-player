@@ -4,6 +4,7 @@ import { usePlayerSettingsValue } from '@renderer/atoms/settings/player'
 import { FieldLayout } from '@renderer/components/modules/settings/views/Layout'
 import { Button } from '@renderer/components/ui/button'
 import { Checkbox } from '@renderer/components/ui/checkbox'
+import { Input } from '@renderer/components/ui/input'
 import { Label } from '@renderer/components/ui/label'
 import { Popover, PopoverContent, PopoverTrigger } from '@renderer/components/ui/popover'
 import { db } from '@renderer/database/db'
@@ -17,6 +18,7 @@ import {
 import queryClient from '@renderer/lib/query-client'
 import { useAtomValue } from 'jotai'
 import { debounce } from 'lodash-es'
+import type { FC, PropsWithChildren } from 'react'
 import { memo } from 'react'
 
 import { usePlayerInstance } from '../../../Context'
@@ -77,11 +79,8 @@ export const Rematch = memo(() => {
           <Button variant="outline">{mostDanmakuPlatform(danmaku)}...</Button>
         </PopoverTrigger>
         <PopoverContent className="mx-2 w-80">
-          <div className="grid gap-4">
-            <div className="space-y-2">
-              <h4 className="font-medium leading-none">弹幕来源</h4>
-            </div>
-            <div className="grid gap-4">
+          <div className="space-y-7">
+            <PopoverContentLayout title="来源">
               {danmaku?.map((item) => {
                 const danmakuPlatform = danmakuPlatformMap(item)
                 return (
@@ -97,10 +96,29 @@ export const Rematch = memo(() => {
                   </div>
                 )
               })}
-            </div>
+            </PopoverContentLayout>
+
+            <PopoverContentLayout title="手动添加">
+              <div className="grid grid-cols-3 items-center gap-4">
+                <Label htmlFor="width">第三方网址</Label>
+                <Input id="width" defaultValue="100%" className="col-span-2 h-8" />
+              </div>
+            </PopoverContentLayout>
           </div>
         </PopoverContent>
       </Popover>
     </FieldLayout>
   )
 })
+
+interface PopoverContentLayoutProps extends PropsWithChildren {
+  title: string
+}
+export const PopoverContentLayout: FC<PopoverContentLayoutProps> = ({ children, title }) => {
+  return (
+    <div className="grid gap-4">
+      <h4 className="font-medium leading-none">{title}</h4>
+      <div className="grid gap-4">{children}</div>
+    </div>
+  )
+}
