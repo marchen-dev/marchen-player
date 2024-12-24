@@ -292,7 +292,10 @@ export const saveToHistory = async (
     Object.assign(historyData, {
       cover: bangumi.imageUrl,
     })
-
+    // const manualDanmaku = existingAnime?.danmaku?.filter(
+    //   (item) => item.type === 'local' || item.type === 'third-party-manual',
+    // )
+    // historyData.danmaku?.push(...manualDanmaku || [])
     // 确保能够对不同集进行更新
     const oldEspisode = params.episodeId === existingAnime.episodeId
     await db.history.update(existingAnime.hash, {

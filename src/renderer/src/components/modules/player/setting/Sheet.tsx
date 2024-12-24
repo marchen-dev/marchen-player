@@ -95,7 +95,6 @@ export const SettingProvider: React.FC<React.PropsWithChildren> = ({ children })
     queryKey: [SettingProviderQueryKey, hash],
     queryFn: () => db.history.get(hash),
   })
-
   useEffect(() => {
     // 确保 toast 不会遮住设置 setting
     toast.dismiss()
