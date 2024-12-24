@@ -37,7 +37,6 @@ export const registerAppMenu = () => {
     },
     {
       role: 'fileMenu',
-      label: '文件',
       submenu: [
         {
           type: 'normal',
@@ -49,22 +48,14 @@ export const registerAppMenu = () => {
       ],
     },
     {
+      role: 'editMenu',
+    },
+    {
       role: 'viewMenu',
-      label: '视图',
-      submenu: [
-        { role: 'reload', label: '重新加载' },
-        { role: 'forceReload', label: '强制重新加载' },
-        { role: 'toggleDevTools', label: '切换开发者工具' },
-        { type: 'separator' },
-        { role: 'resetZoom', label: '实际大小' },
-        { role: 'zoomIn', label: '放大' },
-        { role: 'zoomOut', label: '缩小' },
-        { type: 'separator' },
-        { role: 'togglefullscreen', label: '切换全屏' },
-      ],
+    },
+    {
+      role:'windowMenu',
     },
   ]
   Menu.setApplicationMenu(Menu.buildFromTemplate(menu))
 }
-
-
