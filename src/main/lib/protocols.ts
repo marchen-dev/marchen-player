@@ -14,7 +14,6 @@ export const handleCustomProtocol = (filePath: string, request: Request) => {
     case '.mkv': {
       return handleVideoProtocol(filePath, request)
     }
-
     case '.ass':
     case '.ssa': {
       return handleSubtitleProtocol(filePath)

@@ -47,7 +47,6 @@ export const useSubtitle = () => {
       }
     },
     enabled: !!url,
-    gcTime: 0,
   })
   const setSubtitlesOctopus = useCallback(
     async (path?: string) => {

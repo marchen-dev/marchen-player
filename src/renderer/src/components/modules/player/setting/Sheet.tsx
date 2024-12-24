@@ -94,7 +94,6 @@ export const SettingProvider: React.FC<React.PropsWithChildren> = ({ children })
   const { data } = useQuery({
     queryKey: [SettingProviderQueryKey, hash],
     queryFn: () => db.history.get(hash),
-    gcTime: 0,
   })
 
   useEffect(() => {

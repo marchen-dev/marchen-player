@@ -1,6 +1,7 @@
 import Exit from '@renderer/components/ui/xgplayer/plugins/exit'
 import FullEntireScreen from '@renderer/components/ui/xgplayer/plugins/fullScreen'
 import Setting from '@renderer/components/ui/xgplayer/plugins/setting'
+import { isDev } from '@renderer/lib/env'
 import type { IPlayerOptions } from '@suemor/xgplayer'
 
 const playerBaseConfigForClient = {
@@ -23,7 +24,7 @@ const playerBaseConfigForClient = {
   },
   volume: {
     index: 3,
-    default: 1,
+    default: isDev ? 0 : 1,
   },
   rotate: {
     index: 4,
@@ -38,6 +39,7 @@ const playerBaseConfigForClient = {
       },
     },
   },
+
   plugins: [Setting, FullEntireScreen, Exit],
   ignores: ['fullscreen'],
 } satisfies IPlayerOptions

@@ -207,7 +207,6 @@ export const useDanmakuData = () => {
           }
         },
         enabled: !!currentMatchedVideo.episodeId && !onlyLoadDandanplayDanmaku,
-        gcTime: 0,
       })) ?? []),
       {
         queryKey: [apiClient.comment.Commentkeys.getDanmu, video.hash],
@@ -224,7 +223,6 @@ export const useDanmakuData = () => {
           }
         },
         enabled: !!currentMatchedVideo.episodeId,
-        gcTime: 0,
       },
     ],
     combine: (results) => {
