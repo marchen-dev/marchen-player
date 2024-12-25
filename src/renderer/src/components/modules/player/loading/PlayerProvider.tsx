@@ -12,7 +12,12 @@ import { useAtom, useAtomValue } from 'jotai'
 import type { FC, PropsWithChildren } from 'react'
 import { useEffect } from 'react'
 
-import { saveToHistory, useDanmakuData, useLoadingHistoricalAnime, useMatchAnimeData } from './hooks'
+import {
+  saveToHistory,
+  useDanmakuData,
+  useLoadingHistoricalAnime,
+  useMatchAnimeData,
+} from './hooks'
 
 export const VideoProvider: FC<PropsWithChildren> = ({ children }) => {
   useLoadingHistoricalAnime()
