@@ -2,6 +2,7 @@ import type { CheckedState } from '@radix-ui/react-checkbox'
 import { videoAtom } from '@renderer/atoms/player'
 import { usePlayerSettingsValue } from '@renderer/atoms/settings/player'
 import { FieldLayout } from '@renderer/components/modules/settings/views/Layout'
+import { Badge } from '@renderer/components/ui/badge'
 import { Button } from '@renderer/components/ui/button'
 import { Checkbox } from '@renderer/components/ui/checkbox'
 import { Input } from '@renderer/components/ui/input'
@@ -18,10 +19,12 @@ import {
 } from '@renderer/lib/danmaku'
 import queryClient from '@renderer/lib/query-client'
 import { apiClient } from '@renderer/request'
+import { useMutation } from '@tanstack/react-query'
 import { useAtomValue } from 'jotai'
 import { debounce } from 'lodash-es'
-import type { FC, PropsWithChildren } from 'react'
+import type { FC, FormEvent, PropsWithChildren } from 'react'
 import { memo, useCallback, useRef } from 'react'
+import { z } from 'zod'
 
 import { usePlayerInstance } from '../../../Context'
 import { useXgPlayerUtils } from '../../../initialize/hooks'
@@ -31,7 +34,7 @@ export const Rematch = memo(() => {
   const { danmaku } = useSettingConfig()
   return (
     <FieldLayout title="来源">
-      <Popover open>
+      <Popover>
         <PopoverTrigger asChild>
           <Button variant="outline">{mostDanmakuPlatform(danmaku)}...</Button>
         </PopoverTrigger>
@@ -104,7 +107,14 @@ const SourceList = memo(() => {
           defaultChecked={item.selected}
           onCheckedChange={(checked) => handleCheckDanmaku({ checked, source: item.source })}
         />
-        <Label htmlFor={item.source}>{danmakuPlatform}</Label>
+        <Label htmlFor={item.source}>
+          {danmakuPlatform}
+          {item.type === 'third-party-manual' && (
+            <Badge className="ml-2 py-0" variant="secondary">
+              手动添加
+            </Badge>
+          )}
+        </Label>
       </div>
     )
   })
@@ -115,35 +125,68 @@ export const InputSource = () => {
   const { hash } = useAtomValue(videoAtom)
   const { toast } = useToast()
   const { danmaku } = useSettingConfig()
-  const handleOnSubmit = useCallback(async () => {
-    if (!inputRef.current?.value) {
-      toast({ title: '请输入第三方网址' })
-      return
-    }
-    const matchedDanmaku = await apiClient.comment.getExtcomment({ url: inputRef.current.value })
-    if (!matchedDanmaku?.count) {
-      toast({ title: '没有找到弹幕' })
-      return
-    }
 
-    danmaku?.push({
-      type: 'third-party-manual',
-      selected:true,
-      source: inputRef.current.value,
-      content: matchedDanmaku,
-    })
+  const { mutate, isPending } = useMutation({
+    mutationFn: async (url: string) => {
+      const matchedDanmaku = await apiClient.comment.getExtcomment({ url })
+      if (!matchedDanmaku?.count) {
+        toast({ title: '没有找到弹幕' })
+        return
+      }
 
-    db.history.update(hash, {
-      danmaku,
-    })
-    toast({ title: '添加成功' })
-    inputRef.current.value = ''
-  }, [toast])
+      danmaku?.push({
+        type: 'third-party-manual',
+        selected: true,
+        source: url,
+        content: matchedDanmaku,
+      })
+
+      db.history.update(hash, {
+        danmaku,
+      })
+      toast({ title: '添加成功' })
+    },
+    onError: (error) => {
+      toast({ title: error.message })
+    },
+  })
+  const handleOnSubmit = useCallback(
+    async (event: FormEvent<HTMLFormElement>) => {
+      event.preventDefault()
+      const inputValue = inputRef.current?.value
+      if (!inputValue) {
+        toast({ title: '请输入第三方网址' })
+        return
+      }
+
+      const isEmail = z.string().url().safeParse(inputValue)
+      if (!isEmail.success) {
+        toast({ title: '请输入正确的网址' })
+        return
+      }
+      const existingSource = danmaku?.some((item) => item.source === inputValue)
+      if (existingSource) {
+        toast({ title: '已经添加过该来源' })
+        clearInput()
+        return
+      }
+      mutate(inputValue)
+      clearInput()
+    },
+    [danmaku, mutate],
+  )
+
+  const clearInput = useCallback(() => {
+    if (inputRef.current) {
+      inputRef.current.value = ''
+    }
+  }, [])
   return (
     <form className="grid grid-cols-3 items-center gap-4" onSubmit={handleOnSubmit}>
       <Label htmlFor="width">第三方网址</Label>
       <Input
         id="width"
+        disabled={isPending}
         ref={inputRef}
         placeholder="https:// 按回车完成输入"
         className="col-span-2 h-8"

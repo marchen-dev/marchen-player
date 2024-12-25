@@ -15,8 +15,10 @@ import { calculateFileHash } from '@renderer/lib/calc-file-hash'
 import { tipcClient } from '@renderer/lib/client'
 import { isWeb } from '@renderer/lib/utils'
 import { apiClient } from '@renderer/request'
+import type { CommentsModel } from '@renderer/request/models/comment'
 import type { MatchResponseV2 } from '@renderer/request/models/match'
 import { RouteName } from '@renderer/router'
+import type { UseQueryResult } from '@tanstack/react-query'
 import { useQueries, useQuery } from '@tanstack/react-query'
 import { useAtom, useAtomValue, useSetAtom } from 'jotai'
 import type { ChangeEvent, DragEvent } from 'react'
@@ -193,9 +195,10 @@ export const useDanmakuData = () => {
   // 2. 用户通过对话框, 手动匹配了弹幕库
   // 获取弹幕数据后，会触发下发 useEffect
 
-  const danmakuData = useQueries({
-    queries: [
-      ...(thirdPartyDanmakuUrlData?.relateds.map((related) => ({
+  const danmaku = {
+    // 第三方弹幕库
+    thirdParty:
+      thirdPartyDanmakuUrlData?.relateds.map((related) => ({
         queryKey: [apiClient.comment.Commentkeys.getExtcomment, video.hash, related.url],
         queryFn: async () => {
           const fetchData = await apiClient.comment.getExtcomment({ url: related.url })
@@ -207,33 +210,52 @@ export const useDanmakuData = () => {
           }
         },
         enabled: !!currentMatchedVideo.episodeId && !onlyLoadDandanplayDanmaku,
-      })) ?? []),
-      {
-        queryKey: [apiClient.comment.Commentkeys.getDanmu, video.hash],
-        queryFn: async () => {
-          const fetchData = await apiClient.comment.getDanmu(+currentMatchedVideo.episodeId, {
-            chConvert: enableTraditionalToSimplified ? 1 : 0,
-          })
-          const history = await db.history.get(video.hash)
-          const historyDanmaku = history?.danmaku?.find((item) => item.source === 'dandanplay')
+      })) ?? [],
+    // dandanplay 弹幕库
+    dandanplay: {
+      queryKey: [apiClient.comment.Commentkeys.getDanmu, video.hash],
+      queryFn: async () => {
+        const fetchData = await apiClient.comment.getDanmu(+currentMatchedVideo.episodeId, {
+          chConvert: enableTraditionalToSimplified ? 1 : 0,
+        })
+        const history = await db.history.get(video.hash)
+        const historyDanmaku = history?.danmaku?.find((item) => item.source === 'dandanplay')
 
-          return {
-            ...fetchData,
-            selected: historyDanmaku?.selected ?? true,
-          }
-        },
-        enabled: !!currentMatchedVideo.episodeId,
+        return {
+          ...fetchData,
+          selected: historyDanmaku?.selected ?? true,
+        }
       },
-    ],
+      enabled: !!currentMatchedVideo.episodeId,
+    },
+    // 手动通过 url 获取的弹幕库
+    manual: {
+      queryKey: ['manual-danmaku', video.hash],
+      queryFn: async () => {
+        const history = await db.history.get(video.hash)
+        const historyDanmaku = history?.danmaku?.filter(
+          (item) => item.type === 'local' || item.type === 'third-party-manual',
+        )
+        return historyDanmaku ?? []
+      },
+      enabled: !!currentMatchedVideo.episodeId,
+    },
+  }
+
+  const danmakuData = useQueries({
+    queries: [...danmaku.thirdParty, danmaku.dandanplay, danmaku.manual],
     combine: (results) => {
+      const manualResult = results.at(-1)?.data as DB_Danmaku[]
+      const dandanplayResult = results.at(-2)?.data as CommentsModel
+      const thirdPartyplayResult = results.slice(0, -2) as UseQueryResult<CommentsModel>[]
       const dandanplayDanmakuData = {
         type: 'dandanplay',
         source: 'dandanplay',
-        content: results.at(-1)?.data,
-        selected: results.at(-1)?.data?.selected,
-      } as DB_Danmaku
+        content: dandanplayResult,
+        selected: dandanplayResult?.selected,
+      }
 
-      const thirdPartyDanmakuData = results.slice(0, -1).map((result, index) => ({
+      const thirdPartyDanmakuData = thirdPartyplayResult.map((result, index) => ({
         type: 'third-party-auto',
         content: result.data,
         source: thirdPartyDanmakuUrlData?.relateds[index].url,
@@ -242,12 +264,12 @@ export const useDanmakuData = () => {
 
       // 只加载官方弹幕库，返回弹幕数据
       if (onlyLoadDandanplayDanmaku && dandanplayDanmakuData.content) {
-        return [dandanplayDanmakuData]
+        return [dandanplayDanmakuData, ...manualResult]
       }
 
       // 官方弹幕库和第三方弹幕库都加载成功后，返回所有弹幕数据
       if (!onlyLoadDandanplayDanmaku && results.every((result) => result.data !== undefined)) {
-        return [dandanplayDanmakuData, ...thirdPartyDanmakuData]
+        return [dandanplayDanmakuData, ...thirdPartyDanmakuData, ...manualResult]
       }
 
       return
@@ -292,7 +314,7 @@ export const saveToHistory = async (
     Object.assign(historyData, {
       cover: bangumi.imageUrl,
     })
-    // const manualDanmaku = existingAnime?.danmaku?.filter(
+    // const manualDanmaku = historyData?.danmaku?.filter(
     //   (item) => item.type === 'local' || item.type === 'third-party-manual',
     // )
     // historyData.danmaku?.push(...manualDanmaku || [])
