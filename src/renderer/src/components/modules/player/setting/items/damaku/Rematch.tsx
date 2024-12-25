@@ -1,4 +1,5 @@
 import type { CheckedState } from '@radix-ui/react-checkbox'
+import { Separator } from '@radix-ui/react-select'
 import { videoAtom } from '@renderer/atoms/player'
 import { usePlayerSettingsValue } from '@renderer/atoms/settings/player'
 import { FieldLayout } from '@renderer/components/modules/settings/views/Layout'
@@ -11,6 +12,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@renderer/components/ui
 import { useToast } from '@renderer/components/ui/toast'
 import { db } from '@renderer/database/db'
 import type { DB_History } from '@renderer/database/schemas/history'
+import { tipcClient } from '@renderer/lib/client'
 import {
   danmakuPlatformMap,
   mergeDanmaku,
@@ -34,7 +36,7 @@ export const Rematch = memo(() => {
   const { danmaku } = useSettingConfig()
   return (
     <FieldLayout title="来源">
-      <Popover>
+      <Popover open>
         <PopoverTrigger asChild>
           <Button variant="outline">{mostDanmakuPlatform(danmaku)}...</Button>
         </PopoverTrigger>
@@ -42,6 +44,7 @@ export const Rematch = memo(() => {
           <PopoverContentLayout title="来源">
             <SourceList />
           </PopoverContentLayout>
+          <Separator />
           <PopoverContentLayout title="手动添加">
             <InputSource />
           </PopoverContentLayout>
@@ -125,7 +128,9 @@ export const InputSource = () => {
   const { hash } = useAtomValue(videoAtom)
   const { toast } = useToast()
   const { danmaku } = useSettingConfig()
-
+  const { danmakuDuration } = usePlayerSettingsValue()
+  const player = usePlayerInstance()
+  const { setResponsiveDanmakuConfig } = useXgPlayerUtils()
   const { mutate, isPending } = useMutation({
     mutationFn: async (url: string) => {
       const matchedDanmaku = await apiClient.comment.getExtcomment({ url })
@@ -181,17 +186,48 @@ export const InputSource = () => {
       inputRef.current.value = ''
     }
   }, [])
+
+  const handleImportDanmakuFile = useCallback(async () => {
+    const bilibiliDanmakuData = await tipcClient?.immportDanmakuFile({ duration: +danmakuDuration })
+    if (!bilibiliDanmakuData?.ok) {
+      toast({ title: bilibiliDanmakuData?.message })
+      return
+    }
+    if (!player) {
+      return
+    }
+    const oldDanmaku = player.danmu?.config.comments
+
+    const mergedDanmakus = [...(oldDanmaku || []), ...(bilibiliDanmakuData.data || [])]
+    player.danmu?.clear()
+
+    player.danmu?.updateComments(mergedDanmakus, true)
+    setResponsiveDanmakuConfig(player)
+
+    toast({
+      title: `导入成功`,
+    })
+  }, [])
   return (
-    <form className="grid grid-cols-3 items-center gap-4" onSubmit={handleOnSubmit}>
-      <Label htmlFor="width">第三方网址</Label>
-      <Input
-        id="width"
-        disabled={isPending}
-        ref={inputRef}
-        placeholder="https:// 按回车完成输入"
-        className="col-span-2 h-8"
-      />
-    </form>
+    <>
+      <form className="mt-1 flex flex-col gap-3" onSubmit={handleOnSubmit}>
+        <Label htmlFor="width" className="text-zinc-600">
+          第三方网址
+        </Label>
+        <Input
+          id="width"
+          disabled={isPending}
+          ref={inputRef}
+          placeholder="https:// 按回车完成输入"
+        />
+      </form>
+      <Label htmlFor="width" className="text-zinc-600">
+        xml 弹幕文件
+      </Label>
+      <Button size="sm" variant="outline" onClick={handleImportDanmakuFile}>
+        点击导入弹幕文件
+      </Button>
+    </>
   )
 }
 

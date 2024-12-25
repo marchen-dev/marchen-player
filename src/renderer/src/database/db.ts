@@ -11,6 +11,16 @@ class LocalDB extends Dexie {
   constructor() {
     super(LOCAL_DB_NAME)
     this.version(1).stores(dbSchemaV1)
+    this.version(2)
+      .stores(dbSchemaV1)
+      .upgrade(async (trans) => {
+        const historyTable = trans.table<DB_History>(TABLES.HISTORY)
+        const allRecords = await historyTable.toArray()
+        for (const record of allRecords) {
+          delete record.danmaku
+          await historyTable.put(record)
+        }
+      })
     this.history = this.table(TABLES.HISTORY)
   }
 }

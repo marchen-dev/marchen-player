@@ -33,7 +33,7 @@ export const DanmuPosition: Record<number, Mode> = {
 const thirdpartyDanmakuMap = {
   bilibili: '哔哩哔哩',
   'ani.gamer.com.tw': '巴哈姆特动漫疯',
-  acfun: 'acfun',
+  acfun: 'AcFun',
   tucao: '吐槽弹幕网',
   iqiyi: '爱奇艺',
   youku: '优酷',

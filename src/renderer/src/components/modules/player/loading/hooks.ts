@@ -187,18 +187,15 @@ export const useDanmakuData = () => {
     queryFn: () => apiClient.related.getRelatedDanmakuByEpisodeId(currentMatchedVideo.episodeId),
     enabled: isLoadDanmaku && !!currentMatchedVideo.episodeId,
   })
-
   const onlyLoadDandanplayDanmaku = !thirdPartyDanmakuUrlData?.relateds.length
   // setCurrentMatchedVideo() 之后会触发该 useQuery, 获取弹幕数据
   // 目前共两种可能性会触发该 useQuery
   // 1. 上方 useMatchAnimeData() 为精准匹配
   // 2. 用户通过对话框, 手动匹配了弹幕库
   // 获取弹幕数据后，会触发下发 useEffect
-
-  const danmaku = {
-    // 第三方弹幕库
-    thirdParty:
-      thirdPartyDanmakuUrlData?.relateds.map((related) => ({
+  const danmakuData = useQueries({
+    queries: [
+      ...(thirdPartyDanmakuUrlData?.relateds.map((related) => ({
         queryKey: [apiClient.comment.Commentkeys.getExtcomment, video.hash, related.url],
         queryFn: async () => {
           const fetchData = await apiClient.comment.getExtcomment({ url: related.url })
@@ -210,40 +207,37 @@ export const useDanmakuData = () => {
           }
         },
         enabled: !!currentMatchedVideo.episodeId && !onlyLoadDandanplayDanmaku,
-      })) ?? [],
-    // dandanplay 弹幕库
-    dandanplay: {
-      queryKey: [apiClient.comment.Commentkeys.getDanmu, video.hash],
-      queryFn: async () => {
-        const fetchData = await apiClient.comment.getDanmu(+currentMatchedVideo.episodeId, {
-          chConvert: enableTraditionalToSimplified ? 1 : 0,
-        })
-        const history = await db.history.get(video.hash)
-        const historyDanmaku = history?.danmaku?.find((item) => item.source === 'dandanplay')
-
-        return {
-          ...fetchData,
-          selected: historyDanmaku?.selected ?? true,
-        }
+        refetchOnMount:false
+      })) ?? []),
+      {
+        queryKey: [apiClient.comment.Commentkeys.getDanmu, video.hash],
+        queryFn: async () => {
+          const fetchData = await apiClient.comment.getDanmu(+currentMatchedVideo.episodeId, {
+            chConvert: enableTraditionalToSimplified ? 1 : 0,
+          })
+          const history = await db.history.get(video.hash)
+          const historyDanmaku = history?.danmaku?.find((item) => item.source === 'dandanplay')
+          return {
+            ...fetchData,
+            selected: historyDanmaku?.selected ?? true,
+          }
+        },
+        enabled: !!currentMatchedVideo.episodeId,
+        refetchOnMount:false
       },
-      enabled: !!currentMatchedVideo.episodeId,
-    },
-    // 手动通过 url 获取的弹幕库
-    manual: {
-      queryKey: ['manual-danmaku', video.hash],
-      queryFn: async () => {
-        const history = await db.history.get(video.hash)
-        const historyDanmaku = history?.danmaku?.filter(
-          (item) => item.type === 'local' || item.type === 'third-party-manual',
-        )
-        return historyDanmaku ?? []
+      {
+        queryKey: ['manual-danmaku', video.hash],
+        queryFn: async () => {
+          const history = await db.history.get(video.hash)
+          const historyDanmaku = history?.danmaku?.filter(
+            (item) => item.type === 'local' || item.type === 'third-party-manual',
+          )
+          return historyDanmaku ?? []
+        },
+        enabled: !!currentMatchedVideo.episodeId,
+        refetchOnMount:false
       },
-      enabled: !!currentMatchedVideo.episodeId,
-    },
-  }
-
-  const danmakuData = useQueries({
-    queries: [...danmaku.thirdParty, danmaku.dandanplay, danmaku.manual],
+    ],
     combine: (results) => {
       const manualResult = results.at(-1)?.data as DB_Danmaku[]
       const dandanplayResult = results.at(-2)?.data as CommentsModel
