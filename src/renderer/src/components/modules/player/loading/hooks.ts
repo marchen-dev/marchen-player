@@ -253,7 +253,7 @@ export const useDanmakuData = () => {
         source: 'dandanplay',
         content: dandanplayResult,
         selected: dandanplayResult?.selected,
-      }
+      } satisfies DB_Danmaku
 
       const thirdPartyDanmakuData = thirdPartyplayResult.map((result, index) => ({
         type: 'third-party-auto',
