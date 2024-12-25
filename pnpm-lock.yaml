@@ -264,6 +264,9 @@ importers:
       vite:
         specifier: ^6.0.0
         version: 6.0.5(@types/node@22.10.2)(jiti@1.21.7)(tsx@4.19.2)(yaml@2.6.1)
+      zod:
+        specifier: ^3.24.1
+        version: 3.24.1
 
 packages:
 
@@ -5284,8 +5287,8 @@ packages:
     peerDependencies:
       zod: ^3.18.0
 
-  zod@3.23.8:
-    resolution: {integrity: sha512-XBx9AXhXktjUqnepgTiE5flcKIYWi/rme0Eaj+5Y0lftuGBq+jyRu/md4WnuxqgP1ubdpNCsYEYPxrzVHD8d6g==}
+  zod@3.24.1:
+    resolution: {integrity: sha512-muH7gBL9sI1nciMZV67X5fTKKBLtwpZ5VBp1vsOQzj1MhrBZ4wlVCm3gedKZWLp0Oyel8sIGfeiz54Su+OVT+A==}
 
 snapshots:
 
@@ -8392,8 +8395,8 @@ snapshots:
       '@babel/plugin-transform-private-methods': 7.25.9(@babel/core@7.26.0)
       eslint: 9.17.0(jiti@1.21.7)
       hermes-parser: 0.25.1
-      zod: 3.23.8
-      zod-validation-error: 3.4.0(zod@3.23.8)
+      zod: 3.24.1
+      zod-validation-error: 3.4.0(zod@3.24.1)
     transitivePeerDependencies:
       - supports-color
 
@@ -10690,8 +10693,8 @@ snapshots:
       compress-commons: 4.1.2
       readable-stream: 3.6.2
 
-  zod-validation-error@3.4.0(zod@3.23.8):
+  zod-validation-error@3.4.0(zod@3.24.1):
     dependencies:
-      zod: 3.23.8
+      zod: 3.24.1
 
-  zod@3.23.8: {}
+  zod@3.24.1: {}

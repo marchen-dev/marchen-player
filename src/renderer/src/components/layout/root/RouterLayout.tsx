@@ -12,9 +12,11 @@ export const RouterLayout: FC<RouterLayoutProps> = ({ children, FunctionArea }) 
     return
   }
   return (
-    <div className={cn('relative flex h-full flex-col space-y-3 pt-7',isWeb && 'pt-4')}>
+    <div className={cn('relative flex h-full flex-col space-y-3 pt-7', isWeb && 'pt-4')}>
       <section className="mx-8 flex h-12 items-center justify-between overflow-hidden border-b pb-2.5 dark:border-zinc-600">
-        <h3 className="align-middle text-2xl font-medium">{currentRoute?.meta.title}</h3>
+        <h3 className="select-none align-middle text-2xl font-medium">
+          {currentRoute?.meta.title}
+        </h3>
         {FunctionArea}
       </section>
       {children}
