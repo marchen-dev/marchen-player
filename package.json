@@ -1,7 +1,7 @@
 {
   "name": "Marchen",
   "type": "module",
-  "version": "0.0.1-beta.1",
+  "version": "0.0.1-beta.2",
   "private": true,
   "packageManager": "pnpm@9.15.0",
   "description": "Marchen player",

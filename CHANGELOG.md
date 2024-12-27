@@ -1,5 +1,35 @@
 # CHANGELOG
 
+## [0.0.1-beta.2](https://github.com/marchen-dev/marchen-player/compare/v0.0.1-beta.1...v0.0.1-beta.2) (2024-12-27)
+
+
+### Bug Fixes
+
+* ci ([4534b6a](https://github.com/marchen-dev/marchen-player/commit/4534b6a3bb5e3009f3d057e972c0f419dab5fff9))
+* ci ([dd4d4ba](https://github.com/marchen-dev/marchen-player/commit/dd4d4bac5a5a22cc9c65231ca1ed5aeef827419f))
+* subtitle loading not displaying ([b1020fa](https://github.com/marchen-dev/marchen-player/commit/b1020faa1276c5e85cff7d2ac010a8300daffe38))
+
+
+### Features
+
+* add bug template for github issues ([a4aad7b](https://github.com/marchen-dev/marchen-player/commit/a4aad7b8ba6f7a5d7db3347034cc9a79992177bc))
+* add import button ([9729c66](https://github.com/marchen-dev/marchen-player/commit/9729c66439aecb4c952f49ae68e8bae1ca5fac75))
+* can save the last danmaku settings when loading animation ([0057e61](https://github.com/marchen-dev/marchen-player/commit/0057e6159800d64057063f239efedb8c1c06a990))
+* import danmaku from local XML file ([be7c623](https://github.com/marchen-dev/marchen-player/commit/be7c623b3ec54483e557450cafa80d6b176af5b0))
+* Import danmaku through address ([a7ed89b](https://github.com/marchen-dev/marchen-player/commit/a7ed89bf831a89cc484d89cdcbf56c13ab54c142))
+* Import danmaku through address ([b6e6476](https://github.com/marchen-dev/marchen-player/commit/b6e6476b92df7ea3b569244c113851be5e1b6ae3))
+* load multiple platform danmaku ([b5fe8b4](https://github.com/marchen-dev/marchen-player/commit/b5fe8b46e69d647de49b9406690d7c919d827b63))
+* support dock to display recently played files ([5fbf397](https://github.com/marchen-dev/marchen-player/commit/5fbf39752985601f6bdabb5fabd77e7ac0153fb8))
+* support switching danmaku on different platforms ([cdb3e24](https://github.com/marchen-dev/marchen-player/commit/cdb3e2410adbcf94871e5b25165c543288424028))
+
+
+### Performance Improvements
+
+* optimize the loading of danmaku process ([554681c](https://github.com/marchen-dev/marchen-player/commit/554681c59d374bcbe3e0a6917da2ba59e89bc2e7))
+* optimize the loading of danmaku process ([13427a9](https://github.com/marchen-dev/marchen-player/commit/13427a9d8799a6f53a62123df1bb6aff1f2083ec))
+
+
+
 ## [0.0.1-beta.1](https://github.com/marchen-dev/marchen-player/compare/v0.0.1-beta.0...v0.0.1-beta.1) (2024-12-10)
 
 
