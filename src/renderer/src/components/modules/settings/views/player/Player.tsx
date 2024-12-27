@@ -1,6 +1,5 @@
 import { usePlayerSettings } from '@renderer/atoms/settings/player'
 import { SettingSelect } from '@renderer/components/modules/shared/setting/SettingSelect'
-import { SettingSwitch } from '@renderer/components/modules/shared/setting/SettingSwitch'
 import type { FC, PropsWithChildren } from 'react'
 import { useMemo } from 'react'
 
@@ -21,7 +20,7 @@ interface DanmakuSettingProps extends PropsWithChildren {
 }
 
 export const DanmakuSetting: FC<DanmakuSettingProps> = (props) => {
-  const { classNames, onTraditionalToSimplifiedChange, children } = props
+  const { classNames, children } = props
   const [playerSetting, setPlayerSetting] = usePlayerSettings()
   const CardLayout = useMemo(() => {
     return ({ children }) =>
@@ -32,9 +31,11 @@ export const DanmakuSetting: FC<DanmakuSettingProps> = (props) => {
       )
   }, [classNames])
 
+  // TODO 完成繁体转简体
   return (
     <CardLayout>
-      <FieldLayout title="繁体转简体">
+      
+      {/* <FieldLayout title="繁体转简体">
         <SettingSwitch
           value={playerSetting.enableTraditionalToSimplified}
           onCheckedChange={(value) => {
@@ -42,7 +43,7 @@ export const DanmakuSetting: FC<DanmakuSettingProps> = (props) => {
             onTraditionalToSimplifiedChange?.(value)
           }}
         />
-      </FieldLayout>
+      </FieldLayout> */}
       <FieldLayout title="字体大小">
         <SettingSelect
           placeholder="弹幕字体大小"

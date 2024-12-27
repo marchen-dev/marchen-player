@@ -68,10 +68,7 @@ afterPack: scripts/cleaned-unused-arch-deps.js
 afterSign: scripts/notarize.js
 releaseInfo:
   releaseNotes: |
-    新增字幕时间偏移功能
-    修复继续播放时弹幕偏移问题
-    修复播放过程中退出后,无法捕获缩略图
-    修复可能会导入多个字幕的问题
-    集成了 sentry 错误监控
-    修复设置界面选择框无法显示的问题
-    减少包体积
+    支持通过第三方平台导入弹幕
+    支持从本地弹幕 XML 文件导入弹幕
+    支持对不同平台的弹幕进行开关
+    能够显示弹幕是从哪个平台获取的
