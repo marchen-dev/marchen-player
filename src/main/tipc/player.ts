@@ -2,7 +2,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 
 import { MARCHEN_PROTOCOL_PREFIX } from '@main/constants/protocol'
-import type { BilibiliXmlDanmakus} from '@main/lib/danmaku';
+import type { BilibiliXmlDanmakus } from '@main/lib/danmaku'
 import { parseBilibiliDanmaku } from '@main/lib/danmaku'
 import FFmpeg from '@main/lib/ffmpeg'
 import { getFilePathFromProtocolURL } from '@main/lib/protocols'
@@ -166,31 +166,38 @@ export const playerRoute = {
       const ffmpeg = new FFmpeg(getFilePathFromProtocolURL(input.path))
       return ffmpeg.extractSubtitles(input.index)
     }),
-  immportDanmakuFile: t.procedure.input<{ duration: number }>().action(async ({input}) => {
-    const filePath = await showFileSelectionDialog({
-      filters: [{ name: '弹幕文件', extensions: ['json', 'xml'] }],
-    })
-    if (!filePath) {
+  immportDanmakuFile: t.procedure.action(async () => {
+    // 确保不重复打开对话框
+    if (isDialogOpen) {
       return
     }
+
+    isDialogOpen = true
     try {
+      const filePath = await showFileSelectionDialog({
+        filters: [{ name: '弹幕文件', extensions: ['xml'] }],
+      })
+      if (!filePath) {
+        return
+      }
       const fileData = fs.readFileSync(filePath, 'utf-8')
       const result = (await parseStringPromise(fileData)) as BilibiliXmlDanmakus
       return {
         ok: 1,
-        data: parseBilibiliDanmaku({
-          danmakus: result.i.d,
-          duration: input.duration,
-        }),
+        data: {
+          danmaku: parseBilibiliDanmaku({
+            danmakus: result.i.d,
+          }),
+          source: filePath,
+        },
       }
     } catch {
       return {
         ok: 0,
         message: '解析弹幕文件失败',
       }
+    } finally {
+      isDialogOpen = false
     }
-
-    // console.log(result.i.d[0]._)
-    // console.log(result.i.d[0].$.p)
   }),
 }

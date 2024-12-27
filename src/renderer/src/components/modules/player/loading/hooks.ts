@@ -207,7 +207,7 @@ export const useDanmakuData = () => {
           }
         },
         enabled: !!currentMatchedVideo.episodeId && !onlyLoadDandanplayDanmaku,
-        refetchOnMount:false
+        refetchOnMount: false,
       })) ?? []),
       {
         queryKey: [apiClient.comment.Commentkeys.getDanmu, video.hash],
@@ -223,7 +223,7 @@ export const useDanmakuData = () => {
           }
         },
         enabled: !!currentMatchedVideo.episodeId,
-        refetchOnMount:false
+        refetchOnMount: false,
       },
       {
         queryKey: ['manual-danmaku', video.hash],
@@ -235,13 +235,15 @@ export const useDanmakuData = () => {
           return historyDanmaku ?? []
         },
         enabled: !!currentMatchedVideo.episodeId,
-        refetchOnMount:false
+        refetchOnMount: false,
       },
     ],
     combine: (results) => {
       const manualResult = results.at(-1)?.data as DB_Danmaku[]
-      const dandanplayResult = results.at(-2)?.data as CommentsModel
-      const thirdPartyplayResult = results.slice(0, -2) as UseQueryResult<CommentsModel>[]
+      const dandanplayResult = results.at(-2)?.data as CommentsModel & { selected: boolean }
+      const thirdPartyplayResult = results.slice(0, -2) as UseQueryResult<
+        CommentsModel & { selected: boolean }
+      >[]
       const dandanplayDanmakuData = {
         type: 'dandanplay',
         source: 'dandanplay',

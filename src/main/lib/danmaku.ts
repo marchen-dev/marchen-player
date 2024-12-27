@@ -1,29 +1,12 @@
-export const parseBilibiliDanmaku = (params: {
-  danmakus: BilibliDanmakuItem[]
-  duration: number
-}) => {
-  const { danmakus, duration } = params
+export const parseBilibiliDanmaku = (params: { danmakus: BilibliDanmakuItem[] }) => {
+  const { danmakus } = params
   return danmakus.map((item) => {
-     
-    const [time, type, _, color, timestamp] = item.$.p.split(',')
-    const mode = DanmuPosition[type]
+    const [time, type, _, color, timestamp] = item.$.p.split(',').map(Number)
     const txt = item._
     return {
-      id: +timestamp,
-      start: +time * 1000,
-      txt,
-      mode,
-      duration,
-      style: {
-        color,
-        fontWeight: 600,
-        textShadow: `
-      rgb(0, 0, 0) 1px 0px 1px, 
-      rgb(0, 0, 0) 0px 1px 1px, 
-      rgb(0, 0, 0) 0px -1px 1px, 
-      rgb(0, 0, 0) -1px 0px 1px
-    `,
-      },
+      cid: timestamp,
+      m: txt,
+      p: `${time},${type},${decimalToHex(color)},${timestamp}`,
     }
   })
 }
@@ -53,4 +36,8 @@ export interface BilibiliXmlDanmakus {
     source: string[]
     d: BilibliDanmakuItem[]
   }
+}
+
+export const decimalToHex = (decimal: number): string => {
+  return `#${decimal.toString(16).padStart(6, '0').toUpperCase()}`
 }

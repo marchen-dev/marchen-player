@@ -6,13 +6,17 @@ import type { CommentModel } from '@renderer/request/models/comment'
  * @param color 32位整数表示的颜色
  * @returns 十六进制颜色格式字符串，例如 #ffffff
  */
-export function intToHexColor(color: number): string {
+export function intToHexColor(color: number | string): string {
+  if (typeof color === 'string' && color.startsWith('#')) {
+    return color
+  }
+  const _color = +color
   // 提取红色分量
-  const r = (color >> 16) & 0xff
+  const r = (_color >> 16) & 0xff
   // 提取绿色分量
-  const g = (color >> 8) & 0xff
+  const g = (_color >> 8) & 0xff
   // 提取蓝色分量
-  const b = color & 0xff
+  const b = _color & 0xff
 
   // 将每个分量转换成两位的十六进制字符串
   const rHex = r.toString(16).padStart(2, '0')
@@ -71,7 +75,7 @@ export const danmakuPlatformMap = (danmaku?: DB_Danmaku) => {
     }
   }
 
-  return `${mapName} (${danmaku.content.comments.length}条)`
+  return `${mapName} (${danmaku.content.count}条)`
 }
 
 export const mostDanmakuPlatform = (danmaku?: DB_Danmaku[]) => {
@@ -88,10 +92,9 @@ export const mostDanmakuPlatform = (danmaku?: DB_Danmaku[]) => {
 
 export const parseDanmakuData = (params: { danmuData?: CommentModel[]; duration: number }) =>
   params.danmuData?.map((comment) => {
-    const [start, postition, color] = comment.p.split(',').map(Number)
-    const startInMs = start * 1000
-
-    const mode = DanmuPosition[postition]
+    const [start, postition, color] = comment.p.split(',')
+    const startInMs = +start * 1000
+    const mode = DanmuPosition[+postition]
     const danmakuColor = intToHexColor(color)
     return {
       duration: params.duration, // 弹幕持续显示时间,毫秒(最低为5000毫秒)

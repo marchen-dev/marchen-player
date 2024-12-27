@@ -1,7 +1,8 @@
 import { DanmakuSetting } from '@renderer/components/modules/settings/views/player/Player'
 import { memo } from 'react'
 
-import { Rematch } from './Rematch'
+import { AddDanmaku } from './AddDanmaku'
+import { DanmakuSource } from './DanmakuSource'
 
 export const Danmaku = memo(() => {
   // TODO implement this
@@ -36,10 +37,11 @@ export const Danmaku = memo(() => {
       <DanmakuSetting
         classNames={{ cardLayout: 'space-y-3' }}
         // onTraditionalToSimplifiedChange={(covert) => {
-          // handleDanmakuLanguageChange(covert)
+        // handleDanmakuLanguageChange(covert)
         // }}
       >
-        <Rematch />
+        <DanmakuSource />
+        <AddDanmaku />
       </DanmakuSetting>
     </>
   )
