@@ -2,7 +2,8 @@ import Exit from '@renderer/components/ui/xgplayer/plugins/exit'
 import FullEntireScreen from '@renderer/components/ui/xgplayer/plugins/fullScreen'
 import Setting from '@renderer/components/ui/xgplayer/plugins/setting'
 import { isDev } from '@renderer/lib/env'
-import type { IPlayerOptions } from '@suemor/xgplayer'
+import type {IPlayerOptions} from '@suemor/xgplayer';
+import { Danmu  } from '@suemor/xgplayer'
 
 const playerBaseConfigForClient = {
   height: '100%',
@@ -40,7 +41,7 @@ const playerBaseConfigForClient = {
     },
   },
 
-  plugins: [Setting, FullEntireScreen, Exit],
+  plugins: [Danmu, Setting, FullEntireScreen, Exit],
   ignores: ['fullscreen'],
 } satisfies IPlayerOptions
 
@@ -70,7 +71,7 @@ const playerBaseConfigForWeb = {
   playbackRate: {
     index: 5,
   },
-  plugins: [Setting, Exit],
+  plugins: [Danmu, Setting, Exit],
 } satisfies IPlayerOptions
 
 const danmakuConfig = {

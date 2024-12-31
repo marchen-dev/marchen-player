@@ -1,7 +1,8 @@
 import type { CheckedState } from '@radix-ui/react-checkbox'
 import { Separator } from '@radix-ui/react-select'
-import { videoAtom } from '@renderer/atoms/player'
+import { playerSettingSheetAtom, videoAtom } from '@renderer/atoms/player'
 import { usePlayerSettingsValue } from '@renderer/atoms/settings/player'
+import { jotaiStore } from '@renderer/atoms/store'
 import { FieldLayout } from '@renderer/components/modules/settings/views/Layout'
 import { Badge } from '@renderer/components/ui/badge'
 import { Button } from '@renderer/components/ui/button'
@@ -24,6 +25,7 @@ import { memo } from 'react'
 
 import { usePlayerInstance } from '../../../Context'
 import { useXgPlayerUtils } from '../../../initialize/hooks'
+import { showMatchAnimeDialog } from '../../../loading/dialog/hooks'
 import { SettingProviderQueryKey, useSettingConfig } from '../../Sheet'
 
 export const DanmakuSource = memo(() => {
@@ -37,6 +39,7 @@ export const DanmakuSource = memo(() => {
         <PopoverContent className="mx-2 w-80 ">
           <PopoverContentLayout title="来源">
             <SourceList />
+            <RematchDanmaku />
           </PopoverContentLayout>
           <Separator />
         </PopoverContent>
@@ -92,6 +95,9 @@ const SourceList = memo(() => {
       }
     })
   }, 300)
+  if (!danmaku) {
+    return <p>暂无弹幕</p>
+  }
   return danmaku?.map((item) => {
     const danmakuPlatform = danmakuPlatformMap(item)
     return (
@@ -128,5 +134,22 @@ export const PopoverContentLayout: FC<PopoverContentLayoutProps> = ({ children, 
       <h4 className="font-medium leading-none">{title}</h4>
       <div className="grid gap-4">{children}</div>
     </div>
+  )
+}
+
+const RematchDanmaku = () => {
+  const video = useAtomValue(videoAtom)
+  const player = usePlayerInstance()
+  return (
+    <Button
+      variant="outline"
+      onClick={() => {
+        player?.pause()
+        jotaiStore.set(playerSettingSheetAtom, false)
+        showMatchAnimeDialog(true, video.hash)
+      }}
+    >
+      重新匹配弹幕库
+    </Button>
   )
 }

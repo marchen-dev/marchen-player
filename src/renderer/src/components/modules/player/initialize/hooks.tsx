@@ -6,8 +6,8 @@ import PreviousEpisode from '@renderer/components/ui/xgplayer/plugins/previousEp
 import { db } from '@renderer/database/db'
 import { parseDanmakuData } from '@renderer/lib/danmaku'
 import { isWeb } from '@renderer/lib/utils'
-import type { IPlayerOptions } from '@suemor/xgplayer'
-import XgPlayer, { Danmu } from '@suemor/xgplayer'
+import type { Danmu,IPlayerOptions } from '@suemor/xgplayer'
+import XgPlayer from '@suemor/xgplayer'
 import { useAtomValue } from 'jotai'
 import { useEffect, useRef, useState } from 'react'
 
@@ -31,7 +31,6 @@ export const useXgPlayer = (url: string) => {
   const { danmakuDuration, danmakuFontSize, danmakuEndArea } = playerSettings
   const { setResponsiveDanmakuConfig } = useXgPlayerUtils()
   const { mergedDanmakuData } = useDanmakuData()
-
   useEffect(() => {
     setResponsiveDanmakuConfig(playerInstance)
     return () => {
@@ -60,21 +59,19 @@ export const useXgPlayer = (url: string) => {
           startTime,
         } as IPlayerOptions
 
-        if (isLoadDanmaku && mergedDanmakuData) {
-          xgplayerConfig.plugins = [...(xgplayerConfig.plugins || []), Danmu]
-          xgplayerConfig.danmu = {
-            ...danmakuConfig,
-            comments: parseDanmakuData({
-              danmuData: mergedDanmakuData,
-              duration: +danmakuDuration,
-            }),
-            fontSize: +danmakuFontSize,
-            area: {
-              start: 0,
-              end: +danmakuEndArea,
-            },
-          }
+        xgplayerConfig.danmu = {
+          ...danmakuConfig,
+          comments: parseDanmakuData({
+            danmuData: mergedDanmakuData,
+            duration: +danmakuDuration,
+          }),
+          fontSize: +danmakuFontSize,
+          area: {
+            start: 0,
+            end: +danmakuEndArea,
+          },
         }
+
 
         if (!isWeb) {
           xgplayerConfig.plugins = [...(xgplayerConfig.plugins || []), NextEpisode, PreviousEpisode]
@@ -114,10 +111,9 @@ export const useXgPlayer = (url: string) => {
 
 export const useXgPlayerUtils = () => {
   const playerSettings = usePlayerSettingsValue()
-  const isLoadDanmaku = useAtomValue(isLoadDanmakuAtom)
 
   const setResponsiveDanmakuConfig = (playerInstance: PlayerType | null) => {
-    if (playerInstance?.isPlaying && isLoadDanmaku) {
+    if (playerInstance?.isPlaying) {
       const { danmakuDuration, danmakuEndArea, danmakuFontSize } = playerSettings
       playerInstance.danmu?.setFontSize(+danmakuFontSize, 24)
       playerInstance.danmu?.setAllDuration('all', +danmakuDuration)
