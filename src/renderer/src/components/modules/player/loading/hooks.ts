@@ -265,9 +265,9 @@ export const useDanmakuData = () => {
       }
 
       // // 未匹配弹幕库，只加载用户手动导入弹幕
-      // if (!currentMatchedVideo.episodeId && manualResult?.length > 0) {
-      //   return manualResult
-      // }
+      if (currentMatchedVideo.episodeId === -1 && manualResult?.length > 0) {
+        return manualResult
+      }
       return
     },
   })

@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@renderer/comp
 import { Input } from '@renderer/components/ui/input'
 import { ScrollArea } from '@renderer/components/ui/scrollArea'
 import { useToast } from '@renderer/components/ui/toast'
+import type { DB_Danmaku } from '@renderer/database/schemas/history'
 import { cn } from '@renderer/lib/utils'
 import type { MatchResponseV2, MatchResultV2 } from '@renderer/request/models/match'
 import { useAtomValue } from 'jotai'
@@ -18,10 +19,16 @@ import type { FC } from 'react'
 import { useEffect, useMemo } from 'react'
 
 import { showMatchAnimeDialog, showMatchAnimeDialogAtom, useSearchAnime } from './hooks'
+import { ImportDanmakuFromURL } from './ImportDanmakuFromURL'
+import { ImportDanmakuFromXML } from './ImportDanmakuFromXML'
 
 interface MatchAnimeDialogProps {
   matchData?: MatchResponseV2
-  onSelected?: (params?: MatchedVideoType) => void
+  onSelected?: (
+    params: Partial<MatchedVideoType> & { danmaku?: DB_Danmaku[] } & {
+      type: 'LIST' | 'XML' | 'URL' | 'NONE'
+    },
+  ) => void
   onClosed?: () => void
   isLoading?: boolean
 }
@@ -86,7 +93,7 @@ export const MatchAnimeDialog: FC<MatchAnimeDialogProps> = (props) => {
           <Input placeholder="匹配的不正确? 手动输入动漫匹配弹幕库" onChange={handleSearchAnime} />
           <ScrollArea
             className={cn(
-              'relative mt-3 h-[450px] rounded-md border px-4',
+              'relative mt-3 h-[480px] rounded-md border px-4',
               !isLoading && 'h-[550px]',
             )}
           >
@@ -110,6 +117,7 @@ export const MatchAnimeDialog: FC<MatchAnimeDialogProps> = (props) => {
                             onClick={() => {
                               onSelected &&
                                 onSelected({
+                                  type: 'LIST',
                                   episodeId: item.episodeId,
                                   animeId: item.animeId,
                                   animeTitle: item.animeTitle || '',
@@ -134,18 +142,25 @@ export const MatchAnimeDialog: FC<MatchAnimeDialogProps> = (props) => {
             </Accordion>
           </ScrollArea>
           <Show when={isLoading}>
-            <div className="flex justify-end">
-              <Button
-                variant={'secondary'}
-                className={cn('mt-5 flex items-center text-sm')}
-                onClick={() => {
-                  showMatchAnimeDialog(false)
-                  onSelected && onSelected()
-                }}
-              >
-                <i className="icon-[mingcute--xls-line] mr-1 text-lg" />
-                <span>不加载弹幕</span>
-              </Button>
+            <div className="mt-5 flex justify-between">
+              <div className="space-x-4">
+                <ImportDanmakuFromURL
+                  onSelected={(p) => onSelected && onSelected({ type: 'URL', danmaku: p.danmaku })}
+                />
+                <ImportDanmakuFromXML />
+              </div>
+              <div className="flex justify-end gap-3">
+                <Button
+                  variant="secondary"
+                  onClick={() => {
+                    showMatchAnimeDialog(false)
+                    onSelected && onSelected()
+                  }}
+                >
+                  <i className="icon-[mingcute--xls-line] mr-1 text-lg" />
+                  <span>不加载弹幕</span>
+                </Button>
+              </div>
             </div>
           </Show>
         </div>

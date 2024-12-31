@@ -6,8 +6,6 @@ import {
 } from '@renderer/atoms/player'
 import { MatchAnimeDialog } from '@renderer/components/modules/player/loading/dialog/MatchAnimeDialog'
 import { LoadingDanmuTimeLine } from '@renderer/components/modules/player/loading/Timeline'
-import queryClient from '@renderer/lib/query-client'
-import { apiClient } from '@renderer/request'
 import { useAtom, useAtomValue } from 'jotai'
 import type { FC, PropsWithChildren } from 'react'
 import { useEffect } from 'react'
@@ -53,26 +51,45 @@ export const VideoProvider: FC<PropsWithChildren> = ({ children }) => {
         {/* 如果在 useMatchAnimeData() 里面没有匹配弹幕库成功， 就会弹出下方对话框，让用户手动匹配*/}
         <MatchAnimeDialog
           matchData={currentMatchedVideo.episodeId ? undefined : matchData}
-          onSelected={(params) => {
-            // 如果用户选择不加载弹幕
-            if (!params) {
-              // 保存到历史记录
-              saveToHistory({
-                hash,
-                path: url,
-                animeTitle: name,
-              })
-              // 如果用户选择不加载弹幕, 就直接开始播放
-              return setLoadingProgress(LoadingStatus.START_PLAY)
+          onSelected={async (params) => {
+            const { type } = params
+            switch (type) {
+              case 'XML':
+              case 'NONE':
+              case 'URL': {
+                await saveToHistory({
+                  hash,
+                  path: url,
+                  animeTitle: name,
+                  danmaku: params?.danmaku,
+                })
+                setCurrentMatchedVideo({
+                  ...currentMatchedVideo,
+                  episodeId: -1,
+                })
+                break
+              }
+              case 'LIST': {
+                setCurrentMatchedVideo({
+                  episodeId: params.episodeId,
+                  animeTitle: params.animeTitle,
+                  episodeTitle: params.episodeTitle,
+                  animeId: params.animeId,
+                })
+                break
+              }
             }
+            // 如果用户选择不加载弹幕
+              // 保存到历史记录
+
+              // 如果用户选择不加载弹幕, 就直接开始播放
             // 如果用户手动选择了弹幕库，就使用用户选择的弹幕库，之后就会触发 useDanmuData() 里的 useQuery 和 useEffect
-            setCurrentMatchedVideo(params)
 
             // 因为用户手动选择了弹幕库，所以需要更新 queryClient 的数据, 确保下次加载的时候不会再次弹出对话框
-            queryClient.setQueryData([apiClient.match.Matchkeys.postVideoEpisodeId, hash], {
-              isMatched: true,
-              matches: [{ ...params }],
-            })
+            // queryClient.setQueryData([apiClient.match.Matchkeys.postVideoEpisodeId, hash], {
+            //   isMatched: true,
+            //   matches: [{ ...params }],
+            // })
           }}
           onClosed={clearPlayingVideo}
           isLoading
