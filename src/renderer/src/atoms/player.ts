@@ -42,6 +42,10 @@ export type MatchedVideoType = typeof initialMatchedVideo
 export const currentMatchedVideoAtom = atomWithReset<MatchedVideoType>(initialMatchedVideo)
 
 export const isLoadDanmakuAtom = atom((get) => get(currentMatchedVideoAtom).episodeId !== 0)
+
+export const isPlayingAtom = atom(
+  (get) => get(loadingDanmuProgressAtom) === LoadingStatus.START_PLAY,
+)
 export const useSetLoadingDanmuProgress = () => useSetAtom(loadingDanmuProgressAtom)
 
 export const useClearPlayingVideo = () => {
@@ -52,7 +56,7 @@ export const useClearPlayingVideo = () => {
   return () => {
     resetVideo()
     resetProgress()
-    resetCurrentMatchedVideo() 
+    resetCurrentMatchedVideo()
   }
 }
 

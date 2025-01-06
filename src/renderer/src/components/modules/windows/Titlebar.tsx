@@ -1,12 +1,21 @@
+import { isPlayingAtom } from '@renderer/atoms/player'
 import { ElECTRON_CUSTOM_TITLEBAR_HEIGHT, ELECTRON_WINDOWS_RADIUS } from '@renderer/constants'
 import { tipcClient } from '@renderer/lib/client'
 import { useQuery } from '@tanstack/react-query'
+import { useAtomValue } from 'jotai'
 
 export const Titlebar = () => {
   const { data: isMaximized, refetch } = useQuery({
     queryFn: () => tipcClient?.getWindowIsMaximized(),
     queryKey: ['windowIsMaximized'],
   })
+
+  const isPlaying = useAtomValue(isPlayingAtom)
+
+  // Hide titlebar when playing
+  if (isPlaying) {
+    return null
+  }
 
   return (
     <div
