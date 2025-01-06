@@ -11,6 +11,7 @@ import { parseDanmakuData } from '@renderer/lib/danmaku'
 import queryClient from '@renderer/lib/query-client'
 import { isWeb } from '@renderer/lib/utils'
 import { apiClient } from '@renderer/request'
+import type { CommentModel } from '@renderer/request/models/comment'
 import { useMutation } from '@tanstack/react-query'
 import { useAtomValue } from 'jotai'
 import type { FormEvent } from 'react'
@@ -36,6 +37,11 @@ export const AddDanmaku = () => {
         toast({ title: '没有找到弹幕' })
         return
       }
+      if (!player) {
+        return
+      }
+      addDanmakuToPlayer(matchedDanmaku.comments)
+
       const _damaku = [
         ...(danmaku ?? []),
         { type: 'third-party-manual', selected: true, source: url, content: matchedDanmaku },
@@ -87,43 +93,54 @@ export const AddDanmaku = () => {
     }
   }, [])
 
+  const addDanmakuToPlayer = useCallback(
+    (danmuData?: CommentModel[]) => {
+      if (!player) {
+        return
+      }
+      const oldDanmaku = player.danmu?.config.comments
+
+      const parsedDanmaku = parseDanmakuData({
+        danmuData,
+        duration: +danmakuDuration,
+      })
+
+      const mergedDanmakus = [...(oldDanmaku || []), ...(parsedDanmaku || [])]
+      player.danmu?.clear()
+
+      player.danmu?.updateComments(mergedDanmakus, true)
+      setResponsiveDanmakuConfig(player)
+    },
+    [danmakuDuration, player, setResponsiveDanmakuConfig],
+  )
+
   const handleImportDanmakuFile = useCallback(async () => {
-    const bilibiliDanmakuData = await tipcClient?.immportDanmakuFile()
-    if (!bilibiliDanmakuData?.ok || !bilibiliDanmakuData.data?.danmaku) {
-      bilibiliDanmakuData?.message && toast({ title: bilibiliDanmakuData?.message })
+    const danmakuFile = await tipcClient?.immportDanmakuFile()
+    const danmakuFileData = danmakuFile?.data
+    if (!danmakuFile?.ok || !danmakuFileData?.danmaku) {
+      danmakuFile?.message && toast({ title: danmakuFile?.message })
       return
     }
     if (!player) {
       return
     }
-    const isExisting = danmaku?.some((item) => item.source === bilibiliDanmakuData.data?.source)
+    const isExisting = danmaku?.some((item) => item.source === danmakuFileData?.source)
     if (isExisting) {
       toast({ title: '已经添加过该来源' })
       return
     }
 
-    const oldDanmaku = player.danmu?.config.comments
-
-    const parsedDanmaku = parseDanmakuData({
-      danmuData: bilibiliDanmakuData.data?.danmaku,
-      duration: +danmakuDuration,
-    })
-
-    const mergedDanmakus = [...(oldDanmaku || []), ...(parsedDanmaku || [])]
-    player.danmu?.clear()
-
-    player.danmu?.updateComments(mergedDanmakus, true)
-    setResponsiveDanmakuConfig(player)
+    addDanmakuToPlayer(danmakuFileData.danmaku)
 
     const _damaku = [
       ...(danmaku ?? []),
       {
         type: 'local',
         selected: true,
-        source: bilibiliDanmakuData.data?.source ?? '',
+        source: danmakuFileData?.source ?? '',
         content: {
-          count: bilibiliDanmakuData.data?.danmaku.length,
-          comments: bilibiliDanmakuData.data?.danmaku,
+          count: danmakuFileData?.danmaku.length,
+          comments: danmakuFileData?.danmaku,
         },
       },
     ] satisfies DB_Danmaku[]

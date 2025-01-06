@@ -86,7 +86,7 @@ export const MatchAnimeDialog: FC<MatchAnimeDialogProps> = (props) => {
           <Input placeholder="匹配的不正确? 手动输入动漫匹配弹幕库" onChange={handleSearchAnime} />
           <ScrollArea
             className={cn(
-              'relative mt-3 h-[450px] rounded-md border px-4',
+              'relative mt-3 h-[480px] rounded-md border px-4',
               !isLoading && 'h-[550px]',
             )}
           >

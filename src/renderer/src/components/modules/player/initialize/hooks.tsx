@@ -6,7 +6,8 @@ import PreviousEpisode from '@renderer/components/ui/xgplayer/plugins/previousEp
 import { db } from '@renderer/database/db'
 import { parseDanmakuData } from '@renderer/lib/danmaku'
 import { isWeb } from '@renderer/lib/utils'
-import type { Danmu,IPlayerOptions } from '@suemor/xgplayer'
+import type { CommentModel } from '@renderer/request/models/comment'
+import type { Danmu, IPlayerOptions } from '@suemor/xgplayer'
 import XgPlayer from '@suemor/xgplayer'
 import { useAtomValue } from 'jotai'
 import { useEffect, useRef, useState } from 'react'
@@ -59,10 +60,21 @@ export const useXgPlayer = (url: string) => {
           startTime,
         } as IPlayerOptions
 
+        let manualDanmaku: CommentModel[] = []
+
+        if (!isLoadDanmaku) {
+          manualDanmaku =
+            anime?.danmaku
+              ?.filter((item) => item.type === 'local' || item.type === 'third-party-manual')
+              .filter((danmaku) => danmaku.selected)
+              .map((danmaku) => danmaku?.content)
+              .flatMap((danmaku) => danmaku.comments) ?? []
+        }
+
         xgplayerConfig.danmu = {
           ...danmakuConfig,
           comments: parseDanmakuData({
-            danmuData: mergedDanmakuData,
+            danmuData: [...(mergedDanmakuData || []), ...manualDanmaku],
             duration: +danmakuDuration,
           }),
           fontSize: +danmakuFontSize,
@@ -71,7 +83,6 @@ export const useXgPlayer = (url: string) => {
             end: +danmakuEndArea,
           },
         }
-
 
         if (!isWeb) {
           xgplayerConfig.plugins = [...(xgplayerConfig.plugins || []), NextEpisode, PreviousEpisode]
