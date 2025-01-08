@@ -14,7 +14,7 @@ export const FieldsCardLayout: FC<FieldsCardLayoutProps> = ({ children, title, c
   return (
     <section
       className={cn(
-        'min-h-28 space-y-3 rounded-lg border bg-zinc-50 p-3 dark:bg-zinc-900',
+        'min-h-20 space-y-3 rounded-lg border bg-zinc-50 p-3 dark:bg-zinc-900',
         className,
       )}
     >

@@ -68,7 +68,7 @@ afterPack: scripts/cleaned-unused-arch-deps.js
 afterSign: scripts/notarize.js
 releaseInfo:
   releaseNotes: |
-    支持通过第三方平台导入弹幕
-    支持从本地弹幕 XML 文件导入弹幕
-    支持对不同平台的弹幕进行开关
-    能够显示弹幕是从哪个平台获取的
+    支持对正在播放的视频重新匹配弹幕库
+    设置新增开关自动续播
+    修复在播放视频时 windows titlebar 显示异常
+    修复拖入视频文件时在播放列表里无法正确显示

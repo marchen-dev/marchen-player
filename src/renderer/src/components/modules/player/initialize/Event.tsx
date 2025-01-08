@@ -1,4 +1,5 @@
 import { useClearPlayingVideo, videoAtom } from '@renderer/atoms/player'
+import { usePlayerSettingsValue } from '@renderer/atoms/settings/player'
 import { db } from '@renderer/database/db'
 import { tipcClient } from '@renderer/lib/client'
 import { isWeb } from '@renderer/lib/utils'
@@ -39,6 +40,7 @@ const usePlayerInitialize = (player: PlayerType | null | undefined) => {
   const { hash } = useAtomValue(videoAtom)
   const { importAnimeViaIPC } = useVideo()
   const resetVideo = useClearPlayingVideo()
+  const { enableAutomaticEpisodeSwitching } = usePlayerSettingsValue()
   // 需要对 xgplayer 自带的全屏事件进行重写，以适配 electron 的全屏
   const initializePlayerListener = useCallback(() => {
     if (isWeb) {
@@ -98,6 +100,8 @@ const usePlayerInitialize = (player: PlayerType | null | undefined) => {
     if (!player) {
       return
     }
+
+    // 进入窗口全屏
     player.getCssFullscreen()
 
     // 保存视频进度
@@ -114,6 +118,7 @@ const usePlayerInitialize = (player: PlayerType | null | undefined) => {
       }, 2000),
     )
 
+    // 视频加载完成后，截取缩略图
     player.on(Events.LOADED_METADATA, (data) => {
       if (!isWeb) {
         const { duration } = data
@@ -124,6 +129,7 @@ const usePlayerInitialize = (player: PlayerType | null | undefined) => {
       })
     })
 
+    // 视频播放结束, 更新播放进度并请求下一集
     player.on(Events.ENDED, async () => {
       if (!hash) {
         return
@@ -132,7 +138,9 @@ const usePlayerInitialize = (player: PlayerType | null | undefined) => {
       await db.history.update(hash, {
         progress: latestAnime?.duration,
       })
-
+      if (!enableAutomaticEpisodeSwitching || isWeb) {
+        return
+      }
       const urlList = player.config.nextEpisode.urlList as string[]
       const nextAnimeUrl = urlList?.indexOf(player.config.url as string)
       if (nextAnimeUrl === urlList.length - 1) {

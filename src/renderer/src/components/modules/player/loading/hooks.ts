@@ -66,8 +66,7 @@ export const useVideo = () => {
       url = `${MARCHEN_PROTOCOL_PREFIX}${path}`
       tipcClient?.addRecentDocument({ path })
     }
-    const { size, name } = file
-    const fileName = name.slice(0, Math.max(0, name.lastIndexOf('.'))) || name
+    const { size, name:fileName } = file
     try {
       const hash = await calculateFileHash(file)
       setVideo((prev) => ({ ...prev, url, hash, size, name: fileName, playList }))

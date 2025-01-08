@@ -1,4 +1,4 @@
-import { DanmakuSetting } from '@renderer/components/modules/settings/views/player/Player'
+import { DanmakuSetting } from '@renderer/components/modules/settings/views/player/DanmakuSetting'
 import { memo } from 'react'
 
 import { AddDanmaku } from './AddDanmaku'

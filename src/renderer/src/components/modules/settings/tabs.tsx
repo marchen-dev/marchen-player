@@ -2,7 +2,7 @@ import type { ReactNode } from 'react'
 
 import { AboutView } from './views/about/About'
 import { AppearanceView } from './views/apperance/Appearance'
-import { PlayerView } from './views/player/Player'
+import { PlayerView } from './views/player'
 
 export const settingTabs = [
   {

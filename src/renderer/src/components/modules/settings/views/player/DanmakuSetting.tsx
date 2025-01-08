@@ -3,16 +3,8 @@ import { SettingSelect } from '@renderer/components/modules/shared/setting/Setti
 import type { FC, PropsWithChildren } from 'react'
 import { useMemo } from 'react'
 
-import { FieldLayout, FieldsCardLayout, SettingViewContainer } from '../Layout'
+import { FieldLayout, FieldsCardLayout } from '../Layout'
 import { danmakuDurationList, danmakuEndAreaList, danmakuFontSizeList } from './list'
-
-export const PlayerView = () => {
-  return (
-    <SettingViewContainer>
-      <DanmakuSetting />
-    </SettingViewContainer>
-  )
-}
 
 interface DanmakuSettingProps extends PropsWithChildren {
   classNames?: { cardLayout?: string }
@@ -34,7 +26,6 @@ export const DanmakuSetting: FC<DanmakuSettingProps> = (props) => {
   // TODO 完成繁体转简体
   return (
     <CardLayout>
-      
       {/* <FieldLayout title="繁体转简体">
         <SettingSwitch
           value={playerSetting.enableTraditionalToSimplified}
