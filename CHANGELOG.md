@@ -1,5 +1,22 @@
 # CHANGELOG
 
+## [0.0.1-beta.3](https://github.com/marchen-dev/marchen-player/compare/v0.0.1-beta.2...v0.0.1-beta.3) (2025-01-08)
+
+
+### Bug Fixes
+
+* adjust windows titlebar when playing ([57ef400](https://github.com/marchen-dev/marchen-player/commit/57ef400779da4f6edc04be7692f255e3b6684c11))
+* manual danmaku cannot be displayed ([4c9d039](https://github.com/marchen-dev/marchen-player/commit/4c9d039fedb2b9873f305afd675dae10dc9b3e36))
+
+
+### Features
+
+* add auto play next setting ([bd68742](https://github.com/marchen-dev/marchen-player/commit/bd687426f7d2820cb25a51cd086536f4381ee810))
+* add user-select none ([dde17c7](https://github.com/marchen-dev/marchen-player/commit/dde17c700c1580f9e29676a59d2511f7303586d9))
+* support rematch danmaku ([310f717](https://github.com/marchen-dev/marchen-player/commit/310f717f2e1883c384b472a2265ddd979bfb034f))
+
+
+
 ## [0.0.1-beta.2](https://github.com/marchen-dev/marchen-player/compare/v0.0.1-beta.1...v0.0.1-beta.2) (2024-12-27)
 
 
