@@ -8,3 +8,7 @@ body,
 #root {
   @apply font-theme box-border;
 }
+
+* {
+  user-select: none;
+}
