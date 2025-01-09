@@ -1,3 +1,6 @@
+import fs from 'node:fs'
+
+import { subtitlesPath } from '@main/constants/app'
 import { getMainWindow } from '@main/windows/main'
 import { app } from 'electron'
 
@@ -22,6 +25,8 @@ export const clearAllData = async () => {
       ],
     })
     app.clearRecentDocuments()
+
+    fs.rmSync(subtitlesPath(), { recursive: true })
     win.reload()
   } catch (error: any) {
     console.error('Failed to clear data:', error)
