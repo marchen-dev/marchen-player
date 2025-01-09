@@ -77,7 +77,7 @@ export const useSubtitle = () => {
 
   const fetchSubtitleBody = useCallback(
     async (params: FetchSubtitleBodyParams) => {
-      const { id, path } = params
+      const { id, path, fileName } = params
 
       // Web 端直接设置字幕路径, 不进行 indexdb 记录
       if (isWeb) {
@@ -94,15 +94,19 @@ export const useSubtitle = () => {
         if (minimumId === undefined || minimumId >= -1) {
           minimumId = -1
         }
+        const splitedFileName = fileName.split('.')
+        const baseTitle = `外部字幕 - ${Math.abs(minimumId)}`
+
+        // 通过文件名获取字幕标题 ex: 动漫名称.scjp.ass
+        // scjp
+        const title =
+          splitedFileName.length >= 3 ? (splitedFileName.at(-2) ?? baseTitle) : baseTitle
 
         db.history.update(hash, {
           subtitles: {
             timeOffset: oldHistory?.subtitles?.timeOffset ?? 0,
             defaultId: minimumId - 1,
-            tags: [
-              ...(oldHistory?.subtitles?.tags ?? []),
-              { id: minimumId - 1, path, title: `外部字幕 - ${Math.abs(minimumId)}` },
-            ],
+            tags: [...(oldHistory?.subtitles?.tags ?? []), { id: minimumId - 1, path, title }],
           },
         })
 
@@ -168,11 +172,24 @@ export const useSubtitle = () => {
     [data?.tags, url, hash, setSubtitlesOctopus],
   )
 
-  const initializeSubtitle = useCallback(() => {
-    if (data?.defaultId !== undefined && data?.defaultId !== -1) {
-      fetchSubtitleBody({ id: data.defaultId })
+  const initializeSubtitle = useCallback(async () => {
+    try {
+      // 优先使用默认字幕
+      if (data?.defaultId !== undefined && data?.defaultId !== -1) {
+        return await fetchSubtitleBody({ id: data.defaultId })
+      }
+
+      // 读取文件夹下的字幕文件
+      const localSubtitles = await tipcClient?.matchSubtitleFile({ path: url })
+      if (!localSubtitles || localSubtitles.length === 0) {
+        return
+      }
+      const { fileName, filePath } = localSubtitles[0]
+      await fetchSubtitleBody({ path: filePath, fileName })
+    } catch (error) {
+      console.error(error)
     }
-  }, [data?.defaultId, fetchSubtitleBody])
+  }, [data, fetchSubtitleBody, url])
 
   return {
     subtitlesData: data,

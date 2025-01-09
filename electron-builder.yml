@@ -68,7 +68,6 @@ afterPack: scripts/cleaned-unused-arch-deps.js
 afterSign: scripts/notarize.js
 releaseInfo:
   releaseNotes: |
-    支持对正在播放的视频重新匹配弹幕库
-    设置新增开关自动续播
-    修复在播放视频时 windows titlebar 显示异常
-    修复拖入视频文件时在播放列表里无法正确显示
+    支持自动挂载文件夹下的字幕文件
+    支持显示字幕文件的语言
+    捕获了一些错误, 提高程序的稳定性

@@ -143,7 +143,7 @@ export const playerRoute = {
     if (!extName) {
       return
     }
-    if (extName === 'ass' || extName === 'ssa') {
+    if (extName === '.ass' || extName === '.ssa') {
       return {
         fileName: path.basename(filePath),
         filePath,
@@ -166,6 +166,23 @@ export const playerRoute = {
       const ffmpeg = new FFmpeg(getFilePathFromProtocolURL(input.path))
       return ffmpeg.extractSubtitles(input.index)
     }),
+  matchSubtitleFile: t.procedure.input<{ path: string }>().action(async ({ input }) => {
+    const filePath = getFilePathFromProtocolURL(input.path)
+    if (!fs.existsSync(filePath)) {
+      return
+    }
+    const filePrefix = path.basename(filePath).split('.')[0]
+    const directoryPath = path.dirname(filePath)
+
+    const matchedFiles = fs
+      .readdirSync(path.dirname(filePath))
+      .filter((file) => file.startsWith(filePrefix) && file !== path.basename(filePath))
+      .map((file) => ({
+        fileName: file,
+        filePath: path.join(directoryPath, file),
+      }))
+    return matchedFiles
+  }),
   immportDanmakuFile: t.procedure.action(async () => {
     // 确保不重复打开对话框
     if (isDialogOpen) {
