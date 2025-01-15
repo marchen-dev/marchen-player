@@ -41,7 +41,9 @@ const TimelineItem: FC<TimelineProps> = (props) => {
       <div className="timeline-middle">
         <CompleteIcon isHighLight={isHighLight} />
       </div>
-      <div className={cn('timeline-box select-none', index % 2 ? 'timeline-end' : 'timeline-start')}>
+      <div
+        className={cn('timeline-box select-none', index % 2 ? 'timeline-end' : 'timeline-start')}
+      >
         {title}
       </div>
       {!end && <hr className={cn(isHighLight && 'bg-primary')} />}

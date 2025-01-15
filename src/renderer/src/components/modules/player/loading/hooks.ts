@@ -356,7 +356,6 @@ export const useLoadingHistoricalAnime = () => {
     const animeData = await tipcClient?.getAnimeDetailByPath({ path: anime.path })
     if (!animeData?.ok) {
       showFailedToast({ title: '播放失败', description: animeData?.message || '未找到历史记录' })
-      handleDeleteHistory(anime.hash)
       return
     }
     const { fileName, fileSize, fileHash } = animeData
