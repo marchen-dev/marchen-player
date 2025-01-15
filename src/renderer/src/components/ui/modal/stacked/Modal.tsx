@@ -14,16 +14,7 @@ import type {
   PropsWithChildren,
   SyntheticEvent,
 } from 'react'
-import {
-  createElement,
-  forwardRef,
-  Fragment,
-  memo,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-} from 'react'
+import { createElement, Fragment, memo, useCallback, useEffect, useMemo, useRef } from 'react'
 
 import { CloseIcon } from '../../../icons/Close'
 import { Divider } from '../../divider'
@@ -37,235 +28,232 @@ interface ModalInternalProps extends PropsWithChildren {
   index: number
   isTop: boolean
   onClose?: (open: boolean) => void
+  ref?: ForwardedRef<HTMLDivElement>
 }
 
-export const ModalInternal: FC<ModalInternalProps> = memo(
-  forwardRef(function Modal(props, ref: ForwardedRef<HTMLDivElement>) {
-    const { item, index, isTop, onClose: onPropsClose, children } = props
-    const setStack = useSetAtom(modalStackAtom)
-    const close = useEventCallback(() => {
-      setStack((p) => p.filter((stack) => stack.id !== item.id))
-      onPropsClose?.(false)
-    })
+export const ModalInternal: FC<ModalInternalProps> = memo(function Modal({ ref, ...props }) {
+  const { item, index, isTop, onClose: onPropsClose, children } = props
+  const setStack = useSetAtom(modalStackAtom)
+  const close = useEventCallback(() => {
+    setStack((p) => p.filter((stack) => stack.id !== item.id))
+    onPropsClose?.(false)
+  })
 
-    const currentIsClosing = useAtomValue(
-      useMemo(
-        () =>
-          selectAtom(modalStackAtom, (atomValue) =>
-            atomValue.every((modal) => modal.id !== item.id),
-          ),
-        [item.id],
-      ),
-    )
-    useEffect(() => {
-      if (currentIsClosing) {
-        document.body.style.pointerEvents = 'auto'
-      }
-    }, [currentIsClosing])
-
-    const onClose = useCallback(
-      (open: boolean) => {
-        if (!open) {
-          close()
-        }
-      },
-      [close],
-    )
-
-    const {
-      wrapper: Wrapper = Fragment,
-      CustomModalComponent,
-      clickOutsideToDismiss,
-      classNames,
-      title,
-      max,
-      content,
-    } = item
-
-    const zIndexStyle = useMemo(() => ({ zIndex: MODAL_STACK_Z_INDEX + index + 1 }), [index])
-
-    const dismiss = useCallback(
-      (e: SyntheticEvent) => {
-        stopPropagation(e)
-        close()
-      },
-      [close],
-    )
-
-    const isUnmounted = useIsUnMounted()
-    const animateController = useAnimationControls()
-    const dragController = useDragControls()
-    const handleDrag: PointerEventHandler<HTMLDivElement> = useCallback(
-      (e) => {
-        dragController.start(e)
-      },
-      [dragController],
-    )
-
-    const isSelectingRef = useRef(false)
-    const handleSelectStart = useCallback(() => {
-      isSelectingRef.current = true
-    }, [])
-
-    useEffect(() => {
-      nextFrame(() => {
-        animateController.start(modalMotionConfig.animate as AnimationDefinition)
-      })
-    }, [animateController])
-
-    const noticeModal = useCallback(() => {
-      animateController
-        .start({
-          scale: 1.05,
-          transition: {
-            duration: 0.06,
-          },
-        })
-        .then(() => {
-          if (isUnmounted.current) return
-          animateController.start({
-            scale: 1,
-          })
-        })
-    }, [animateController])
-
-    useEffect(() => {
-      if (isTop) return
-      animateController.start({
-        scale: 0.96,
-        y: 10,
-      })
-      return () => {
-        try {
-          animateController.stop()
-          animateController.start({
-            scale: 1,
-            y: 0,
-          })
-        } catch {
-          /* empty */
-        }
-      }
-    }, [isTop])
-
-    const ModalProps: ModalContentPropsInternal = useMemo(
-      () => ({
-        dismiss: () => close(),
-      }),
-      [close],
-    )
-
-    const edgeElementRef = useRef<HTMLDivElement>(null)
-
-    const modalContentRef = useRef<HTMLDivElement>(null)
-
-    const modalContextProps = useMemo<currentModalContextProps>(
-      () => ({
-        ...ModalProps,
-        ref: modalContentRef,
-      }),
-      [ModalProps],
-    )
-    const finalChildren = (
-      <CurrentModalContext.Provider value={modalContextProps}>
-        {children ?? createElement(content, ModalProps)}
-      </CurrentModalContext.Provider>
-    )
-    if (CustomModalComponent) {
-      return (
-        <Wrapper>
-          <Dialog.Root open onOpenChange={onClose}>
-            <Dialog.Portal>
-              <Dialog.Content asChild ref={modalContentRef}>
-                <div
-                  className={cn(
-                    'fixed inset-0 z-20 overflow-auto',
-                    currentIsClosing ? '!pointer-events-none' : 'pointer-events-auto',
-
-                    classNames?.modalContainerClassName,
-                  )}
-                  onClick={clickOutsideToDismiss ? dismiss : undefined}
-                  style={zIndexStyle}
-                >
-                  <Dialog.Title className="sr-only">{title}</Dialog.Title>
-                  <div className="contents" onClick={stopPropagation}>
-                    <CustomModalComponent>{finalChildren}</CustomModalComponent>
-                  </div>
-                </div>
-              </Dialog.Content>
-            </Dialog.Portal>
-          </Dialog.Root>
-        </Wrapper>
-      )
+  const currentIsClosing = useAtomValue(
+    useMemo(
+      () =>
+        selectAtom(modalStackAtom, (atomValue) => atomValue.every((modal) => modal.id !== item.id)),
+      [item.id],
+    ),
+  )
+  useEffect(() => {
+    if (currentIsClosing) {
+      document.body.style.pointerEvents = 'auto'
     }
+  }, [currentIsClosing])
 
+  const onClose = useCallback(
+    (open: boolean) => {
+      if (!open) {
+        close()
+      }
+    },
+    [close],
+  )
+
+  const {
+    wrapper: Wrapper = Fragment,
+    CustomModalComponent,
+    clickOutsideToDismiss,
+    classNames,
+    title,
+    max,
+    content,
+  } = item
+
+  const zIndexStyle = useMemo(() => ({ zIndex: MODAL_STACK_Z_INDEX + index + 1 }), [index])
+
+  const dismiss = useCallback(
+    (e: SyntheticEvent) => {
+      stopPropagation(e)
+      close()
+    },
+    [close],
+  )
+
+  const isUnmounted = useIsUnMounted()
+  const animateController = useAnimationControls()
+  const dragController = useDragControls()
+  const handleDrag: PointerEventHandler<HTMLDivElement> = useCallback(
+    (e) => {
+      dragController.start(e)
+    },
+    [dragController],
+  )
+
+  const isSelectingRef = useRef(false)
+  const handleSelectStart = useCallback(() => {
+    isSelectingRef.current = true
+  }, [])
+
+  useEffect(() => {
+    nextFrame(() => {
+      animateController.start(modalMotionConfig.animate as AnimationDefinition)
+    })
+  }, [animateController])
+
+  const noticeModal = useCallback(() => {
+    animateController
+      .start({
+        scale: 1.05,
+        transition: {
+          duration: 0.06,
+        },
+      })
+      .then(() => {
+        if (isUnmounted.current) return
+        animateController.start({
+          scale: 1,
+        })
+      })
+  }, [animateController])
+
+  useEffect(() => {
+    if (isTop) return
+    animateController.start({
+      scale: 0.96,
+      y: 10,
+    })
+    return () => {
+      try {
+        animateController.stop()
+        animateController.start({
+          scale: 1,
+          y: 0,
+        })
+      } catch {
+        /* empty */
+      }
+    }
+  }, [isTop])
+
+  const ModalProps: ModalContentPropsInternal = useMemo(
+    () => ({
+      dismiss: () => close(),
+    }),
+    [close],
+  )
+
+  const edgeElementRef = useRef<HTMLDivElement>(null)
+
+  const modalContentRef = useRef<HTMLDivElement>(null)
+
+  const modalContextProps = useMemo<currentModalContextProps>(
+    () => ({
+      ...ModalProps,
+      ref: modalContentRef,
+    }),
+    [ModalProps],
+  )
+  const finalChildren = (
+    <CurrentModalContext value={modalContextProps}>
+      {children ?? createElement(content, ModalProps)}
+    </CurrentModalContext>
+  )
+  if (CustomModalComponent) {
     return (
       <Wrapper>
         <Dialog.Root open onOpenChange={onClose}>
           <Dialog.Portal>
             <Dialog.Content asChild ref={modalContentRef}>
               <div
-                ref={edgeElementRef}
-                id="modal-container"
                 className={cn(
-                  'fixed inset-0 z-20 flex items-center justify-center',
+                  'fixed inset-0 z-20 overflow-auto',
                   currentIsClosing ? '!pointer-events-none' : 'pointer-events-auto',
+
                   classNames?.modalContainerClassName,
                 )}
+                onClick={clickOutsideToDismiss ? dismiss : undefined}
                 style={zIndexStyle}
-                onClick={clickOutsideToDismiss ? dismiss : noticeModal}
               >
-                <m.div
-                  id="modal"
-                  ref={ref}
-                  style={zIndexStyle}
-                  {...modalMotionConfig}
-                  animate={animateController}
-                  className={cn(
-                    'relative flex flex-col overflow-hidden rounded-lg',
-                    'bg-zinc-50/90 dark:bg-neutral-900/90',
-                    'p-2 shadow-2xl shadow-stone-300 backdrop-blur-sm dark:shadow-md dark:shadow-stone-800',
-                    max
-                      ? 'h-[90vh] w-[90vw]'
-                      : 'max-h-[70vh] min-w-[300px] max-w-[90vw] lg:max-h-[calc(100vh-20rem)] lg:max-w-[70vw]',
-
-                    'border border-slate-200 dark:border-neutral-800',
-                    classNames?.modalClassName,
-                  )}
-                  onClick={stopPropagation}
-                  onKeyUp={handleSelectStart}
-                  drag
-                  dragControls={dragController}
-                  dragElastic={0}
-                  dragListener={false}
-                  dragMomentum={false}
-                  dragConstraints={edgeElementRef}
-                  whileDrag={{
-                    cursor: 'grabbing',
-                  }}
-                >
-                  <div className="relative flex items-center" onPointerDownCapture={handleDrag}>
-                    <Dialog.Title className="flex shrink-0 grow items-center gap-2 px-2.5 py-1 text-lg font-semibold">
-                      <span>{title}</span>
-                    </Dialog.Title>
-                    <Dialog.DialogClose
-                      onClick={close}
-                      className={`absolute right-0 top-0 z-[9] cursor-auto p-2`}
-                    >
-                      <CloseIcon />
-                    </Dialog.DialogClose>
-                  </div>
-                  <Divider className="mb-0 mt-2 shrink-0 border-slate-200 opacity-80 dark:border-neutral-800" />
-
-                  <div className="h-full shrink grow ">{finalChildren}</div>
-                </m.div>
+                <Dialog.Title className="sr-only">{title}</Dialog.Title>
+                <div className="contents" onClick={stopPropagation}>
+                  <CustomModalComponent>{finalChildren}</CustomModalComponent>
+                </div>
               </div>
             </Dialog.Content>
           </Dialog.Portal>
         </Dialog.Root>
       </Wrapper>
     )
-  }),
-)
+  }
+
+  return (
+    <Wrapper>
+      <Dialog.Root open onOpenChange={onClose}>
+        <Dialog.Portal>
+          <Dialog.Content asChild ref={modalContentRef}>
+            <div
+              ref={edgeElementRef}
+              id="modal-container"
+              className={cn(
+                'fixed inset-0 z-20 flex items-center justify-center',
+                currentIsClosing ? '!pointer-events-none' : 'pointer-events-auto',
+                classNames?.modalContainerClassName,
+              )}
+              style={zIndexStyle}
+              onClick={clickOutsideToDismiss ? dismiss : noticeModal}
+            >
+              <m.div
+                id="modal"
+                ref={ref}
+                style={zIndexStyle}
+                {...modalMotionConfig}
+                animate={animateController}
+                className={cn(
+                  'relative flex flex-col overflow-hidden rounded-lg',
+                  'bg-zinc-50/90 dark:bg-neutral-900/90',
+                  'p-2 shadow-2xl shadow-stone-300 backdrop-blur-sm dark:shadow-md dark:shadow-stone-800',
+                  max
+                    ? 'h-[90vh] w-[90vw]'
+                    : 'max-h-[70vh] min-w-[300px] max-w-[90vw] lg:max-h-[calc(100vh-20rem)] lg:max-w-[70vw]',
+
+                  'border border-slate-200 dark:border-neutral-800',
+                  classNames?.modalClassName,
+                )}
+                onClick={stopPropagation}
+                onKeyUp={handleSelectStart}
+                drag
+                dragControls={dragController}
+                dragElastic={0}
+                dragListener={false}
+                dragMomentum={false}
+                dragConstraints={edgeElementRef}
+                whileDrag={{
+                  cursor: 'grabbing',
+                }}
+              >
+                <div className="relative flex items-center" onPointerDownCapture={handleDrag}>
+                  <Dialog.Title className="flex shrink-0 grow items-center gap-2 px-2.5 py-1 text-lg font-semibold">
+                    <span>{title}</span>
+                  </Dialog.Title>
+                  <Dialog.DialogClose
+                    onClick={close}
+                    className={`absolute right-0 top-0 z-[9] cursor-auto p-2`}
+                  >
+                    <CloseIcon />
+                  </Dialog.DialogClose>
+                </div>
+                <Divider className="mb-0 mt-2 shrink-0 border-slate-200 opacity-80 dark:border-neutral-800" />
+
+                <div className="h-full shrink grow ">{finalChildren}</div>
+              </m.div>
+            </div>
+          </Dialog.Content>
+        </Dialog.Portal>
+      </Dialog.Root>
+    </Wrapper>
+  )
+})
 
 export default ModalInternal

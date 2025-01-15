@@ -8,7 +8,7 @@ import { PROJECT_NAME } from '@renderer/constants'
 import { updateProgressAtom, useNetworkStatus } from '@renderer/initialize/network'
 import { tipcClient } from '@renderer/lib/client'
 import { getStorageNS } from '@renderer/lib/ns'
-import { cn, isMac } from '@renderer/lib/utils'
+import { cn, isMac, isWeb } from '@renderer/lib/utils'
 import type { SidebarRouteObject } from '@renderer/router'
 import { RouteName, siderbarRoutes } from '@renderer/router'
 import { useAtomValue } from 'jotai'
@@ -47,8 +47,14 @@ export const Sidebar = () => {
         </nav>
       </div>
       <div className="mb-3">
-        <NetWorkCheck />
-        <UpdateProgress />
+        {isWeb ? (
+          <DownloadClient />
+        ) : (
+          <>
+            <NetWorkCheck />
+            <UpdateProgress />
+          </>
+        )}
       </div>
     </div>
   )
@@ -71,6 +77,24 @@ const NavLinkItem: FC<SidebarRouteObject> = ({ path, meta }) => {
         <span>{title}</span>
       </p>
     </NavLink>
+  )
+}
+
+export const DownloadClient = () => {
+  return (
+    <div className="text-center">
+      <Button variant="outline" asChild>
+        <a
+          href="https://github.com/marchen-dev/marchen-player/releases/latest"
+          target="_blank"
+          rel="noreferrer"
+          className="cursor-default"
+        >
+          <i className={cn('icon-[mingcute--download-2-fill]', 'mr-1 text-lg')} />
+          下载客户端
+        </a>
+      </Button>
+    </div>
   )
 }
 

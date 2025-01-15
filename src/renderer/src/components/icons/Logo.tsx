@@ -1,9 +1,8 @@
 import { useAppTheme } from '@renderer/hooks/theme'
 import { cn } from '@renderer/lib/utils'
 import type { FC } from 'react'
-import { forwardRef } from 'react'
 
-const LogoSvg = forwardRef<SVGSVGElement, React.SVGProps<SVGSVGElement>>((props, ref) => (
+const LogoSvg = ({ ref, ...props }: React.SVGProps<SVGSVGElement> & { ref?: React.RefObject<SVGSVGElement> }) => (
   <svg
     version="1.0"
     xmlns="http://www.w3.org/2000/svg"
@@ -38,7 +37,7 @@ const LogoSvg = forwardRef<SVGSVGElement, React.SVGProps<SVGSVGElement>>((props,
       />
     </g>
   </svg>
-))
+)
 
 export const Logo: FC<{ clasNames?: { wrapper?: string; icon?: string }; round?: boolean }> = (
   props,

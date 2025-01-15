@@ -68,6 +68,6 @@ afterPack: scripts/cleaned-unused-arch-deps.js
 afterSign: scripts/notarize.js
 releaseInfo:
   releaseNotes: |
-    支持自动挂载文件夹下的字幕文件
-    支持显示字幕文件的语言
-    捕获了一些错误, 提高程序的稳定性
+    修复历史记录丢失问题
+    新增联系作者功能
+    Web 版本添加下载客户端功能

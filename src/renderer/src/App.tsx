@@ -1,12 +1,10 @@
-import type { JSX} from 'react';
-import { useEffect } from 'react'
+import type { JSX } from 'react'
 
 import { RootLayout } from './components/layout/root/RootLayout'
 import { Sidebar } from './components/layout/sidebar'
-import { Titlebar } from './components/modules/windows/Titlebar'
+import { Prepare } from './components/modules/app/Prepare'
 import AnimatedOutlet from './components/ui/animate/AnimatedOutlet'
-import { appLog } from './lib/log'
-import { cn, isWeb, isWindows } from './lib/utils'
+import { isWeb } from './lib/utils'
 import { RootProviders } from './providers'
 import { TipcListener } from './providers/TipcListener'
 
@@ -21,29 +19,6 @@ function App(): JSX.Element {
         {!isWeb && <TipcListener />}
       </RootLayout>
     </RootProviders>
-  )
-}
-
-const Prepare = () => {
-  useEffect(() => {
-    const doneTime = Math.trunc(performance.now())
-
-    appLog('App is ready', `${doneTime}ms`)
-  }, [])
-
-  if (isWeb) {
-    return
-  }
-  return (
-    <div
-      className={cn(
-        'drag-region absolute inset-x-0 top-0 h-12 shrink-0',
-        isWindows && 'pointer-events-none z-[9999]',
-      )}
-      aria-hidden
-    >
-      {isWindows && <Titlebar />}
-    </div>
   )
 }
 

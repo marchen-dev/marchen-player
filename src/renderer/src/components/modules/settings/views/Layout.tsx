@@ -1,6 +1,5 @@
 import { cn } from '@renderer/lib/utils'
 import type { FC, PropsWithChildren, ReactNode } from 'react'
-import { forwardRef } from 'react'
 
 export const SettingViewContainer: FC<PropsWithChildren> = ({ children }) => {
   return <div className="space-y-4 p-5">{children}</div>
@@ -28,13 +27,11 @@ interface FieldLayoutProps extends PropsWithChildren {
   title?: ReactNode
 }
 
-export const FieldLayout = forwardRef<HTMLDivElement, FieldLayoutProps>(
-  ({ children, title }, ref) => {
+export const FieldLayout = ({ ref, children, title }: FieldLayoutProps & { ref?: React.RefObject<HTMLDivElement> }) => {
     return (
       <div className="flex items-center justify-between " ref={ref}>
         <span className="font-medium">{title}</span>
         {children}
       </div>
     )
-  },
-)
+  }
