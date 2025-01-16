@@ -41,6 +41,8 @@ Marchen 是本地视频弹幕播放器，使用 [弹弹play API](https://github.
 ## 🔧 开发
 
 ```bash
+$ corepack enable
+
 $ git clone https://github.com/marchen-dev/marchen-player.git
 
 $ pnpm install
