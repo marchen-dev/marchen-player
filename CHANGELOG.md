@@ -1,5 +1,24 @@
 # CHANGELOG
 
+## [0.0.1-beta.4](https://github.com/marchen-dev/marchen-player/compare/v0.0.1-beta.3...v0.0.1-beta.4) (2025-01-16)
+
+
+### Bug Fixes
+
+* history records lost ([1106edb](https://github.com/marchen-dev/marchen-player/commit/1106edb46978c15527145fc70b076ebc90dbd6c5))
+* playlist title cannot be displayed ([fca55ae](https://github.com/marchen-dev/marchen-player/commit/fca55ae90d65770b6d93e65a55169ea8050c701e))
+
+
+### Features
+
+* add ci secrets ([c8eeeb5](https://github.com/marchen-dev/marchen-player/commit/c8eeeb54343af08881b55569a794ccddad64771b))
+* add social media button ([1f90654](https://github.com/marchen-dev/marchen-player/commit/1f9065442566519f4f89e64412ec5595a4c56b28))
+* optimize icon click effect ([2cf1398](https://github.com/marchen-dev/marchen-player/commit/2cf139859967f94a2541b28c27bc46c4253c2c11))
+* support automatically mount subtitle files in the folder ([5c066e1](https://github.com/marchen-dev/marchen-player/commit/5c066e193a88bdf34a08fc18501c41edc56b2ef5))
+* support clear danmaku cache ([ce97d2c](https://github.com/marchen-dev/marchen-player/commit/ce97d2c38f2a9e574aae251fe3fd27e0e8ada1a4))
+
+
+
 ## [0.0.1-beta.3](https://github.com/marchen-dev/marchen-player/compare/v0.0.1-beta.2...v0.0.1-beta.3) (2025-01-08)
 
 
