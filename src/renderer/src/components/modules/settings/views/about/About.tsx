@@ -33,7 +33,7 @@ export const AboutView = () => {
         </div>
       </FieldsCardLayout>
 
-      <FieldsCardLayout title="联系作者">
+      <FieldsCardLayout title="问题反馈">
         <div className="grid grid-cols-4 gap-3">
           {SocialMediaList.map((item) => (
             <Button variant="outline" key={item.name} className="cursor-default" size="sm" asChild>

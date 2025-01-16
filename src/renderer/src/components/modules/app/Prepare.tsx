@@ -15,17 +15,12 @@ export const Prepare = () => {
 
     appLog('App is ready', `${doneTime}ms`)
 
-    if (isWeb) {
-      return appLog(
-        'Download the Marchen Player client from github',
-        'https://github.com/marchen-dev/marchen-player',
-      )
+    if (!isWeb) {
+      setAppSettings((old) => ({
+        ...old,
+        firstOpen: false,
+      }))
     }
-
-    setAppSettings((old) => ({
-      ...old,
-      firstOpen: false,
-    }))
   }, [])
 
   if (isWeb) {
@@ -53,14 +48,18 @@ const PrepareForWeb = () => {
   const { firstOpen } = appSettings
 
   useEffect(() => {
+    appLog(
+      'Download the Marchen Player client from github',
+      'https://github.com/marchen-dev/marchen-player',
+    )
     if (!firstOpen) {
       return
     }
     const clear = setTimeout(() => {
       toast({
         title: '下载客户端',
-        description: '客户端版本提供更好的体验',
-        duration: 7000,
+        description: '客户端版本获得完整的体验',
+        duration: 10000,
         action: <DownloadClient />,
       })
       setAppSettings((old) => ({

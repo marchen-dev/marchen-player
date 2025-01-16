@@ -2,7 +2,7 @@ import { useAppSettingsValue } from '@renderer/atoms/settings/app'
 import Show from '@renderer/components/common/Show'
 import { Logo } from '@renderer/components/icons/Logo'
 import { Alert, AlertDescription, AlertTitle } from '@renderer/components/ui/alert'
-import { Button } from '@renderer/components/ui/button'
+import { Button, ButtonWithIcon } from '@renderer/components/ui/button'
 import { Progress } from '@renderer/components/ui/progress'
 import { PROJECT_NAME } from '@renderer/constants'
 import { updateProgressAtom, useNetworkStatus } from '@renderer/initialize/network'
@@ -32,13 +32,7 @@ export const Sidebar = () => {
               </p>
             </Show>
           </Link>
-          <button
-            type="button"
-            onClick={() => showModal()}
-            className="no-drag-region flex size-8 cursor-default items-center justify-center rounded-md transition-colors hover:bg-base-300"
-          >
-            <i className="icon-[mingcute--settings-3-line] text-xl" />
-          </button>
+          <ButtonWithIcon icon="icon-[mingcute--settings-3-line]" onClick={() => showModal()} />
         </div>
         <nav className="mt-5 flex select-none flex-col gap-2">
           {siderbarRoutes.map((route) => (

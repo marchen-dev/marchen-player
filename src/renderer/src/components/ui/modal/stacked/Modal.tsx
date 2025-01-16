@@ -16,7 +16,7 @@ import type {
 } from 'react'
 import { createElement, Fragment, memo, useCallback, useEffect, useMemo, useRef } from 'react'
 
-import { CloseIcon } from '../../../icons/Close'
+import { ButtonWithIcon } from '../../button'
 import { Divider } from '../../divider'
 import { MODAL_STACK_Z_INDEX, modalMotionConfig } from './constants'
 import type { currentModalContextProps, ModalContentPropsInternal } from './Context'
@@ -233,15 +233,21 @@ export const ModalInternal: FC<ModalInternalProps> = memo(function Modal({ ref, 
                   cursor: 'grabbing',
                 }}
               >
-                <div className="relative flex items-center" onPointerDownCapture={handleDrag}>
-                  <Dialog.Title className="flex shrink-0 grow items-center gap-2 px-2.5 py-1 text-lg font-semibold">
+                <div
+                  className="relative flex items-center justify-between px-2.5"
+                  onPointerDownCapture={handleDrag}
+                >
+                  <Dialog.Title className="flex items-center gap-2 py-1 text-lg font-semibold">
                     <span>{title}</span>
                   </Dialog.Title>
                   <Dialog.DialogClose
                     onClick={close}
-                    className={`absolute right-0 top-0 z-[9] cursor-auto p-2`}
+                    className={`no-drag-region z-[9] flex cursor-auto items-center`}
                   >
-                    <CloseIcon />
+                    <ButtonWithIcon
+                      icon="icon-[mingcute--close-line] text-lg"
+                      className="hover:bg-base-200"
+                    />
                   </Dialog.DialogClose>
                 </div>
                 <Divider className="mb-0 mt-2 shrink-0 border-slate-200 opacity-80 dark:border-neutral-800" />

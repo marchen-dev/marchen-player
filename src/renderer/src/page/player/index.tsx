@@ -2,7 +2,7 @@ import { Player } from '@renderer/components/modules/player'
 import { useVideo } from '@renderer/components/modules/player/loading/hooks'
 import { VideoProvider } from '@renderer/components/modules/player/loading/PlayerProvider'
 import { cn, isWeb } from '@renderer/lib/utils'
-import { AnimatePresence } from 'framer-motion'
+import { AnimatePresence, m } from 'framer-motion'
 import type { FC } from 'react'
 import { useCallback, useMemo, useRef } from 'react'
 
@@ -44,8 +44,13 @@ export default function VideoPlayer() {
 }
 
 const DragTips: FC<{ onClick: () => void }> = ({ onClick }) => (
-  <div className="flex flex-col items-center gap-2 p-12 text-gray-500" onClick={onClick}>
+  <m.div
+    className="flex flex-col items-center gap-2 p-12 text-gray-500"
+    onClick={onClick}
+    whileHover={{ scale: 1.04 }}
+    whileTap={{ scale: 1 }}
+  >
     <i className="icon-[mingcute--video-line] text-6xl " />
     <p className="select-none text-xl">点击或拖拽动漫到此处播放</p>
-  </div>
+  </m.div>
 )
