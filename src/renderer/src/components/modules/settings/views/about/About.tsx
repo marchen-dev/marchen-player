@@ -1,16 +1,40 @@
 import { version } from '@pkg'
 import { Logo } from '@renderer/components/icons/Logo'
 import { Button } from '@renderer/components/ui/button'
+import { useToast } from '@renderer/components/ui/toast'
+import { db } from '@renderer/database/db'
 import { tipcClient } from '@renderer/lib/client'
 import { cn, isWeb } from '@renderer/lib/utils'
 import { useMutation } from '@tanstack/react-query'
+import { useCallback } from 'react'
 
 import { FieldsCardLayout, SettingViewContainer } from '../Layout'
 
 export const AboutView = () => {
+  const { toast } = useToast()
   const { mutate, isPending } = useMutation({
     mutationFn: async () => tipcClient?.checkUpdate(),
   })
+
+  const handleClearDanmakuCache = useCallback(async () => {
+    try {
+      await db.transaction('rw', db.history, async () => {
+        const allEntries = await db.history.toArray()
+        for (const entry of allEntries) {
+          await db.history.update(entry.hash, { danmaku: undefined })
+        }
+      })
+      toast({
+        title: '清除弹幕缓存成功',
+      })
+    } catch (error) {
+      console.error('Failed to clear danmaku field:', error)
+      toast({
+        title: '清除弹幕缓存失败',
+        variant: 'destructive',
+      })
+    }
+  }, [toast])
   return (
     <SettingViewContainer>
       <FieldsCardLayout className="bg-zinc-50 dark:bg-zinc-900">
@@ -21,7 +45,7 @@ export const AboutView = () => {
               <h4 className="text-lg font-medium">Marchen</h4>
               <div className="text-sm text-zinc-500">
                 <p>当前版本: {version}</p>
-                <p>Copyright @ 2025 Suemor</p>
+                <p>Copyright @ {new Date().getFullYear()} Suemor</p>
               </div>
             </div>
           </div>
@@ -38,11 +62,20 @@ export const AboutView = () => {
           {SocialMediaList.map((item) => (
             <Button variant="outline" key={item.name} className="cursor-default" size="sm" asChild>
               <a href={item.link} target="_blank" rel="noreferrer" className="cursor-default">
-              <i className={cn(item.icon, 'mr-1 text-lg')} />
+                <i className={cn(item.icon, 'mr-1 text-lg')} />
                 {item.name}
               </a>
             </Button>
           ))}
+        </div>
+      </FieldsCardLayout>
+
+      <FieldsCardLayout title="缓存数据">
+        <div className="grid grid-cols-4 gap-3">
+          <Button variant="outline" size="sm" onClick={handleClearDanmakuCache}>
+            <i className="icon-[mingcute--delete-2-line] mr-1 text-lg" />
+            清除弹幕缓存
+          </Button>
         </div>
       </FieldsCardLayout>
     </SettingViewContainer>
