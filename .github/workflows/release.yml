@@ -33,6 +33,12 @@ jobs:
           node-version: ${{ matrix.node-version }}
           cache: 'pnpm'
 
+      - name: Set environment variables
+        run: echo "Environment variables set"
+        env:
+          VITE_API_URL: ${{ secrets.VITE_API_URL }}
+          VITE_SENTRY_DSN: ${{ secrets.VITE_SENTRY_DSN }}
+
       - name: Install Dependencies
         run: pnpm install
 
