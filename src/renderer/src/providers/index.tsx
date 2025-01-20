@@ -7,7 +7,7 @@ import { QueryClientProvider, } from '@tanstack/react-query'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import { domMax, LazyMotion } from 'framer-motion'
 import { Provider as JotaiProvider } from 'jotai'
-import { ThemeProvider } from 'next-themes-suemor'
+import { ThemeProvider } from 'next-themes'
 import type { FC, JSX, PropsWithChildren } from 'react'
 
 import { ProviderComposer } from './ProviderComposer'
