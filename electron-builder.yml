@@ -68,8 +68,4 @@ afterPack: scripts/cleaned-unused-arch-deps.js
 afterSign: scripts/notarize.js
 releaseInfo:
   releaseNotes: |
-    修复历史记录丢失问题
-    新增联系作者功能
-    Web 版本添加下载客户端功能
-    优化图标显示效果
-    支持清除弹幕缓存
+    修复会出现重复弹幕的问题

@@ -66,7 +66,7 @@ export const useVideo = () => {
       url = `${MARCHEN_PROTOCOL_PREFIX}${path}`
       tipcClient?.addRecentDocument({ path })
     }
-    const { size, name:fileName } = file
+    const { size, name: fileName } = file
     try {
       const hash = await calculateFileHash(file)
       setVideo((prev) => ({ ...prev, url, hash, size, name: fileName, playList }))
@@ -197,9 +197,26 @@ export const useDanmakuData = () => {
           const fetchData = await apiClient.comment.getExtcomment({ url: related.url })
           const history = await db.history.get(video.hash)
           const historyDanmaku = history?.danmaku?.find((item) => item.source === related.url)
+
+          const handleIsSelected = () => {
+            // 如果历史记录中有选中的弹幕库，就返回 true
+            if (historyDanmaku?.selected) {
+              return true
+            }
+            
+            if (!related.url.includes('bilibili')) {
+              return true
+            }
+
+            // bilibili 弹幕库感觉有重复的弹幕，目前只默认加载一个 bilibili 弹幕库
+            return (
+              related.url ===
+              thirdPartyDanmakuUrlData?.relateds.find((item) => item.url.includes('bilibili'))?.url
+            )
+          }
           return {
             ...fetchData,
-            selected: historyDanmaku?.selected ?? true,
+            selected: handleIsSelected(),
           }
         },
         enabled: !!episodeId && !onlyLoadDandanplayDanmaku,
@@ -237,7 +254,7 @@ export const useDanmakuData = () => {
     combine: (results) => {
       const manualResult = results.at(-1)?.data as DB_Danmaku[]
       const dandanplayResult = results.at(-2)?.data as CommentsModel & { selected: boolean }
-      const thirdPartyplayResult = results.slice(0, -2) as UseQueryResult<
+      const thirdPartyResult = results.slice(0, -2) as UseQueryResult<
         CommentsModel & { selected: boolean }
       >[]
       const dandanplayDanmakuData = {
@@ -246,7 +263,7 @@ export const useDanmakuData = () => {
         content: dandanplayResult,
         selected: dandanplayResult?.selected,
       } satisfies DB_Danmaku
-      const thirdPartyDanmakuData = thirdPartyplayResult.map((result, index) => ({
+      const thirdPartyDanmakuData = thirdPartyResult.map((result, index) => ({
         type: 'third-party-auto',
         content: result.data,
         source: thirdPartyDanmakuUrlData?.relateds[index].url,
@@ -305,7 +322,7 @@ export const saveToHistory = async (
   }
   if (animeId) {
     const { bangumi } = await apiClient.bangumi.getBangumiDetailById(animeId)
-    
+
     Object.assign(historyData, {
       cover: bangumi.imageUrl,
     })
