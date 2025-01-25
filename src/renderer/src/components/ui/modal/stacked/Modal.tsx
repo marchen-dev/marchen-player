@@ -165,7 +165,7 @@ export const ModalInternal: FC<ModalInternalProps> = memo(function Modal({ ref, 
       <Wrapper>
         <Dialog.Root open onOpenChange={onClose}>
           <Dialog.Portal>
-            <Dialog.Content asChild ref={modalContentRef}>
+            <Dialog.Content asChild ref={modalContentRef} aria-description="设置">
               <div
                 className={cn(
                   'fixed inset-0 z-20 overflow-auto',
@@ -243,6 +243,7 @@ export const ModalInternal: FC<ModalInternalProps> = memo(function Modal({ ref, 
                   <Dialog.DialogClose
                     onClick={close}
                     className={`no-drag-region z-[9] flex cursor-auto items-center`}
+                    asChild
                   >
                     <ButtonWithIcon
                       icon="icon-[mingcute--close-line] text-lg"

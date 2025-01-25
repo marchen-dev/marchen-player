@@ -38,7 +38,7 @@ export const SettingTabItem: FC<SettingTabsModel> = (props) => {
       onClick={() => setCurrentSetting(props)}
     >
       <i className={cn(icon, 'size-[1.2rem] align-middle ')} />
-      <span className="">{title}</span>
+      <span>{title}</span>
     </li>
   )
 }

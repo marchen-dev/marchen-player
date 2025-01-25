@@ -305,7 +305,7 @@ export const saveToHistory = async (
   }
   if (animeId) {
     const { bangumi } = await apiClient.bangumi.getBangumiDetailById(animeId)
-
+    
     Object.assign(historyData, {
       cover: bangumi.imageUrl,
     })

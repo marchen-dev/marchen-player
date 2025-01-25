@@ -124,7 +124,7 @@ const HistoryItem: FC<HistoryItemProps> = memo((props) => {
             )}
             whileHover={['icon', 'img']}
           >
-            <HistoryImage src={showPoster ? cover : (thumbnail ?? cover)} />
+            <HistoryImage src={showPoster ? cover ?? thumbnail : (thumbnail ?? cover)} />
             {!isWeb && (
               <m.i
                 className={cn(
