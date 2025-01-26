@@ -17,16 +17,16 @@ importers:
     devDependencies:
       '@egoist/tipc':
         specifier: ^0.3.2
-        version: 0.3.2(electron@32.3.0)(react@19.0.0)
+        version: 0.3.2(electron@34.0.1)(react@19.0.0)
       '@electron-toolkit/preload':
         specifier: ^3.0.1
-        version: 3.0.1(electron@32.3.0)
+        version: 3.0.1(electron@34.0.1)
       '@electron-toolkit/tsconfig':
         specifier: ^1.0.1
         version: 1.0.1(@types/node@22.10.10)
       '@electron-toolkit/utils':
         specifier: ^3.0.0
-        version: 3.0.0(electron@32.3.0)
+        version: 3.0.0(electron@34.0.1)
       '@electron/notarize':
         specifier: ^2.5.0
         version: 2.5.0
@@ -157,8 +157,8 @@ importers:
         specifier: ^16.4.5
         version: 16.4.7
       electron:
-        specifier: ^32.0.0
-        version: 32.3.0
+        specifier: ^34.0.0
+        version: 34.0.1
       electron-builder:
         specifier: ^25.0.0
         version: 25.1.8(electron-builder-squirrel-windows@25.1.8)
@@ -3004,8 +3004,8 @@ packages:
       '@swc/core':
         optional: true
 
-  electron@32.3.0:
-    resolution: {integrity: sha512-CyX6K1INQdlgTePmP3wuAueUi5ePqw0IpiGOyyzULGU9gBQI3idwW6apR3W/R1cES2j1gWLrkty3cD40qRV9sg==}
+  electron@34.0.1:
+    resolution: {integrity: sha512-aArw5tAM80i3CKwEREnyZSM1SkARf5Jd1yBMTIdOL4pB1M+p/oDeyWSFI9Dl+vujyfJKiK4SS5+j19wna1onMw==}
     engines: {node: '>= 12.20.55'}
     hasBin: true
 
@@ -5807,25 +5807,25 @@ snapshots:
       ajv: 6.12.6
       ajv-keywords: 3.5.2(ajv@6.12.6)
 
-  '@egoist/tipc@0.3.2(electron@32.3.0)(react@19.0.0)':
+  '@egoist/tipc@0.3.2(electron@34.0.1)(react@19.0.0)':
     dependencies:
-      electron: 32.3.0
+      electron: 34.0.1
     optionalDependencies:
       '@tanstack/react-query': 5.64.2(react@19.0.0)
     transitivePeerDependencies:
       - react
 
-  '@electron-toolkit/preload@3.0.1(electron@32.3.0)':
+  '@electron-toolkit/preload@3.0.1(electron@34.0.1)':
     dependencies:
-      electron: 32.3.0
+      electron: 34.0.1
 
   '@electron-toolkit/tsconfig@1.0.1(@types/node@22.10.10)':
     dependencies:
       '@types/node': 22.10.10
 
-  '@electron-toolkit/utils@3.0.0(electron@32.3.0)':
+  '@electron-toolkit/utils@3.0.0(electron@34.0.1)':
     dependencies:
-      electron: 32.3.0
+      electron: 34.0.1
 
   '@electron/asar@3.2.17':
     dependencies:
@@ -8312,7 +8312,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  electron@32.3.0:
+  electron@34.0.1:
     dependencies:
       '@electron/get': 2.0.3
       '@types/node': 20.17.16
