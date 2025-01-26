@@ -69,3 +69,4 @@ afterSign: scripts/notarize.js
 releaseInfo:
   releaseNotes: |
     修复会出现重复弹幕的问题
+    修复历史记录无法显示封面的问题
