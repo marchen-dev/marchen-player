@@ -1,5 +1,22 @@
 # CHANGELOG
 
+## [0.0.1-beta.5](https://github.com/marchen-dev/marchen-player/compare/v0.0.1-beta.4...v0.0.1-beta.5) (2025-01-27)
+
+
+### Bug Fixes
+
+* repeated danmaku problem ([b949f69](https://github.com/marchen-dev/marchen-player/commit/b949f694c403f84ae7a952acb83bf3143e5b5d32))
+* setting dialog error ([9207258](https://github.com/marchen-dev/marchen-player/commit/92072582f0c908977cb026f0cb2709d0dc19df80))
+
+
+### Features
+
+* add release notes ([d264049](https://github.com/marchen-dev/marchen-player/commit/d2640491a0569178e4131ab243abd62ec532d710))
+* add request error message ([874635a](https://github.com/marchen-dev/marchen-player/commit/874635af2526f4178205996e54799ce1681143a5))
+* use next theme ([f9f6c9c](https://github.com/marchen-dev/marchen-player/commit/f9f6c9c318b185ffc940184c50839e5c4621472f))
+
+
+
 ## [0.0.1-beta.4](https://github.com/marchen-dev/marchen-player/compare/v0.0.1-beta.3...v0.0.1-beta.4) (2025-01-16)
 
 
