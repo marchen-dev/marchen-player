@@ -1,7 +1,6 @@
 import { electronApp, optimizer } from '@electron-toolkit/utils'
 import { name } from '@pkg'
 import { app, BrowserWindow, protocol } from 'electron'
-import unhandled from 'electron-unhandled'
 
 import { MARCHEN_PROTOCOL } from './constants/protocol'
 import { initializeApp } from './initialize'
@@ -47,7 +46,6 @@ function bootstrap() {
       app.quit()
     }
   })
-  unhandled()
 }
 
 bootstrap()

@@ -1,7 +1,7 @@
 {
   "name": "Marchen",
   "type": "module",
-  "version": "0.0.1-beta.5",
+  "version": "0.0.1-beta.4",
   "private": true,
   "packageManager": "pnpm@9.15.4",
   "description": "Marchen player",
@@ -88,7 +88,6 @@
     "electron": "^32.0.0",
     "electron-builder": "^25.0.0",
     "electron-log": "^5.2.0",
-    "electron-unhandled": "^5.0.0",
     "electron-updater": "^6.3.9",
     "electron-vite": "^2.3.0",
     "eslint": "^9.13.0",

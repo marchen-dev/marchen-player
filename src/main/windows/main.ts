@@ -2,7 +2,7 @@ import { join } from 'node:path'
 
 import { is } from '@electron-toolkit/utils'
 import { quickLaunchViaVideo } from '@main/lib/utils'
-import { BrowserWindow, shell } from 'electron'
+import { app, BrowserWindow, shell } from 'electron'
 
 import { getIconPath } from '../lib/icon'
 import { getRendererHandlers } from './setting'
@@ -57,8 +57,9 @@ export default function createWindow() {
   }
 
   windows.mainWindow = new BrowserWindow(baseWindowsConfig)
-  const { mainWindow } = windows
 
+  const { mainWindow } = windows
+  mainWindow.webContents.userAgent = `MarchenPlayer/${app.getVersion()}`
   mainWindow.on('ready-to-show', () => {
     isDev ? mainWindow.showInactive() : mainWindow.show()
 
