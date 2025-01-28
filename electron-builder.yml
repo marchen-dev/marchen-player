@@ -68,6 +68,5 @@ afterPack: scripts/cleaned-unused-arch-deps.js
 afterSign: scripts/notarize.js
 releaseInfo:
   releaseNotes: |
-    修复会出现重复弹幕的问题
-    修复历史记录无法显示封面的问题
-    适配弹弹play接口鉴权
+    添加弹幕缓存，提高弹幕加载速度
+    支持离线播放缓存弹幕

@@ -180,10 +180,21 @@ export const useDanmakuData = () => {
   const { episodeId } = currentMatchedVideo
   const { data: thirdPartyDanmakuUrlData } = useQuery({
     queryKey: [apiClient.related.relatedkeys.getRelatedDanmakuByEpisodeId, episodeId],
-    queryFn: () => apiClient.related.getRelatedDanmakuByEpisodeId(episodeId),
+    queryFn: async () => {
+      const history = await db.history.get(video.hash)
+      if (history) {
+        const historyDanmaku = history?.danmaku
+          ?.filter((item) => item.type === 'third-party-auto')
+          .map((item) => ({ url: item.source, shift: 0 }))
+        return historyDanmaku
+      }
+      const getRelatedDanmakuByEpisodeId =
+        await apiClient.related.getRelatedDanmakuByEpisodeId(episodeId)
+      return getRelatedDanmakuByEpisodeId.relateds
+    },
     enabled: isLoadDanmaku && !!episodeId,
   })
-  const onlyLoadDandanplayDanmaku = !thirdPartyDanmakuUrlData?.relateds.length
+  const onlyLoadDandanplayDanmaku = !thirdPartyDanmakuUrlData?.length
   // setCurrentMatchedVideo() 之后会触发该 useQuery, 获取弹幕数据
   // 目前共两种可能性会触发该 useQuery
   // 1. 上方 useMatchAnimeData() 为精准匹配
@@ -191,10 +202,9 @@ export const useDanmakuData = () => {
   // 获取弹幕数据后，会触发下发 useEffect
   const danmakuData = useQueries({
     queries: [
-      ...(thirdPartyDanmakuUrlData?.relateds.map((related) => ({
+      ...(thirdPartyDanmakuUrlData?.map((related) => ({
         queryKey: [apiClient.comment.Commentkeys.getExtcomment, episodeId, related.url],
         queryFn: async () => {
-          const fetchData = await apiClient.comment.getExtcomment({ url: related.url })
           const history = await db.history.get(video.hash)
           const historyDanmaku = history?.danmaku?.find((item) => item.source === related.url)
 
@@ -203,7 +213,7 @@ export const useDanmakuData = () => {
             if (historyDanmaku?.selected) {
               return true
             }
-            
+
             if (!related.url.includes('bilibili')) {
               return true
             }
@@ -211,12 +221,19 @@ export const useDanmakuData = () => {
             // bilibili 弹幕库感觉有重复的弹幕，目前只默认加载一个 bilibili 弹幕库
             return (
               related.url ===
-              thirdPartyDanmakuUrlData?.relateds.find((item) => item.url.includes('bilibili'))?.url
+              thirdPartyDanmakuUrlData?.find((item) => item.url.includes('bilibili'))?.url
             )
           }
+          if (historyDanmaku && !history?.newBangumi) {
+            return {
+              ...historyDanmaku?.content,
+              selected: handleIsSelected(),
+            }
+          }
+          const fetchData = await apiClient.comment.getExtcomment({ url: related.url })
           return {
             ...fetchData,
-            selected: handleIsSelected(),
+            selected: true,
           }
         },
         enabled: !!episodeId && !onlyLoadDandanplayDanmaku,
@@ -225,14 +242,20 @@ export const useDanmakuData = () => {
       {
         queryKey: [apiClient.comment.Commentkeys.getDanmu, episodeId],
         queryFn: async () => {
+          const history = await db.history.get(video.hash)
+          const historyDanmaku = history?.danmaku?.find((item) => item.source === 'dandanplay')
+          if (historyDanmaku && !history?.newBangumi) {
+            return {
+              ...historyDanmaku.content,
+              selected: historyDanmaku.selected,
+            }
+          }
           const fetchData = await apiClient.comment.getDanmu(+currentMatchedVideo.episodeId, {
             chConvert: enableTraditionalToSimplified ? 1 : 0,
           })
-          const history = await db.history.get(video.hash)
-          const historyDanmaku = history?.danmaku?.find((item) => item.source === 'dandanplay')
           return {
             ...fetchData,
-            selected: historyDanmaku?.selected ?? true,
+            selected: true,
           }
         },
         enabled: !!episodeId,
@@ -266,7 +289,7 @@ export const useDanmakuData = () => {
       const thirdPartyDanmakuData = thirdPartyResult.map((result, index) => ({
         type: 'third-party-auto',
         content: result.data,
-        source: thirdPartyDanmakuUrlData?.relateds[index].url,
+        source: thirdPartyDanmakuUrlData?.[index].url,
         selected: result.data?.selected,
       })) as DB_Danmaku[]
 
@@ -314,33 +337,30 @@ export const saveToHistory = async (
     updatedAt: new Date().toISOString(),
   }
   if (!existingAnime) {
-    return await db.history.add({
+    if (!animeId) {
+      return db.history.add({
+        ...historyData,
+        progress: 0,
+        duration: 0,
+      })
+    }
+
+    const [bangumiDetail, bangumiShin] = await Promise.all([
+      apiClient.bangumi.getBangumiDetailById(animeId),
+      apiClient.bangumi.getBangumiShin(),
+    ])
+
+    Object.assign(historyData, {
+      cover: bangumiDetail.bangumi.imageUrl,
+      newBangumi: bangumiShin.bangumiList.some((item) => item.animeId === +animeId),
+    })
+    return db.history.add({
       ...historyData,
       progress: 0,
       duration: 0,
     })
   }
-  if (animeId) {
-    const { bangumi } = await apiClient.bangumi.getBangumiDetailById(animeId)
-
-    Object.assign(historyData, {
-      cover: bangumi.imageUrl,
-    })
-    // const manualDanmaku = historyData?.danmaku?.filter(
-    //   (item) => item.type === 'local' || item.type === 'third-party-manual',
-    // )
-    // historyData.danmaku?.push(...manualDanmaku || [])
-    // 确保能够对不同集进行更新
-    const oldEspisode = params.episodeId === existingAnime.episodeId
-    await db.history.update(existingAnime.hash, {
-      ...historyData,
-      ...(oldEspisode && { duration: existingAnime.duration, progress: existingAnime.progress }),
-    })
-    return
-  } else {
-    await db.history.update(existingAnime.hash, historyData)
-    return
-  }
+  return db.history.update(existingAnime.hash, historyData)
 }
 
 export const useLoadingHistoricalAnime = () => {

@@ -88,3 +88,18 @@ interface BangumiModel {
 export interface BangumiDetailResponseModel extends ReponseBaseModel {
   bangumi: BangumiModel
 }
+
+export interface BangumiShinResponseModel extends ReponseBaseModel {
+  bangumiList: Array<{
+    animeId: number
+    bangumiId: string
+    animeTitle: string
+    imageUrl: string
+    searchKeyword: string
+    isOnAir: boolean
+    airDay: number
+    isFavorited: boolean
+    isRestricted: boolean
+    rating: number
+  }>
+}

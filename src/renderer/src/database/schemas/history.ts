@@ -12,6 +12,7 @@ export interface DB_History {
   cover?: string
   thumbnail?: string
   danmaku?: DB_Danmaku[]
+  newBangumi?: boolean
   subtitles?: DB_Subtitles
   updatedAt: string
 }
