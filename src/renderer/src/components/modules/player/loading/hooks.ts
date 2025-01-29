@@ -182,7 +182,8 @@ export const useDanmakuData = () => {
     queryKey: [apiClient.related.relatedkeys.getRelatedDanmakuByEpisodeId, episodeId],
     queryFn: async () => {
       const history = await db.history.get(video.hash)
-      if (history) {
+      // 如果历史记录中有弹幕库，就返回历史记录中的弹幕库
+      if (history?.danmaku?.length) {
         const historyDanmaku = history?.danmaku
           ?.filter((item) => item.type === 'third-party-auto')
           .map((item) => ({ url: item.source, shift: 0 }))
@@ -224,6 +225,7 @@ export const useDanmakuData = () => {
               thirdPartyDanmakuUrlData?.find((item) => item.url.includes('bilibili'))?.url
             )
           }
+          // 使用弹幕缓存
           if (historyDanmaku && !history?.newBangumi) {
             return {
               ...historyDanmaku?.content,

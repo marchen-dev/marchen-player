@@ -5,11 +5,13 @@ Marchen 是本地视频弹幕播放器，使用 [弹弹play API](https://github.
 采用 Electron 开发，支持 **Web, macOS, Windows, Linux** 四个版本，目前主要先适配 **macOS** 版本。
 
 ## ✨ 特征
+
 - [x] 导入动漫自动匹配弹幕
 - [x] 支持设置弹幕字体大小、持续时间、显示区域
 - [x] 支持手动添加第三方弹幕网址
 - [x] 支持本地 xml 弹幕文件
 - [x] 支持对不同平台的弹幕进行单独的开关
+- [x] 支持弹幕缓存，加快弹幕加载速度
 - [x] 自动安装更新，无需手动下载安装
 - [x] 跨平台，支持 macOS Windows Linux Web 版本
 - [x] 支持白天夜间模式，可以跟随系统自动切换
@@ -51,15 +53,16 @@ $ pnpm dev
 ```
 
 ## 📎 技术栈
-* Electron
-* React
-* TypeScript
-* Tailwind CSS
-* Jotai
-* shadcn/ui
-* TanStack Query
-* Framer motion
-* xgplayer
+
+- Electron
+- React
+- TypeScript
+- Tailwind CSS
+- Jotai
+- shadcn/ui
+- TanStack Query
+- Framer motion
+- xgplayer
 
 ## ❤️ 致谢 & 许可
 

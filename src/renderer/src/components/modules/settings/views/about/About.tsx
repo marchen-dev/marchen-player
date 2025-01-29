@@ -76,6 +76,19 @@ export const AboutView = () => {
             <i className="icon-[mingcute--delete-2-line] mr-1 text-lg" />
             清除弹幕缓存
           </Button>
+
+          {!isWeb && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                tipcClient?.windowAction({ action: 'reset' })
+              }}
+            >
+              <i className="icon-[mingcute--alert-line] mr-1 text-lg" />
+              重置应用
+            </Button>
+          )}
         </div>
       </FieldsCardLayout>
     </SettingViewContainer>

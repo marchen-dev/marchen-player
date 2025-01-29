@@ -15,7 +15,7 @@ export default function ErrorView() {
       </p>
       <Button
         onClick={() => {
-          tipcClient?.restart()
+          tipcClient?.windowAction({ action: 'restart' })
         }}
       >
         重新加载页面

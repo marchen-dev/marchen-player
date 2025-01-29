@@ -15,7 +15,7 @@ import { ScrollArea } from '@renderer/components/ui/scrollArea'
 import { useToast } from '@renderer/components/ui/toast'
 import { db } from '@renderer/database/db'
 import type { DB_History } from '@renderer/database/schemas/history'
-import { useDialog } from '@renderer/hooks/use-dialog'
+import { useConfirmationDialog } from '@renderer/hooks/use-dialog'
 import { relativeTimeToNow } from '@renderer/initialize/date'
 import { cn, isWeb } from '@renderer/lib/utils'
 import { RouteName } from '@renderer/router'
@@ -124,7 +124,7 @@ const HistoryItem: FC<HistoryItemProps> = memo((props) => {
             )}
             whileHover={['icon', 'img']}
           >
-            <HistoryImage src={showPoster ? cover ?? thumbnail : (thumbnail ?? cover)} />
+            <HistoryImage src={showPoster ? (cover ?? thumbnail) : (thumbnail ?? cover)} />
             {!isWeb && (
               <m.i
                 className={cn(
@@ -158,12 +158,16 @@ const HistoryItem: FC<HistoryItemProps> = memo((props) => {
       </ContextMenuTrigger>
       <ContextMenuContent>
         <ContextMenuItem onClick={playAnime}>继续观看</ContextMenuItem>
+        <ContextMenuSeparator />
         <ContextMenuItem
           onClick={() => {
             showMatchAnimeDialog(true, hash)
           }}
         >
           重新匹配弹幕库
+        </ContextMenuItem>
+        <ContextMenuItem onClick={() => db.history.update(hash, { danmaku: undefined })}>
+          清除弹幕缓存
         </ContextMenuItem>
         <ContextMenuSeparator />
         <ContextMenuItem className="!text-secondary" onClick={() => db.history.delete(hash)}>
@@ -176,7 +180,7 @@ const HistoryItem: FC<HistoryItemProps> = memo((props) => {
 
 const FunctionArea = memo(() => {
   const [appSettings, setAppSettings] = useAppSettings()
-  const present = useDialog()
+  const present = useConfirmationDialog()
 
   return (
     <div className="no-drag-region flex items-center space-x-2 text-2xl text-zinc-500 ">

@@ -10,7 +10,7 @@ interface showConfirmationBox {
   handleCancel?: () => void
 }
 
-export const useDialog = () => {
+export const useConfirmationDialog = () => {
   const { present } = useModalStack()
 
   return useCallback(
@@ -44,7 +44,7 @@ export const useDialog = () => {
           ),
         })
       }
-      tipcClient?.clearHistoryDialog({ title: params.title }).then((result) => {
+      tipcClient?.confirmationDialog({ title: params.title }).then((result) => {
         if (!result) {
           return params.handleCancel?.()
         }

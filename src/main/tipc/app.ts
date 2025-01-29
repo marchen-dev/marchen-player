@@ -1,6 +1,7 @@
 import { getFilePathFromProtocolURL } from '@main/lib/protocols'
 import { parseReleaseNotes } from '@main/lib/utils'
 import { getMainWindow } from '@main/windows/main'
+import { clearData } from '@main/windows/setting'
 import { version } from '@pkg'
 import { app, BrowserWindow, dialog } from 'electron'
 import updater from 'electron-updater'
@@ -14,6 +15,8 @@ export const appRoute = {
         | 'close'
         | 'minimize'
         | 'maximum'
+        | 'restart'
+        | 'reset'
         | 'enter-full-screen'
         | 'leave-full-screen'
         | 'switch-full-screen'
@@ -42,6 +45,14 @@ export const appRoute = {
           } else {
             window.maximize()
           }
+          break
+        }
+        case 'restart': {
+          getMainWindow()?.reload()
+          break
+        }
+        case 'reset': {
+          clearData() 
           break
         }
         case 'switch-full-screen': {
@@ -93,17 +104,13 @@ export const appRoute = {
   installUpdate: t.procedure.action(async () => {
     updater.autoUpdater.quitAndInstall()
   }),
-  clearHistoryDialog: t.procedure.input<{ title: string }>().action(async ({ input }) => {
+  confirmationDialog: t.procedure.input<{ title: string }>().action(async ({ input }) => {
     const result = await dialog.showMessageBox({
       type: 'warning',
       message: input.title,
       buttons: ['取消', '确认'],
     })
     return !!result.response
-  }),
-  restart: t.procedure.action(async () => {
-    getMainWindow()?.reload()
-    return
   }),
   addRecentDocument: t.procedure.input<{ path: string }>().action(async ({ input }) => {
     const filePath = getFilePathFromProtocolURL(input.path)

@@ -26,7 +26,9 @@ export const clearAllData = async () => {
     })
     app.clearRecentDocuments()
 
-    fs.rmSync(subtitlesPath(), { recursive: true })
+    if (fs.existsSync(subtitlesPath())) {
+      fs.rmSync(subtitlesPath(), { recursive: true })
+    }
     win.reload()
   } catch (error: any) {
     console.error('Failed to clear data:', error)
