@@ -38,7 +38,7 @@ Marchen 是本地视频弹幕播放器，使用 [弹弹play API](https://github.
 
 ![](https://fastly.jsdelivr.net/gh/suemor233/static@main/img/CleanShot%202024-11-21%20at%2019.39.09%402x.png)
 
-![](https://fastly.jsdelivr.net/gh/suemor233/static@main/img/CleanShot%202024-11-21%20at%2019.39.19%402x.png)
+![](https://fastly.jsdelivr.net/gh/suemor233/static@main/img/202501292219389.png)
 
 ## 🔧 开发
 
