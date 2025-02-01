@@ -17,12 +17,14 @@ export const appRoute = {
         | 'maximum'
         | 'restart'
         | 'reset'
+        | 'laungh-at-login'
         | 'enter-full-screen'
         | 'leave-full-screen'
         | 'switch-full-screen'
         | 'hidden-title-bar'
         | 'show-title-bar'
         | 'hidden-title-bar'
+      checked?: boolean
     }>()
     .action(async ({ context, input }) => {
       const webcontent = context.sender
@@ -52,7 +54,13 @@ export const appRoute = {
           break
         }
         case 'reset': {
-          clearData() 
+          clearData()
+          break
+        }
+        case 'laungh-at-login': {
+          app.setLoginItemSettings({
+            openAtLogin: input.checked,
+          })
           break
         }
         case 'switch-full-screen': {

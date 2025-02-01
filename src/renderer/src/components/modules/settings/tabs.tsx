@@ -1,14 +1,14 @@
 import type { ReactNode } from 'react'
 
 import { AboutView } from './views/about/About'
-import { AppearanceView } from './views/apperance/Appearance'
+import { GeneralView } from './views/general/General'
 import { PlayerView } from './views/player'
 
 export const settingTabs = [
   {
-    title: '外观',
-    icon: 'icon-[mingcute--t-shirt-2-line]',
-    component: <AppearanceView />,
+    title: '通用',
+    icon: 'icon-[mingcute--settings-3-line]',
+    component: <GeneralView />,
   },
   {
     title: '播放器',

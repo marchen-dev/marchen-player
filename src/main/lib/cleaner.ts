@@ -25,7 +25,9 @@ export const clearAllData = async () => {
       ],
     })
     app.clearRecentDocuments()
-
+    app.setLoginItemSettings({
+      openAtLogin: false,
+    })
     if (fs.existsSync(subtitlesPath())) {
       fs.rmSync(subtitlesPath(), { recursive: true })
     }
