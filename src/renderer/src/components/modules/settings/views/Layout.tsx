@@ -25,13 +25,19 @@ export const FieldsCardLayout: FC<FieldsCardLayoutProps> = ({ children, title, c
 
 interface FieldLayoutProps extends PropsWithChildren {
   title?: ReactNode
+  className?: string
 }
 
-export const FieldLayout = ({ ref, children, title }: FieldLayoutProps & { ref?: React.RefObject<HTMLDivElement> }) => {
-    return (
-      <div className="flex items-center justify-between " ref={ref}>
-        <span className="font-medium">{title}</span>
-        {children}
-      </div>
-    )
-  }
+export const FieldLayout = ({
+  ref,
+  children,
+  title,
+  className,
+}: FieldLayoutProps & { ref?: React.RefObject<HTMLDivElement> }) => {
+  return (
+    <div className={cn('flex items-center justify-between', className)} ref={ref}>
+      <span className="font-medium">{title}</span>
+      {children}
+    </div>
+  )
+}

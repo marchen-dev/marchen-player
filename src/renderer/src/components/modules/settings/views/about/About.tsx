@@ -103,7 +103,7 @@ const SocialMediaList = [
   },
   {
     icon: 'icon-[mingcute--social-x-fill]',
-    name: 'Twitter',
+    name: 'X',
     link: 'https://x.com/Suemor233',
   },
   {
