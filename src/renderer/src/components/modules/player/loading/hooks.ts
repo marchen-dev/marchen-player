@@ -235,7 +235,7 @@ export const useDanmakuData = () => {
           const fetchData = await apiClient.comment.getExtcomment({ url: related.url })
           return {
             ...fetchData,
-            selected: true,
+            selected: handleIsSelected(),
           }
         },
         enabled: !!episodeId && !onlyLoadDandanplayDanmaku,
