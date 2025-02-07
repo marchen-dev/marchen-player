@@ -238,7 +238,7 @@ export const useDanmakuData = () => {
             selected: handleIsSelected(),
           }
         },
-        enabled: !!episodeId && !onlyLoadDandanplayDanmaku,
+        enabled: !!episodeId,
         refetchOnMount: false,
       })) ?? []),
       {
