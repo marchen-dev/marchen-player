@@ -11,8 +11,8 @@ import { usePlayerSettingsValue } from '@renderer/atoms/settings/player'
 import { db } from '@renderer/database/db'
 import type { DB_Danmaku, DB_History } from '@renderer/database/schemas/history'
 import { usePlayAnimeFailedToast } from '@renderer/hooks/use-toast'
-import { calculateFileHash } from '@renderer/lib/calc-file-hash'
 import { tipcClient } from '@renderer/lib/client'
+import { calculateFileHash } from '@renderer/lib/file'
 import { isWeb } from '@renderer/lib/utils'
 import { apiClient } from '@renderer/request'
 import type { CommentsModel } from '@renderer/request/models/comment'
@@ -177,7 +177,7 @@ export const useDanmakuData = () => {
   const video = useAtomValue(videoAtom)
   const { enableTraditionalToSimplified } = usePlayerSettingsValue()
   const [currentMatchedVideo] = useAtom(currentMatchedVideoAtom)
-  const { episodeId } = currentMatchedVideo
+  const { episodeId, animeId } = currentMatchedVideo
   const { data: thirdPartyDanmakuUrlData } = useQuery({
     queryKey: [apiClient.related.relatedkeys.getRelatedDanmakuByEpisodeId, episodeId],
     queryFn: async () => {
@@ -207,8 +207,8 @@ export const useDanmakuData = () => {
         queryKey: [apiClient.comment.Commentkeys.getExtcomment, episodeId, related.url],
         queryFn: async () => {
           const history = await db.history.get(video.hash)
+          const bangumi = await db.bangumi.get(history?.animeId ?? animeId)
           const historyDanmaku = history?.danmaku?.find((item) => item.source === related.url)
-
           const handleIsSelected = () => {
             // 如果历史记录中有选中的弹幕库，就返回 true
             if (historyDanmaku?.selected) {
@@ -226,7 +226,7 @@ export const useDanmakuData = () => {
             )
           }
           // 使用弹幕缓存
-          if (historyDanmaku && !history?.newBangumi) {
+          if (historyDanmaku && !bangumi?.newBangumi) {
             return {
               ...historyDanmaku?.content,
               selected: handleIsSelected(),
@@ -245,8 +245,9 @@ export const useDanmakuData = () => {
         queryKey: [apiClient.comment.Commentkeys.getDanmu, episodeId],
         queryFn: async () => {
           const history = await db.history.get(video.hash)
+          const bangumi = await db.bangumi.get(history?.animeId ?? animeId)
           const historyDanmaku = history?.danmaku?.find((item) => item.source === 'dandanplay')
-          if (historyDanmaku && !history?.newBangumi) {
+          if (historyDanmaku && !bangumi?.newBangumi) {
             return {
               ...historyDanmaku.content,
               selected: historyDanmaku.selected,
@@ -333,44 +334,49 @@ export const saveToHistory = async (
   params: Omit<DB_History, 'cover' | 'updatedAt' | 'progress' | 'duration'>,
 ) => {
   const { animeId, hash } = params
-  const existingAnime = await db.history.where({ hash }).first()
+  const existingHistory = await db.history.where({ hash }).first()
   const historyData = {
     ...params,
     updatedAt: new Date().toISOString(),
   }
-  if (!existingAnime) {
-    if (!animeId) {
-      return db.history.add({
-        ...historyData,
-        progress: 0,
-        duration: 0,
-      })
-    }
 
-    const primaryKey = await db.history.add({
+  const updateBangumiData = async () => {
+    if (!animeId) {
+      return
+    }
+    const existingBangumi = await db.bangumi.get(animeId)
+    if (existingBangumi) {
+      return
+    }
+    const [bangumiDetail, bangumiShin] = await Promise.all([
+      apiClient.bangumi.getBangumiDetailById(animeId),
+      apiClient.bangumi.getBangumiShin(),
+    ])
+    const { bangumi } = bangumiDetail
+    await db.bangumi.add({
+      animeId,
+      title: historyData.animeTitle ?? bangumi.animeTitle,
+      updatedAt: new Date().toISOString(),
+      detail: bangumi,
+      newBangumi: bangumiShin.bangumiList.some((item) => item.animeId === +animeId),
+      cover:
+        (await tipcClient?.fileAction({ action: 'url-to-base64', url: bangumi.imageUrl })) ??
+        bangumi.imageUrl,
+    })
+  }
+  if (!existingHistory) {
+    await db.history.add({
       ...historyData,
       progress: 0,
       duration: 0,
     })
-    const updateBangumiData = async () => {
-      const [bangumiDetail, bangumiShin] = await Promise.all([
-        apiClient.bangumi.getBangumiDetailById(animeId),
-        apiClient.bangumi.getBangumiShin(),
-      ])
-
-      Object.assign(historyData, {
-        cover: bangumiDetail.bangumi.imageUrl,
-        newBangumi: bangumiShin.bangumiList.some((item) => item.animeId === +animeId),
-      })
-      return db.history.update(primaryKey, historyData)
-    }
 
     // 减少加载时长，先插入数据库，直接播放动漫，之后再获取动漫详情
     updateBangumiData()
     return
   }
 
-  return db.history.update(existingAnime.hash, historyData)
+  return db.history.update(existingHistory.hash, historyData)
 }
 
 export const useLoadingHistoricalAnime = () => {

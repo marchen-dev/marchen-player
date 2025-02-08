@@ -5,7 +5,7 @@
     "src/main/**/*",
     "src/preload/**/*",
     "types/**/*.d.ts",
-    "src/shared/src/**/*", "src/renderer/src/lib/calc-file-hash.ts",
+    "src/shared/src/**/*", "src/renderer/src/lib/file.ts",
   ],
   "compilerOptions": {
     "composite": true,
