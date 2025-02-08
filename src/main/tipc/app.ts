@@ -4,6 +4,7 @@ import { getMainWindow } from '@main/windows/main'
 import { clearData } from '@main/windows/setting'
 import { version } from '@pkg'
 import { app, BrowserWindow, dialog } from 'electron'
+import Logger from 'electron-log'
 import updater from 'electron-updater'
 
 import { t } from './_instance'
@@ -90,24 +91,33 @@ export const appRoute = {
       }
     }),
   checkUpdate: t.procedure.action(async () => {
-    const updateCheckResult = await updater.autoUpdater.checkForUpdates()
-    if (updateCheckResult?.updateInfo.version === version) {
-      return dialog.showMessageBox({
+    try {
+      const updateCheckResult = await updater.autoUpdater.checkForUpdates()
+      if (updateCheckResult?.updateInfo.version === version) {
+        return dialog.showMessageBox({
+          type: 'info',
+          message: '当前已是最新版本',
+        })
+      }
+
+      const releaseNotes = updateCheckResult?.updateInfo.releaseNotes
+
+      const releaseContent = parseReleaseNotes(releaseNotes)
+
+      dialog.showMessageBox({
         type: 'info',
-        message: '当前已是最新版本',
+        detail: releaseContent,
+        message: '发现新版本，正在下载更新...',
+      })
+      return releaseContent
+    } catch (error) {
+      Logger.error(['检查更新失败', error])
+      return dialog.showMessageBox({
+        type: 'warning',
+        detail: '请确保网络可以正常访问 Github',
+        message: '检查更新失败',
       })
     }
-
-    const releaseNotes = updateCheckResult?.updateInfo.releaseNotes
-
-    const releaseContent = parseReleaseNotes(releaseNotes)
-
-    dialog.showMessageBox({
-      type: 'info',
-      detail: releaseContent,
-      message: '发现新版本，正在下载更新...',
-    })
-    return releaseContent
   }),
   installUpdate: t.procedure.action(async () => {
     updater.autoUpdater.quitAndInstall()

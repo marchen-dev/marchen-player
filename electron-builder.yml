@@ -68,8 +68,4 @@ afterPack: scripts/cleaned-unused-arch-deps.js
 afterSign: scripts/notarize.js
 releaseInfo:
   releaseNotes: |
-    添加弹幕缓存，提高弹幕加载速度
-    支持离线播放缓存弹幕
-    支持对弹幕缓存进行清空
-    新增开机自启动设置
-    新增播放记录显示海报设置
+    添加检查更新发生错误的提示信息
