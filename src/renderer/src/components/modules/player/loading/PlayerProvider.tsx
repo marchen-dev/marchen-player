@@ -29,20 +29,25 @@ export const VideoProvider: FC<PropsWithChildren> = ({ children }) => {
 
   // 当上方 useQuery 获取弹幕成功后，会触发下方 useEffect, 保存到历史记录并开始播放
   useEffect(() => {
-    if (danmakuData && currentMatchedVideo && hash) {
-      saveToHistory({
-        ...currentMatchedVideo,
-        hash,
-        danmaku: danmakuData,
-        path: url,
-      })
-      setLoadingProgress(LoadingStatus.READY_PLAY)
-      const timeoutId = setTimeout(() => {
-        setLoadingProgress(LoadingStatus.START_PLAY)
-      }, 100)
-      return () => clearTimeout(timeoutId)
+    let timeoutId: NodeJS.Timeout
+    const handleSaveToHistory = async () => {
+      if (danmakuData && currentMatchedVideo && hash) {
+        await saveToHistory({
+          ...currentMatchedVideo,
+          hash,
+          danmaku: danmakuData,
+          path: url,
+        })
+        setLoadingProgress(LoadingStatus.READY_PLAY)
+        timeoutId = setTimeout(() => {
+          setLoadingProgress(LoadingStatus.START_PLAY)
+        }, 100)
+      }
     }
-    return () => {}
+    handleSaveToHistory()
+    return () => {
+      clearTimeout(timeoutId)
+    }
   }, [danmakuData, currentMatchedVideo])
 
   if (loadingProgress !== null && loadingProgress < LoadingStatus.START_PLAY) {
@@ -53,11 +58,11 @@ export const VideoProvider: FC<PropsWithChildren> = ({ children }) => {
         {/* 如果在 useMatchAnimeData() 里面没有匹配弹幕库成功， 就会弹出下方对话框，让用户手动匹配*/}
         <MatchAnimeDialog
           matchData={currentMatchedVideo.episodeId ? undefined : matchData}
-          onSelected={(params) => {
+          onSelected={async(params) => {
             // 如果用户选择不加载弹幕
             if (!params) {
               // 保存到历史记录
-              saveToHistory({
+              await saveToHistory({
                 hash,
                 path: url,
                 animeTitle: name,

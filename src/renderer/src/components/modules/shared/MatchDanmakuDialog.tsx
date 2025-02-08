@@ -48,7 +48,7 @@ export const MatchDanmakuDialog = () => {
       return
     }
     const { episodeId, episodeTitle, animeId, animeTitle } = params
-    saveToHistory({
+    await saveToHistory({
       path,
       subtitles,
       hash,

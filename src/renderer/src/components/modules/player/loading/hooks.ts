@@ -347,21 +347,29 @@ export const saveToHistory = async (
       })
     }
 
-    const [bangumiDetail, bangumiShin] = await Promise.all([
-      apiClient.bangumi.getBangumiDetailById(animeId),
-      apiClient.bangumi.getBangumiShin(),
-    ])
-
-    Object.assign(historyData, {
-      cover: bangumiDetail.bangumi.imageUrl,
-      newBangumi: bangumiShin.bangumiList.some((item) => item.animeId === +animeId),
-    })
-    return db.history.add({
+    const primaryKey = await db.history.add({
       ...historyData,
       progress: 0,
       duration: 0,
     })
+    const updateBangumiData = async () => {
+      const [bangumiDetail, bangumiShin] = await Promise.all([
+        apiClient.bangumi.getBangumiDetailById(animeId),
+        apiClient.bangumi.getBangumiShin(),
+      ])
+
+      Object.assign(historyData, {
+        cover: bangumiDetail.bangumi.imageUrl,
+        newBangumi: bangumiShin.bangumiList.some((item) => item.animeId === +animeId),
+      })
+      return db.history.update(primaryKey, historyData)
+    }
+
+    // 减少加载时长，先插入数据库，直接播放动漫，之后再获取动漫详情
+    updateBangumiData()
+    return
   }
+
   return db.history.update(existingAnime.hash, historyData)
 }
 
