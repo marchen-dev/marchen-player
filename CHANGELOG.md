@@ -1,5 +1,23 @@
 # CHANGELOG
 
+## [0.0.1-beta.6](https://github.com/marchen-dev/marchen-player/compare/v0.0.1-beta.5...v0.0.1-beta.6) (2025-02-08)
+
+
+### Bug Fixes
+
+* load danmaku error ([849e6d3](https://github.com/marchen-dev/marchen-player/commit/849e6d348dd4f4d3f20c5a9dfa1ab1d7723f0ce5))
+* react query enable key ([31da782](https://github.com/marchen-dev/marchen-player/commit/31da78215ccd522477166d9310938e71954691db))
+
+
+### Features
+
+* add a button to clear danmaku cache ([8f8ee26](https://github.com/marchen-dev/marchen-player/commit/8f8ee260dcea4db17f745fba187ab0ba4e5ba94e))
+* add launch at login setting ([914938e](https://github.com/marchen-dev/marchen-player/commit/914938e67eb806b400bdd6a1eddf76f1460f9832))
+* add show post setting ([4c9e561](https://github.com/marchen-dev/marchen-player/commit/4c9e5611a63afc5662e1283bb55acc504c964d1e))
+* support danmaku caching ([de3af5e](https://github.com/marchen-dev/marchen-player/commit/de3af5e9f2c2265ed575d0c71f2f3eadf7ca0acc))
+
+
+
 ## [0.0.1-beta.5](https://github.com/marchen-dev/marchen-player/compare/v0.0.1-beta.4...v0.0.1-beta.5) (2025-01-27)
 
 
