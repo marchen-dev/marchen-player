@@ -376,6 +376,7 @@ export const saveToHistory = async (
     return
   }
 
+  updateBangumiData()
   return db.history.update(existingHistory.hash, historyData)
 }
 
