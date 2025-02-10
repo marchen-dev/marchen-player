@@ -5,16 +5,22 @@ import {
 } from '@renderer/components/modules/history/HistoryAnimeDataProvider'
 import { HistoryDetailsContent } from '@renderer/components/modules/history/HistoryDetailsContent'
 import { ButtonWithIcon } from '@renderer/components/ui/button'
+import { ScrollArea } from '@renderer/components/ui/scrollArea'
 import { RouteName } from '@renderer/router'
+import { m } from 'framer-motion'
 import { Link } from 'react-router'
 
 export const HistoryDetails = () => {
   return (
-    <HistoryAnimeDataProvider>
-      <TitleBarLayout title={<HistoryDetailsTitle />}>
-        <HistoryDetailsContent />
-      </TitleBarLayout>
-    </HistoryAnimeDataProvider>
+    <m.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+      <HistoryAnimeDataProvider>
+        <TitleBarLayout title={<HistoryDetailsTitle />}>
+          <ScrollArea>
+            <HistoryDetailsContent />
+          </ScrollArea>
+        </TitleBarLayout>
+      </HistoryAnimeDataProvider>
+    </m.div>
   )
 }
 
