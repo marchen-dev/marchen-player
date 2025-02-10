@@ -16,6 +16,7 @@ const createPlayerDefaultSettings = () => {
   return {
     enableTraditionalToSimplified: false,
     enableAutomaticEpisodeSwitching: true,
+    enableMiniProgress: true,
     danmakuFontSize: getSelectedDefaultValue(danmakuFontSizeList) ?? '26',
     danmakuDuration: getSelectedDefaultValue(danmakuDurationList) ?? '15000',
     danmakuEndArea: getSelectedDefaultValue(danmakuEndAreaList)!,

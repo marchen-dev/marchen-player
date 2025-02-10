@@ -88,7 +88,6 @@ export default class FFmpeg {
 
     const fileName = `${Date.now()}-${nanoid(10)}-${index}.ass`
     const outputPath = path.join(subtitlesPath(), fileName)
-
     return new Promise<string>((resolve, reject) => {
       this.ffmpeg
         .clone() // Ensure a new instance for each command

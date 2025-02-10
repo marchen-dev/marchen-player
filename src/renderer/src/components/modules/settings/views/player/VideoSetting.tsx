@@ -19,6 +19,15 @@ export const VideoSetting = () => {
           }}
         />
       </FieldLayout>
+
+      <FieldLayout title="底部迷你进度条">
+        <SettingSwitch
+          value={playerSetting.enableMiniProgress}
+          onCheckedChange={(value) => {
+            setPlayerSetting((prev) => ({ ...prev, enableMiniProgress: value }))
+          }}
+        />
+      </FieldLayout>
     </FieldsCardLayout>
   )
 }

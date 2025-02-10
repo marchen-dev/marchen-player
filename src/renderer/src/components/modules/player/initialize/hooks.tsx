@@ -10,7 +10,7 @@ import type { CommentModel } from '@renderer/request/models/comment'
 import type { Danmu, IPlayerOptions } from '@suemor/xgplayer'
 import XgPlayer from '@suemor/xgplayer'
 import { useAtomValue } from 'jotai'
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { useDanmakuData } from '../loading/hooks'
 import { danmakuConfig, playerBaseConfigForClient, playerBaseConfigForWeb } from './config'
@@ -29,15 +29,15 @@ export const useXgPlayer = (url: string) => {
   const isLoadDanmaku = useAtomValue(isLoadDanmakuAtom)
   const video = useAtomValue(videoAtom)
   const playerSettings = usePlayerSettingsValue()
-  const { danmakuDuration, danmakuFontSize, danmakuEndArea } = playerSettings
-  const { setResponsiveDanmakuConfig } = useXgPlayerUtils()
+  const { danmakuDuration, danmakuFontSize, danmakuEndArea, enableMiniProgress } = playerSettings
+  const { setResponsiveSettingsUpdate } = useXgPlayerUtils()
   const { mergedDanmakuData } = useDanmakuData()
   useEffect(() => {
-    setResponsiveDanmakuConfig(playerInstance)
+    setResponsiveSettingsUpdate(playerInstance)
     return () => {
       dismiss()
     }
-  }, [playerSettings])
+  }, [setResponsiveSettingsUpdate])
 
   useEffect(() => {
     const handleInitalizePlayer = async () => {
@@ -55,6 +55,7 @@ export const useXgPlayer = (url: string) => {
         }
         const xgplayerConfig = {
           ...(isWeb ? playerBaseConfigForWeb : playerBaseConfigForClient),
+          miniprogress: enableMiniProgress,
           el: playerRef.current,
           url,
           startTime,
@@ -70,7 +71,6 @@ export const useXgPlayer = (url: string) => {
               .map((danmaku) => danmaku?.content)
               .flatMap((danmaku) => danmaku.comments) ?? []
         }
-
         xgplayerConfig.danmu = {
           ...danmakuConfig,
           comments: parseDanmakuData({
@@ -123,19 +123,22 @@ export const useXgPlayer = (url: string) => {
 export const useXgPlayerUtils = () => {
   const playerSettings = usePlayerSettingsValue()
 
-  const setResponsiveDanmakuConfig = (playerInstance: PlayerType | null) => {
-    if (playerInstance?.isPlaying) {
-      const { danmakuDuration, danmakuEndArea, danmakuFontSize } = playerSettings
-      playerInstance.danmu?.setFontSize(+danmakuFontSize, 24)
-      playerInstance.danmu?.setAllDuration('all', +danmakuDuration)
-      playerInstance.danmu?.setArea({
-        start: 0,
-        end: +danmakuEndArea,
-      })
-    }
-  }
+  const setResponsiveSettingsUpdate = useCallback(
+    (playerInstance: PlayerType | null) => {
+      if (playerInstance?.isPlaying) {
+        const { danmakuDuration, danmakuEndArea, danmakuFontSize } = playerSettings
+        playerInstance.danmu?.setFontSize(+danmakuFontSize, 24)
+        playerInstance.danmu?.setAllDuration('all', +danmakuDuration)
+        playerInstance.danmu?.setArea({
+          start: 0,
+          end: +danmakuEndArea,
+        })
+      }
+    },
+    [playerSettings],
+  )
 
   return {
-    setResponsiveDanmakuConfig,
+    setResponsiveSettingsUpdate,
   }
 }

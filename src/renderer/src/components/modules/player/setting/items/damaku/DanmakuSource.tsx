@@ -59,7 +59,7 @@ const SourceList = memo(() => {
   const { danmaku } = useSettingConfig()
   const video = useAtomValue(videoAtom)
   const player = usePlayerInstance()
-  const { setResponsiveDanmakuConfig } = useXgPlayerUtils()
+  const { setResponsiveSettingsUpdate } = useXgPlayerUtils()
   const handleCheckDanmaku = debounce((params: { checked: CheckedState; source: string }) => {
     const { checked, source } = params
     if (checked === 'indeterminate') {
@@ -89,7 +89,7 @@ const SourceList = memo(() => {
       player.danmu?.clear()
 
       player.danmu?.updateComments(parsedDanmaku, true)
-      setResponsiveDanmakuConfig(player)
+      setResponsiveSettingsUpdate(player)
 
       db.history.update(video.hash, {
         danmaku,
