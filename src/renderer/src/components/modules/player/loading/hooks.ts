@@ -210,23 +210,20 @@ export const useDanmakuData = () => {
           const historyDanmaku = history?.danmaku?.find((item) => item.source === related.url)
 
           const handleIsSelected = () => {
-            // 如果历史记录中有选中的弹幕库，就返回 true
-
+            // bilibili 弹幕库感觉有重复的弹幕，目前只默认加载一个 bilibili 弹幕库
             if (related.url.includes('bilibili')) {
               return (
                 related.url ===
                 thirdPartyDanmakuUrlData?.find((item) => item.url.includes('bilibili'))?.url
               )
             }
-            return historyDanmaku?.selected
-
-            // bilibili 弹幕库感觉有重复的弹幕，目前只默认加载一个 bilibili 弹幕库
+            return true
           }
           // 使用弹幕缓存
           if (historyDanmaku && !history?.newBangumi) {
             return {
               ...historyDanmaku?.content,
-              selected: handleIsSelected(),
+              selected: historyDanmaku?.selected,
             }
           }
           const fetchData = await apiClient.comment.getExtcomment({ url: related.url })

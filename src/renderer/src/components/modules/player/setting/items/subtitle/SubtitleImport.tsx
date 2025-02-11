@@ -132,7 +132,7 @@ export const SubtitleImport = () => {
       {isWeb && (
         <input
           type="file"
-          accept=".ass, .ssa, .art, .vtt"
+          accept=".ass, .ssa"
           ref={fileInputRef}
           onChange={importSubtitleFromBrowser}
           className="hidden"
