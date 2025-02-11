@@ -6,6 +6,7 @@ import type { BilibiliXmlDanmakus } from '@main/lib/danmaku'
 import { parseBilibiliDanmaku } from '@main/lib/danmaku'
 import FFmpeg from '@main/lib/ffmpeg'
 import { getFilePathFromProtocolURL } from '@main/lib/protocols'
+import { coverSubtitleToAss } from '@main/lib/utils'
 import { showFileSelectionDialog } from '@main/modules/showDialog'
 import { calculateFileHashByBuffer } from '@renderer/lib/calc-file-hash'
 import { dialog } from 'electron'
@@ -139,21 +140,7 @@ export const playerRoute = {
     if (!filePath) {
       return
     }
-    const extName = path.extname(filePath)
-    if (!extName) {
-      return
-    }
-    if (extName === '.ass' || extName === '.ssa') {
-      return {
-        fileName: path.basename(filePath),
-        filePath,
-      }
-    }
-
-    const ffmepg = new FFmpeg(filePath)
-    const outPutPath = ffmepg.coverToAssSubtitle()
-
-    return outPutPath
+    return coverSubtitleToAss(filePath)
   }),
   getSubtitlesIntroFromAnime: t.procedure.input<{ path: string }>().action(async ({ input }) => {
     const ffmpeg = new FFmpeg(getFilePathFromProtocolURL(input.path))
@@ -181,6 +168,7 @@ export const playerRoute = {
         fileName: file,
         filePath: path.join(directoryPath, file),
       }))
+
     return matchedFiles
   }),
   immportDanmakuFile: t.procedure.action(async () => {

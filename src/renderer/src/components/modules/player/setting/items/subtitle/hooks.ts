@@ -6,7 +6,7 @@ import { isWeb } from '@renderer/lib/utils'
 import SourceHanSansCN from '@renderer/styles/fonts/SourceHanSansCN.woff2?url'
 import TimesNewRoman from '@renderer/styles/fonts/TimesNewRoman.ttf?url'
 import { useQuery } from '@tanstack/react-query'
-import { useAtomValue, useSetAtom } from 'jotai'
+import { atom, useAtom, useAtomValue, useSetAtom } from 'jotai'
 import SubtitlesOctopus from 'libass-wasm'
 import workerUrl from 'libass-wasm/dist/js/subtitles-octopus-worker.js?url'
 import legacyWorkerUrl from 'libass-wasm/dist/js/subtitles-octopus-worker-legacy.js?url'
@@ -14,11 +14,16 @@ import { useCallback } from 'react'
 
 import { usePlayerInstance, useSubtitleInstance } from '../../../Context'
 
+const setIsLoadingEmbeddedSubtitleAtom = atom(false)
+
 export const useSubtitle = () => {
   const { hash, url } = useAtomValue(videoAtom)
   const player = usePlayerInstance()
   const [subtitlesInstance, setSubtitlesInstance] = useSubtitleInstance()
   const setVideo = useSetAtom(videoAtom)
+  const [isLoadingEmbeddedSubtitle, setIsLoadingEmbeddedSubtitle] = useAtom(
+    setIsLoadingEmbeddedSubtitleAtom,
+  )
   const { data, isFetching } = useQuery({
     queryKey: ['getAllSubtitlesFromAnime', url],
     queryFn: async () => {
@@ -77,99 +82,104 @@ export const useSubtitle = () => {
 
   const fetchSubtitleBody = useCallback(
     async (params: FetchSubtitleBodyParams) => {
-      const { id, path, fileName } = params
+      try {
+        const { id, path, fileName } = params
 
-      // Web 端直接设置字幕路径, 不进行 indexdb 记录
-      if (isWeb) {
-        return setSubtitlesOctopus(path)
-      }
-
-      const oldHistory = await db.history.get(hash)
-
-      // 手动导入字幕
-      if (path || id === undefined) {
-        let minimumId = oldHistory?.subtitles?.tags.slice().sort((tag1, tag2) => {
-          return tag1.id - tag2.id
-        })[0].id
-        if (minimumId === undefined || minimumId >= -1) {
-          minimumId = -1
+        // Web 端直接设置字幕路径, 不进行 indexdb 记录
+        if (isWeb) {
+          return setSubtitlesOctopus(path)
         }
-        const splitedFileName = fileName.split('.')
-        const baseTitle = `外部字幕 - ${Math.abs(minimumId)}`
 
-        // 通过文件名获取字幕标题 ex: 动漫名称.scjp.ass
-        // scjp
-        const title =
-          splitedFileName.length >= 3 ? (splitedFileName.at(-2) ?? baseTitle) : baseTitle
+        const oldHistory = await db.history.get(hash)
 
-        db.history.update(hash, {
-          subtitles: {
-            timeOffset: oldHistory?.subtitles?.timeOffset ?? 0,
-            defaultId: minimumId - 1,
-            tags: [...(oldHistory?.subtitles?.tags ?? []), { id: minimumId - 1, path, title }],
-          },
+        // 手动导入字幕
+        if (path || id === undefined) {
+          let minimumId = oldHistory?.subtitles?.tags.slice().sort((tag1, tag2) => {
+            return tag1.id - tag2.id
+          })[0].id
+          if (minimumId === undefined || minimumId >= -1) {
+            minimumId = -1
+          }
+          const splitedFileName = fileName.split('.')
+          const baseTitle = `外部字幕 - ${Math.abs(minimumId)}`
+
+          // 通过文件名获取字幕标题 ex: 动漫名称.scjp.ass
+          // scjp
+          const title =
+            splitedFileName.length >= 3 ? (splitedFileName.at(-2) ?? baseTitle) : baseTitle
+
+          db.history.update(hash, {
+            subtitles: {
+              timeOffset: oldHistory?.subtitles?.timeOffset ?? 0,
+              defaultId: minimumId - 1,
+              tags: [...(oldHistory?.subtitles?.tags ?? []), { id: minimumId - 1, path, title }],
+            },
+          })
+          return setSubtitlesOctopus(path)
+        }
+
+        const index = data?.tags?.findIndex((subtitle) => subtitle.id === id) ?? -1
+
+        // 禁用字幕
+        if (index === -1) {
+          subtitlesInstance?.freeTrack()
+          db.history.update(hash, {
+            subtitles: {
+              defaultId: id,
+              tags: oldHistory?.subtitles?.tags ?? [],
+            },
+          })
+          return
+        }
+        const existingSubtitle = (
+          await db.history.where('hash').equals(hash).first()
+        )?.subtitles?.tags.find((tag) => tag.id === id)
+
+        // indexdb 已经存在字幕路径
+        if (existingSubtitle) {
+          db.history.update(hash, {
+            subtitles: {
+              timeOffset: oldHistory?.subtitles?.timeOffset ?? 0,
+              defaultId: id,
+              tags: oldHistory?.subtitles?.tags ?? [],
+            },
+          })
+          return setSubtitlesOctopus(existingSubtitle.path)
+        }
+
+        setIsLoadingEmbeddedSubtitle(true)
+        // 通过 ipc 获取被选中的动漫内嵌字幕
+        const subtitlePath = await tipcClient?.getSubtitlesBody({
+          path: url,
+          index,
         })
 
-        return setSubtitlesOctopus(path)
-      }
+        if (!subtitlePath || !data?.tags?.[index]) {
+          return
+        }
 
-      const index = data?.tags?.findIndex((subtitle) => subtitle.id === id) ?? -1
+        const newTags = [
+          ...(oldHistory?.subtitles?.tags ?? []),
+          {
+            ...data.tags[index],
+            path: subtitlePath,
+          },
+        ]
 
-      // 禁用字幕
-      if (index === -1) {
-        subtitlesInstance?.freeTrack()
         db.history.update(hash, {
           subtitles: {
             defaultId: id,
-            tags: oldHistory?.subtitles?.tags ?? [],
+            tags: newTags,
           },
         })
-        return
+
+        await setSubtitlesOctopus(subtitlePath)
+        setIsLoadingEmbeddedSubtitle(false)
+      } catch {
+        setIsLoadingEmbeddedSubtitle(false)
       }
-      const existingSubtitle = (
-        await db.history.where('hash').equals(hash).first()
-      )?.subtitles?.tags.find((tag) => tag.id === id)
-
-      // indexdb 已经存在字幕路径
-      if (existingSubtitle) {
-        db.history.update(hash, {
-          subtitles: {
-            timeOffset: oldHistory?.subtitles?.timeOffset ?? 0,
-            defaultId: id,
-            tags: oldHistory?.subtitles?.tags ?? [],
-          },
-        })
-        return setSubtitlesOctopus(existingSubtitle.path)
-      }
-
-      // 通过 ipc 获取被选中的动漫内嵌字幕
-      const subtitlePath = await tipcClient?.getSubtitlesBody({
-        path: url,
-        index,
-      })
-
-      if (!subtitlePath || !data?.tags?.[index]) {
-        return
-      }
-
-      const newTags = [
-        ...(oldHistory?.subtitles?.tags ?? []),
-        {
-          ...data.tags[index],
-          path: subtitlePath,
-        },
-      ]
-
-      db.history.update(hash, {
-        subtitles: {
-          defaultId: id,
-          tags: newTags,
-        },
-      })
-
-      setSubtitlesOctopus(subtitlePath)
     },
-    [data?.tags, url, hash, setSubtitlesOctopus],
+    [data?.tags, url, hash, setSubtitlesOctopus, setIsLoadingEmbeddedSubtitle],
   )
 
   const initializeSubtitle = useCallback(async () => {
@@ -184,7 +194,14 @@ export const useSubtitle = () => {
       if (!localSubtitles || localSubtitles.length === 0) {
         return
       }
-      const { fileName, filePath } = localSubtitles[0]
+
+      const covertedSubtitle = await tipcClient?.coverSubtitleToAss({
+        path: localSubtitles[0]?.filePath,
+      })
+      if (!covertedSubtitle) {
+        return
+      }
+      const { fileName, filePath } = covertedSubtitle
       await fetchSubtitleBody({ path: filePath, fileName })
     } catch (error) {
       console.error(error)
@@ -198,6 +215,7 @@ export const useSubtitle = () => {
     initializeSubtitle,
     subtitlesInstance,
     isFetching,
+    isLoadingEmbeddedSubtitle,
   }
 }
 

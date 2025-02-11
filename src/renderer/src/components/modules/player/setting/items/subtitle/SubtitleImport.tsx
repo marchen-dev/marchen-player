@@ -1,4 +1,3 @@
-
 import { playerSettingSheetAtom, videoAtom } from '@renderer/atoms/player'
 import { jotaiStore } from '@renderer/atoms/store'
 import {
@@ -24,12 +23,12 @@ import { useSubtitle } from './hooks'
 
 export const SubtitleImport = () => {
   const player = usePlayerInstance()
-  const { subtitlesData, fetchSubtitleBody } = useSubtitle()
+  const { subtitlesData, fetchSubtitleBody, isLoadingEmbeddedSubtitle } = useSubtitle()
   const { toast } = useToast()
   const { hash } = useAtomValue(videoAtom)
   const fileInputRef = useRef<HTMLInputElement | null>(null)
   const { data: defaultValue, isFetching } = useQuery({
-    queryKey: ['subtitlesDefaultValue', hash],
+    queryKey: ['subtitlesDefaultValue', hash, isLoadingEmbeddedSubtitle],
     queryFn: async () => {
       const history = await db.history.get(hash)
       return history?.subtitles?.defaultId?.toString() ?? '-1'
@@ -48,7 +47,7 @@ export const SubtitleImport = () => {
     }
   }, [player])
 
-  const importSubtitleFromBrowser = (e: ChangeEvent<HTMLInputElement>) => {
+  const importSubtitleFromBrowser = async (e: ChangeEvent<HTMLInputElement>) => {
     const changeEvent = e as unknown as ChangeEvent<HTMLInputElement>
     const file = changeEvent.target?.files?.[0]
 
@@ -56,12 +55,19 @@ export const SubtitleImport = () => {
       return
     }
     const url = URL.createObjectURL(file)
-    fetchSubtitleBody({ path: url, fileName: file.name })
-    toast({
-      title: '导入字幕成功',
-      duration: 1500,
-    })
-    jotaiStore.set(playerSettingSheetAtom, false)
+    try {
+      await fetchSubtitleBody({ path: url, fileName: file.name })
+      toast({
+        title: '导入字幕成功',
+        duration: 1500,
+      })
+      jotaiStore.set(playerSettingSheetAtom, false)
+    } catch {
+      toast({
+        title: '导入字幕失败',
+        duration: 1500,
+      })
+    }
   }
 
   const importSubtitleFromClient = async () => {
@@ -69,12 +75,19 @@ export const SubtitleImport = () => {
     if (!subtitlePath) {
       return
     }
-    fetchSubtitleBody({ path: subtitlePath.filePath, fileName: subtitlePath.fileName })
-    toast({
-      title: '导入字幕成功',
-      duration: 1500,
-    })
-    jotaiStore.set(playerSettingSheetAtom, false)
+    try {
+      await fetchSubtitleBody({ path: subtitlePath.filePath, fileName: subtitlePath.fileName })
+      toast({
+        title: '导入字幕成功',
+        duration: 1500,
+      })
+      jotaiStore.set(playerSettingSheetAtom, false)
+    } catch {
+      toast({
+        title: '导入字幕失败',
+        duration: 1500,
+      })
+    }
   }
 
   if (!defaultValue || isFetching) {
@@ -85,17 +98,20 @@ export const SubtitleImport = () => {
       <Select
         defaultValue={defaultValue.toString()}
         onValueChange={(id) => fetchSubtitleBody({ id: +id })}
+        disabled={isLoadingEmbeddedSubtitle}
       >
         <SelectTrigger className="w-[200px]">
           <SelectValue placeholder="选中字幕" />
         </SelectTrigger>
         <SelectContent>
           <SelectGroup>
-            <SelectItem value={'-1'}>关闭</SelectItem>
+            <SelectItem value={'-1'}>
+              {isLoadingEmbeddedSubtitle ? '正在加载字幕中...' : '关闭'}
+            </SelectItem>
             {subtitlesData?.tags?.map((subtitle) => {
               return (
                 <SelectItem value={subtitle.id.toString()} key={subtitle.id}>
-                  {subtitle.title}
+                  {isLoadingEmbeddedSubtitle ? '正在加载字幕中...' : subtitle.title}
                 </SelectItem>
               )
             })}

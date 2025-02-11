@@ -3,7 +3,7 @@ import path from 'node:path'
 
 import ffmpegPath from '@ffmpeg-installer/ffmpeg'
 import ffprobePath from '@ffprobe-installer/ffprobe'
-import { screenshotsPath, subtitlesPath } from '@main/constants/app'
+import { createStorageFolder, screenshotsPath, subtitlesPath } from '@main/constants/app'
 import ffmpeg from 'fluent-ffmpeg'
 import { nanoid } from 'nanoid'
 
@@ -14,6 +14,7 @@ export default class FFmpeg {
   ffmpeg: ffmpeg.FfmpegCommand
 
   constructor(inputPath: string) {
+    createStorageFolder()
     this.ffmpeg = ffmpeg(inputPath)
   }
 
