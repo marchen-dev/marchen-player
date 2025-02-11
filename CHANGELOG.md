@@ -1,5 +1,22 @@
 # CHANGELOG
 
+## [0.0.1-beta.7](https://github.com/marchen-dev/marchen-player/compare/v0.0.1-beta.6...v0.0.1-beta.7) (2025-02-11)
+
+
+### Bug Fixes
+
+* unable to open video settings and subtitle matching failed ([4836f98](https://github.com/marchen-dev/marchen-player/commit/4836f9825525768c277418b42ed85d18dc770712))
+* unable to uncheck the source of dandanplay ([5477b4a](https://github.com/marchen-dev/marchen-player/commit/5477b4a95e38d6eadd1eec5a6f769cdf3d471c39))
+
+
+### Features
+
+* add loading subtitle prompt in the video sheet ([0ee5657](https://github.com/marchen-dev/marchen-player/commit/0ee565746429fcb9970fe20dd79b2a90bed50025))
+* add update error message ([fade5d4](https://github.com/marchen-dev/marchen-player/commit/fade5d4a02951ada3746218e19f9ef87fa09bf55))
+* allow to enable or disable mini progress ([bdbc818](https://github.com/marchen-dev/marchen-player/commit/bdbc818b930e769bdd17dbfd36835b472f762b36))
+
+
+
 ## [0.0.1-beta.6](https://github.com/marchen-dev/marchen-player/compare/v0.0.1-beta.5...v0.0.1-beta.6) (2025-02-08)
 
 
