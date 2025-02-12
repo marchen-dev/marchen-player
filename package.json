@@ -6,7 +6,7 @@
   "packageManager": "pnpm@9.15.4",
   "description": "Marchen player",
   "author": "Suemor",
-  "license": "GPL-3.0",
+  "license": "AGPL-3.0",
   "homepage": "https://github.com/marchen-dev/marchen-player",
   "repository": {
     "url": "https://github.com/marchen-dev/marchen-player",

@@ -1,6 +1,6 @@
-# Marchen
+# Marchen Player
 
-Marchen 是本地视频弹幕播放器，拖入动漫视频即可匹配对应的弹幕。
+Marchen Player 是本地视频弹幕播放器，拖入动漫视频即可匹配对应的弹幕。
 
 采用 Electron 开发，支持 **Web, macOS, Windows, Linux** 四个版本，目前主要适配 **macOS** 版本。
 
@@ -69,7 +69,6 @@ $ pnpm dev
 ## ❤️ 致谢 & 许可
 
 - [弹弹play](https://www.dandanplay.com)
-- [Follow](https://github.com/RSSNext/follow)
 - [xgplayer](https://github.com/bytedance/xgplayer)
 
-[![GPLv3 License](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
+[![AGPLv3 License](https://img.shields.io/badge/License-AGPLv3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
