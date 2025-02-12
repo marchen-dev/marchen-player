@@ -1,8 +1,10 @@
 # Marchen
 
-Marchen 是本地视频弹幕播放器，使用 [弹弹play API](https://github.com/kaedei/dandanplay-libraryindex/blob/master/api/API.md)，拖入动漫视频即可匹配对应的弹幕。
+Marchen 是本地视频弹幕播放器，拖入动漫视频即可匹配对应的弹幕。
 
-采用 Electron 开发，支持 **Web, macOS, Windows, Linux** 四个版本，目前主要先适配 **macOS** 版本。
+采用 Electron 开发，支持 **Web, macOS, Windows, Linux** 四个版本，目前主要适配 **macOS** 版本。
+
+[在线体验](https://marchen-play.suemor.com) | [下载客户端](https://github.com/marchen-dev/marchen-player/releases/latest)
 
 ## ✨ 特征
 
