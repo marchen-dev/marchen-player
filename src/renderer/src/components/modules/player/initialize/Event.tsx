@@ -150,7 +150,7 @@ const usePlayerInitialize = (player: PlayerType | null | undefined) => {
     })
 
     player.on(Events.PLAYNEXT, async (url: string) => {
-      const path = await tipcClient?.getFilePathFromProtocolURL({ path: url })
+      const path = await tipcClient?.fileAction({ action: 'cover-path-from-protocol', url })
       if (!path) {
         return
       }

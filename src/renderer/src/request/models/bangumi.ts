@@ -55,7 +55,7 @@ interface TrailerModel {
   date: string
 }
 
-interface BangumiModel {
+export interface BangumiModel {
   type: string
   typeDescription: string
   titles: TitleModel[]
