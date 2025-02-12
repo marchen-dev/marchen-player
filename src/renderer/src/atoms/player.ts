@@ -35,7 +35,7 @@ export const initialMatchedVideo = {
   animeId: 0,
 }
 
-export const playerSettingSheetAtom = atom(false)
+export const playerSettingSheetAtom = atomWithReset(false)
 
 export type MatchedVideoType = typeof initialMatchedVideo
 
@@ -52,11 +52,13 @@ export const useClearPlayingVideo = () => {
   const resetVideo = useResetAtom(videoAtom)
   const resetProgress = useResetAtom(loadingDanmuProgressAtom)
   const resetCurrentMatchedVideo = useResetAtom(currentMatchedVideoAtom)
+  const resetPlayerSettingSheet = useResetAtom(playerSettingSheetAtom)
 
   return () => {
     resetVideo()
     resetProgress()
     resetCurrentMatchedVideo()
+    resetPlayerSettingSheet()
   }
 }
 

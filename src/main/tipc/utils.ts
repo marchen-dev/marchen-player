@@ -1,13 +1,22 @@
 import path from 'node:path'
 
 import { getFilePathFromProtocolURL } from '@main/lib/protocols'
+import { coverSubtitleToAss } from '@main/lib/utils'
 
 import { t } from './_instance'
+
+type Actions =
+  | 'cover-path-from-protocol'
+  | 'get-file-name-from-path'
+  | 'url-to-base64'
+  | 'cover-subtitle-to-ass'
+
+// type FileAction<T extends Actions> = T extends 'cover-subtitle-to-ass'
 
 export const utilsRoute = {
   fileAction: t.procedure
     .input<{
-      action: 'cover-path-from-protocol' | 'get-file-name-from-path' | 'url-to-base64'
+      action: Actions
       url: string
     }>()
     .action(async ({ input }) => {
@@ -37,4 +46,7 @@ export const utilsRoute = {
         }
       }
     }),
+  coverSubtitleToAss: t.procedure.input<{ path: string }>().action(({ input }) => {
+    return coverSubtitleToAss(input.path)
+  }),
 }

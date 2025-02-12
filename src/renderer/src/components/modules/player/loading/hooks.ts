@@ -210,26 +210,20 @@ export const useDanmakuData = () => {
           const bangumi = await db.bangumi.get(history?.animeId ?? animeId)
           const historyDanmaku = history?.danmaku?.find((item) => item.source === related.url)
           const handleIsSelected = () => {
-            // 如果历史记录中有选中的弹幕库，就返回 true
-            if (historyDanmaku?.selected) {
-              return true
-            }
-
-            if (!related.url.includes('bilibili')) {
-              return true
-            }
-
             // bilibili 弹幕库感觉有重复的弹幕，目前只默认加载一个 bilibili 弹幕库
-            return (
-              related.url ===
-              thirdPartyDanmakuUrlData?.find((item) => item.url.includes('bilibili'))?.url
-            )
+            if (related.url.includes('bilibili')) {
+              return (
+                related.url ===
+                thirdPartyDanmakuUrlData?.find((item) => item.url.includes('bilibili'))?.url
+              )
+            }
+            return true
           }
           // 使用弹幕缓存
           if (historyDanmaku && !bangumi?.newBangumi) {
             return {
               ...historyDanmaku?.content,
-              selected: handleIsSelected(),
+              selected: historyDanmaku?.selected,
             }
           }
           const fetchData = await apiClient.comment.getExtcomment({ url: related.url })
@@ -302,7 +296,11 @@ export const useDanmakuData = () => {
       }
 
       // 官方弹幕库和第三方弹幕库都加载成功后，返回所有弹幕数据
-      if (!onlyLoadDandanplayDanmaku && results.every((result) => result.data !== undefined)) {
+      if (
+        !onlyLoadDandanplayDanmaku &&
+        results.every((result) => result.data !== undefined) &&
+        thirdPartyResult.length === thirdPartyDanmakuUrlData.length
+      ) {
         return [dandanplayDanmakuData, ...thirdPartyDanmakuData, ...manualResult]
       }
 

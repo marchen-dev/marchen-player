@@ -29,7 +29,7 @@ export const AddDanmaku = () => {
   const { danmaku } = useSettingConfig()
   const { danmakuDuration } = usePlayerSettingsValue()
   const player = usePlayerInstance()
-  const { setResponsiveDanmakuConfig } = useXgPlayerUtils()
+  const { setResponsiveSettingsUpdate } = useXgPlayerUtils()
   const { mutate, isPending } = useMutation({
     mutationFn: async (url: string) => {
       const matchedDanmaku = await apiClient.comment.getExtcomment({ url })
@@ -109,9 +109,9 @@ export const AddDanmaku = () => {
       player.danmu?.clear()
 
       player.danmu?.updateComments(mergedDanmakus, true)
-      setResponsiveDanmakuConfig(player)
+      setResponsiveSettingsUpdate(player)
     },
-    [danmakuDuration, player, setResponsiveDanmakuConfig],
+    [danmakuDuration, player, setResponsiveSettingsUpdate],
   )
 
   const handleImportDanmakuFile = useCallback(async () => {
@@ -157,12 +157,12 @@ export const AddDanmaku = () => {
     toast({
       title: `导入成功`,
     })
-  }, [danmaku, danmakuDuration, hash, player, setResponsiveDanmakuConfig, toast])
+  }, [danmaku, danmakuDuration, hash, player, setResponsiveSettingsUpdate, toast])
   return (
     <div className="space-y-6 pt-1">
       <form className="mt-1 flex flex-col gap-3" onSubmit={handleOnSubmit}>
         <Label htmlFor="width" className="text-zinc-600">
-          从第三方网址导入
+          从第三方网址导入弹幕
         </Label>
         <Input
           id="width"
