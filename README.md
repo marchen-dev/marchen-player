@@ -51,6 +51,8 @@ $ git clone https://github.com/marchen-dev/marchen-player.git
 
 $ pnpm install
 
+$ cp .env.example .env
+
 $ pnpm dev
 ```
 
