@@ -1,5 +1,7 @@
 import { API_URL, isDev, SENTRY_DSN } from '@renderer/lib/env'
 import * as Sentry from '@sentry/react'
+import { useEffect } from 'react'
+import { createRoutesFromChildren, matchRoutes, useLocation, useNavigationType } from 'react-router'
 
 export const initializeSentry = () => {
   if (isDev) {
@@ -7,7 +9,20 @@ export const initializeSentry = () => {
   }
   Sentry.init({
     dsn: SENTRY_DSN,
-    integrations: [Sentry.browserTracingIntegration(), Sentry.replayIntegration()],
+    integrations: [
+      Sentry.reactRouterV7BrowserTracingIntegration({
+        useEffect,
+        useLocation,
+        useNavigationType,
+        createRoutesFromChildren,
+        matchRoutes,
+      }),
+      Sentry.replayIntegration({
+        // NOTE: This will disable built-in masking. Only use this if your site has no sensitive data, or if you've already set up other options for masking or blocking relevant data, such as 'ignore', 'block', 'mask' and 'maskFn'.
+        maskAllText: false,
+        blockAllMedia: false,
+      }),
+    ],
     // Tracing
     tracesSampleRate: 1, //  Capture 100% of the transactions
     // Set 'tracePropagationTargets' to control for which URLs distributed tracing should be enabled
