@@ -1,5 +1,20 @@
 # CHANGELOG
 
+## [0.0.1-beta.8](https://github.com/marchen-dev/marchen-player/compare/v0.0.1-beta.7...v0.0.1-beta.8) (2025-02-16)
+
+
+### Bug Fixes
+
+* sentry initialization ([44112c7](https://github.com/marchen-dev/marchen-player/commit/44112c7a5f834d8dd8ec0f210acb76b7427485a6))
+* windows network path is not recognized ([a60854d](https://github.com/marchen-dev/marchen-player/commit/a60854d29a50c5b9ee0d88d3a5d5a8f03b6e64dd))
+
+
+### Features
+
+* add sentry's react router integration ([06680ce](https://github.com/marchen-dev/marchen-player/commit/06680ce5c6cd5e8ee0c3b34d9668c89d093572e3))
+
+
+
 ## [0.0.1-beta.7](https://github.com/marchen-dev/marchen-player/compare/v0.0.1-beta.6...v0.0.1-beta.7) (2025-02-11)
 
 
