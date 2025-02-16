@@ -115,18 +115,33 @@ const nodeStreamToWeb = (resultStream: ReadStream) => {
   )
 }
 
-export const getFilePathFromProtocolURL = (protocolUrl: string) => {
+export const getFilePathFromProtocolURL = (protocolUrl: string): string => {
   if (!protocolUrl?.startsWith(MARCHEN_PROTOCOL)) {
     return path.normalize(protocolUrl)
   }
-  let filePath = decodeURIComponent(protocolUrl.slice(`${MARCHEN_PROTOCOL}:/`.length))
+  let filePath = ''
   if (isWindows) {
-    filePath = filePath.slice(1)
-    filePath = path.win32.normalize(filePath)
-    // eslint-disable-next-line unicorn/prefer-regexp-test
-    if (filePath.match(/^[a-z]\\/i)) {
-      filePath = `${filePath.charAt(0).toUpperCase()}:${filePath.slice(1)}`
+    filePath = decodeURIComponent(protocolUrl.slice(`${MARCHEN_PROTOCOL}://`.length))
+    // 如果是 Windows 系统，处理不同情况
+    if (/^\d+\.\d+\.\d+\.\d+/.test(filePath)) {
+      // 如果路径以 IP 地址开头，处理为 UNC 路径
+      filePath = `\\\\${filePath}`
+    } else if (/^[a-z]:/i.test(filePath)) {
+      // 如果路径以盘符开头，直接规范化
+      filePath = path.win32.normalize(filePath)
+    } else if (/^[a-z]\//i.test(filePath)) {
+      // 如果路径以类似 "z/" 开头，假定为自定义盘符
+      const driveLetter = filePath[0].toUpperCase() // 转换为大写盘符
+      filePath = `${driveLetter}:\\${filePath.slice(2).replaceAll('/', '\\')}` // 替换为 Windows 格式
+    } else {
+      // 其他情况可能是相对路径，直接返回规范化结果
+      filePath = path.win32.normalize(filePath)
     }
+  } else {
+    filePath = decodeURIComponent(protocolUrl.slice(`${MARCHEN_PROTOCOL}:/`.length))
+    // 非 Windows 系统，直接返回路径
+    filePath = path.normalize(filePath)
   }
-  return path.normalize(filePath)
+
+  return filePath
 }
