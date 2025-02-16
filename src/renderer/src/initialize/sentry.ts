@@ -1,3 +1,4 @@
+import { version } from '@pkg'
 import { API_URL, isDev, SENTRY_DSN } from '@renderer/lib/env'
 import * as Sentry from '@sentry/react'
 import { useEffect } from 'react'
@@ -22,6 +23,10 @@ export const initializeSentry = () => {
         maskAllText: false,
         blockAllMedia: false,
       }),
+      Sentry.httpClientIntegration(),
+      Sentry.captureConsoleIntegration({
+        levels: ['error'],
+      }),
     ],
     // Tracing
     tracesSampleRate: 1, //  Capture 100% of the transactions
@@ -31,4 +36,5 @@ export const initializeSentry = () => {
     replaysSessionSampleRate: 0.1, // This sets the sample rate at 10%. You may want to change it to 100% while in development and then sample at a lower rate in production.
     replaysOnErrorSampleRate: 1, // If you're not already sampling the entire session, change the sample rate to 100% when sampling sessions where errors occur.
   })
+  Sentry.setTag('app_version', version)
 }

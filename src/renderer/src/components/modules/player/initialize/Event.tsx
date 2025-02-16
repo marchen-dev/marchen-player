@@ -3,6 +3,7 @@ import { usePlayerSettingsValue } from '@renderer/atoms/settings/player'
 import { db } from '@renderer/database/db'
 import { tipcClient } from '@renderer/lib/client'
 import { isWeb } from '@renderer/lib/utils'
+import * as Sentry from '@sentry/react'
 import { Events } from '@suemor/xgplayer'
 import { useAtomValue } from 'jotai'
 import { throttle } from 'lodash-es'
@@ -147,6 +148,10 @@ const usePlayerInitialize = (player: PlayerType | null | undefined) => {
         return
       }
       player.emit(Events.PLAYNEXT, urlList[nextAnimeUrl + 1] ?? urlList[0])
+    })
+
+    player.on(Events.ERROR, async (error) => {
+      Sentry.captureException(error)
     })
 
     player.on(Events.PLAYNEXT, async (url: string) => {
