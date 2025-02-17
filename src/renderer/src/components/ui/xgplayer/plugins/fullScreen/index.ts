@@ -32,8 +32,10 @@ export default class fullEntireScreen extends Plugin {
 
     this.updateFullScreenState()
 
-    handlers?.windowAction.listen(() => {
-      this.updateFullScreenState()
+    handlers?.windowAction.listen((action) => {
+      if (action === 'enter-full-screen' || action === 'leave-full-screen') {
+        this.updateFullScreenState()
+      }
     })
   }
 

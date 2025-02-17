@@ -68,6 +68,6 @@ afterPack: scripts/cleaned-unused-arch-deps.js
 afterSign: scripts/notarize.js
 releaseInfo:
   releaseNotes: |
-    集成 sentry
-    修复 windows 网络路径识别问题
+    修复 windows 下以英文开头的网络路径无法识别的问题
+    修复 windows 通过拖拽窗口退出最大化状态按扭无法切换的问题
     
