@@ -26,23 +26,20 @@ nsis:
   oneClick: false
 mac:
   entitlementsInherit: build/entitlements.mac.plist
-  extendInfo:
-    - NSDocumentsFolderUsageDescription: Application requests access to the user's Documents folder.
-    - NSDownloadsFolderUsageDescription: Application requests access to the user's Downloads folder.
   notarize: false
   target:
-    - target: dmg
-      arch:
-        - x64
-        - arm64
-    - target: zip
-      arch:
-        - x64
-        - arm64
+    - mas
   fileAssociations:
     - ext: ['mp4', 'mkv']
       name: Video Files
       role: Editor
+mas:
+  hardenedRuntime: false
+  type: distribution
+  category: public.app-category.utilities
+  entitlements: build/entitlements.mas.plist
+  entitlementsInherit: build/entitlements.mas.inherit.plist
+  entitlementsLoginHelper: build/entitlements.mas.loginhelper.plist
 dmg:
   artifactName: ${productName}-${version}-${arch}.${ext}
 linux:
@@ -70,4 +67,3 @@ releaseInfo:
   releaseNotes: |
     修复 windows 下以英文开头的网络路径无法识别的问题
     修复 windows 通过拖拽窗口退出最大化状态按扭无法切换的问题
-    
