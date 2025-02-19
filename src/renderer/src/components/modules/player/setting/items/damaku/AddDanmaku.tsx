@@ -7,7 +7,7 @@ import { useToast } from '@renderer/components/ui/toast'
 import { db } from '@renderer/database/db'
 import type { DB_Danmaku, DB_History } from '@renderer/database/schemas/history'
 import { tipcClient } from '@renderer/lib/client'
-import { parseDanmakuData } from '@renderer/lib/danmaku'
+import { mergeDanmaku, parseDanmakuData } from '@renderer/lib/danmaku'
 import queryClient from '@renderer/lib/query-client'
 import { isWeb } from '@renderer/lib/utils'
 import { apiClient } from '@renderer/request'
@@ -98,20 +98,18 @@ export const AddDanmaku = () => {
       if (!player) {
         return
       }
-      const oldDanmaku = player.danmu?.config.comments
+      const mergedDanmakuData = mergeDanmaku(danmaku)
 
       const parsedDanmaku = parseDanmakuData({
-        danmuData,
+        danmuData: [...(mergedDanmakuData ?? []), ...(danmuData ?? [])],
         duration: +danmakuDuration,
       })
-
-      const mergedDanmakus = [...(oldDanmaku || []), ...(parsedDanmaku || [])]
       player.danmu?.clear()
 
-      player.danmu?.updateComments(mergedDanmakus, true)
+      player.danmu?.updateComments(parsedDanmaku, true)
       setResponsiveSettingsUpdate(player)
     },
-    [danmakuDuration, player, setResponsiveSettingsUpdate],
+    [danmaku, danmakuDuration, player, setResponsiveSettingsUpdate],
   )
 
   const handleImportDanmakuFile = useCallback(async () => {
@@ -174,7 +172,7 @@ export const AddDanmaku = () => {
       {!isWeb && (
         <div className="flex flex-col gap-3">
           <Label htmlFor="width" className="text-zinc-600">
-            从弹幕文件导入，支持 XML 格式
+            从弹幕文件导入，支持 XML 和 JSON 格式
           </Label>
           <Button size="sm" variant="outline" onClick={handleImportDanmakuFile}>
             点击导入弹幕文件

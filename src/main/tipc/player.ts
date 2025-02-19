@@ -2,7 +2,6 @@ import fs from 'node:fs'
 import path from 'node:path'
 
 import { MARCHEN_PROTOCOL_PREFIX } from '@main/constants/protocol'
-import type { BilibiliXmlDanmakus } from '@main/lib/danmaku'
 import { parseBilibiliDanmaku } from '@main/lib/danmaku'
 import FFmpeg from '@main/lib/ffmpeg'
 import { getFilePathFromProtocolURL } from '@main/lib/protocols'
@@ -11,7 +10,6 @@ import { showFileSelectionDialog } from '@main/modules/showDialog'
 import { calculateFileHashByBuffer } from '@renderer/lib/calc-file-hash'
 import { dialog } from 'electron'
 import naturalCompare from 'string-natural-compare'
-import { parseStringPromise } from 'xml2js'
 
 import { t } from './_instance'
 
@@ -180,18 +178,28 @@ export const playerRoute = {
     isDialogOpen = true
     try {
       const filePath = await showFileSelectionDialog({
-        filters: [{ name: '弹幕文件', extensions: ['xml'] }],
+        filters: [{ name: '弹幕文件', extensions: ['xml', 'json'] }],
       })
       if (!filePath) {
-        return
+        return {
+          ok: 0,
+          message: '请选择弹幕文件',
+        }
+      }
+      const extName = path.extname(filePath).toLowerCase()
+      if (extName !== '.xml' && extName !== '.json') {
+        return {
+          ok: 0,
+          message: '请选择正确的弹幕文件',
+        }
       }
       const fileData = fs.readFileSync(filePath, 'utf-8')
-      const result = (await parseStringPromise(fileData)) as BilibiliXmlDanmakus
       return {
         ok: 1,
         data: {
-          danmaku: parseBilibiliDanmaku({
-            danmakus: result.i.d,
+          danmaku: await parseBilibiliDanmaku({
+            fileData,
+            type: extName,
           }),
           source: filePath,
         },
