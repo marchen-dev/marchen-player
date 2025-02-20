@@ -1,4 +1,3 @@
-
 import { createTransition } from './CreateTranstion'
 
 const FadeTransitionView = createTransition({

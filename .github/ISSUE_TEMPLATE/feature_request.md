@@ -8,7 +8,4 @@ assignees: suemor233
 
 ## Description
 
-
-
-
 ## Proposed Solution

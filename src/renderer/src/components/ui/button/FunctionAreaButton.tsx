@@ -35,7 +35,7 @@ export const ButtonWithIcon: FC<
       )}
       {...props}
     >
-      <i className={cn('text-xl',icon)} />
+      <i className={cn('text-xl', icon)} />
     </button>
   )
 }

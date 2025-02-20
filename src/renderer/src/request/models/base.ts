@@ -1,4 +1,3 @@
-
 export interface ReponseBaseModel {
   /**
    * 错误代码，0表示没有发生错误，非0表示有错误，详细信息会包含在errorMessage属性中

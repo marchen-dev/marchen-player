@@ -2,9 +2,15 @@ import * as ScrollAreaPrimitive from '@radix-ui/react-scroll-area'
 import { cn } from '@renderer/lib/utils'
 import * as React from 'react'
 
-const ScrollArea = ({ ref, className, classNames, children, ...props }: React.ComponentPropsWithoutRef<typeof ScrollAreaPrimitive.Root> & {
-    classNames?: { scrollBar: string }
-  } & { ref?: React.RefObject<React.ElementRef<typeof ScrollAreaPrimitive.Root>> }) => (
+const ScrollArea = ({
+  ref,
+  className,
+  classNames,
+  children,
+  ...props
+}: React.ComponentPropsWithoutRef<typeof ScrollAreaPrimitive.Root> & {
+  classNames?: { scrollBar: string }
+} & { ref?: React.RefObject<React.ElementRef<typeof ScrollAreaPrimitive.Root>> }) => (
   <ScrollAreaPrimitive.Root
     ref={ref}
     className={cn('relative overflow-hidden', className)}
@@ -19,7 +25,14 @@ const ScrollArea = ({ ref, className, classNames, children, ...props }: React.Co
 )
 ScrollArea.displayName = ScrollAreaPrimitive.Root.displayName
 
-const ScrollBar = ({ ref, className, orientation = 'vertical', ...props }: React.ComponentPropsWithoutRef<typeof ScrollAreaPrimitive.ScrollAreaScrollbar> & { ref?: React.RefObject<React.ElementRef<typeof ScrollAreaPrimitive.ScrollAreaScrollbar>> }) => (
+const ScrollBar = ({
+  ref,
+  className,
+  orientation = 'vertical',
+  ...props
+}: React.ComponentPropsWithoutRef<typeof ScrollAreaPrimitive.ScrollAreaScrollbar> & {
+  ref?: React.RefObject<React.ElementRef<typeof ScrollAreaPrimitive.ScrollAreaScrollbar>>
+}) => (
   <ScrollAreaPrimitive.ScrollAreaScrollbar
     ref={ref}
     orientation={orientation}

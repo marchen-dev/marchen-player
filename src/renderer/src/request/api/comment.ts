@@ -19,7 +19,6 @@ function getExtcomment(params?: { url: string }) {
   })
 }
 
-
 export const comment = {
   getDanmu,
   getExtcomment,

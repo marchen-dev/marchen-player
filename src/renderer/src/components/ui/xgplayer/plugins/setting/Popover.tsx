@@ -3,11 +3,10 @@ import { cn } from '@renderer/lib/utils'
 // import './index.css'
 import { renderToString } from 'react-dom/server'
 
-
 const SubtitlePopover = () => {
   return (
     <div>
-      <div className={cn('relative !mr-5 !mt-1 text-white ','xgplayer-plugin-setting-container')}>
+      <div className={cn('relative !mr-5 !mt-1 text-white ', 'xgplayer-plugin-setting-container')}>
         <div className={cn('cursor-pointer ')}>
           <input type="file" accept=".ass,.ssa" className="xgplayer-plugin-subtitle-input hidden" />
           <i

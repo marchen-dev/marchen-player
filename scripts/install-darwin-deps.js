@@ -21,14 +21,8 @@ export default async function installDarWinDeps(context) {
   }
 
   const dependenciesToRemove = {
-    x64: [
-      '@ffmpeg-installer/darwin-arm64',
-      '@ffprobe-installer/darwin-arm64',
-    ],
-    arm64: [
-      '@ffmpeg-installer/darwin-x64',
-      '@ffprobe-installer/darwin-x64',
-    ]
+    x64: ['@ffmpeg-installer/darwin-arm64', '@ffprobe-installer/darwin-arm64'],
+    arm64: ['@ffmpeg-installer/darwin-x64', '@ffprobe-installer/darwin-x64'],
   }
 
   const removeDeps = async (arch) => {
@@ -46,7 +40,7 @@ export default async function installDarWinDeps(context) {
   const addDeps = async (arch) => {
     const deps = {
       x64: '@ffmpeg-installer/darwin-x64@^4.1.0 @ffprobe-installer/darwin-x64@^5.1.0 -D',
-      arm64: '@ffmpeg-installer/darwin-arm64@^4.1.5 @ffprobe-installer/darwin-arm64@^5.0.1 -D'
+      arm64: '@ffmpeg-installer/darwin-arm64@^4.1.5 @ffprobe-installer/darwin-arm64@^5.0.1 -D',
     }
     await exec(`pnpm add ${deps[arch]}`)
   }

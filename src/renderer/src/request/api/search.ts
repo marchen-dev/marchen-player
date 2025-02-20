@@ -11,5 +11,5 @@ function getSearchEpisodes(data: SearchAnimeRequestModel) {
 
 export const search = {
   getSearchEpisodes,
-  Searchkeys
+  Searchkeys,
 }

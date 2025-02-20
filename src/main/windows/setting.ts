@@ -32,7 +32,7 @@ export const clearData = async () => {
   const result = await dialog.showMessageBox({
     type: 'warning',
     message: '这个行为会清除 APP 全部数据，包括历史记录和设置，确定要继续吗？',
-    buttons: ['取消', '确定']
+    buttons: ['取消', '确定'],
   })
   if (!result.response) {
     return

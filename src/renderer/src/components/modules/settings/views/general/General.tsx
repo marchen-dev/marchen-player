@@ -30,7 +30,7 @@ export const GeneralView = () => {
         </FieldLayout>
 
         {!isWeb && (
-          <FieldLayout title="播放记录显示海报" className='pt-1'>
+          <FieldLayout title="播放记录显示海报" className="pt-1">
             <SettingSwitch
               value={appSettings.showPoster}
               onCheckedChange={(checked) =>

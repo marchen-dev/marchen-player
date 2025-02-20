@@ -54,7 +54,7 @@ export const registerAppMenu = () => {
       role: 'viewMenu',
     },
     {
-      role:'windowMenu',
+      role: 'windowMenu',
     },
   ]
   Menu.setApplicationMenu(Menu.buildFromTemplate(menu))

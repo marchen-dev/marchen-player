@@ -1,4 +1,4 @@
-import { RouterLayout } from "@renderer/components/layout/root/RouterLayout";
+import { RouterLayout } from '@renderer/components/layout/root/RouterLayout'
 
 export default function LastAnime() {
   return (

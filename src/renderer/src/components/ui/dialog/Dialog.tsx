@@ -11,7 +11,13 @@ const DialogPortal = DialogPrimitive.Portal
 
 const DialogClose = DialogPrimitive.Close
 
-const DialogOverlay = ({ ref, className, ...props }: React.ComponentPropsWithoutRef<typeof DialogPrimitive.Overlay> & { ref?: React.RefObject<React.ElementRef<typeof DialogPrimitive.Overlay>> }) => (
+const DialogOverlay = ({
+  ref,
+  className,
+  ...props
+}: React.ComponentPropsWithoutRef<typeof DialogPrimitive.Overlay> & {
+  ref?: React.RefObject<React.ElementRef<typeof DialogPrimitive.Overlay>>
+}) => (
   <DialogPrimitive.Overlay
     ref={ref}
     className={cn(
@@ -23,7 +29,15 @@ const DialogOverlay = ({ ref, className, ...props }: React.ComponentPropsWithout
 )
 DialogOverlay.displayName = DialogPrimitive.Overlay.displayName
 
-const DialogContent = ({ ref, onClosed, className, children, ...props }: React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content> & { onClosed?: () => void } & { ref?: React.RefObject<React.ElementRef<typeof DialogPrimitive.Content>> }) => (
+const DialogContent = ({
+  ref,
+  onClosed,
+  className,
+  children,
+  ...props
+}: React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content> & { onClosed?: () => void } & {
+  ref?: React.RefObject<React.ElementRef<typeof DialogPrimitive.Content>>
+}) => (
   <DialogPortal>
     <DialogOverlay />
     <DialogPrimitive.Content
@@ -64,7 +78,13 @@ const DialogFooter = ({ className, ...props }: React.HTMLAttributes<HTMLDivEleme
 )
 DialogFooter.displayName = 'DialogFooter'
 
-const DialogTitle = ({ ref, className, ...props }: React.ComponentPropsWithoutRef<typeof DialogPrimitive.Title> & { ref?: React.RefObject<React.ElementRef<typeof DialogPrimitive.Title>> }) => (
+const DialogTitle = ({
+  ref,
+  className,
+  ...props
+}: React.ComponentPropsWithoutRef<typeof DialogPrimitive.Title> & {
+  ref?: React.RefObject<React.ElementRef<typeof DialogPrimitive.Title>>
+}) => (
   <DialogPrimitive.Title
     ref={ref}
     className={cn('text-lg font-semibold leading-none tracking-tight', className)}
@@ -73,7 +93,13 @@ const DialogTitle = ({ ref, className, ...props }: React.ComponentPropsWithoutRe
 )
 DialogTitle.displayName = DialogPrimitive.Title.displayName
 
-const DialogDescription = ({ ref, className, ...props }: React.ComponentPropsWithoutRef<typeof DialogPrimitive.Description> & { ref?: React.RefObject<React.ElementRef<typeof DialogPrimitive.Description>> }) => (
+const DialogDescription = ({
+  ref,
+  className,
+  ...props
+}: React.ComponentPropsWithoutRef<typeof DialogPrimitive.Description> & {
+  ref?: React.RefObject<React.ElementRef<typeof DialogPrimitive.Description>>
+}) => (
   <DialogPrimitive.Description
     ref={ref}
     className={cn('text-sm text-muted-foreground', className)}

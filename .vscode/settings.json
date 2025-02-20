@@ -35,7 +35,7 @@
     { "rule": "hyoban/jsx-attribute-spacing", "severity": "off" },
     { "rule": "simple-import-sort/*", "severity": "off" },
     { "rule": "prefer-const", "severity": "off" },
-    { "rule": "unused-imports/no-unused-imports", "severity": "off" },
+    { "rule": "unused-imports/no-unused-imports", "severity": "off" }
   ],
   "commentTranslate.hover.enabled": false,
   "typescript.tsdk": "node_modules/typescript/lib"

@@ -58,7 +58,7 @@ export const VideoProvider: FC<PropsWithChildren> = ({ children }) => {
         {/* 如果在 useMatchAnimeData() 里面没有匹配弹幕库成功， 就会弹出下方对话框，让用户手动匹配*/}
         <MatchAnimeDialog
           matchData={currentMatchedVideo.episodeId ? undefined : matchData}
-          onSelected={async(params) => {
+          onSelected={async (params) => {
             // 如果用户选择不加载弹幕
             if (!params) {
               // 保存到历史记录

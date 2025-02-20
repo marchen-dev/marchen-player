@@ -121,24 +121,27 @@ export const getFilePathFromProtocolURL = (protocolUrl: string): string => {
   }
   let filePath = ''
   if (isWindows) {
-    filePath = decodeURIComponent(protocolUrl.slice(`${MARCHEN_PROTOCOL}://`.length));
+    filePath = decodeURIComponent(protocolUrl.slice(`${MARCHEN_PROTOCOL}://`.length))
 
     // 优先判断是否为自定义盘符路径（如 z/code/... -> Z:\code\...）
     if (/^[a-z]\/.+/i.test(filePath)) {
-      const driveLetter = filePath[0].toUpperCase(); // 提取盘符并转换为大写
-      filePath = `${driveLetter}:\\${filePath.slice(2).replaceAll('/', '\\')}`; // 构造 Windows 格式路径
-    } 
+      const driveLetter = filePath[0].toUpperCase() // 提取盘符并转换为大写
+      filePath = `${driveLetter}:\\${filePath.slice(2).replaceAll('/', '\\')}` // 构造 Windows 格式路径
+    }
     // 判断是否为网络路径（主机名或 IP 地址）
-    else if (/^[a-z0-9][a-z0-9-]*(?:\/|$)/i.test(filePath) || /^\d+\.\d+\.\d+\.\d+/.test(filePath)) {
-      filePath = `\\\\${filePath.replaceAll('/', '\\')}`; // 转换为 UNC 路径格式
-    } 
+    else if (
+      /^[a-z0-9][a-z0-9-]*(?:\/|$)/i.test(filePath) ||
+      /^\d+\.\d+\.\d+\.\d+/.test(filePath)
+    ) {
+      filePath = `\\\\${filePath.replaceAll('/', '\\')}` // 转换为 UNC 路径格式
+    }
     // 如果路径以盘符开头，直接规范化
     else if (/^[a-z]:/i.test(filePath)) {
-      filePath = path.win32.normalize(filePath);
-    } 
+      filePath = path.win32.normalize(filePath)
+    }
     // 其他情况可能是相对路径，直接返回规范化结果
     else {
-      filePath = path.win32.normalize(filePath);
+      filePath = path.win32.normalize(filePath)
     }
   } else {
     filePath = decodeURIComponent(protocolUrl.slice(`${MARCHEN_PROTOCOL}:/`.length))

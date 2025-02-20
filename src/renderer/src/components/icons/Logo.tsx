@@ -2,7 +2,10 @@ import { useAppTheme } from '@renderer/hooks/theme'
 import { cn } from '@renderer/lib/utils'
 import type { FC } from 'react'
 
-const LogoSvg = ({ ref, ...props }: React.SVGProps<SVGSVGElement> & { ref?: React.RefObject<SVGSVGElement> }) => (
+const LogoSvg = ({
+  ref,
+  ...props
+}: React.SVGProps<SVGSVGElement> & { ref?: React.RefObject<SVGSVGElement> }) => (
   <svg
     version="1.0"
     xmlns="http://www.w3.org/2000/svg"
