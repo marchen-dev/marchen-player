@@ -23,6 +23,15 @@ class LocalDB extends Dexie {
       })
     this.history = this.table(TABLES.HISTORY)
   }
+
+  async deleteDatabase(): Promise<void> {
+    try {
+      db.close()
+      await Dexie.delete(db.name)
+    } catch (error) {
+      console.error('删除数据库失败:', error)
+    }
+  }
 }
 
 export const db = new LocalDB()
