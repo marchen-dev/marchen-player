@@ -1,4 +1,4 @@
-import type { JSX } from "react"
+import type { JSX } from 'react'
 
 type RequiredParameter<T> = T extends () => unknown ? never : T
 

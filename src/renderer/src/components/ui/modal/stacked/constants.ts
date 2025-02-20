@@ -1,4 +1,4 @@
-import type { motion,Spring, Target, Transition } from 'framer-motion'
+import type { motion, Spring, Target, Transition } from 'framer-motion'
 import type { ComponentProps } from 'react'
 
 const enterStyle: Target = {

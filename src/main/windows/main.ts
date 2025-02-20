@@ -60,6 +60,22 @@ export default function createWindow() {
 
   const { mainWindow } = windows
   mainWindow.webContents.userAgent = `MarchenPlayer/${app.getVersion()}`
+  initializeListeningEvent(mainWindow)
+
+  // HMR for renderer base on electron-vite cli.
+  // Load the remote URL for development or the local html file for production.
+  if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
+    mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL'])
+  } else {
+    mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
+  }
+  // mainWindow.webContents.userAgent = 'dandanplay-test/android 1.2.3'
+  return mainWindow
+}
+
+export const getMainWindow = () => windows.mainWindow
+
+const initializeListeningEvent = (mainWindow: BrowserWindow) => {
   mainWindow.on('ready-to-show', () => {
     isDev ? mainWindow.showInactive() : mainWindow.show()
 
@@ -75,20 +91,16 @@ export default function createWindow() {
     getRendererHandlers()?.windowAction.send('leave-full-screen')
   })
 
+  mainWindow.on('maximize', () => {
+    getRendererHandlers()?.windowAction.send('maximize')
+  })
+
+  mainWindow.on('unmaximize', () => {
+    getRendererHandlers()?.windowAction.send('unmaximize')
+  })
+
   mainWindow.webContents.setWindowOpenHandler((details) => {
     shell.openExternal(details.url)
     return { action: 'deny' }
   })
-
-  // HMR for renderer base on electron-vite cli.
-  // Load the remote URL for development or the local html file for production.
-  if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
-    mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL'])
-  } else {
-    mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
-  }
-  // mainWindow.webContents.userAgent = 'dandanplay-test/android 1.2.3'
-  return mainWindow
 }
-
-export const getMainWindow = () => windows.mainWindow

@@ -11,15 +11,16 @@ Marchen Player 是本地视频弹幕播放器，拖入动漫视频即可匹配�
 - [x] 导入动漫自动匹配弹幕
 - [x] 支持设置弹幕字体大小、持续时间、显示区域
 - [x] 支持手动添加第三方弹幕网址
-- [x] 支持本地 xml 弹幕文件
+- [x] 支持导入本地 XML 和 JSON 弹幕文件
 - [x] 支持对不同平台的弹幕进行单独的开关
 - [x] 支持弹幕缓存，加快弹幕加载速度
+- [x] 支持弹幕繁体转简体
 - [x] 自动安装更新，无需手动下载安装
 - [x] 跨平台，支持 macOS Windows Linux Web 版本
 - [x] 支持白天夜间模式，可以跟随系统自动切换
 - [x] 支持解析视频内嵌字幕和导入本地字幕
 - [x] 支持修改匹配的弹幕库
-- [x] 精美的 UI 设计
+- [x] 还算不错的 UI 设计
 - [x] 播放记录界面可以显示播放进度和对应的画面
 
 ## 👀 截图
@@ -50,6 +51,8 @@ $ corepack enable
 $ git clone https://github.com/marchen-dev/marchen-player.git
 
 $ pnpm install
+
+$ cp .env.example .env
 
 $ pnpm dev
 ```

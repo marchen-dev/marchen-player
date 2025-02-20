@@ -1,5 +1,35 @@
 # CHANGELOG
 
+## [0.0.1](https://github.com/marchen-dev/marchen-player/compare/v0.0.1-beta.8...v0.0.1) (2025-02-20)
+
+
+### Bug Fixes
+
+* network path beginning in English cannot be recognized ([967e5a0](https://github.com/marchen-dev/marchen-player/commit/967e5a0273b03684609fdfe3ef10d0c4983a2381))
+
+
+### Features
+
+* support converting traditional chinese danmakus to simplified chinese ([0327f34](https://github.com/marchen-dev/marchen-player/commit/0327f34620e7d13867003fa3fcd23ffb852c213d))
+* support parsing json format danmaku files ([90f6aba](https://github.com/marchen-dev/marchen-player/commit/90f6abac7be7430ff81469d8f55ff53b73facbad))
+
+
+
+## [0.0.1-beta.8](https://github.com/marchen-dev/marchen-player/compare/v0.0.1-beta.7...v0.0.1-beta.8) (2025-02-16)
+
+
+### Bug Fixes
+
+* sentry initialization ([44112c7](https://github.com/marchen-dev/marchen-player/commit/44112c7a5f834d8dd8ec0f210acb76b7427485a6))
+* windows network path is not recognized ([a60854d](https://github.com/marchen-dev/marchen-player/commit/a60854d29a50c5b9ee0d88d3a5d5a8f03b6e64dd))
+
+
+### Features
+
+* add sentry's react router integration ([06680ce](https://github.com/marchen-dev/marchen-player/commit/06680ce5c6cd5e8ee0c3b34d9668c89d093572e3))
+
+
+
 ## [0.0.1-beta.7](https://github.com/marchen-dev/marchen-player/compare/v0.0.1-beta.6...v0.0.1-beta.7) (2025-02-11)
 
 

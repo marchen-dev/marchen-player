@@ -3,7 +3,9 @@ import { Logo } from '@renderer/components/icons/Logo'
 import { Button } from '@renderer/components/ui/button'
 import { useToast } from '@renderer/components/ui/toast'
 import { db } from '@renderer/database/db'
+import { useConfirmationDialog } from '@renderer/hooks/use-dialog'
 import { tipcClient } from '@renderer/lib/client'
+import { resetApp } from '@renderer/lib/ns'
 import { cn, isWeb } from '@renderer/lib/utils'
 import { useMutation } from '@tanstack/react-query'
 import { useCallback } from 'react'
@@ -12,6 +14,8 @@ import { FieldsCardLayout, SettingViewContainer } from '../Layout'
 
 export const AboutView = () => {
   const { toast } = useToast()
+  const showConfirmationDialog = useConfirmationDialog()
+
   const { mutate, isPending } = useMutation({
     mutationFn: async () => tipcClient?.checkUpdate(),
   })
@@ -77,18 +81,23 @@ export const AboutView = () => {
             清除弹幕缓存
           </Button>
 
-          {!isWeb && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                tipcClient?.windowAction({ action: 'reset' })
-              }}
-            >
-              <i className="icon-[mingcute--alert-line] mr-1 text-lg" />
-              重置应用
-            </Button>
-          )}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              if (isWeb) {
+                showConfirmationDialog({
+                  title: '重置应用?',
+                  handleConfirm: resetApp,
+                })
+                return
+              }
+              resetApp()
+            }}
+          >
+            <i className="icon-[mingcute--alert-line] mr-1 text-lg" />
+            重置应用
+          </Button>
         </div>
       </FieldsCardLayout>
     </SettingViewContainer>

@@ -1,26 +1,34 @@
-import type { SelectGroup } from "@renderer/components/modules/shared/setting/SettingSelect"
+import type { SelectGroup } from '@renderer/components/modules/shared/setting/SettingSelect'
 
 export const danmakuFontSizeList = [
   {
-    label: '极小',
+    label: '80%',
     value: '22',
   },
   {
-    label: '较小',
+    label: '90%',
     value: '24',
   },
   {
-    label: '适中',
+    label: '100%',
     value: '26',
     default: true,
   },
   {
-    label: '较大',
+    label: '110%',
     value: '28',
   },
   {
-    label: '极大',
+    label: '120%',
     value: '30',
+  },
+  {
+    label: '130%',
+    value: '32',
+  },
+  {
+    label: '140%',
+    value: '34',
   },
 ] satisfies SelectGroup[]
 

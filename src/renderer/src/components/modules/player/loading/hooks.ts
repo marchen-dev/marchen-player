@@ -11,6 +11,7 @@ import { usePlayerSettingsValue } from '@renderer/atoms/settings/player'
 import { db } from '@renderer/database/db'
 import type { DB_Danmaku, DB_History } from '@renderer/database/schemas/history'
 import { usePlayAnimeFailedToast } from '@renderer/hooks/use-toast'
+import { chineseConverter } from '@renderer/lib/cht-to-chs'
 import { tipcClient } from '@renderer/lib/client'
 import { calculateFileHash } from '@renderer/lib/file'
 import { isWeb } from '@renderer/lib/utils'
@@ -227,6 +228,14 @@ export const useDanmakuData = () => {
             }
           }
           const fetchData = await apiClient.comment.getExtcomment({ url: related.url })
+
+          // 当开启繁体转简体时，且为动漫疯弹幕库时，将弹幕转为简体
+          if (enableTraditionalToSimplified && related.url.includes('ani.gamer')) {
+            fetchData.comments.forEach((comment) => {
+              comment.m = chineseConverter.convert(comment.m)
+            })
+          }
+
           return {
             ...fetchData,
             selected: handleIsSelected(),

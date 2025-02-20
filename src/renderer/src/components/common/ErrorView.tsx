@@ -1,5 +1,7 @@
 import { tipcClient } from '@renderer/lib/client'
 import { RouteName } from '@renderer/router'
+import * as Sentry from '@sentry/react'
+import { useEffect } from 'react'
 import { useLocation, useNavigate, useRouteError } from 'react-router'
 
 import { Button } from '../ui/button'
@@ -10,6 +12,9 @@ export default function ErrorView() {
   const navigate = useNavigate()
   console.error(error)
 
+  useEffect(() => {
+    Sentry.captureException(error)
+  }, [error])
   return (
     <div className="flex h-screen flex-col items-center justify-center gap-6">
       <p className="text-xl">糟糕发生错误了😭</p>

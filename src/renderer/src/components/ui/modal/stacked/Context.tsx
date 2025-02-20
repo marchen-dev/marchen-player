@@ -1,6 +1,6 @@
 import { atom } from 'jotai'
 import type { FC, RefObject } from 'react'
-import { createContext, useContext } from 'react'
+import { createContext, use } from 'react'
 
 import type { ModalProps } from './types'
 
@@ -13,7 +13,7 @@ export const modalIdToPropsMap = {} as Record<string, ModalProps>
 export const CurrentModalContext = createContext<currentModalContextProps | null>(null)
 
 export const useCurrentModal = () => {
-  const context = useContext(CurrentModalContext)
+  const context = use(CurrentModalContext)
   if (!context) {
     throw new Error('useCurrentModal must be used within a ModalStackProvider')
   }

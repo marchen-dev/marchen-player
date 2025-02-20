@@ -10,7 +10,7 @@ import type { FC } from 'react'
 
 export interface SelectGroup {
   label: string
-  value: string  
+  value: string
   default?: boolean
 }
 

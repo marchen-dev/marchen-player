@@ -12,7 +12,7 @@ import { db } from '@renderer/database/db'
 import type { DB_History } from '@renderer/database/schemas/history'
 import { useQuery } from '@tanstack/react-query'
 import { useAtom, useAtomValue } from 'jotai'
-import { createContext, lazy, useContext, useEffect } from 'react'
+import { createContext, lazy, use, useEffect } from 'react'
 
 import { MatchDanmakuDialog } from '../../shared/MatchDanmakuDialog'
 import { Danmaku } from './items/damaku/Danmaku'
@@ -106,7 +106,7 @@ export const SettingProvider: React.FC<React.PropsWithChildren> = ({ children })
 }
 
 export const useSettingConfig = () => {
-  const context = useContext(SettingContext)
+  const context = use(SettingContext)
   if (!context) {
     throw new Error('useSettingConfig must be used within a SettingProvider')
   }

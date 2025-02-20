@@ -1,6 +1,7 @@
 import type { useAppSettingsValue } from '@renderer/atoms/settings/app'
 import { appSettingAtom } from '@renderer/atoms/settings/app'
 import { jotaiStore } from '@renderer/atoms/store'
+import { WindowState, windowStateAtom } from '@renderer/atoms/window'
 import { useVideo } from '@renderer/components/modules/player/loading/hooks'
 import { useSettingModal } from '@renderer/components/modules/settings/hooks'
 import { settingTabs } from '@renderer/components/modules/settings/tabs'
@@ -62,6 +63,18 @@ export const TipcListener = () => {
           }
         } catch (error) {
           console.error(error)
+        }
+      }),
+      handlers?.windowAction.listen((action) => {
+        switch (action) {
+          case 'maximize': {
+            jotaiStore.set(windowStateAtom, WindowState.MAXIMIZED)
+            break
+          }
+          case 'unmaximize': {
+            jotaiStore.set(windowStateAtom, WindowState.NORMAL)
+            break
+          }
         }
       }),
     ]

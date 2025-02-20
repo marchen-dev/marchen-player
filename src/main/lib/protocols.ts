@@ -115,18 +115,39 @@ const nodeStreamToWeb = (resultStream: ReadStream) => {
   )
 }
 
-export const getFilePathFromProtocolURL = (protocolUrl: string) => {
+export const getFilePathFromProtocolURL = (protocolUrl: string): string => {
   if (!protocolUrl?.startsWith(MARCHEN_PROTOCOL)) {
     return path.normalize(protocolUrl)
   }
-  let filePath = decodeURIComponent(protocolUrl.slice(`${MARCHEN_PROTOCOL}:/`.length))
+  let filePath = ''
   if (isWindows) {
-    filePath = filePath.slice(1)
-    filePath = path.win32.normalize(filePath)
-    // eslint-disable-next-line unicorn/prefer-regexp-test
-    if (filePath.match(/^[a-z]\\/i)) {
-      filePath = `${filePath.charAt(0).toUpperCase()}:${filePath.slice(1)}`
+    filePath = decodeURIComponent(protocolUrl.slice(`${MARCHEN_PROTOCOL}://`.length))
+
+    // 优先判断是否为自定义盘符路径（如 z/code/... -> Z:\code\...）
+    if (/^[a-z]\/.+/i.test(filePath)) {
+      const driveLetter = filePath[0].toUpperCase() // 提取盘符并转换为大写
+      filePath = `${driveLetter}:\\${filePath.slice(2).replaceAll('/', '\\')}` // 构造 Windows 格式路径
     }
+    // 判断是否为网络路径（主机名或 IP 地址）
+    else if (
+      /^[a-z0-9][a-z0-9-]*(?:\/|$)/i.test(filePath) ||
+      /^\d+\.\d+\.\d+\.\d+/.test(filePath)
+    ) {
+      filePath = `\\\\${filePath.replaceAll('/', '\\')}` // 转换为 UNC 路径格式
+    }
+    // 如果路径以盘符开头，直接规范化
+    else if (/^[a-z]:/i.test(filePath)) {
+      filePath = path.win32.normalize(filePath)
+    }
+    // 其他情况可能是相对路径，直接返回规范化结果
+    else {
+      filePath = path.win32.normalize(filePath)
+    }
+  } else {
+    filePath = decodeURIComponent(protocolUrl.slice(`${MARCHEN_PROTOCOL}:/`.length))
+    // 非 Windows 系统，直接返回路径
+    filePath = path.normalize(filePath)
   }
-  return path.normalize(filePath)
+
+  return filePath
 }

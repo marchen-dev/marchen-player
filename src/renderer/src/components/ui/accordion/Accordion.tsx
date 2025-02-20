@@ -5,12 +5,23 @@ import * as React from 'react'
 
 const Accordion = AccordionPrimitive.Root
 
-const AccordionItem = ({ ref, className, ...props }: React.ComponentPropsWithoutRef<typeof AccordionPrimitive.Item> & { ref?: React.RefObject<React.ElementRef<typeof AccordionPrimitive.Item>> }) => (
-  <AccordionPrimitive.Item ref={ref} className={cn('border-b', className)} {...props} />
-)
+const AccordionItem = ({
+  ref,
+  className,
+  ...props
+}: React.ComponentPropsWithoutRef<typeof AccordionPrimitive.Item> & {
+  ref?: React.RefObject<React.ElementRef<typeof AccordionPrimitive.Item>>
+}) => <AccordionPrimitive.Item ref={ref} className={cn('border-b', className)} {...props} />
 AccordionItem.displayName = 'AccordionItem'
 
-const AccordionTrigger = ({ ref, className, children, ...props }: React.ComponentPropsWithoutRef<typeof AccordionPrimitive.Trigger> & { ref?: React.RefObject<React.ElementRef<typeof AccordionPrimitive.Trigger>> }) => (
+const AccordionTrigger = ({
+  ref,
+  className,
+  children,
+  ...props
+}: React.ComponentPropsWithoutRef<typeof AccordionPrimitive.Trigger> & {
+  ref?: React.RefObject<React.ElementRef<typeof AccordionPrimitive.Trigger>>
+}) => (
   <AccordionPrimitive.Header className="flex">
     <AccordionPrimitive.Trigger
       ref={ref}
@@ -27,7 +38,14 @@ const AccordionTrigger = ({ ref, className, children, ...props }: React.Componen
 )
 AccordionTrigger.displayName = AccordionPrimitive.Trigger.displayName
 
-const AccordionContent = ({ ref, className, children, ...props }: React.ComponentPropsWithoutRef<typeof AccordionPrimitive.Content> & { ref?: React.RefObject<React.ElementRef<typeof AccordionPrimitive.Content>> }) => (
+const AccordionContent = ({
+  ref,
+  className,
+  children,
+  ...props
+}: React.ComponentPropsWithoutRef<typeof AccordionPrimitive.Content> & {
+  ref?: React.RefObject<React.ElementRef<typeof AccordionPrimitive.Content>>
+}) => (
   <AccordionPrimitive.Content
     ref={ref}
     className="overflow-hidden text-sm transition-all data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down"

@@ -5,10 +5,6 @@ import { t } from './_instance'
 export type AppTheme = 'cmyk' | 'dark' | 'system'
 
 export const settingRoute = {
-  getWindowIsMaximized: t.procedure.action(async ({ context }) => {
-    const webContents = context.sender
-    return BrowserWindow.fromWebContents(webContents)?.isMaximized()
-  }),
   getWindowIsFullScreen: t.procedure.action(async ({ context }) => {
     const webContents = context.sender
     return BrowserWindow.fromWebContents(webContents)?.isFullScreen()
