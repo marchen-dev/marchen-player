@@ -9,10 +9,8 @@ export interface DB_History {
   episodeTitle?: string
   progress: number
   duration: number
-  cover?: string
   thumbnail?: string
   danmaku?: DB_Danmaku[]
-  newBangumi?: boolean
   subtitles?: DB_Subtitles
   updatedAt: string
 }

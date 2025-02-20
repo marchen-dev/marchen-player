@@ -32,7 +32,7 @@ export const Sidebar = () => {
               </p>
             </Show>
           </Link>
-          <ButtonWithIcon icon="icon-[mingcute--settings-3-line]" onClick={() => showModal()} />
+          <ButtonWithIcon icon="icon-[mingcute--settings-3-line]" className='hover:bg-base-300' onClick={() => showModal()} />
         </div>
         <nav className="mt-5 flex select-none flex-col gap-2">
           {siderbarRoutes.map((route) => (
@@ -64,7 +64,7 @@ const NavLinkItem: FC<SidebarRouteObject> = ({ path, meta }) => {
     <NavLink
       draggable={false}
       to={path}
-      className={cn(pathname === path && 'rounded-md bg-base-300')}
+      className={cn(pathname.includes(path) && 'rounded-md bg-base-300')}
     >
       <p className="flex cursor-default items-center gap-1.5 p-2">
         <i className={cn(icon, 'text-xl')} />

@@ -1,10 +1,8 @@
 import { jotaiStore } from '@renderer/atoms/store'
 import { ModalStackProvider } from '@renderer/components/ui/modal'
 import { Toaster } from '@renderer/components/ui/toast'
-import { isDev } from '@renderer/lib/env'
 import queryClient from '@renderer/lib/query-client'
 import { QueryClientProvider } from '@tanstack/react-query'
-import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import { domMax, LazyMotion } from 'framer-motion'
 import { Provider as JotaiProvider } from 'jotai'
 import { ThemeProvider } from 'next-themes'
@@ -29,6 +27,6 @@ export const RootProviders: FC<PropsWithChildren> = ({ children }) => (
     {children}
 
     <Toaster />
-    {isDev && <ReactQueryDevtools initialIsOpen={false} buttonPosition="top-right" />}
+    {/* {isDev && <ReactQueryDevtools initialIsOpen={false} buttonPosition="top-right" />} */}
   </ProviderComposer>
 )

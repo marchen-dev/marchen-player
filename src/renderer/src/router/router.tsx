@@ -1,6 +1,7 @@
 import App from '@renderer/App'
 import ErrorView from '@renderer/components/common/ErrorView'
 import History from '@renderer/page/history'
+import { HistoryDetails } from '@renderer/page/history/[animeId]'
 import VideoPlayer from '@renderer/page/player'
 import type { NonIndexRouteObject, RouteObject } from 'react-router'
 import { createHashRouter, Navigate, useLocation } from 'react-router'
@@ -40,6 +41,11 @@ export const siderbarRoutes = [
     },
     errorElement: <ErrorView />,
     element: <History />,
+  },
+  {
+    path: `${RouteName.HISTORY}/:animeId`,
+    element: <HistoryDetails />,
+    errorElement: <ErrorView />,
   },
 ] satisfies SidebarRouteObject[]
 

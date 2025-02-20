@@ -7,7 +7,7 @@ import FFmpeg from '@main/lib/ffmpeg'
 import { getFilePathFromProtocolURL } from '@main/lib/protocols'
 import { coverSubtitleToAss } from '@main/lib/utils'
 import { showFileSelectionDialog } from '@main/modules/showDialog'
-import { calculateFileHashByBuffer } from '@renderer/lib/calc-file-hash'
+import { calculateFileHashByBuffer } from '@renderer/lib/file'
 import { dialog } from 'electron'
 import naturalCompare from 'string-natural-compare'
 
