@@ -1,6 +1,6 @@
 import type SubtitlesOctopus from 'libass-wasm'
 import type { FC, PropsWithChildren } from 'react'
-import { createContext, useContext, useMemo, useState } from 'react'
+import { createContext, use, useMemo, useState } from 'react'
 
 import type { PlayerType } from './initialize/hooks'
 
@@ -28,7 +28,7 @@ export const PlayerProvider: FC<PropsWithChildren<{ value: PlayerType | null }>>
 }
 
 export const usePlayerInstance = () => {
-  const context = useContext(PlayerContext)
+  const context = use(PlayerContext)
   if (!context) {
     throw new Error('usePlayerInstance must be used within a PlayerProvider')
   }
@@ -36,7 +36,7 @@ export const usePlayerInstance = () => {
 }
 
 export const useSubtitleInstance = () => {
-  const context = useContext(PlayerContext)
+  const context = use(PlayerContext)
   if (!context) {
     throw new Error('useSubtitleInstance must be used within a PlayerProvider')
   }
