@@ -68,9 +68,4 @@ afterPack: scripts/cleaned-unused-arch-deps.js
 afterSign: scripts/notarize.js
 releaseInfo:
   releaseNotes: |
-    修复 windows 下以英文开头的网络路径无法识别的问题
-    修复 windows 通过拖拽窗口退出最大化状态按扭无法切换的问题
-    优化调整弹幕字体大小的体验
-    支持导入 JSON 格式弹幕文件
-    修复手动导入弹幕后会导致取消勾选弹幕失效
-    支持弹幕繁体转简体
+    修复视频导入失败的问题

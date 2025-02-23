@@ -181,10 +181,7 @@ export const playerRoute = {
         filters: [{ name: '弹幕文件', extensions: ['xml', 'json'] }],
       })
       if (!filePath) {
-        return {
-          ok: 0,
-          message: '请选择弹幕文件',
-        }
+        return
       }
       const extName = path.extname(filePath).toLowerCase()
       if (extName !== '.xml' && extName !== '.json') {

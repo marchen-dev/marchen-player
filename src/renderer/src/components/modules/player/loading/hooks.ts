@@ -14,7 +14,7 @@ import { usePlayAnimeFailedToast } from '@renderer/hooks/use-toast'
 import { calculateFileHash } from '@renderer/lib/calc-file-hash'
 import { chineseConverter } from '@renderer/lib/cht-to-chs'
 import { tipcClient } from '@renderer/lib/client'
-import { isWeb } from '@renderer/lib/utils'
+import { checkIsVideoType, isWeb } from '@renderer/lib/utils'
 import { apiClient } from '@renderer/request'
 import type { CommentsModel } from '@renderer/request/models/comment'
 import type { MatchResponseV2 } from '@renderer/request/models/match'
@@ -49,7 +49,7 @@ export const useVideo = () => {
       file = changeEvent.target?.files?.[0]
     }
 
-    if (!file || !file?.type.startsWith('video/')) {
+    if (!file || !checkIsVideoType(file.name)) {
       return showFailedToast({ title: '格式错误', description: '请导入 mp4 或者 mkv 格式的动漫' })
     }
 

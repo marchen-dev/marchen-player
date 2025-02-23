@@ -48,3 +48,8 @@ export const getOS = memoize((): OS => {
 export const isMac = getOS() === 'macOS' && window.electron
 export const isWindows = getOS() === 'Windows' && window.electron
 export const isWeb = !window.electron
+
+export const checkIsVideoType = (videoName: string) => {
+  const videoSuffix = videoName?.split('.').pop()?.toLowerCase()
+  return videoSuffix === 'mp4' || videoSuffix === 'mkv'
+}
