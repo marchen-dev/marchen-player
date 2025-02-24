@@ -70,3 +70,5 @@ releaseInfo:
   releaseNotes: |
     修复视频导入失败的问题
     初次访问 web 版本提示优化
+    修复内嵌字幕多次加载的问题
+    

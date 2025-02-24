@@ -1,23 +1,23 @@
 import { isWeb } from '@renderer/lib/utils'
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 
-import { usePlayerInstance, useSubtitleInstance } from '../Context'
+import { usePlayerInstance } from '../Context'
 import { useSubtitle } from '../setting/items/subtitle/hooks'
 
 export const InitializeSubtitle = () => {
-  const { initializeSubtitle, subtitlesInstance, isFetching } = useSubtitle()
+  const { initializeSubtitle, isFetching } = useSubtitle()
   const player = usePlayerInstance()
-  const [subtitle] = useSubtitleInstance()
-
+  const onceRef = useRef(false)
   useEffect(() => {
-    if (!player || isFetching || isWeb || subtitle) {
+    if (isWeb) {
+      return
+    }
+    if (!player || isFetching || onceRef.current) {
       return
     }
 
+    onceRef.current = true
     initializeSubtitle()
-    return () => {
-      subtitlesInstance?.freeTrack()
-    }
   }, [player, isFetching])
   return null
 }

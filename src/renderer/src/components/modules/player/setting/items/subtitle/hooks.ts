@@ -1,5 +1,6 @@
 import { MARCHEN_PROTOCOL_PREFIX } from '@main/constants/protocol'
 import { videoAtom } from '@renderer/atoms/player'
+import { useToast } from '@renderer/components/ui/toast'
 import { db } from '@renderer/database/db'
 import { tipcClient } from '@renderer/lib/client'
 import { isWeb } from '@renderer/lib/utils'
@@ -21,6 +22,7 @@ export const useSubtitle = () => {
   const player = usePlayerInstance()
   const [subtitlesInstance, setSubtitlesInstance] = useSubtitleInstance()
   const setVideo = useSetAtom(videoAtom)
+  const { toast } = useToast()
   const [isLoadingEmbeddedSubtitle, setIsLoadingEmbeddedSubtitle] = useAtom(
     setIsLoadingEmbeddedSubtitleAtom,
   )
@@ -149,13 +151,16 @@ export const useSubtitle = () => {
 
         setIsLoadingEmbeddedSubtitle(true)
         // 通过 ipc 获取被选中的动漫内嵌字幕
-        const subtitlePath = await tipcClient?.getSubtitlesBody({
+        const subtitleData = await tipcClient?.getSubtitlesBody({
           path: url,
           index,
         })
-
+        const subtitlePath = subtitleData?.data
         if (!subtitlePath || !data?.tags?.[index]) {
-          return
+          toast({
+            title: '视频内嵌字幕加载失败',
+          })
+          throw new Error(subtitleData?.message ?? '字幕加载失败')
         }
 
         const newTags = [
@@ -172,10 +177,8 @@ export const useSubtitle = () => {
             tags: newTags,
           },
         })
-
         await setSubtitlesOctopus(subtitlePath)
-        setIsLoadingEmbeddedSubtitle(false)
-      } catch {
+      } finally {
         setIsLoadingEmbeddedSubtitle(false)
       }
     },

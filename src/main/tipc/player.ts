@@ -148,8 +148,19 @@ export const playerRoute = {
   getSubtitlesBody: t.procedure
     .input<{ path: string; index: number }>()
     .action(async ({ input }) => {
-      const ffmpeg = new FFmpeg(getFilePathFromProtocolURL(input.path))
-      return ffmpeg.extractSubtitles(input.index)
+      try {
+        const ffmpeg = new FFmpeg(getFilePathFromProtocolURL(input.path))
+        const data = await ffmpeg.extractSubtitles(input.index)
+        return {
+          ok: 1,
+          data,
+        }
+      } catch (error: any) {
+        return {
+          ok: 0,
+          message: error?.message || '',
+        }
+      }
     }),
   matchSubtitleFile: t.procedure.input<{ path: string }>().action(async ({ input }) => {
     const filePath = getFilePathFromProtocolURL(input.path)
