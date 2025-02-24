@@ -53,3 +53,8 @@ export const checkIsVideoType = (videoName: string) => {
   const videoSuffix = videoName?.split('.').pop()?.toLowerCase()
   return videoSuffix === 'mp4' || videoSuffix === 'mkv'
 }
+
+export const isChromiumBased = (): boolean => {
+  const userAgent = navigator.userAgent.toLowerCase()
+  return userAgent.includes('chrome') || userAgent.includes('chromium')
+}

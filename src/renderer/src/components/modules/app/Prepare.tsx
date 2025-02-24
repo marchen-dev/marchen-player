@@ -3,7 +3,7 @@ import Show from '@renderer/components/common/Show'
 import { DownloadClient } from '@renderer/components/layout/sidebar'
 import { useToast } from '@renderer/components/ui/toast'
 import { appLog } from '@renderer/lib/log'
-import { cn, isWeb, isWindows } from '@renderer/lib/utils'
+import { cn, isChromiumBased, isWeb, isWindows } from '@renderer/lib/utils'
 import { useEffect } from 'react'
 
 import { Titlebar } from './WindowsTitlebar'
@@ -50,15 +50,16 @@ const PrepareForWeb = () => {
   useEffect(() => {
     appLog(
       'Download the Marchen Player client from github',
-      'https://github.com/marchen-dev/marchen-player',
+      'https://github.com/marchen-dev/marchen-player/releases/latest',
     )
     if (!firstOpen) {
       return
     }
     const clear = setTimeout(() => {
+      const description = `${!isChromiumBased() ? '当前浏览器不支持播放 mkv 格式视频，' : ''}推荐下载客户端版本获得完整的体验`
       toast({
         title: '下载客户端',
-        description: '客户端版本获得完整的体验',
+        description,
         duration: 10000,
         action: <DownloadClient />,
       })

@@ -15,7 +15,7 @@ const getSelectedDefaultValue = (list: SelectGroup[]) => {
 const createPlayerDefaultSettings = () => {
   return {
     enableTraditionalToSimplified: false,
-    enableAutomaticEpisodeSwitching: true,
+    enableAutomaticEpisodeSwitching: false,
     enableMiniProgress: true,
     danmakuFontSize: getSelectedDefaultValue(danmakuFontSizeList) ?? '26',
     danmakuDuration: getSelectedDefaultValue(danmakuDurationList) ?? '15000',
