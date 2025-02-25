@@ -4,8 +4,7 @@ import { useToast } from '@renderer/components/ui/toast'
 import { db } from '@renderer/database/db'
 import { tipcClient } from '@renderer/lib/client'
 import { isWeb } from '@renderer/lib/utils'
-import SourceHanSansCN from '@renderer/styles/fonts/SourceHanSansCN.woff2?url'
-import TimesNewRoman from '@renderer/styles/fonts/TimesNewRoman.ttf?url'
+import NotoSansSC from '@renderer/styles/fonts/notoSansSC-medium.woff2?url'
 import { useQuery } from '@tanstack/react-query'
 import { atom, useAtom, useAtomValue, useSetAtom } from 'jotai'
 import SubtitlesOctopus from 'libass-wasm'
@@ -65,8 +64,7 @@ export const useSubtitle = () => {
       if (!subtitlesInstance) {
         setSubtitlesInstance(
           new SubtitlesOctopus({
-            fonts: [TimesNewRoman],
-            fallbackFont: SourceHanSansCN,
+            fonts: [NotoSansSC],
             video: player?.media as HTMLVideoElement,
             subUrl: completePath,
             timeOffset: history?.subtitles?.timeOffset ?? 0,
