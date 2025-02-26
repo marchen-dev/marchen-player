@@ -1,5 +1,20 @@
 # CHANGELOG
 
+## [0.0.2](https://github.com/marchen-dev/marchen-player/compare/v0.0.1...v0.0.2) (2025-02-26)
+
+
+### Bug Fixes
+
+* add fallback subtitle font ([ee47ffb](https://github.com/marchen-dev/marchen-player/commit/ee47ffbfda09756852aca996a529240942b5bd28))
+* embedded subtitles were loaded multiple times ([74709a2](https://github.com/marchen-dev/marchen-player/commit/74709a25d26c620c7e5593ce4c6bc104d7180273))
+
+
+### Features
+
+* web version adds reset webpage ([7e00d20](https://github.com/marchen-dev/marchen-player/commit/7e00d20673106768c395d9d4bb4329c27ecd6a1d))
+
+
+
 ## [0.0.1](https://github.com/marchen-dev/marchen-player/compare/v0.0.1-beta.8...v0.0.1) (2025-02-20)
 
 
