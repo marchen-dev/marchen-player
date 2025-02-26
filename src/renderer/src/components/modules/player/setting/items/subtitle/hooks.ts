@@ -65,6 +65,7 @@ export const useSubtitle = () => {
         setSubtitlesInstance(
           new SubtitlesOctopus({
             fonts: [NotoSansSC],
+            fallbackFont: NotoSansSC,
             video: player?.media as HTMLVideoElement,
             subUrl: completePath,
             timeOffset: history?.subtitles?.timeOffset ?? 0,
