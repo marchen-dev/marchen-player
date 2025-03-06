@@ -93,6 +93,7 @@ export const SubtitleImport = () => {
   if (!defaultValue || isFetching) {
     return
   }
+
   return (
     <>
       <Select
@@ -106,7 +107,7 @@ export const SubtitleImport = () => {
         <SelectContent>
           <SelectGroup>
             <SelectItem value={'-1'}>
-              {isLoadingEmbeddedSubtitle ? '正在加载字幕中...' : '关闭'}
+              {isLoadingEmbeddedSubtitle ? '正在加载字幕中...' : isWeb ? '默认' : '关闭'}
             </SelectItem>
             {subtitlesData?.tags?.map((subtitle) => {
               return (
