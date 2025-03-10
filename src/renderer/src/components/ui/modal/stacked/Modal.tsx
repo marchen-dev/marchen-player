@@ -47,7 +47,7 @@ export const ModalInternal: FC<ModalInternalProps> = memo(function Modal({ ref, 
     ),
   )
   useEffect(() => {
-    if (currentIsClosing) {
+    if (currentIsClosing && document.body && document.body.style) {
       document.body.style.pointerEvents = 'auto'
     }
   }, [currentIsClosing])
