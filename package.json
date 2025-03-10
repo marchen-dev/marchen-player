@@ -3,7 +3,7 @@
   "type": "module",
   "version": "0.0.2",
   "private": true,
-  "packageManager": "pnpm@9.15.6",
+  "packageManager": "pnpm@10.6.2",
   "description": "Marchen player",
   "author": "Suemor",
   "license": "AGPL-3.0",
