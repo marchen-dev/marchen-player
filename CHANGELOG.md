@@ -1,5 +1,21 @@
 # CHANGELOG
 
+## [0.0.3](https://github.com/marchen-dev/marchen-player/compare/v0.0.2...v0.0.3) (2025-03-16)
+
+
+### Bug Fixes
+
+* ci ([f1d1b7a](https://github.com/marchen-dev/marchen-player/commit/f1d1b7a8ea238e9a7813c84cfaa165acfe00e7ac))
+* subtitles disappearing when resizing the window ([eb1c6cf](https://github.com/marchen-dev/marchen-player/commit/eb1c6cf51ca290051c595dac6af2a3bdce9ffd82))
+
+
+### Features
+
+* add pnpm onlyBuiltDependencies ([dc3cba6](https://github.com/marchen-dev/marchen-player/commit/dc3cba62c886b9476a93fb9c1af6341db3e2cc06))
+* add subtitle parsing error prompt ([1f7d199](https://github.com/marchen-dev/marchen-player/commit/1f7d199956a89c981929f3eccc5332ff052e54ab))
+
+
+
 ## [0.0.2](https://github.com/marchen-dev/marchen-player/compare/v0.0.1...v0.0.2) (2025-02-26)
 
 
