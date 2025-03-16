@@ -156,10 +156,11 @@ export const useSubtitle = () => {
         })
         const subtitlePath = subtitleData?.data
         if (!subtitlePath || !data?.tags?.[index]) {
+          const message = subtitleData?.message ?? '视频内嵌字幕加载失败'
           toast({
-            title: '视频内嵌字幕加载失败',
+            title: message
           })
-          throw new Error(subtitleData?.message ?? '字幕加载失败')
+          throw new Error(message)
         }
 
         const newTags = [

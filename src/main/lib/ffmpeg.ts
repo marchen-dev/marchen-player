@@ -96,8 +96,28 @@ export default class FFmpeg {
         .on('end', () => {
           resolve(outputPath)
         })
-        .on('error', (err) => {
-          reject(err)
+        .on('error', async (ffmpegError) => {
+          ffmpeg.ffprobe(this.ffmpeg._inputs[0].source, (err, metadata) => {
+            if (err) {
+              return reject(err)
+            }
+
+            const subtitleStream = metadata.streams
+              .filter((stream) => stream.codec_type === 'subtitle')
+              .at(index)
+
+            if (!subtitleStream) {
+              return reject(new Error('解析内嵌字幕发生错误'))
+            }
+            // 检查是否为 PGS 字幕
+            if (
+              subtitleStream.codec_name?.toLowerCase()?.includes('pgs') ||
+              subtitleStream.codec_tag_string?.toLowerCase()?.includes('pgs')
+            ) {
+              return reject(new Error('不支持加载「位图字幕」'))
+            }
+            reject(ffmpegError)
+          })
         })
     })
   }

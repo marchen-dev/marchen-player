@@ -68,6 +68,6 @@ afterPack: scripts/cleaned-unused-arch-deps.js
 afterSign: scripts/notarize.js
 releaseInfo:
   releaseNotes: |
-    优化提示信息
-    修复改变窗口大小字幕消失的问题
+    优化导入字幕提示信息
+    修复改变窗口大小后字幕消失的问题
     
