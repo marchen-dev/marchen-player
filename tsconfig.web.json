@@ -29,6 +29,5 @@
       "@main/*": ["src/main/*"],
       "@pkg": ["./package.json"]
     },
-    "types": ["@hrgui/libass-wasm-ts"]
   }
 }

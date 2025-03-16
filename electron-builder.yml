@@ -68,7 +68,6 @@ afterPack: scripts/cleaned-unused-arch-deps.js
 afterSign: scripts/notarize.js
 releaseInfo:
   releaseNotes: |
-    修复视频导入失败的问题
-    初次访问 web 版本提示优化
-    修复内嵌字幕多次加载的问题
+    优化提示信息
+    修复改变窗口大小字幕消失的问题
     

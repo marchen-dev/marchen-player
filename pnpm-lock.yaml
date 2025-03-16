@@ -33,15 +33,15 @@ importers:
       '@fontsource/manrope':
         specifier: ^5.0.21
         version: 5.2.5
-      '@hrgui/libass-wasm-ts':
-        specifier: ^1.0.3
-        version: 1.0.3
       '@iconify-json/mingcute':
         specifier: ^1.1.19
         version: 1.2.3
       '@iconify/tailwind':
         specifier: ^1.1.2
         version: 1.2.0
+      '@jellyfin/libass-wasm':
+        specifier: ^4.2.3
+        version: 4.2.3
       '@radix-ui/react-accordion':
         specifier: ^1.2.0
         version: 1.2.3(@types/react-dom@19.0.4(@types/react@19.0.10))(@types/react@19.0.10)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
@@ -192,9 +192,6 @@ importers:
       jotai:
         specifier: ^2.9.3
         version: 2.12.2(@types/react@19.0.10)(react@19.0.0)
-      libass-wasm:
-        specifier: ^4.1.0
-        version: 4.1.0
       lint-staged:
         specifier: ^15.2.8
         version: 15.5.0
@@ -1254,9 +1251,6 @@ packages:
   '@gar/promisify@1.1.3':
     resolution: {integrity: sha512-k2Ty1JcVojjJFwrg/ThKi2ujJ7XNLYaFGNB/bWT9wGR+oSMJHMa5w+CUq6p/pVrKeNNgA7pCqEcjSnHVoqJQFw==}
 
-  '@hrgui/libass-wasm-ts@1.0.3':
-    resolution: {integrity: sha512-n8RbJLrhirfgDun88jVSs0/SeLC5PZz9iost9DXZ9dAXztDzpmjlEfu+k/viM37+EbaC9gWnRdUwcnptDkjtNw==}
-
   '@humanfs/core@0.19.1':
     resolution: {integrity: sha512-5DyQ4+1JEUzejeK1JGICcideyfUbGixgS9jNgex5nqkW+cY7WZhxBigmieN5Qnw9ZosSNVC9KQKyb+GUaGyKUA==}
     engines: {node: '>=18.18.0'}
@@ -1293,6 +1287,9 @@ packages:
   '@isaacs/cliui@8.0.2':
     resolution: {integrity: sha512-O8jcjabXaleOG9DQ0+ARXWZBTfnP4WNAqzuiJK7ll44AmxGKv/J2M4TPjxjY3znBCfvBXFzucm1twdyFybFqEA==}
     engines: {node: '>=12'}
+
+  '@jellyfin/libass-wasm@4.2.3':
+    resolution: {integrity: sha512-C0OlBxIr9NdeFESMTA/OVDqNSWtog6Mi7wwzwH12xbZpxsMD0RgCupUcIP7zZgcpTNecW3fZq5d6xVo7Q8HEJw==}
 
   '@jridgewell/gen-mapping@0.3.8':
     resolution: {integrity: sha512-imAbBGkb+ebQyxKgzv5Hu2nmROxoDOXHh80evxdoXNOrvAnVx7zimzc1Oo5h9RlfV4vPXaE2iM5pOFbvOCClWA==}
@@ -4014,9 +4011,6 @@ packages:
     resolution: {integrity: sha512-+bT2uH4E5LGE7h/n3evcS/sQlJXCpIp6ym8OWJ5eV6+67Dsql/LaaT7qJBAt2rzfoa/5QBGBhxDix1dMt2kQKQ==}
     engines: {node: '>= 0.8.0'}
 
-  libass-wasm@4.1.0:
-    resolution: {integrity: sha512-+RbYT/uuI6VHExCmGyUuMg3A2gQOaCRTzSn8GGDSf3q4cEoUNiINd9u4RGfZXA1UKafW+Hv8bmcKIX4FKbSh0Q==}
-
   lilconfig@3.1.3:
     resolution: {integrity: sha512-/vlFKAoH5Cgt3Ie+JLhRbwOsCQePABiU3tJ1egGvyQ+33R/vcwM2Zl2QR/LzjsBeItPt3oSVXapn+m4nQDvpzw==}
     engines: {node: '>=14'}
@@ -6389,8 +6383,6 @@ snapshots:
 
   '@gar/promisify@1.1.3': {}
 
-  '@hrgui/libass-wasm-ts@1.0.3': {}
-
   '@humanfs/core@0.19.1': {}
 
   '@humanfs/node@0.16.6':
@@ -6424,6 +6416,8 @@ snapshots:
       strip-ansi-cjs: strip-ansi@6.0.1
       wrap-ansi: 8.1.0
       wrap-ansi-cjs: wrap-ansi@7.0.0
+
+  '@jellyfin/libass-wasm@4.2.3': {}
 
   '@jridgewell/gen-mapping@0.3.8':
     dependencies:
@@ -9517,8 +9511,6 @@ snapshots:
     dependencies:
       prelude-ls: 1.2.1
       type-check: 0.4.0
-
-  libass-wasm@4.1.0: {}
 
   lilconfig@3.1.3: {}
 
