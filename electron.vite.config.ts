@@ -38,7 +38,7 @@ export default defineConfig({
           copy({
             targets: [
               {
-                src: 'node_modules/libass-wasm/dist/js/subtitles-octopus-worker.wasm',
+                src: 'node_modules/@jellyfin/libass-wasm/dist/js/subtitles-octopus-worker.wasm',
                 dest: 'out/renderer/assets',
               },
             ],

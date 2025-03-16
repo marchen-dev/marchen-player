@@ -1,4 +1,4 @@
-import type SubtitlesOctopus from 'libass-wasm'
+import type SubtitlesOctopus from '@jellyfin/libass-wasm'
 import type { FC, PropsWithChildren } from 'react'
 import { createContext, use, useMemo, useState } from 'react'
 
