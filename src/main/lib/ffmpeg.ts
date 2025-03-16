@@ -5,7 +5,6 @@ import ffmpegPath from '@ffmpeg-installer/ffmpeg'
 import ffprobePath from '@ffprobe-installer/ffprobe'
 import { createStorageFolder, screenshotsPath, subtitlesPath } from '@main/constants/app'
 import ffmpeg from 'fluent-ffmpeg'
-import { nanoid } from 'nanoid'
 
 ffmpeg.setFfmpegPath(ffmpegPath.path.replace('app.asar', 'app.asar.unpacked'))
 ffmpeg.setFfprobePath(ffprobePath.path.replace('app.asar', 'app.asar.unpacked'))
@@ -19,7 +18,7 @@ export default class FFmpeg {
   }
 
   grabFrame = (time: string): Promise<string> => {
-    const fileName = `${Date.now()}-${nanoid(10)}.jpeg`
+    const fileName = `${Date.now()}.jpeg`
     const fullPath = path.join(screenshotsPath(), fileName)
     return new Promise((resolve, reject) => {
       if (!fs.existsSync(screenshotsPath())) {
@@ -49,7 +48,7 @@ export default class FFmpeg {
   }
 
   coverToAssSubtitle = (): Promise<{ fileName: string; filePath: string }> => {
-    const fileName = `${Date.now()}-${nanoid(10)}.ass`
+    const fileName = `${Date.now()}.ass`
     const outPutPath = path.join(subtitlesPath(), fileName)
     return new Promise((resolve, reject) => {
       this.ffmpeg
@@ -87,7 +86,7 @@ export default class FFmpeg {
       fs.mkdirSync(subtitlesPath(), { recursive: true })
     }
 
-    const fileName = `${Date.now()}-${nanoid(10)}-${index}.ass`
+    const fileName = `${Date.now()}-${index}.ass`
     const outputPath = path.join(subtitlesPath(), fileName)
     return new Promise<string>((resolve, reject) => {
       this.ffmpeg
