@@ -1,55 +1,58 @@
 /* eslint-disable no-console */
-import { exec as execCallback } from 'node:child_process'
-import { promisify } from 'node:util'
+import fs from 'node:fs'
+import path from 'node:path'
 
 import fixLinuxPermissions from './fix-linux-permissions.js'
 
-const exec = promisify(execCallback)
-
-export default async function installDarWinDeps(context) {
+export default async function cleanDeps(context) {
   await fixLinuxPermissions(context)
-  const { packager, arch } = context
+  const { packager, arch, appOutDir } = context
   const platform = packager.platform.nodeName
   if (platform !== 'darwin') {
     return
   }
-
   const archMap = {
     1: 'x64',
     3: 'arm64',
   }
   const currentArch = archMap[arch]
+
   if (!currentArch) {
     return
   }
 
-  const dependenciesToRemove = {
-    x64: ['@ffmpeg-installer/darwin-arm64', '@ffprobe-installer/darwin-arm64'],
-    arm64: ['@ffmpeg-installer/darwin-x64', '@ffprobe-installer/darwin-x64'],
+  const unpackedPath = path.resolve(
+    appOutDir,
+    'Marchen.app',
+    'Contents',
+    'Resources',
+    'app.asar.unpacked',
+    'node_modules',
+  )
+  if (!fs.existsSync(unpackedPath)) {
+    return
   }
 
-  const removeDeps = async (arch) => {
-    const deps = dependenciesToRemove[arch]
-    for (const dep of deps) {
-      try {
-        await exec(`pnpm list ${dep}`)
-        await exec(`pnpm remove ${dep}`)
-      } catch {
-        console.log(`${dep} not found, skipping...`)
-      }
+  const ffmpegPath = path.resolve(unpackedPath, '@ffmpeg-installer')
+  const ffprobePath = path.resolve(unpackedPath, '@ffprobe-installer')
+
+  if (!fs.existsSync(ffmpegPath) || !fs.existsSync(ffprobePath)) {
+    return
+  }
+
+  const removeUnusedArch = (basePath, unusedArch) => {
+    const unusedPath = path.resolve(basePath, `darwin-${unusedArch}`)
+    if (fs.existsSync(unusedPath)) {
+      fs.rmSync(unusedPath, { recursive: true })
     }
   }
 
-  const addDeps = async (arch) => {
-    const deps = {
-      x64: '@ffmpeg-installer/darwin-x64@^4.1.0 @ffprobe-installer/darwin-x64@^5.1.0 -D',
-      arm64: '@ffmpeg-installer/darwin-arm64@^4.1.5 @ffprobe-installer/darwin-arm64@^5.0.1 -D',
-    }
-    await exec(`pnpm add ${deps[arch]}`)
+  if (currentArch === 'x64') {
+    removeUnusedArch(ffmpegPath, 'arm64')
+    removeUnusedArch(ffprobePath, 'arm64')
+  } else if (currentArch === 'arm64') {
+    removeUnusedArch(ffmpegPath, 'x64')
+    removeUnusedArch(ffprobePath, 'x64')
   }
-
-  await removeDeps(currentArch)
-  await addDeps(currentArch)
-
-  console.log('Successfully installed dependencies')
+  console.log('Cleaned unused arch dependencies.')
 }
