@@ -1,5 +1,20 @@
 # CHANGELOG
 
+## [0.0.4](https://github.com/marchen-dev/marchen-player/compare/v0.0.3...v0.0.4) (2025-03-26)
+
+
+### Bug Fixes
+
+* insufficient permissions for ffprobe in linux ([12ef620](https://github.com/marchen-dev/marchen-player/commit/12ef620852294621a8091fef228b7bc4ef59f6d4))
+
+
+### Features
+
+* add release note ([852dc5c](https://github.com/marchen-dev/marchen-player/commit/852dc5c73778080aecbd112260a8127e6f3d0a9b))
+* enable hardware decoding on linux ([b8cfbdc](https://github.com/marchen-dev/marchen-player/commit/b8cfbdc8fa8f0aafc87238edf94f02f77223e242))
+
+
+
 ## [0.0.3](https://github.com/marchen-dev/marchen-player/compare/v0.0.2...v0.0.3) (2025-03-16)
 
 
