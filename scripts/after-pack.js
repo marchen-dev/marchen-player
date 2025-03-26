@@ -2,9 +2,12 @@
 import { exec as execCallback } from 'node:child_process'
 import { promisify } from 'node:util'
 
+import fixLinuxPermissions from './fix-linux-permissions.js'
+
 const exec = promisify(execCallback)
 
 export default async function installDarWinDeps(context) {
+  await fixLinuxPermissions(context)
   const { packager, arch } = context
   const platform = packager.platform.nodeName
   if (platform !== 'darwin') {
