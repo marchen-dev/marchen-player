@@ -11,12 +11,14 @@ import { quickLaunchViaVideo } from '../lib/utils'
 import { router } from '../tipc'
 import { getMainWindow } from '../windows/main'
 import { getRendererHandlers } from '../windows/setting'
+import { enableHardwareDecodingOnLinux } from './flag'
 import { registerLog } from './log'
 import { registerAppMenu } from './menu'
 import { registerSentry } from './sentry'
 
 export const initializeApp = () => {
   limitSingleInstance()
+  enableHardwareDecodingOnLinux()
   registerSentry()
   registerIpcMain(router)
   registerAppMenu()
