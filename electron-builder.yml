@@ -68,7 +68,3 @@ afterPack: scripts/after-pack.js
 afterSign: scripts/notarize.js
 releaseInfo:
   releaseNotes: |
-    优化导入字幕提示信息
-    修复改变窗口大小后字幕消失的问题
-    修复在 Linux 上无法播放视频报错的问题
-    修复在 Linux 上错误弹窗

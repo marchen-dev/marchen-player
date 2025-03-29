@@ -56,7 +56,7 @@ const PrepareForWeb = () => {
       return
     }
     const clear = setTimeout(() => {
-      const description = `${!isChromiumBased() ? '当前浏览器不支持播放 mkv 格式视频，' : ''}推荐下载客户端版本获得完整的体验`
+      const description = `${!isChromiumBased() ? '当前浏览器不支持 MKV 容器格式，' : ''}推荐下载客户端版本获得完整的体验`
       toast({
         title: '下载客户端',
         description,
