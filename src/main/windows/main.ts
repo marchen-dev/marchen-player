@@ -69,7 +69,6 @@ export default function createWindow() {
   } else {
     mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
   }
-  // mainWindow.webContents.userAgent = 'dandanplay-test/android 1.2.3'
   return mainWindow
 }
 
