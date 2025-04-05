@@ -41,7 +41,7 @@
     "@egoist/tipc": "^0.3.2",
     "@electron-toolkit/preload": "^3.0.1",
     "@electron-toolkit/tsconfig": "^1.0.1",
-    "@electron-toolkit/utils": "^3.0.0",
+    "@electron-toolkit/utils": "^4.0.0",
     "@electron/notarize": "^2.5.0",
     "@fontsource/manrope": "^5.0.21",
     "@iconify-json/mingcute": "^1.1.19",

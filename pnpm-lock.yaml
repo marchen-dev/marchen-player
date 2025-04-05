@@ -25,8 +25,8 @@ importers:
         specifier: ^1.0.1
         version: 1.0.1(@types/node@22.13.10)
       '@electron-toolkit/utils':
-        specifier: ^3.0.0
-        version: 3.0.0(electron@35.0.2)
+        specifier: ^4.0.0
+        version: 4.0.0(electron@35.0.2)
       '@electron/notarize':
         specifier: ^2.5.0
         version: 2.5.0
@@ -560,8 +560,8 @@ packages:
     peerDependencies:
       '@types/node': '*'
 
-  '@electron-toolkit/utils@3.0.0':
-    resolution: {integrity: sha512-GaXHDhiT7KCvMJjXdp/QqpYinq69T/Pdl49Z1XLf8mKGf63dnsODMWyrmIjEQ0z/vG7dO8qF3fvmI6Eb2lUNZA==}
+  '@electron-toolkit/utils@4.0.0':
+    resolution: {integrity: sha512-qXSntwEzluSzKl4z5yFNBknmPGjPa3zFhE4mp9+h0cgokY5ornAeP+CJQDBhKsL1S58aOQfcwkD3NwLZCl+64g==}
     peerDependencies:
       electron: '>=13.0.0'
 
@@ -5798,7 +5798,7 @@ snapshots:
     dependencies:
       '@types/node': 22.13.10
 
-  '@electron-toolkit/utils@3.0.0(electron@35.0.2)':
+  '@electron-toolkit/utils@4.0.0(electron@35.0.2)':
     dependencies:
       electron: 35.0.2
 
