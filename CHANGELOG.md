@@ -1,5 +1,15 @@
 # CHANGELOG
 
+# [0.1.0-alpha.0](https://github.com/marchen-dev/marchen-player/compare/v0.0.4...v0.1.0-alpha.0) (2025-04-05)
+
+
+### Features
+
+* add release note ([5702432](https://github.com/marchen-dev/marchen-player/commit/570243294d231eae6c7618606e514882a0f7bffe))
+* enable hardware decoding on linux ([82d08ca](https://github.com/marchen-dev/marchen-player/commit/82d08caccf82e847174fb666e5e3977c67200259))
+
+
+
 ## [0.0.4](https://github.com/marchen-dev/marchen-player/compare/v0.0.3...v0.0.4) (2025-03-26)
 
 
