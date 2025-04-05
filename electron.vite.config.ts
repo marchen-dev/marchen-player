@@ -43,7 +43,7 @@ export default defineConfig({
               },
             ],
             hook: 'writeBundle',
-          }),
+          }) as any,
         ],
       },
     },

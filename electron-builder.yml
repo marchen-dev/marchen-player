@@ -68,3 +68,5 @@ afterPack: scripts/after-pack.js
 afterSign: scripts/notarize.js
 releaseInfo:
   releaseNotes: |
+    - 修复了在 Linux 上播放视频黑屏的问题
+    - 更新项目依赖
