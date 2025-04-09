@@ -1,3 +1,4 @@
+import { updateProgressAtom } from '@renderer/atoms/progress'
 import { useAppSettingsValue } from '@renderer/atoms/settings/app'
 import Show from '@renderer/components/common/Show'
 import { Logo } from '@renderer/components/icons/Logo'
@@ -5,7 +6,7 @@ import { Alert, AlertDescription, AlertTitle } from '@renderer/components/ui/ale
 import { Button, ButtonWithIcon } from '@renderer/components/ui/button'
 import { Progress } from '@renderer/components/ui/progress'
 import { PROJECT_NAME } from '@renderer/constants'
-import { updateProgressAtom, useNetworkStatus } from '@renderer/initialize/network'
+import { useNetworkStatus } from '@renderer/hooks/use-network-status'
 import { tipcClient } from '@renderer/lib/client'
 import { getStorageNS } from '@renderer/lib/ns'
 import { cn, isMac, isWeb } from '@renderer/lib/utils'
@@ -101,7 +102,7 @@ export const NetWorkCheck = () => {
     <Alert style={{ fontWeight: 500 }} variant="destructive">
       <AlertCircle className="size-4" />
       <AlertTitle>网络异常</AlertTitle>
-      <AlertDescription>部分功能使用受限</AlertDescription>
+      <AlertDescription>请检查网络连接</AlertDescription>
     </Alert>
   )
 }
