@@ -42,7 +42,7 @@
     "@electron-toolkit/preload": "^3.0.1",
     "@electron-toolkit/tsconfig": "^1.0.1",
     "@electron-toolkit/utils": "^4.0.0",
-    "@electron/notarize": "^2.5.0",
+    "@electron/notarize": "^3.0.0",
     "@fontsource/manrope": "^5.0.21",
     "@iconify-json/mingcute": "^1.1.19",
     "@iconify/tailwind": "^1.1.2",
