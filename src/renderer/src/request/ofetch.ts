@@ -14,6 +14,9 @@ const apiFetch = ofetch.create({
         })
         break
       }
+      case 404: {
+        break
+      }
       default: {
         toast({
           title: '接口请求失败',
