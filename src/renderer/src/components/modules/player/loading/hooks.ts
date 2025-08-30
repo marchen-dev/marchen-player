@@ -243,6 +243,15 @@ export const useDanmakuData = () => {
         },
         enabled: !!episodeId,
         refetchOnMount: false,
+        retry: (failureCount: number, error: any) => {
+          // 对于 404 等客户端错误，不重试
+          if (error?.status === 404) {
+            return false
+          }
+          // 其他错误最多重试 2 次
+          return failureCount < 2
+        },
+        retryDelay: 1000,
       })) ?? []),
       {
         queryKey: [apiClient.comment.Commentkeys.getDanmu, episodeId],
@@ -303,13 +312,29 @@ export const useDanmakuData = () => {
         return [dandanplayDanmakuData, ...manualResult]
       }
 
-      // 官方弹幕库和第三方弹幕库都加载成功后，返回所有弹幕数据
+      // 检查所有查询的完成状态（成功或最终失败）
+      const dandanplayQuery = results.at(-2)
+      const dandanplaySettled = dandanplayResult !== undefined || (dandanplayQuery?.isError && !dandanplayQuery?.isFetching)
+      
+      const allThirdPartyQueriesSettled = thirdPartyResult.every(
+        (result) => result.data !== undefined || (result.isError && !result.isFetching)
+      )
+
+      // 官方弹幕库和第三方弹幕库都加载完成后，返回所有可用弹幕数据
       if (
         !onlyLoadDandanplayDanmaku &&
-        results.every((result) => result.data !== undefined) &&
+        dandanplaySettled &&
+        allThirdPartyQueriesSettled &&
         thirdPartyResult.length === thirdPartyDanmakuUrlData.length
       ) {
-        return [dandanplayDanmakuData, ...thirdPartyDanmakuData, ...manualResult]
+        // 只包含成功获取到数据的弹幕
+        const availableDanmaku: DB_Danmaku[] = []
+        if (dandanplayDanmakuData.content) {
+          availableDanmaku.push(dandanplayDanmakuData)
+        }
+        const successfulThirdPartyData = thirdPartyDanmakuData.filter(item => item.content !== undefined)
+        availableDanmaku.push(...successfulThirdPartyData, ...manualResult)
+        return availableDanmaku
       }
 
       // // 未匹配弹幕库，只加载用户手动导入弹幕
