@@ -1,5 +1,22 @@
 # CHANGELOG
 
+# [0.1.0](https://github.com/marchen-dev/marchen-player/compare/v0.1.0-alpha.0...v0.1.0) (2025-08-30)
+
+
+### Bug Fixes
+
+* ci ([4611825](https://github.com/marchen-dev/marchen-player/commit/4611825767a4d220d05b519aaffb9ee207d53115))
+* danmaku 404 causing the video to fail to load ([728f761](https://github.com/marchen-dev/marchen-player/commit/728f7613aed69ba418c4927c60f2e1062841fbfe))
+* loading flicker issue ([a0e0410](https://github.com/marchen-dev/marchen-player/commit/a0e04105952e6aa0cc4742a3a81b3a6ab125f109))
+* reduce pop-up notifications ([b0f11d8](https://github.com/marchen-dev/marchen-player/commit/b0f11d8957b42768b308f43bb96e6461170b158e))
+
+
+### Features
+
+* add release notes ([d57f4f8](https://github.com/marchen-dev/marchen-player/commit/d57f4f8ff619b59263e9c5c3baf19c319ac6abd3))
+
+
+
 # [0.1.0-alpha.0](https://github.com/marchen-dev/marchen-player/compare/v0.0.4...v0.1.0-alpha.0) (2025-04-05)
 
 
@@ -486,34 +503,14 @@
 
 
 
-## [0.0.1-alpha.0](https://github.com/marchen-dev/marchen-player/compare/v0.1.0...v0.0.1-alpha.0) (2024-10-12)
-
-
-### Bug Fixes
-
-* ci ([18c7ebe](https://github.com/marchen-dev/marchen-player/commit/18c7ebe03715dd732ba88ecaa70beb6c70418cf7))
-* ci ([3a35f7c](https://github.com/marchen-dev/marchen-player/commit/3a35f7c5473107c9b0d6cfcde3bccfd502ac22dc))
-* ci release ([77c0cfd](https://github.com/marchen-dev/marchen-player/commit/77c0cfdb992610067ea2dc56225ffa5f533e79fa))
-* **deps:** update dependency @tanstack/react-query to v5.59.8 ([#24](https://github.com/marchen-dev/marchen-player/issues/24)) ([da84b3a](https://github.com/marchen-dev/marchen-player/commit/da84b3aae9605657a7866efe543b7dc3552a8995))
-* esilint ([56768c0](https://github.com/marchen-dev/marchen-player/commit/56768c03950116e6d3e592a955fec8f5b5634c7c))
-* npm user name ([cbbe9ba](https://github.com/marchen-dev/marchen-player/commit/cbbe9baa1a8a31fce53bc077feffa8548083d32d))
-* pnpm lock ([b173938](https://github.com/marchen-dev/marchen-player/commit/b17393802e1ad70cc2f70feae6357a4064f700d3))
-* windows executableName ([70d6f73](https://github.com/marchen-dev/marchen-player/commit/70d6f732984b8ba20e6cf2fcdeaf5281ba4965ce))
-
-
-### Features
-
-* app icon ([9c40e44](https://github.com/marchen-dev/marchen-player/commit/9c40e44296ef3d746684198d6d84d7a02fb44a05))
-* website icon ([fbb793a](https://github.com/marchen-dev/marchen-player/commit/fbb793a08fc50b398daabe68bda7a908109d0b14))
-
-
-
-# [0.1.0](https://github.com/marchen-dev/marchen-player/compare/0c3019d8ef56374c1a9ebbe76beb0bd40f60135a...v0.1.0) (2024-10-10)
+## [0.0.1-alpha.0](https://github.com/marchen-dev/marchen-player/compare/0c3019d8ef56374c1a9ebbe76beb0bd40f60135a...v0.0.1-alpha.0) (2024-10-12)
 
 
 ### Bug Fixes
 
 *  turn off switching to electron app on every file change ([5faf6fe](https://github.com/marchen-dev/marchen-player/commit/5faf6fec7d726275e6b2c6b1f939b33c4558cf89))
+* ci ([18c7ebe](https://github.com/marchen-dev/marchen-player/commit/18c7ebe03715dd732ba88ecaa70beb6c70418cf7))
+* ci ([3a35f7c](https://github.com/marchen-dev/marchen-player/commit/3a35f7c5473107c9b0d6cfcde3bccfd502ac22dc))
 * ci ([56553d5](https://github.com/marchen-dev/marchen-player/commit/56553d50113981933cb87f220e2f622c1d45cad6))
 * ci ([3f7a296](https://github.com/marchen-dev/marchen-player/commit/3f7a296cc3879eb587db983c18bdd8a02cc2f919))
 * ci ([6bfa8cf](https://github.com/marchen-dev/marchen-player/commit/6bfa8cfa957d1f30f496fd9fe12120030f2ffeec))
@@ -521,10 +518,12 @@
 * ci ([4bdbd88](https://github.com/marchen-dev/marchen-player/commit/4bdbd88fae59c8fa1dcbe45a48e98dfc3ef10465))
 * ci ([01f08c4](https://github.com/marchen-dev/marchen-player/commit/01f08c43c32e56d012a18dc364c948b1994eafd4))
 * ci ([2caa7ff](https://github.com/marchen-dev/marchen-player/commit/2caa7ff9f1b0b6a5db8b4a886a508eb2a17dd550))
+* ci release ([77c0cfd](https://github.com/marchen-dev/marchen-player/commit/77c0cfdb992610067ea2dc56225ffa5f533e79fa))
 * **deps:** update dependency @tanstack/react-query to v5.51.24 ([#12](https://github.com/marchen-dev/marchen-player/issues/12)) ([8ab541c](https://github.com/marchen-dev/marchen-player/commit/8ab541c382565a1c522f783752f771d12dbd313c))
 * **deps:** update dependency @tanstack/react-query to v5.55.2 ([#16](https://github.com/marchen-dev/marchen-player/issues/16)) ([48cfa31](https://github.com/marchen-dev/marchen-player/commit/48cfa318c5615d57b6a75ab2034c2efcfbb1fb3b))
 * **deps:** update dependency @tanstack/react-query to v5.55.4 ([#31](https://github.com/marchen-dev/marchen-player/issues/31)) ([3b8308d](https://github.com/marchen-dev/marchen-player/commit/3b8308d919737c04a31b94e2efb354576db97c7e))
 * **deps:** update dependency @tanstack/react-query to v5.56.2 ([#37](https://github.com/marchen-dev/marchen-player/issues/37)) ([2e8e207](https://github.com/marchen-dev/marchen-player/commit/2e8e207ff2441dedb66b1680343a685276fc8cf0))
+* **deps:** update dependency @tanstack/react-query to v5.59.8 ([#24](https://github.com/marchen-dev/marchen-player/issues/24)) ([da84b3a](https://github.com/marchen-dev/marchen-player/commit/da84b3aae9605657a7866efe543b7dc3552a8995))
 * **deps:** update dependency electron-updater to v6.3.4 ([#28](https://github.com/marchen-dev/marchen-player/issues/28)) ([9ecd0df](https://github.com/marchen-dev/marchen-player/commit/9ecd0dfe995083c21f4edb90ca26b3c2895a78d5))
 * **deps:** update dependency electron-updater to v6.3.9 ([#19](https://github.com/marchen-dev/marchen-player/issues/19)) ([8018ade](https://github.com/marchen-dev/marchen-player/commit/8018ade85bd247a12344036eea58a01e4c73c80f))
 * **deps:** update dependency jotai to v2.10.0 ([#9](https://github.com/marchen-dev/marchen-player/issues/9)) ([3354c81](https://github.com/marchen-dev/marchen-player/commit/3354c815ca07255ac90f0b70d85d7095fe9b5ea4))
@@ -538,16 +537,21 @@
 * **deps:** update dependency tailwind-merge to v2.5.3 ([#21](https://github.com/marchen-dev/marchen-player/issues/21)) ([3fb6aa1](https://github.com/marchen-dev/marchen-player/commit/3fb6aa18d27e054309c58066a574f7a0cbef5116))
 * **deps:** update fontsource monorepo to v5.1.0 ([#41](https://github.com/marchen-dev/marchen-player/issues/41)) ([fac529b](https://github.com/marchen-dev/marchen-player/commit/fac529bc5adb8c4c5ab5eb278a11c8e9a1981cb4))
 * **deps:** update radix-ui-primitives monorepo ([beebeeb](https://github.com/marchen-dev/marchen-player/commit/beebeeb9eef4ac84c02ceb5c38a287b9d482e8e1))
+* esilint ([56768c0](https://github.com/marchen-dev/marchen-player/commit/56768c03950116e6d3e592a955fec8f5b5634c7c))
 * Importing the same hash video cannot match the danmu ([995b7c2](https://github.com/marchen-dev/marchen-player/commit/995b7c23ed9997f59280724f156cac2c352baeb1))
+* npm user name ([cbbe9ba](https://github.com/marchen-dev/marchen-player/commit/cbbe9baa1a8a31fce53bc077feffa8548083d32d))
+* pnpm lock ([b173938](https://github.com/marchen-dev/marchen-player/commit/b17393802e1ad70cc2f70feae6357a4064f700d3))
 * pnpm lock file ([b9eb86d](https://github.com/marchen-dev/marchen-player/commit/b9eb86d83e7749f32cdfad2a1c91b329918f4bb4))
 * reduce icon gap ([f133569](https://github.com/marchen-dev/marchen-player/commit/f13356989d23a2553c418fa65c92cfd2aa360984))
 * refetch after maximum ([13ed564](https://github.com/marchen-dev/marchen-player/commit/13ed564ffdcffe1229196822068d172911f92d40))
 * ua ([d059dff](https://github.com/marchen-dev/marchen-player/commit/d059dff3b78ff20151b2ffe058033156c5d1cb4e))
+* windows executableName ([70d6f73](https://github.com/marchen-dev/marchen-player/commit/70d6f732984b8ba20e6cf2fcdeaf5281ba4965ce))
 
 
 ### Features
 
 * add renovate.json ([#1](https://github.com/marchen-dev/marchen-player/issues/1)) ([ea76ce1](https://github.com/marchen-dev/marchen-player/commit/ea76ce15ef6ecdfa2dd8a0c5eb66606df882c226))
+* app icon ([9c40e44](https://github.com/marchen-dev/marchen-player/commit/9c40e44296ef3d746684198d6d84d7a02fb44a05))
 * artplayer config ([48004a9](https://github.com/marchen-dev/marchen-player/commit/48004a9cf975303215a7d139f7c32f4af471cb8b))
 * artplayer deps ([67e6edc](https://github.com/marchen-dev/marchen-player/commit/67e6edc4867a4800794028e935f8d4cca4229d93))
 * auto update app ([0ff764a](https://github.com/marchen-dev/marchen-player/commit/0ff764a7cf796c47e7d9efb124ad6f11e2ce46bb))
@@ -584,6 +588,7 @@
 * vite host ([d39b0e4](https://github.com/marchen-dev/marchen-player/commit/d39b0e452bac8d013a84b8d8ee5348094a44e67d))
 * vite server export 0.0.0.0 ([3dd9a78](https://github.com/marchen-dev/marchen-player/commit/3dd9a7834f6463daa9fa0ead8f16d92f12f8624b))
 * web toast ([195e97c](https://github.com/marchen-dev/marchen-player/commit/195e97c141e7dd7712b5f8ed1f541cffeb7cb03d))
+* website icon ([fbb793a](https://github.com/marchen-dev/marchen-player/commit/fbb793a08fc50b398daabe68bda7a908109d0b14))
 * when there is no exact match, manually select the anime ([a427ade](https://github.com/marchen-dev/marchen-player/commit/a427ade585d53b740852ca87b3c292a7fa24911c))
 * windows titlebar ([b3ed388](https://github.com/marchen-dev/marchen-player/commit/b3ed38830d2d69db2f5bb2e0a5160e9aba8bd8a2))
 * xgplayer ([a4e4364](https://github.com/marchen-dev/marchen-player/commit/a4e43649fb873bc12e822f0fa7814b733a6c417e))
