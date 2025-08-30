@@ -227,31 +227,26 @@ export const useDanmakuData = () => {
               selected: historyDanmaku?.selected,
             }
           }
-          const fetchData = await apiClient.comment.getExtcomment({ url: related.url })
+          try {
+            const fetchData = await apiClient.comment.getExtcomment({ url: related.url })
+            if (enableTraditionalToSimplified && related.url.includes('ani.gamer')) {
+              fetchData.comments.forEach((comment) => {
+                comment.m = chineseConverter.convert(comment.m)
+              })
+            }
+
+            return {
+              ...fetchData,
+              selected: handleIsSelected(),
+            }
+          } catch {
+            return null
+          }
 
           // 当开启繁体转简体时，且为动漫疯弹幕库时，将弹幕转为简体
-          if (enableTraditionalToSimplified && related.url.includes('ani.gamer')) {
-            fetchData.comments.forEach((comment) => {
-              comment.m = chineseConverter.convert(comment.m)
-            })
-          }
-
-          return {
-            ...fetchData,
-            selected: handleIsSelected(),
-          }
         },
         enabled: !!episodeId,
         refetchOnMount: false,
-        retry: (failureCount: number, error: any) => {
-          // 对于 404 等客户端错误，不重试
-          if (error?.status === 404) {
-            return false
-          }
-          // 其他错误最多重试 2 次
-          return failureCount < 2
-        },
-        retryDelay: 1000,
       })) ?? []),
       {
         queryKey: [apiClient.comment.Commentkeys.getDanmu, episodeId],
@@ -312,12 +307,10 @@ export const useDanmakuData = () => {
         return [dandanplayDanmakuData, ...manualResult]
       }
 
-      // 检查所有查询的完成状态（成功或最终失败）
-      const dandanplayQuery = results.at(-2)
-      const dandanplaySettled = dandanplayResult !== undefined || (dandanplayQuery?.isError && !dandanplayQuery?.isFetching)
-      
+      const dandanplaySettled = dandanplayResult !== undefined
+
       const allThirdPartyQueriesSettled = thirdPartyResult.every(
-        (result) => result.data !== undefined || (result.isError && !result.isFetching)
+        (result) => result.data !== undefined,
       )
 
       // 官方弹幕库和第三方弹幕库都加载完成后，返回所有可用弹幕数据
@@ -332,7 +325,9 @@ export const useDanmakuData = () => {
         if (dandanplayDanmakuData.content) {
           availableDanmaku.push(dandanplayDanmakuData)
         }
-        const successfulThirdPartyData = thirdPartyDanmakuData.filter(item => item.content !== undefined)
+        const successfulThirdPartyData = thirdPartyDanmakuData.filter(
+          (item) => item.content !== undefined && item.content !== null,
+        )
         availableDanmaku.push(...successfulThirdPartyData, ...manualResult)
         return availableDanmaku
       }
@@ -344,7 +339,6 @@ export const useDanmakuData = () => {
       return
     },
   })
-
   const mergedDanmakuData = useMemo(() => {
     if (!danmakuData) {
       return
