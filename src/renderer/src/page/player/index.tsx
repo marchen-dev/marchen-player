@@ -1,6 +1,6 @@
 import { usePlayerSettingsValue } from '@renderer/atoms/settings/player'
 import { FFmpegPlayer } from '@renderer/components/modules/core/ffmpeg-player/FFmpegPlayer'
-import { HTML5Player } from '@renderer/components/modules/core/html5-player/Html5Player'
+import { HTML5Player } from '@renderer/components/modules/core/html5-player/HTML5Player'
 import { useVideo } from '@renderer/components/modules/core/html5-player/loading/hooks'
 import { VideoProvider } from '@renderer/components/modules/core/html5-player/loading/PlayerProvider'
 import { cn, isWeb } from '@renderer/lib/utils'
