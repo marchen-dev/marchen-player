@@ -12,7 +12,7 @@ interface PlayerProps {
   url: string
 }
 
-export const Player: FC<PlayerProps> = (props) => {
+export const HTML5Player: FC<PlayerProps> = (props) => {
   const { playerRef, playerInstance } = useXgPlayer(props.url)
   return (
     <>

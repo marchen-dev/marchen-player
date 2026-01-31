@@ -4,8 +4,8 @@ import {
   LoadingStatus,
   videoAtom,
 } from '@renderer/atoms/player'
-import { MatchAnimeDialog } from '@renderer/components/modules/player/loading/dialog/MatchAnimeDialog'
-import { LoadingDanmuTimeLine } from '@renderer/components/modules/player/loading/Timeline'
+import { MatchAnimeDialog } from '@renderer/components/modules/core/html5-player/loading/dialog/MatchAnimeDialog'
+import { LoadingDanmuTimeLine } from '@renderer/components/modules/core/html5-player/loading/Timeline'
 import queryClient from '@renderer/lib/query-client'
 import { apiClient } from '@renderer/request'
 import { useAtom, useAtomValue } from 'jotai'

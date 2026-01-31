@@ -1,6 +1,6 @@
 import { useAppSettings, useAppSettingsValue } from '@renderer/atoms/settings/app'
 import { RouterLayout } from '@renderer/components/layout/root/RouterLayout'
-import { showMatchAnimeDialog } from '@renderer/components/modules/player/loading/dialog/hooks'
+import { showMatchAnimeDialog } from '@renderer/components/modules/core/html5-player/loading/dialog/hooks'
 import { MatchDanmakuDialog } from '@renderer/components/modules/shared/MatchDanmakuDialog'
 import { Badge } from '@renderer/components/ui/badge'
 import { FunctionAreaButton, FunctionAreaToggle } from '@renderer/components/ui/button'

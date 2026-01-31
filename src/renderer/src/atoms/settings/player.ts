@@ -2,6 +2,7 @@ import {
   danmakuDurationList,
   danmakuEndAreaList,
   danmakuFontSizeList,
+  PlayerKernelList,
 } from '@renderer/components/modules/settings/views/player/list'
 import type { SelectGroup } from '@renderer/components/modules/shared/setting/SettingSelect'
 import { useAtom, useAtomValue } from 'jotai'
@@ -17,6 +18,7 @@ const createPlayerDefaultSettings = () => {
     enableTraditionalToSimplified: false,
     enableAutomaticEpisodeSwitching: false,
     enableMiniProgress: true,
+    playerKernel: getSelectedDefaultValue(PlayerKernelList) ?? 'html5',
     danmakuFontSize: getSelectedDefaultValue(danmakuFontSizeList) ?? '26',
     danmakuDuration: getSelectedDefaultValue(danmakuDurationList) ?? '15000',
     danmakuEndArea: getSelectedDefaultValue(danmakuEndAreaList)!,
