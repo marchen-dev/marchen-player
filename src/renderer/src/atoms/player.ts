@@ -5,12 +5,14 @@ import { jotaiStore } from './store'
 
 export const videoAtom = atomWithReset<{
   url: string
+  path: string
   hash: string
   size: number
   name: string
   playList: { urlWithPrefix: string; name: string }[]
 }>({
   url: '',
+  path: '',
   hash: '',
   size: 0,
   name: '',

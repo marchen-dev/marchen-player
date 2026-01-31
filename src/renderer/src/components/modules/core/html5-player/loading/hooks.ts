@@ -54,6 +54,7 @@ export const useVideo = () => {
     }
 
     let url = ''
+    let path = ''
     let playList: {
       urlWithPrefix: string
       name: string
@@ -62,7 +63,7 @@ export const useVideo = () => {
     if (isWeb) {
       url = URL.createObjectURL(file)
     } else {
-      const path = window.api.showFilePath(file)
+      path = window.api.showFilePath(file)
       playList = (await tipcClient?.getAnimeInSamePath({ path })) ?? []
       url = `${MARCHEN_PROTOCOL_PREFIX}${path}`
       tipcClient?.addRecentDocument({ path })
@@ -70,7 +71,7 @@ export const useVideo = () => {
     const { size, name: fileName } = file
     try {
       const hash = await calculateFileHash(file)
-      setVideo((prev) => ({ ...prev, url, hash, size, name: fileName, playList }))
+      setVideo((prev) => ({ ...prev, url, path, hash, size, name: fileName, playList }))
       setProgress(LoadingStatus.CALC_HASH)
     } catch (error) {
       console.error('Failed to calculate file hash:', error)

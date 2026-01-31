@@ -28,6 +28,8 @@ export default function createWindow() {
     webPreferences: {
       preload: join(__dirname, '../preload/index.mjs'),
       sandbox: false,
+      nodeIntegration: false,
+      contextIsolation: true,
     },
   }
   switch (platform) {

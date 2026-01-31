@@ -6,3 +6,4 @@ out
 .eslintcache
 .env
 *.mas.*
+/native/build
