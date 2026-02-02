@@ -11,7 +11,7 @@ export const PlayerSetting = () => {
 
   return (
     <FieldsCardLayout title="视频">
-      {!isWeb && (
+      {
         <FieldLayout title="内核">
           <SettingSelect
             placeholder="播放器内核"
@@ -22,11 +22,11 @@ export const PlayerSetting = () => {
             }
           />
         </FieldLayout>
-      )}
+      }
       {!isWeb && (
         <FieldLayout title="自动续播">
           <SettingSwitch
-          value={playerSetting.enableAutomaticEpisodeSwitching}
+            value={playerSetting.enableAutomaticEpisodeSwitching}
             onCheckedChange={(value) => {
               setPlayerSetting((prev) => ({ ...prev, enableAutomaticEpisodeSwitching: value }))
             }}

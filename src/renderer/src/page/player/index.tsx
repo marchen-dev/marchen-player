@@ -12,7 +12,7 @@ export default function VideoPlayer() {
   const { importAnimeViaIPC, importAnimeViaDragging, video } = useVideo()
   const fileInputRef = useRef<HTMLInputElement | null>(null)
   const { playerKernel } = usePlayerSettingsValue()
-  const { url, path } = video
+  const { url } = video
   const manualImport = useCallback(() => {
     if (isWeb) {
       return fileInputRef.current?.click()
@@ -29,7 +29,7 @@ export default function VideoPlayer() {
         return <HTML5Player url={url} key={url} />
       }
       case 'ffmpeg': {
-        return <FFmpegPlayer src={path} key={url} />
+        return <FFmpegPlayer src={url} key={url} />
       }
 
       default: {

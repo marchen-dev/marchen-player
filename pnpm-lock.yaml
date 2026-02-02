@@ -207,6 +207,9 @@ importers:
       lucide-react:
         specifier: ^0.511.0
         version: 0.511.0(react@19.1.0)
+      mp4box:
+        specifier: ^2.3.0
+        version: 2.3.0
       nbump:
         specifier: ^2.0.4
         version: 2.1.2(conventional-commits-filter@5.0.0)
@@ -4241,6 +4244,10 @@ packages:
 
   motion-utils@12.12.1:
     resolution: {integrity: sha512-f9qiqUHm7hWSLlNW8gS9pisnsN7CRFRD58vNjptKdsqFLpkVnX00TNeD6Q0d27V9KzT7ySFyK1TZ/DShfVOv6w==}
+
+  mp4box@2.3.0:
+    resolution: {integrity: sha512-nnABYbdh4UguEYyV+uRwQBi1tbb8kXka2Fx9yKzmDKAeh8gkvRKYxoK1XDd8GQIjSfN4rvsXrW1CBo4yRQJZDA==}
+    engines: {node: '>=20.8.1'}
 
   mri@1.2.0:
     resolution: {integrity: sha512-tzzskb3bG8LvYGFF/mDTpq3jpI6Q9wc3LEmBaghu+DdCssd1FakN7Bc0hVNmEyGq1bq3RgfkCb3cmQLpNPOroA==}
@@ -9935,6 +9942,8 @@ snapshots:
       motion-utils: 12.12.1
 
   motion-utils@12.12.1: {}
+
+  mp4box@2.3.0: {}
 
   mri@1.2.0: {}
 
