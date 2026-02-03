@@ -14,7 +14,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useAtom, useAtomValue } from 'jotai'
 import { createContext, lazy, use, useEffect } from 'react'
 
-import { MatchDanmakuDialog } from '../../shared/MatchDanmakuDialog'
+import { MatchDanmakuDialog } from '../../../shared/MatchDanmakuDialog'
 import { Danmaku } from './items/damaku/Danmaku'
 import { Subtitle } from './items/subtitle/Subtitle'
 

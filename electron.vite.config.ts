@@ -22,6 +22,18 @@ export default defineConfig({
   },
   preload: {
     plugins: [externalizeDepsPlugin()],
+    resolve: {
+      alias: {
+        '@main': resolve('src/main'),
+      },
+    },
+    build: {
+      rollupOptions: {
+        external: [
+          /\.node$/, 
+        ],
+      },
+    },
   },
   renderer: {
     resolve: {

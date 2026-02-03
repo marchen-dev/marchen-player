@@ -1,6 +1,6 @@
 import { electronApp, optimizer } from '@electron-toolkit/utils'
 import { name } from '@pkg'
-import { app, BrowserWindow, protocol } from 'electron'
+import { app, BrowserWindow, protocol, session } from 'electron'
 
 import { MARCHEN_PROTOCOL } from './constants/protocol'
 import { initializeApp } from './initialize'
@@ -23,6 +23,16 @@ function bootstrap() {
     protocol.handle(MARCHEN_PROTOCOL, async (request) => {
       const filePath = getFilePathFromProtocolURL(request.url)
       return handleCustomProtocol(filePath, request)
+    })
+
+    session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
+      callback({
+        responseHeaders: {
+          ...details.responseHeaders,
+          'Cross-Origin-Opener-Policy': ['same-origin'],
+          'Cross-Origin-Embedder-Policy': ['require-corp'],
+        },
+      })
     })
 
     createWindow()

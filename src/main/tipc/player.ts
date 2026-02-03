@@ -126,6 +126,7 @@ export const playerRoute = {
 
     const playList = filePathWithSameSuffix.map((filePath) => ({
       urlWithPrefix: `${MARCHEN_PROTOCOL_PREFIX}${filePath}`,
+      path: filePath,
       name: path.basename(filePath),
     }))
 

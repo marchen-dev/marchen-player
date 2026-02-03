@@ -7,9 +7,9 @@ import { RouteName, useCurrentRoute } from '@renderer/router'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useAtomValue, useSetAtom } from 'jotai'
 
-import { showMatchAnimeDialogAtom } from '../player/loading/dialog/hooks'
-import { MatchAnimeDialog } from '../player/loading/dialog/MatchAnimeDialog'
-import { saveToHistory } from '../player/loading/hooks'
+import { showMatchAnimeDialogAtom } from '../core/html5-player/loading/dialog/hooks'
+import { MatchAnimeDialog } from '../core/html5-player/loading/dialog/MatchAnimeDialog'
+import { saveToHistory } from '../core/html5-player/loading/hooks'
 
 export const MatchDanmakuDialog = () => {
   const { hash } = useAtomValue(showMatchAnimeDialogAtom)

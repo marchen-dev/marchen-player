@@ -1,6 +1,8 @@
-import { Player } from '@renderer/components/modules/player'
-import { useVideo } from '@renderer/components/modules/player/loading/hooks'
-import { VideoProvider } from '@renderer/components/modules/player/loading/PlayerProvider'
+import { usePlayerSettingsValue } from '@renderer/atoms/settings/player'
+import { FFmpegPlayer } from '@renderer/components/modules/core/ffmpeg-player/FFmpegPlayer'
+import { HTML5Player } from '@renderer/components/modules/core/html5-player/HTML5Player'
+import { useVideo } from '@renderer/components/modules/core/html5-player/loading/hooks'
+import { VideoProvider } from '@renderer/components/modules/core/html5-player/loading/PlayerProvider'
 import { cn, isWeb } from '@renderer/lib/utils'
 import { AnimatePresence, m } from 'framer-motion'
 import type { FC } from 'react'
@@ -9,6 +11,7 @@ import { useCallback, useMemo, useRef } from 'react'
 export default function VideoPlayer() {
   const { importAnimeViaIPC, importAnimeViaDragging, video } = useVideo()
   const fileInputRef = useRef<HTMLInputElement | null>(null)
+  const { playerKernel } = usePlayerSettingsValue()
   const { url } = video
   const manualImport = useCallback(() => {
     if (isWeb) {
@@ -17,16 +20,30 @@ export default function VideoPlayer() {
     importAnimeViaIPC()
   }, [importAnimeViaIPC])
 
-  const content = useMemo(
-    () => (url ? <Player url={url} key={url} /> : <DragTips key={url} onClick={manualImport} />),
-    [url, manualImport],
-  )
+  const content = useMemo(() => {
+    if (!url) {
+      return <DragTips onClick={manualImport} />
+    }
+    switch (playerKernel) {
+      case 'html5': {
+        return <HTML5Player url={url} key={url} />
+      }
+      case 'ffmpeg': {
+        return <FFmpegPlayer src={url} key={url} />
+      }
+
+      default: {
+        return <HTML5Player url={url} key={url} />
+      }
+    }
+  }, [url, manualImport])
+
   return (
     <VideoProvider>
       <div
         onDrop={importAnimeViaDragging}
         onDragOver={(e) => e.preventDefault()}
-        className={cn('flex size-full items-center justify-center ')}
+        className={cn('flex size-full items-center justify-center')}
       >
         <AnimatePresence>{content}</AnimatePresence>
         {!url && (

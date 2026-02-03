@@ -79,3 +79,15 @@ export const danmakuEndAreaList = [
     value: '1',
   },
 ] satisfies SelectGroup[]
+
+export const PlayerKernelList = [
+  {
+    label: 'HTML5',
+    value: 'html5',
+    default: true,
+  },
+  {
+    label: 'FFmpeg（实验）',
+    value: 'ffmpeg',
+  },
+]
