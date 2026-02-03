@@ -1,146 +1,181 @@
 // renderer/components/FFmpegPlayer.tsx
-
-import * as MP4Box from 'mp4box'
+import type { WrappedAudioBuffer, WrappedCanvas } from 'mediabunny'
+import { ALL_FORMATS, AudioBufferSink, CanvasSink, Input, UrlSource } from 'mediabunny'
 import type { FC } from 'react'
 import { useEffect, useRef } from 'react'
 
-import type { VideoTrackInfo } from './mp4-demuxer'
-
 interface PlayerProps {
   src: string
-  onMetadataLoaded?: (metadata: VideoTrackInfo) => void
 }
 
-export const FFmpegPlayer: FC<PlayerProps> = (props) => {
-  const playerRef = useRef<HTMLCanvasElement | null>(null)
+export const FFmpegPlayer: FC<PlayerProps> = ({ src }) => {
+  const canvasRef = useRef<HTMLCanvasElement | null>(null)
+  const audioCtxRef = useRef<AudioContext | null>(null)
+  const totalDurationRef = useRef<number>(0)
+  const gainNodeRef = useRef<GainNode | null>(null)
 
-  const framesQueue = useRef<VideoFrame[]>([])
-  const animationFrameId = useRef<number>(0)
-  const startTimeRef = useRef<number>(0)
-  const isPlayingRef = useRef<boolean>(false)
-  const abortControllerRef = useRef<AbortController | null>(null)
+  const audioStartTimeRef = useRef<number>(0)
+  const playbackTimeAtStartRef = useRef<number>(0)
+
+  const videoIteratorRef = useRef<AsyncGenerator<WrappedCanvas> | null>(null)
+  const audioIteratorRef = useRef<AsyncGenerator<WrappedAudioBuffer> | null>(null)
+
+  const nextFrameRef = useRef<WrappedCanvas | null>(null)
+  const playerRef = useRef<boolean>(false)
+
+  const queuedAudioNodesRef = useRef<Set<AudioBufferSourceNode>>(new Set())
+
   useEffect(() => {
-    abortControllerRef.current = new AbortController()
-    const mp4boxFile = MP4Box.createFile()
-    initMP4Box(mp4boxFile)
-    loadVideo(props.src, mp4boxFile)
-    renderLoop()
-  }, [])
+    playVideo()
+  }, [src])
 
-  const initMP4Box = (mp4boxFile: MP4Box.ISOFile) => {
-    const decoder = new VideoDecoder({
-      output: handleFrame,
-      error: (e) => console.error('Decoder error:', e),
+  const getPlaybackTime = () => {
+    if (playerRef.current && audioCtxRef.current) {
+      return (
+        audioCtxRef.current.currentTime - audioStartTimeRef.current + playbackTimeAtStartRef.current
+      )
+    }
+    return playbackTimeAtStartRef.current
+  }
+
+  const playVideo = async () => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return
+
+    const input = new Input({
+      formats: ALL_FORMATS,
+      source: new UrlSource(src),
     })
 
-    mp4boxFile.onReady = (info) => {
-      const track = info.videoTracks[0]
-      const description = getExtradata(mp4boxFile, track)
-      decoder.configure({
-        codec: track.codec,
-        codedWidth: track.video!.width,
-        codedHeight: track.video!.height,
-        description,
-      })
-      mp4boxFile.setExtractionOptions(track.id)
-      mp4boxFile.start()
+    const videoTrack = await input.getPrimaryVideoTrack()
+    const audioTrack = await input.getPrimaryAudioTrack()
+
+    if (!videoTrack) {
+      return
     }
-    mp4boxFile.onError = (e) => {
-      console.error('MP4Box error:', e)
+
+    if (!(await videoTrack.canDecode())) return
+
+    canvas.width = videoTrack.displayWidth
+    canvas.height = videoTrack.displayHeight
+
+    totalDurationRef.current = await input.computeDuration()
+    const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext
+    const audioCtx = new AudioContextClass({
+      sampleRate: audioTrack?.sampleRate,
+    })
+    audioCtxRef.current = audioCtx
+
+    const gainNode = audioCtx.createGain()
+    gainNode.connect(audioCtx.destination)
+    gainNode.gain.value = 1
+    gainNodeRef.current = gainNode
+
+    const videoSink = new CanvasSink(videoTrack, { poolSize: 2 })
+    const audioSink =
+      audioTrack && (await audioTrack.canDecode()) ? new AudioBufferSink(audioTrack) : null
+
+    videoIteratorRef.current = videoSink.canvases(0)
+    const firstFrame = (await videoIteratorRef.current.next()).value ?? null
+    nextFrameRef.current = (await videoIteratorRef.current.next()).value ?? null
+    if (firstFrame) {
+      ctx.clearRect(0, 0, canvas.width, canvas.height)
+      ctx.drawImage(firstFrame.canvas, 0, 0)
     }
-    mp4boxFile.onSamples = (trackId, ref, samples) => {
-      for (const sample of samples) {
-        const type = sample.is_sync ? 'key' : 'delta'
-        const chunk = new EncodedVideoChunk({
-          type,
-          timestamp: (1e6 * sample.cts) / sample.timescale,
-          duration: (1e6 * sample.duration) / sample.timescale,
-          data: sample.data as any,
-        })
-        decoder.decode(chunk)
+
+    if (audioCtx.state === 'suspended') {
+      await audioCtx.resume()
+    }
+    playerRef.current = true
+    audioStartTimeRef.current = audioCtx.currentTime
+    if (audioSink) {
+      audioIteratorRef.current = audioSink.buffers(0)
+      runAudioIterator()
+    }
+
+    const render = async () => {
+      if (!playerRef.current) return
+
+      const playbackTime = getPlaybackTime()
+
+      if (playbackTime >= totalDurationRef.current) {
+        playerRef.current = false
+        return
       }
+
+      if (nextFrameRef.current && nextFrameRef.current.timestamp <= playbackTime) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height)
+        ctx.drawImage(nextFrameRef.current.canvas, 0, 0)
+        nextFrameRef.current = null
+        updateNextFrame(playbackTime, ctx, canvas)
+      }
+      requestAnimationFrame(render)
     }
+
+    render()
   }
 
-  const renderLoop = () => {
-    const frame = framesQueue.current[0]
-    if (frame) {
-      if (!isPlayingRef.current) {
-        startTimeRef.current = performance.now()
-        isPlayingRef.current = true
-      }
-      const elapsed = performance.now() - startTimeRef.current
-      const frameTime = frame.timestamp / 1000 // 转换为毫秒
-      if (elapsed >= frameTime) {
-        framesQueue.current.shift()
-        const canvas = playerRef.current
-        const ctx = canvas?.getContext('2d')
-        if (
-          canvas &&
-          (canvas.width !== frame.displayWidth || canvas.height !== frame.displayHeight)
-        ) {
-          canvas.width = frame.displayWidth
-          canvas.height = frame.displayHeight
-        }
-        ctx?.drawImage(frame, 0, 0, canvas!.width, canvas!.height)
-        frame.close()
-      }
-    }
-    animationFrameId.current = requestAnimationFrame(renderLoop)
-  }
-  const loadVideo = async (url: string, mp4boxFile: MP4Box.ISOFile) => {
-    try {
-      const response = await fetch(url, { signal: abortControllerRef.current?.signal })
-      const reader = response.body!.getReader()
-      let offset = 0
-      while (true) {
-        if (framesQueue.current.length > 100 || framesQueue.current.length === 0) {
-          await new Promise((resolve) => setTimeout(resolve, 20))
-          continue
-        }
-        const { done, value } = await reader.read()
-        if (done) {
-          mp4boxFile.flush()
-          break
-        }
-        const chunkBuffer = value.buffer as ArrayBuffer & { fileStart: number }
-        chunkBuffer.fileStart = offset
-        mp4boxFile.appendBuffer(chunkBuffer)
-        offset += value.byteLength
-      }
-    } catch (e: any) {
-      if (e.name === 'AbortError') {
-        console.error('Fetch aborted')
+  const runAudioIterator = async () => {
+    const audioCtx = audioCtxRef.current!
+    const gainNode = gainNodeRef.current!
+    const iterator = audioIteratorRef.current!
+
+    for await (const { buffer, timestamp } of iterator) {
+      if (!playerRef.current) break
+
+      const node = audioCtx.createBufferSource()
+      node.buffer = buffer
+      node.connect(gainNode)
+      const startTimeStamp = audioStartTimeRef.current + timestamp - playbackTimeAtStartRef.current
+      if (startTimeStamp >= audioCtx.currentTime) {
+        node.start(startTimeStamp)
       } else {
-        console.error('Load video error:', e)
+        const offset = audioCtx.currentTime - startTimeStamp
+        if (offset < buffer.duration) {
+          node.start(audioCtx.currentTime, offset)
+        }
+      }
+
+      queuedAudioNodesRef.current.add(node)
+      node.onended = () => {
+        queuedAudioNodesRef.current.delete(node)
+      }
+
+      if (timestamp - getPlaybackTime() >= 1) {
+        await new Promise<void>((resolve) => {
+          const id = setInterval(() => {
+            if (timestamp - getPlaybackTime() < 1) {
+              clearInterval(id)
+              resolve()
+            }
+          }, 100)
+        })
       }
     }
   }
 
-  const getExtradata = (
-    mp4boxFile: MP4Box.ISOFile,
-    track: MP4Box.Track,
-  ): Uint8Array | undefined => {
-    const trak = mp4boxFile.getTrackById(track.id)
-    const entry = trak.mdia.minf.stbl.stsd.entries[0] as any
-    const avcC = entry.avcC || entry.hvcC
-
-    const stream = new MP4Box.DataStream(undefined, 0, (MP4Box.DataStream as any).BIG_ENDIAN)
-    avcC.write(stream)
-    return new Uint8Array(stream.buffer.slice(8))
+  const updateNextFrame = async (
+    playbackTime: number,
+    ctx: CanvasRenderingContext2D,
+    canvas: HTMLCanvasElement,
+  ) => {
+    while (true) {
+      const result = await videoIteratorRef.current?.next()
+      const newFrame = result?.value ?? null
+      if (!newFrame) {
+        break
+      }
+      if (newFrame.timestamp <= playbackTime) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height)
+        ctx.drawImage(newFrame.canvas, 0, 0)
+      } else {
+        nextFrameRef.current = newFrame
+        break
+      }
+    }
   }
 
-  const handleFrame = (frame) => {
-    framesQueue.current.push(frame)
-    // const canvas = playerRef.current
-    // if (!canvas) {
-    //   frame.close()
-    //   return
-    // }
-    // const ctx = canvas.getContext('2d')
-    // ctx?.drawImage(frame, 0, 0)
-    // frame.close()
-  }
-
-  return <canvas style={{ border: '1px solid black', maxWidth: '100%' }} ref={playerRef} />
+  return <canvas ref={canvasRef} style={{ maxWidth: '100%', background: '#000' }} />
 }
