@@ -81,7 +81,7 @@
     "click-to-react-component": "^1.1.0",
     "clsx": "^2.1.1",
     "cmdk": "^1.0.4",
-    "daisyui": "^4.12.10",
+    "daisyui": "^5.0.0",
     "danmu.js": "^1.1.13",
     "dayjs": "^1.11.13",
     "dexie": "^4.0.8",
