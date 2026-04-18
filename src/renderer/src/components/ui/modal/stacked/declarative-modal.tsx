@@ -1,12 +1,12 @@
+import type { FC, PropsWithChildren, ReactNode } from 'react'
+import type { ModalProps } from './types'
 import { jotaiStore } from '@renderer/atoms/store'
 import { cn } from '@renderer/lib/utils'
 import { AnimatePresence } from 'framer-motion'
-import type { FC, PropsWithChildren, ReactNode } from 'react'
-import { useId, useMemo } from 'react'
 
+import { useId, useMemo } from 'react'
 import { modalStackAtom } from './Context'
 import { ModalInternal } from './Modal'
-import type { ModalProps } from './types'
 
 export interface DeclarativeModalProps extends Omit<ModalProps, 'content'> {
   open?: boolean

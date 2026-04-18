@@ -1,9 +1,9 @@
+import type { FC, PropsWithChildren } from 'react'
+import type { SettingTabsModel } from './tabs'
 import { jotaiStore } from '@renderer/atoms/store'
 import { useBeforeMounted } from '@renderer/hooks/use-before-mounted'
-import { atom, useAtomValue } from 'jotai'
-import type { FC, PropsWithChildren } from 'react'
 
-import type { SettingTabsModel } from './tabs'
+import { atom, useAtomValue } from 'jotai'
 import { settingTabs } from './tabs'
 
 const currentSettingAtom = atom<SettingTabsModel | null>(settingTabs[0])

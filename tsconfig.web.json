@@ -1,5 +1,20 @@
 {
   "extends": "@electron-toolkit/tsconfig/tsconfig.web.json",
+  "compilerOptions": {
+    "composite": true,
+    "target": "ES2022",
+    "jsx": "react-jsx",
+    "ignoreDeprecations": "6.0",
+    "baseUrl": ".",
+    "moduleResolution": "Bundler",
+    "paths": {
+      "@renderer/*": ["src/renderer/src/*"],
+      "@main/*": ["src/main/*"],
+      "@pkg": ["./package.json"]
+    },
+    "strict": true,
+    "noUnusedLocals": false
+  },
   "include": [
     "src/renderer/src/env.d.ts",
     "src/renderer/src/**/*",
@@ -15,19 +30,5 @@
     "types/**/*.d.ts",
     "src/env.ts",
     "src/main/types/ffmpeg-custom.d.ts"
-  ],
-  "compilerOptions": {
-    "composite": true,
-    "jsx": "react-jsx",
-    "moduleResolution": "Bundler",
-    "target": "ES2022",
-    "noUnusedLocals": false,
-    "strict": true,
-    "baseUrl": ".",
-    "paths": {
-      "@renderer/*": ["src/renderer/src/*"],
-      "@main/*": ["src/main/*"],
-      "@pkg": ["./package.json"]
-    },
-  }
+  ]
 }

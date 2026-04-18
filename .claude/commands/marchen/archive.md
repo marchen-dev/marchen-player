@@ -1,5 +1,5 @@
 ---
-name: "Marchen: Archive"
+name: 'Marchen: Archive'
 description: 归档已完成的变更
 category: Workflow
 tags: [workflow, archive]

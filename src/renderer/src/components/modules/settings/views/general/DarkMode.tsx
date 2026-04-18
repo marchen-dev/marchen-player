@@ -1,5 +1,5 @@
-import { Tabs, TabsList, TabsTrigger } from '@renderer/components/ui/tabs'
 import type { AppTheme } from '@renderer/hooks/theme'
+import { Tabs, TabsList, TabsTrigger } from '@renderer/components/ui/tabs'
 import { useAppTheme } from '@renderer/hooks/theme'
 
 export const DarkModeToggle = () => {
@@ -7,11 +7,11 @@ export const DarkModeToggle = () => {
   return (
     <div className="text-center">
       <Tabs
-        className="w-full "
+        className="w-full"
         defaultValue={theme}
         onValueChange={(value: string) => toggleMode(value as AppTheme)}
       >
-        <TabsList className="h-8 bg-base-200">
+        <TabsList className="bg-base-200 h-8">
           {themes.map((item) => (
             <TabsTrigger
               className="flex items-center space-x-0.5 rounded-sm py-0.5 text-sm"

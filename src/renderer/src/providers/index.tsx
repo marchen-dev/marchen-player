@@ -1,3 +1,4 @@
+import type { FC, JSX, PropsWithChildren } from 'react'
 import { jotaiStore } from '@renderer/atoms/store'
 import { ModalStackProvider } from '@renderer/components/ui/modal'
 import { Toaster } from '@renderer/components/ui/toast'
@@ -8,7 +9,6 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import { domMax, LazyMotion } from 'framer-motion'
 import { Provider as JotaiProvider } from 'jotai'
 import { ThemeProvider } from 'next-themes'
-import type { FC, JSX, PropsWithChildren } from 'react'
 
 import { ProviderComposer } from './ProviderComposer'
 
@@ -16,7 +16,7 @@ const contexts: JSX.Element[] = [
   <LazyMotion features={domMax} key="lazyMotion" />,
   <QueryClientProvider client={queryClient} key="queryClientProvider" />,
   <JotaiProvider store={jotaiStore} key="jotaiProvider" />,
-  // @ts-ignore
+  // @ts-expect-error ThemeProvider type mismatch
   <ThemeProvider
     key="ThemeProvider"
     attribute={['data-theme', 'class']}

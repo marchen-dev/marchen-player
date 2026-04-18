@@ -1,6 +1,6 @@
+import type { FC } from 'react'
 import { isWeb } from '@renderer/lib/utils'
 import { m } from 'framer-motion'
-import type { FC } from 'react'
 
 import { PlayerProvider } from './Context'
 import { InitializeEvent } from './initialize/Event'

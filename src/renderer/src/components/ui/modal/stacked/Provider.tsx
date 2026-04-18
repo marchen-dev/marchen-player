@@ -1,15 +1,15 @@
+import type { FC, PropsWithChildren } from 'react'
+import type { ModalProps } from './types'
 import { jotaiStore } from '@renderer/atoms/store'
 import { AnimatePresence } from 'framer-motion'
 import { useAtomValue } from 'jotai'
-import type { FC, PropsWithChildren } from 'react'
 import { useCallback, useEffect, useId, useRef } from 'react'
-import { useLocation } from 'react-router'
 
+import { useLocation } from 'react-router'
 import { MODAL_STACK_Z_INDEX } from './constants'
 import { modalIdToPropsMap, modalStackAtom } from './Context'
 import { ModalInternal } from './Modal'
 import { ModalOverlay } from './Overlay'
-import type { ModalProps } from './types'
 
 const useDismissAllWhenRouterChange = () => {
   const { pathname } = useLocation()

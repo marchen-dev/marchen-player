@@ -1,6 +1,6 @@
-import { createClient, createEventHandlers } from '@egoist/tipc/renderer'
 import type { Router } from '@main/tipc'
 import type { RendererHandlers } from '@main/tipc/renderer-handlers'
+import { createClient, createEventHandlers } from '@egoist/tipc/renderer'
 
 export const tipcClient = window.electron
   ? createClient<Router>({

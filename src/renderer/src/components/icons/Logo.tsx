@@ -1,6 +1,6 @@
+import type { FC } from 'react'
 import { useAppTheme } from '@renderer/hooks/theme'
 import { cn } from '@renderer/lib/utils'
-import type { FC } from 'react'
 
 const LogoSvg = ({
   ref,
@@ -52,7 +52,7 @@ export const Logo: FC<{ clasNames?: { wrapper?: string; icon?: string }; round?:
     return <LogoSvg fill={isDarkMode ? '#A6ADBB' : '#000'} className={cn('size-full', icon)} />
   }
   return (
-    <div className={cn('rounded-xl  bg-base-100', wrapper)}>
+    <div className={cn('bg-base-100 rounded-xl', wrapper)}>
       <LogoSvg fill={isDarkMode ? '#A6ADBB' : '#000'} className={cn('size-full', icon)} />
     </div>
   )

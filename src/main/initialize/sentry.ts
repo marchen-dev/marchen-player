@@ -5,7 +5,7 @@ import { isDev } from '@main/lib/env'
 
 export const registerSentry = () => {
   if (isDev) {
-    return
+    // noop in dev
   }
   // Sentry.init({
   //   dsn: import.meta.env.VITE_SENTRY_DSN,

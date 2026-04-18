@@ -1,8 +1,8 @@
+import type { RendererHandlers } from '../tipc/renderer-handlers'
 import { getRendererHandlers as getAppRendererHandlers } from '@egoist/tipc/main'
 import { clearAllData } from '@main/lib/cleaner'
-import { dialog } from 'electron'
 
-import type { RendererHandlers } from '../tipc/renderer-handlers'
+import { dialog } from 'electron'
 import { getMainWindow } from './main'
 
 export const getRendererHandlers = () => {

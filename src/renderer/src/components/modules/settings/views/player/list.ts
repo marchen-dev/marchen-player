@@ -1,4 +1,4 @@
-import type { SelectGroup } from '@renderer/components/modules/shared/setting/SettingSelect'
+import type { SelectOption } from '@renderer/components/modules/shared/setting/SettingSelect'
 
 export const danmakuFontSizeList = [
   {
@@ -30,7 +30,7 @@ export const danmakuFontSizeList = [
     label: '140%',
     value: '34',
   },
-] satisfies SelectGroup[]
+] satisfies SelectOption[]
 
 export const danmakuDurationList = [
   {
@@ -54,7 +54,7 @@ export const danmakuDurationList = [
     label: '极快',
     value: '10000',
   },
-] satisfies SelectGroup[]
+] satisfies SelectOption[]
 
 export const danmakuEndAreaList = [
   {
@@ -78,4 +78,4 @@ export const danmakuEndAreaList = [
     label: '100%',
     value: '1',
   },
-] satisfies SelectGroup[]
+] satisfies SelectOption[]

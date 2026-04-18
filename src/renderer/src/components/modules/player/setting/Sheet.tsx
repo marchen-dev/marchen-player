@@ -1,3 +1,4 @@
+import type { DB_History } from '@renderer/database/schemas/history'
 import { playerSettingSheetAtom, videoAtom } from '@renderer/atoms/player'
 import {
   Accordion,
@@ -9,7 +10,6 @@ import { ScrollArea } from '@renderer/components/ui/scrollArea'
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@renderer/components/ui/sheet'
 import { useToast } from '@renderer/components/ui/toast'
 import { db } from '@renderer/database/db'
-import type { DB_History } from '@renderer/database/schemas/history'
 import { useQuery } from '@tanstack/react-query'
 import { useAtom, useAtomValue } from 'jotai'
 import { createContext, lazy, use, useEffect } from 'react'

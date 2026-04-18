@@ -1,15 +1,15 @@
 import type { LoadingStatus } from '@renderer/atoms/player'
+import type { FC } from 'react'
 import { loadingDanmuProgressAtom } from '@renderer/atoms/player'
 import { CompleteIcon } from '@renderer/components/icons/CompleteIcon'
 import { cn } from '@renderer/lib/utils'
 import { useAtomValue } from 'jotai'
-import type { FC } from 'react'
 
 const itemsTitle = ['视频导入', '计算哈希', '匹配动漫', '获取弹幕', '准备播放']
 export const LoadingDanmuTimeLine = () => {
   const loadingProgress = useAtomValue(loadingDanmuProgressAtom)
   return (
-    <ul className="timeline flex h-full items-center justify-center ">
+    <ul className="timeline flex h-full items-center justify-center">
       {itemsTitle.map((item, index) => (
         <TimelineItem
           key={item}

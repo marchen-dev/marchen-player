@@ -1,9 +1,9 @@
 import type { EntityTable } from 'dexie'
-import Dexie from 'dexie'
+import type { DB_History } from './schemas/history'
 
+import Dexie from 'dexie'
 import { LOCAL_DB_NAME, TABLES } from './constants'
 import { dbSchemaV1 } from './db.schema'
-import type { DB_History } from './schemas/history'
 
 class LocalDB extends Dexie {
   history: EntityTable<DB_History, 'hash'>

@@ -1,4 +1,3 @@
-/* eslint-disable tailwindcss/no-custom-classname */
 import { cn } from '@renderer/lib/utils'
 // import './index.css'
 import { renderToString } from 'react-dom/server'
@@ -6,8 +5,8 @@ import { renderToString } from 'react-dom/server'
 const SubtitlePopover = () => {
   return (
     <div>
-      <div className={cn('relative !mr-5 !mt-1 text-white ', 'xgplayer-plugin-setting-container')}>
-        <div className={cn('cursor-pointer ')}>
+      <div className={cn('relative !mt-1 !mr-5 text-white', 'xgplayer-plugin-setting-container')}>
+        <div className={cn('cursor-pointer')}>
           <input type="file" accept=".ass,.ssa" className="xgplayer-plugin-subtitle-input hidden" />
           <i
             className={cn(
@@ -20,7 +19,7 @@ const SubtitlePopover = () => {
 
         <div
           className={cn(
-            'absolute -left-28 bottom-14 hidden h-80 w-72 rounded-2xl bg-zinc-900 opacity-95  shadow-sm',
+            'absolute bottom-14 -left-28 hidden h-80 w-72 rounded-2xl bg-zinc-900 opacity-95 shadow-sm',
             'xgplayer-plugin-subtitle-popover-content',
           )}
         >

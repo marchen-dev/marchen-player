@@ -1,3 +1,4 @@
+import type { FC } from 'react'
 import {
   Select,
   SelectContent,
@@ -6,9 +7,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@renderer/components/ui/select'
-import type { FC } from 'react'
 
-export interface SelectGroup {
+export interface SelectOption {
   label: string
   value: string
   default?: boolean
@@ -16,7 +16,7 @@ export interface SelectGroup {
 
 interface SettingSelectProps {
   placeholder?: string
-  groups: SelectGroup[]
+  groups: SelectOption[]
   value: string
   onValueChange: (value: string) => void
 }

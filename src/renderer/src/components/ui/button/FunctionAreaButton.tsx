@@ -1,9 +1,9 @@
 import type * as TogglePrimitive from '@radix-ui/react-toggle'
 import type { ButtonProps } from '@renderer/components/ui/button'
+import type { ComponentPropsWithRef, FC, PropsWithChildren } from 'react'
 import { Button } from '@renderer/components/ui/button'
 import { Toggle } from '@renderer/components/ui/toggle'
 import { cn } from '@renderer/lib/utils'
-import type { ComponentPropsWithRef, FC, PropsWithChildren } from 'react'
 
 export const FunctionAreaButton: FC<PropsWithChildren & ButtonProps> = ({ children, ...props }) => {
   return (
@@ -30,7 +30,7 @@ export const ButtonWithIcon: FC<
     <button
       type="button"
       className={cn(
-        'no-drag-region flex size-8 cursor-default items-center justify-center rounded-md transition-colors hover:bg-base-300',
+        'no-drag-region hover:bg-base-300 flex size-8 cursor-default items-center justify-center rounded-md transition-colors',
         className,
       )}
       {...props}

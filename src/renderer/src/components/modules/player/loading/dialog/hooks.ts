@@ -1,9 +1,9 @@
+import type { ChangeEvent } from 'react'
 import { jotaiStore } from '@renderer/atoms/store'
 import { apiClient } from '@renderer/request'
 import { useQuery } from '@tanstack/react-query'
 import { atomWithReset } from 'jotai/utils'
 import { debounce } from 'lodash-es'
-import type { ChangeEvent } from 'react'
 import { useCallback, useState } from 'react'
 
 export const showMatchAnimeDialogAtom = atomWithReset<{ open: boolean; hash?: string }>({
@@ -21,7 +21,6 @@ export const useSearchAnime = () => {
     enabled: searchText.length > 1,
   })
   const handleSearchAnime = useCallback(
-    // eslint-disable-next-line react-compiler/react-compiler
     debounce((event: ChangeEvent<HTMLInputElement>) => {
       setSearchText(event.target.value)
     }, 400),

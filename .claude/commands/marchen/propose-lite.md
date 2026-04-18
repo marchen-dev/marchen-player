@@ -1,5 +1,5 @@
 ---
-name: "Marchen: Propose Lite"
+name: 'Marchen: Propose Lite'
 description: 快速创建轻量变更，只需填写任务清单
 category: Workflow
 tags: [workflow, lite]
@@ -9,6 +9,7 @@ tags: [workflow, lite]
 适合 bug 修复、小改动、explore 之后的快速执行。
 
 只创建：
+
 - tasks.md（背景 + 任务清单）
 
 完成后可用 /marchen:apply 开始实现。
@@ -24,6 +25,7 @@ tags: [workflow, lite]
    如果提供了输入，直接使用或从描述中提取 kebab-case 名称（如"修复登录 bug" → `fix-login-bug`）。
 
    如果没有输入，用 **AskUserQuestion** 工具询问：
+
    > "你想做什么变更？描述一下你要构建或修复的内容。"
 
    从回答中提取 kebab-case 名称。
@@ -77,6 +79,7 @@ tags: [workflow, lite]
 **输出**
 
 完成后显示：
+
 - 变更名称和目录位置
 - 已创建的 tasks.md 概要（任务数量）
 - 提示："任务清单已就绪，可以用 `/marchen:apply` 开始实现。"

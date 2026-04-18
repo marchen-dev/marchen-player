@@ -1,4 +1,6 @@
 import type { CheckedState } from '@radix-ui/react-checkbox'
+import type { DB_History } from '@renderer/database/schemas/history'
+import type { FC, PropsWithChildren } from 'react'
 import { Separator } from '@radix-ui/react-select'
 import { playerSettingSheetAtom, videoAtom } from '@renderer/atoms/player'
 import { usePlayerSettingsValue } from '@renderer/atoms/settings/player'
@@ -10,7 +12,6 @@ import { Checkbox } from '@renderer/components/ui/checkbox'
 import { Label } from '@renderer/components/ui/label'
 import { Popover, PopoverContent, PopoverTrigger } from '@renderer/components/ui/popover'
 import { db } from '@renderer/database/db'
-import type { DB_History } from '@renderer/database/schemas/history'
 import { useConfirmationDialog } from '@renderer/hooks/use-dialog'
 import {
   danmakuPlatformMap,
@@ -22,7 +23,6 @@ import queryClient from '@renderer/lib/query-client'
 import { isWeb } from '@renderer/lib/utils'
 import { useAtomValue } from 'jotai'
 import { debounce } from 'lodash-es'
-import type { FC, PropsWithChildren } from 'react'
 import { memo } from 'react'
 
 import { usePlayerInstance } from '../../../Context'
@@ -39,7 +39,7 @@ export const DanmakuSource = memo(() => {
         <PopoverTrigger asChild>
           <Button variant="outline">{mostDanmakuPlatform(danmaku)}...</Button>
         </PopoverTrigger>
-        <PopoverContent className="mx-2 w-80 ">
+        <PopoverContent className="mx-2 w-80">
           <PopoverContentLayout title="来源">
             <SourceList />
             <div className="flex flex-col gap-2.5">
@@ -137,7 +137,7 @@ interface PopoverContentLayoutProps extends PropsWithChildren {
 export const PopoverContentLayout: FC<PopoverContentLayoutProps> = ({ children, title }) => {
   return (
     <div className="grid gap-4">
-      <h4 className="font-medium leading-none">{title}</h4>
+      <h4 className="leading-none font-medium">{title}</h4>
       <div className="grid gap-4">{children}</div>
     </div>
   )

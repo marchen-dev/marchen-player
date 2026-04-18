@@ -1,7 +1,7 @@
-import './index.css'
-
 import { showPlayerSettingSheet } from '@renderer/atoms/player'
+
 import { Plugin } from '@suemor/xgplayer'
+import './index.css'
 
 export default class Setting extends Plugin {
   static readonly pluginName = 'setting'

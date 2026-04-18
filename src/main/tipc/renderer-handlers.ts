@@ -1,4 +1,4 @@
-export type RendererHandlers = {
+export interface RendererHandlers {
   showSetting: (tab?: string) => void
   importAnime: (params?: { path: string }) => void
   getReleaseNotes: (text: string) => void

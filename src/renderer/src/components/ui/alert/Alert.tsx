@@ -1,5 +1,5 @@
-import { cn } from '@renderer/lib/utils'
 import type { VariantProps } from 'class-variance-authority'
+import { cn } from '@renderer/lib/utils'
 import { cva } from 'class-variance-authority'
 import * as React from 'react'
 
@@ -37,7 +37,7 @@ const AlertTitle = ({
 }: React.HTMLAttributes<HTMLHeadingElement> & { ref?: React.RefObject<HTMLParagraphElement> }) => (
   <h5
     ref={ref}
-    className={cn('mb-1 font-medium leading-none tracking-tight', className)}
+    className={cn('mb-1 leading-none font-medium tracking-tight', className)}
     {...props}
   />
 )

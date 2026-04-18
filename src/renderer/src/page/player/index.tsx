@@ -1,9 +1,9 @@
+import type { FC } from 'react'
 import { Player } from '@renderer/components/modules/player'
 import { useVideo } from '@renderer/components/modules/player/loading/hooks'
 import { VideoProvider } from '@renderer/components/modules/player/loading/PlayerProvider'
 import { cn, isWeb } from '@renderer/lib/utils'
 import { AnimatePresence, m } from 'framer-motion'
-import type { FC } from 'react'
 import { useCallback, useMemo, useRef } from 'react'
 
 export default function VideoPlayer() {
@@ -26,7 +26,7 @@ export default function VideoPlayer() {
       <div
         onDrop={importAnimeViaDragging}
         onDragOver={(e) => e.preventDefault()}
-        className={cn('flex size-full items-center justify-center ')}
+        className={cn('flex size-full items-center justify-center')}
       >
         <AnimatePresence>{content}</AnimatePresence>
         {!url && (
@@ -50,7 +50,7 @@ const DragTips: FC<{ onClick: () => void }> = ({ onClick }) => (
     whileHover={{ scale: 1.04 }}
     whileTap={{ scale: 1 }}
   >
-    <i className="icon-[mingcute--video-line] text-6xl " />
-    <p className="select-none text-xl">点击或拖拽动漫到此处播放</p>
+    <i className="icon-[mingcute--video-line] text-6xl" />
+    <p className="text-xl select-none">点击或拖拽动漫到此处播放</p>
   </m.div>
 )

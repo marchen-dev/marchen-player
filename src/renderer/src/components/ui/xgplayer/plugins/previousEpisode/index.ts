@@ -1,6 +1,6 @@
-import './index.css'
-
 import { Events, Plugin } from '@suemor/xgplayer'
+
+import './index.css'
 
 export default class PreviousEpisode extends Plugin {
   static readonly pluginName = 'previousEpisode'

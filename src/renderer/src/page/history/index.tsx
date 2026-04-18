@@ -1,3 +1,6 @@
+import type { DB_History } from '@renderer/database/schemas/history'
+import type { Variants } from 'framer-motion'
+import type { FC } from 'react'
 import { useAppSettings, useAppSettingsValue } from '@renderer/atoms/settings/app'
 import { RouterLayout } from '@renderer/components/layout/root/RouterLayout'
 import { showMatchAnimeDialog } from '@renderer/components/modules/player/loading/dialog/hooks'
@@ -14,15 +17,12 @@ import {
 import { ScrollArea } from '@renderer/components/ui/scrollArea'
 import { useToast } from '@renderer/components/ui/toast'
 import { db } from '@renderer/database/db'
-import type { DB_History } from '@renderer/database/schemas/history'
 import { useConfirmationDialog } from '@renderer/hooks/use-dialog'
 import { relativeTimeToNow } from '@renderer/initialize/date'
 import { cn, isWeb } from '@renderer/lib/utils'
 import { RouteName } from '@renderer/router'
 import { useLiveQuery } from 'dexie-react-hooks'
-import type { Variants } from 'framer-motion'
 import { m } from 'framer-motion'
-import type { FC } from 'react'
 import { memo, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router'
 
@@ -34,14 +34,14 @@ export default function History() {
   const showPoster = appSettings.showPoster || isWeb
   return (
     <RouterLayout FunctionArea={<FunctionArea />}>
-      <ScrollArea className="h-full px-8 ">
+      <ScrollArea className="h-full px-8">
         {historyData?.length !== 0 ? (
           <ul
             className={cn(
               'grid gap-2 gap-y-3',
               showPoster
                 ? 'grid-auto-cols'
-                : 'grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 3xl:grid-cols-5',
+                : '3xl:grid-cols-5 grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4',
             )}
           >
             {historyData?.map((item) => (
@@ -49,8 +49,8 @@ export default function History() {
             ))}
           </ul>
         ) : (
-          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-center text-gray-500">
-            <i className="icon-[mingcute--file-more-line] text-6xl " />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center text-gray-500">
+            <i className="icon-[mingcute--file-more-line] text-6xl" />
             <p className="text-xl">没有内容</p>
           </div>
         )}
@@ -112,14 +112,14 @@ const HistoryItem: FC<HistoryItemProps> = memo((props) => {
       <ContextMenuTrigger>
         <li
           className={cn(
-            'flex size-full cursor-default select-none flex-col items-center',
+            'flex size-full cursor-default flex-col items-center select-none',
             !isWeb && 'group',
           )}
           onClick={playAnime}
         >
           <m.div
             className={cn(
-              'relative aspect-video size-full overflow-hidden rounded-md ',
+              'relative aspect-video size-full overflow-hidden rounded-md',
               showPoster && 'aspect-auto h-72',
             )}
             whileHover={['icon', 'img']}
@@ -129,14 +129,14 @@ const HistoryItem: FC<HistoryItemProps> = memo((props) => {
               <m.i
                 className={cn(
                   'icon-[mingcute--play-circle-line]',
-                  'absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 transition-all duration-100',
+                  'absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 transition-all duration-100',
                   'size-16 text-zinc-100 opacity-0 shadow-md',
                 )}
                 variants={{ icon: hoverVariant.icon }}
               />
             )}
             <div
-              className={cn('absolute bottom-0 left-0 h-1 rounded-md bg-warning')}
+              className={cn('bg-warning absolute bottom-0 left-0 h-1 rounded-md')}
               style={{ width: `${percentage}%` }}
             />
           </m.div>
@@ -149,7 +149,7 @@ const HistoryItem: FC<HistoryItemProps> = memo((props) => {
               title={episodeTitle}
             >
               <span className="truncate">{episodeTitle || '暂无弹幕库'}</span>
-              <div className="shrink-0 ">
+              <div className="shrink-0">
                 <Badge variant={'outline'}>{relativeTimeToNow(updatedAt)}</Badge>
               </div>
             </div>
@@ -183,7 +183,7 @@ const FunctionArea = memo(() => {
   const present = useConfirmationDialog()
 
   return (
-    <div className="no-drag-region flex items-center space-x-2 text-2xl text-zinc-500 ">
+    <div className="no-drag-region flex items-center space-x-2 text-2xl text-zinc-500">
       {!isWeb && (
         <FunctionAreaToggle
           pressed={appSettings.showPoster}
@@ -221,7 +221,7 @@ const HistoryImage: FC<HistoryImageProps> = (props) => {
   const { src } = props
   const [imgError, setImgError] = useState(false)
   return (
-    <m.div className=" size-full border " variants={{ img: hoverVariant.img }}>
+    <m.div className="size-full border" variants={{ img: hoverVariant.img }}>
       {!src || imgError ? (
         <div className="flex size-full items-center justify-center bg-gray-200 text-zinc-500 dark:bg-zinc-300">
           <span className="icon-[mingcute--pic-line] size-10 group-hover:hidden" />

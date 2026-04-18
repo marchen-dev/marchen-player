@@ -1,5 +1,5 @@
 ---
-name: "Marchen: Explore"
+name: 'Marchen: Explore'
 description: 进入探索模式 — 思考想法、调查问题、厘清需求
 category: Workflow
 tags: [workflow, explore, thinking]
@@ -12,6 +12,7 @@ tags: [workflow, explore, thinking]
 **这是一种姿态，不是工作流。** 没有固定步骤、没有必须的顺序、没有强制输出。你是帮助用户探索的思考伙伴。
 
 **输入**：`/marchen:explore` 后面可以跟任何内容：
+
 - 模糊的想法："实时协作"
 - 具体的问题："auth 系统越来越难维护了"
 - 变更名称："add-dark-mode"（在该变更上下文中探索）
@@ -36,24 +37,28 @@ tags: [workflow, explore, thinking]
 根据用户带来的内容，你可能会：
 
 **探索问题空间**
+
 - 提出从用户所说内容中自然涌现的澄清问题
 - 挑战假设
 - 重新框定问题
 - 寻找类比
 
 **调查代码库**
+
 - 映射与讨论相关的现有架构
 - 找到集成点
 - 识别已有的模式
 - 发现隐藏的复杂性
 
 **比较方案**
+
 - 头脑风暴多种方案
 - 构建比较表
 - 勾勒权衡
 - 推荐路径（如果被问到）
 
 **可视化**
+
 ```
 ┌─────────────────────────────────────────┐
 │       大量使用 ASCII 图表               │
@@ -71,6 +76,7 @@ tags: [workflow, explore, thinking]
 ```
 
 **发现风险和未知**
+
 - 识别可能出错的地方
 - 找到理解上的空白
 - 建议 spike 或调查
@@ -84,11 +90,13 @@ tags: [workflow, explore, thinking]
 ### 检查上下文
 
 开始时快速检查现有状态：
+
 ```bash
 marchen list --json
 ```
 
 这告诉你：
+
 - 是否有进行中的变更
 - 它们的名称、schema 和状态
 - 用户可能在做什么
@@ -118,14 +126,14 @@ marchen list --json
 
 3. **在做出决策时提议捕获**
 
-   | 洞察类型 | 捕获到哪里 |
-   |---------|-----------|
-   | 发现新需求 | `specs/<capability>/spec.md` |
-   | 需求变更 | `specs/<capability>/spec.md` |
-   | 做出设计决策 | `design.md` |
-   | 范围变更 | `proposal.md` |
-   | 发现新工作 | `tasks.md` |
-   | 假设被推翻 | 相关 artifact |
+   | 洞察类型     | 捕获到哪里                   |
+   | ------------ | ---------------------------- |
+   | 发现新需求   | `specs/<capability>/spec.md` |
+   | 需求变更     | `specs/<capability>/spec.md` |
+   | 做出设计决策 | `design.md`                  |
+   | 范围变更     | `proposal.md`                |
+   | 发现新工作   | `tasks.md`                   |
+   | 假设被推翻   | 相关 artifact                |
 
    示例：
    - "这是一个设计决策。要记录到 design.md 吗？"

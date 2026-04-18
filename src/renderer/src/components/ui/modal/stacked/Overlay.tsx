@@ -1,5 +1,5 @@
-import { m } from 'framer-motion'
 import type { FC, ForwardedRef } from 'react'
+import { m } from 'framer-motion'
 
 import { RootPortal } from '../../portal'
 

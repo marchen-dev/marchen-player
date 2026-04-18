@@ -14,7 +14,7 @@ asarUnpack:
 win:
   executableName: Marchen
   fileAssociations:
-    - ext: ['mp4', 'mkv']
+    - ext: [mp4, mkv]
       name: Video Files
       role: Editor
 nsis:
@@ -40,7 +40,7 @@ mac:
         - x64
         - arm64
   fileAssociations:
-    - ext: ['mp4', 'mkv']
+    - ext: [mp4, mkv]
       name: Video Files
       role: Editor
 dmg:

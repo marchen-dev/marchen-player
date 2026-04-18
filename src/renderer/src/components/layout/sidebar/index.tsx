@@ -1,3 +1,5 @@
+import type { SidebarRouteObject } from '@renderer/router'
+import type { FC } from 'react'
 import { updateProgressAtom } from '@renderer/atoms/progress'
 import { useAppSettingsValue } from '@renderer/atoms/settings/app'
 import Show from '@renderer/components/common/Show'
@@ -10,11 +12,9 @@ import { useNetworkStatus } from '@renderer/hooks/use-network-status'
 import { tipcClient } from '@renderer/lib/client'
 import { getStorageNS } from '@renderer/lib/ns'
 import { cn, isMac, isWeb } from '@renderer/lib/utils'
-import type { SidebarRouteObject } from '@renderer/router'
 import { RouteName, siderbarRoutes } from '@renderer/router'
 import { useAtomValue } from 'jotai'
-import { AlertCircle } from 'lucide-react'
-import type { FC } from 'react'
+import { CircleAlert } from 'lucide-react'
 import { Link, NavLink, useLocation } from 'react-router'
 
 import { useSettingModal } from '../../modules/settings/hooks'
@@ -22,10 +22,10 @@ import { useSettingModal } from '../../modules/settings/hooks'
 export const Sidebar = () => {
   const showModal = useSettingModal()
   return (
-    <div className="relative flex h-full w-[250px] flex-col justify-between bg-base-200 px-3 pt-2.5">
+    <div className="bg-base-200 relative flex h-full w-[250px] flex-col justify-between px-3 pt-2.5">
       <div>
         <div className={cn('drag-region flex items-center', 'justify-between')}>
-          <Link to={RouteName.PLAYER} draggable={false} className="cursor-default ">
+          <Link to={RouteName.PLAYER} draggable={false} className="cursor-default">
             <Show when={!isMac}>
               <p className="flex items-center gap-1">
                 <Logo clasNames={{ icon: 'size-8' }} />
@@ -35,7 +35,7 @@ export const Sidebar = () => {
           </Link>
           <ButtonWithIcon icon="icon-[mingcute--settings-3-line]" onClick={() => showModal()} />
         </div>
-        <nav className="mt-5 flex select-none flex-col gap-2">
+        <nav className="mt-5 flex flex-col gap-2 select-none">
           {siderbarRoutes.map((route) => (
             <NavLinkItem {...route} key={route.path} />
           ))}
@@ -65,7 +65,7 @@ const NavLinkItem: FC<SidebarRouteObject> = ({ path, meta }) => {
     <NavLink
       draggable={false}
       to={path}
-      className={cn(pathname === path && 'rounded-md bg-base-300')}
+      className={cn(pathname === path && 'bg-base-300 rounded-md')}
     >
       <p className="flex cursor-default items-center gap-1.5 p-2">
         <i className={cn(icon, 'text-xl')} />
@@ -100,7 +100,7 @@ export const NetWorkCheck = () => {
   }
   return (
     <Alert style={{ fontWeight: 500 }} variant="destructive">
-      <AlertCircle className="size-4" />
+      <CircleAlert className="size-4" />
       <AlertTitle>网络异常</AlertTitle>
       <AlertDescription>请检查网络连接</AlertDescription>
     </Alert>

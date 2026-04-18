@@ -19,7 +19,7 @@ export default async function notarizing(context) {
 
   const appName = context.packager.appInfo.productFilename
   const appPath = `${context.appOutDir}/${appName}.app`
-  // eslint-disable-next-line no-console
+
   console.log('Notarizing app:', appPath)
 
   await notarize({

@@ -5,9 +5,10 @@
 ### 需求: 所有安全批次依赖 SHALL 升级到最新版本
 
 升级范围包括但不限于：
+
 - react, react-dom 及其类型定义
 - jotai, @tanstack/react-query
-- @radix-ui/* 全家桶
+- @radix-ui/\* 全家桶
 - framer-motion（alpha → stable）
 - @sentry/react（8 → 10）
 - lucide-react（0.x → 1.x）

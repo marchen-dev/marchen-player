@@ -23,7 +23,7 @@ export const Titlebar = () => {
       }}
     >
       <button
-        className="no-drag-region pointer-events-auto flex h-full w-[50px] items-center justify-center duration-200 hover:bg-base-200"
+        className="no-drag-region hover:bg-base-200 pointer-events-auto flex h-full w-[50px] items-center justify-center duration-200"
         type="button"
         onClick={() => {
           tipcClient?.windowAction({ action: 'minimize' })
@@ -34,7 +34,7 @@ export const Titlebar = () => {
 
       <button
         type="button"
-        className="no-drag-region pointer-events-auto flex h-full w-[50px] items-center justify-center duration-200 hover:bg-base-200"
+        className="no-drag-region hover:bg-base-200 pointer-events-auto flex h-full w-[50px] items-center justify-center duration-200"
         onClick={async () => {
           await tipcClient?.windowAction({ action: 'maximum' })
         }}

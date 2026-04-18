@@ -1,13 +1,11 @@
-@layer components {
-  .drag-region {
-    -webkit-app-region: drag;
-  }
+@utility drag-region {
+  -webkit-app-region: drag;
+}
 
-  .no-drag-region {
-    -webkit-app-region: no-drag;
-  }
+@utility no-drag-region {
+  -webkit-app-region: no-drag;
+}
 
-  .grid-auto-cols {
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  }
+@utility grid-auto-cols {
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
 }
