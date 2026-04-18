@@ -1,5 +1,5 @@
-import { cn } from '@renderer/lib/utils'
 import type { FC } from 'react'
+import { cn } from '@renderer/lib/utils'
 
 export const CompleteIcon: FC<{ isHighLight: boolean }> = ({ isHighLight }) => (
   <svg

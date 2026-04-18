@@ -1,8 +1,8 @@
-import { atom } from 'jotai'
 import type { FC, RefObject } from 'react'
-import { createContext, use } from 'react'
-
 import type { ModalProps } from './types'
+import { atom } from 'jotai'
+
+import { createContext, use } from 'react'
 
 export type currentModalContextProps = ModalContentPropsInternal & {
   ref: RefObject<HTMLElement | null>
@@ -22,7 +22,7 @@ export const useCurrentModal = () => {
 
 export type ModalContentComponent<T> = FC<ModalContentPropsInternal & T>
 
-export type ModalContentPropsInternal = {
+export interface ModalContentPropsInternal {
   dismiss: () => void
 }
 

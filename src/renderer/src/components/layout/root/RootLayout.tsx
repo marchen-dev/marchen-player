@@ -1,6 +1,6 @@
+import type { FC, PropsWithChildren } from 'react'
 import { useClearPlayingVideo } from '@renderer/atoms/player'
 import { RouteName } from '@renderer/router'
-import type { FC, PropsWithChildren } from 'react'
 import { useEffect } from 'react'
 import { useLocation } from 'react-router'
 

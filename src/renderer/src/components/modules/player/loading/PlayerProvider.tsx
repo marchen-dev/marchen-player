@@ -1,3 +1,4 @@
+import type { FC, PropsWithChildren } from 'react'
 import {
   currentMatchedVideoAtom,
   loadingDanmuProgressAtom,
@@ -9,7 +10,6 @@ import { LoadingDanmuTimeLine } from '@renderer/components/modules/player/loadin
 import queryClient from '@renderer/lib/query-client'
 import { apiClient } from '@renderer/request'
 import { useAtom, useAtomValue } from 'jotai'
-import type { FC, PropsWithChildren } from 'react'
 import { useEffect } from 'react'
 
 import {

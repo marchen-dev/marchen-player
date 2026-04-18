@@ -1,5 +1,5 @@
-import { cn } from '@renderer/lib/utils'
 import type { FC, PropsWithChildren, ReactNode } from 'react'
+import { cn } from '@renderer/lib/utils'
 
 export const SettingViewContainer: FC<PropsWithChildren> = ({ children }) => {
   return <div className="space-y-4 p-5">{children}</div>

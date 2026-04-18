@@ -34,6 +34,7 @@ pnpm format       # Prettier 格式化
 - **Renderer** (`src/renderer/src/`)：React 前端应用，同时作为 Web 版本的代码
 
 构建工具：
+
 - Electron 构建使用 `electron-vite`（配置在 `electron.vite.config.ts`）
 - Web 构建使用 `vite`（配置在 `vite.config.ts`）
 - 两套 tsconfig：`tsconfig.node.json`（main 进程）和 `tsconfig.web.json`（renderer）
@@ -81,6 +82,10 @@ Electron 端使用 `marchen://` 协议处理本地文件访问，相关逻辑在
 ### Web 兼容
 
 代码中通过 `isWeb`（`src/renderer/src/lib/utils.ts`）判断运行环境。Electron 专属功能（tipcClient、TipcListener 等）在 Web 环境下会被跳过。
+
+## 路线图
+
+项目路线图和变更历史见 [marchen/roadmap.md](./marchen/roadmap.md)，调研笔记和外部参考见 [marchen/references/](./marchen/references/)。
 
 ## 路径别名
 

@@ -1,5 +1,5 @@
-import { Switch } from '@renderer/components/ui/switch'
 import type { FC } from 'react'
+import { Switch } from '@renderer/components/ui/switch'
 
 interface SettingSwitchProps {
   onCheckedChange: (value: boolean) => void

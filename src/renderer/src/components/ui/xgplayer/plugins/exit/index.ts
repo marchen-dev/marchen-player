@@ -1,6 +1,6 @@
-import './index.css'
-
 import { Plugin } from '@suemor/xgplayer'
+
+import './index.css'
 
 export default class Exit extends Plugin {
   static readonly pluginName = 'exit'

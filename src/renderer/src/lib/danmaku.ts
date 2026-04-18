@@ -12,11 +12,11 @@ export function intToHexColor(color: number | string): string {
   }
   const _color = +color
   // 提取红色分量
-  const r = (_color >> 16) & 0xff
+  const r = (_color >> 16) & 0xFF
   // 提取绿色分量
-  const g = (_color >> 8) & 0xff
+  const g = (_color >> 8) & 0xFF
   // 提取蓝色分量
-  const b = _color & 0xff
+  const b = _color & 0xFF
 
   // 将每个分量转换成两位的十六进制字符串
   const rHex = r.toString(16).padStart(2, '0')

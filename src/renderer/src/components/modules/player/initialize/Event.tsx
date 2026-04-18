@@ -1,3 +1,4 @@
+import type { PlayerType } from './hooks'
 import { useClearPlayingVideo, videoAtom } from '@renderer/atoms/player'
 import { usePlayerSettingsValue } from '@renderer/atoms/settings/player'
 import { db } from '@renderer/database/db'
@@ -7,11 +8,10 @@ import * as Sentry from '@sentry/react'
 import { Events } from '@suemor/xgplayer'
 import { useAtomValue } from 'jotai'
 import { throttle } from 'lodash-es'
-import { useCallback, useEffect, useRef } from 'react'
 
+import { useCallback, useEffect, useRef } from 'react'
 import { usePlayerInstance } from '../Context'
 import { useVideo } from '../loading/hooks'
-import type { PlayerType } from './hooks'
 
 export const InitializeEvent = () => {
   const player = usePlayerInstance()

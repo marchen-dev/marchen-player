@@ -1,4 +1,5 @@
 @import './tailwind.css';
+@import './tailwind-extend.css';
 @import './shadcn.css';
 @import './font.css';
 @import './base.css';

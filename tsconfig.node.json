@@ -1,5 +1,17 @@
 {
   "extends": "@electron-toolkit/tsconfig/tsconfig.node.json",
+  "compilerOptions": {
+    "composite": true,
+    "ignoreDeprecations": "6.0",
+    "baseUrl": ".",
+    "moduleResolution": "Bundler",
+    "paths": {
+      "@pkg": ["./package.json"],
+      "@renderer/*": ["src/renderer/src/*"],
+      "@main/*": ["src/main/*"]
+    },
+    "types": ["electron-vite/node"]
+  },
   "include": [
     "electron.vite.config.*",
     "src/main/**/*",
@@ -7,16 +19,5 @@
     "types/**/*.d.ts",
     "src/shared/src/**/*",
     "src/renderer/src/lib/calc-file-hash.ts"
-  ],
-  "compilerOptions": {
-    "composite": true,
-    "types": ["electron-vite/node"],
-    "moduleResolution": "Bundler",
-    "baseUrl": ".",
-    "paths": {
-      "@pkg": ["./package.json"],
-      "@renderer/*": ["src/renderer/src/*"],
-      "@main/*": ["src/main/*"]
-    }
-  }
+  ]
 }

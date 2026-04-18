@@ -2,9 +2,10 @@ import fs from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
+import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
-import copy from 'rollup-plugin-copy'
 import { defineConfig } from 'vite'
+import { viteStaticCopy } from 'vite-plugin-static-copy'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const packageJson = JSON.parse(fs.readFileSync(join(__dirname, 'package.json'), 'utf-8'))
@@ -15,22 +16,11 @@ const vite = () =>
   defineConfig({
     build: {
       outDir: resolve(__dirname, 'out/web'),
-      target: 'ES2022',
+      target: 'esnext',
       rollupOptions: {
         input: {
           main: resolve(ROOT, '/index.html'),
         },
-        plugins: [
-          copy({
-            targets: [
-              {
-                src: 'node_modules/@jellyfin/libass-wasm/dist/js/subtitles-octopus-worker.wasm',
-                dest: 'out/web/assets',
-              },
-            ],
-            hook: 'writeBundle',
-          }),
-        ],
       },
     },
     root: ROOT,
@@ -47,7 +37,18 @@ const vite = () =>
       port: 1106,
       host: true,
     },
-    plugins: [react()],
+    plugins: [
+      tailwindcss(),
+      react(),
+      viteStaticCopy({
+        targets: [
+          {
+            src: '../../node_modules/@jellyfin/libass-wasm/dist/js/subtitles-octopus-worker.wasm',
+            dest: 'assets',
+          },
+        ],
+      }),
+    ],
 
     define: {
       APP_NAME: JSON.stringify(packageJson.name),

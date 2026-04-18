@@ -14,7 +14,7 @@ const PlayList = () => {
       {isWeb ? (
         <li
           className={cn(
-            'flex items-center text-secondary transition-colors duration-100 hover:text-primary',
+            'text-secondary hover:text-primary flex items-center transition-colors duration-100',
           )}
         >
           {video?.name}
@@ -32,7 +32,7 @@ const PlayList = () => {
             <li
               key={name}
               className={cn(
-                'flex items-center transition-colors duration-100 hover:text-primary',
+                'hover:text-primary flex items-center transition-colors duration-100',
                 playingVideo && 'text-primary',
               )}
               onClick={() => {

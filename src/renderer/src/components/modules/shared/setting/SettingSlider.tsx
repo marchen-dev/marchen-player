@@ -1,8 +1,8 @@
 import type { SliderProps } from '@radix-ui/react-slider'
+import type { FC } from 'react'
 import { Slider } from '@renderer/components/ui/slider'
 import { cn } from '@renderer/lib/utils'
 import { debounce } from 'lodash-es'
-import type { FC } from 'react'
 import { memo, useCallback, useState } from 'react'
 
 interface SettingSliderProps extends SliderProps {

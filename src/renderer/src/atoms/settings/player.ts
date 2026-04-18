@@ -1,14 +1,14 @@
+import type { SelectOption } from '@renderer/components/modules/shared/setting/SettingSelect'
 import {
   danmakuDurationList,
   danmakuEndAreaList,
   danmakuFontSizeList,
 } from '@renderer/components/modules/settings/views/player/list'
-import type { SelectGroup } from '@renderer/components/modules/shared/setting/SettingSelect'
 import { useAtom, useAtomValue } from 'jotai'
 
 import { createSettingATom } from './helper'
 
-const getSelectedDefaultValue = (list: SelectGroup[]) => {
+const getSelectedDefaultValue = (list: SelectOption[]) => {
   return list.find((item) => item.default)?.value
 }
 

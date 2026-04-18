@@ -2,16 +2,16 @@ import fs from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
+import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
-import { defineConfig, externalizeDepsPlugin } from 'electron-vite'
-import copy from 'rollup-plugin-copy'
+import { defineConfig } from 'electron-vite'
+import { viteStaticCopy } from 'vite-plugin-static-copy'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const packageJson = JSON.parse(fs.readFileSync(join(__dirname, 'package.json'), 'utf-8'))
 
 export default defineConfig({
   main: {
-    plugins: [externalizeDepsPlugin()],
     resolve: {
       alias: {
         '@main': resolve('src/main'),
@@ -20,9 +20,7 @@ export default defineConfig({
       },
     },
   },
-  preload: {
-    plugins: [externalizeDepsPlugin()],
-  },
+  preload: {},
   renderer: {
     resolve: {
       alias: {
@@ -31,22 +29,18 @@ export default defineConfig({
         '@pkg': resolve('./package.json'),
       },
     },
-    plugins: [react()],
-    build: {
-      rollupOptions: {
-        plugins: [
-          copy({
-            targets: [
-              {
-                src: 'node_modules/@jellyfin/libass-wasm/dist/js/subtitles-octopus-worker.wasm',
-                dest: 'out/renderer/assets',
-              },
-            ],
-            hook: 'writeBundle',
-          }) as any,
+    plugins: [
+      tailwindcss(),
+      react(),
+      viteStaticCopy({
+        targets: [
+          {
+            src: '../../node_modules/@jellyfin/libass-wasm/dist/js/subtitles-octopus-worker.wasm',
+            dest: 'assets',
+          },
         ],
-      },
-    },
+      }),
+    ],
     define: {
       APP_NAME: JSON.stringify(packageJson.name),
     },

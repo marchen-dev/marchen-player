@@ -72,6 +72,5 @@ const limitSingleInstance = () => {
 
   if (!gotTheLock) {
     app.quit()
-    return
   }
 }

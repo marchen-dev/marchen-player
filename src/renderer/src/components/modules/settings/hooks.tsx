@@ -1,9 +1,9 @@
+import type { SettingTabsModel } from './tabs'
 import { useModalStack } from '@renderer/components/ui/modal'
-import { useCallback } from 'react'
 
+import { useCallback } from 'react'
 import { ModalTitle, SettingModal } from '.'
 import { SettingProvider } from './provider'
-import type { SettingTabsModel } from './tabs'
 import { settingTabs } from './tabs'
 
 export const useSettingModal = () => {

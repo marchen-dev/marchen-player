@@ -1,5 +1,5 @@
-import { updateProgressAtom } from '@renderer/atoms/progress'
 import type { useAppSettingsValue } from '@renderer/atoms/settings/app'
+import { updateProgressAtom } from '@renderer/atoms/progress'
 import { appSettingAtom } from '@renderer/atoms/settings/app'
 import { jotaiStore } from '@renderer/atoms/store'
 import { WindowState, windowStateAtom } from '@renderer/atoms/window'

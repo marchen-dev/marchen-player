@@ -1,3 +1,4 @@
+import type { ChangeEvent } from 'react'
 import { playerSettingSheetAtom, videoAtom } from '@renderer/atoms/player'
 import { jotaiStore } from '@renderer/atoms/store'
 import {
@@ -15,7 +16,6 @@ import { tipcClient } from '@renderer/lib/client'
 import { isWeb } from '@renderer/lib/utils'
 import { useQuery } from '@tanstack/react-query'
 import { useAtomValue } from 'jotai'
-import type { ChangeEvent } from 'react'
 import { useEffect, useRef } from 'react'
 
 import { usePlayerInstance } from '../../../Context'
@@ -117,7 +117,7 @@ export const SubtitleImport = () => {
               )
             })}
             <SelectLabel
-              className="cursor-default select-none transition-colors duration-150 hover:text-primary"
+              className="hover:text-primary cursor-default transition-colors duration-150 select-none"
               onClick={() => {
                 if (isWeb) {
                   return fileInputRef.current?.click()

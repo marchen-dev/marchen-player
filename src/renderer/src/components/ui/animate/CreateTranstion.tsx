@@ -1,7 +1,7 @@
-import { cn } from '@renderer/lib/utils'
 import type { HTMLMotionProps, Target } from 'framer-motion'
-import { m } from 'framer-motion'
 import type { ForwardRefExoticComponent, PropsWithChildren, RefAttributes } from 'react'
+import { cn } from '@renderer/lib/utils'
+import { m } from 'framer-motion'
 import { memo } from 'react'
 
 export interface CreateTranstionParams {
@@ -19,6 +19,7 @@ export interface TransitionViewProps extends HTMLMotionProps<'div'> {
 export const createTransition = (params: CreateTranstionParams) => {
   const { from, to, exit } = params
 
+  // eslint-disable-next-line react/component-hook-factories
   const TransitionView = ({
     ref,
     ...props

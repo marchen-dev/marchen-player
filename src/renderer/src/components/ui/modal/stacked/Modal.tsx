@@ -1,12 +1,4 @@
-import * as Dialog from '@radix-ui/react-dialog'
-import { useEventCallback } from '@renderer/hooks/use-event-callback'
-import { useIsUnMounted } from '@renderer/hooks/use-is-unmounted'
-import { nextFrame, stopPropagation } from '@renderer/lib/dom'
-import { cn } from '@renderer/lib/utils'
 import type { AnimationDefinition } from 'framer-motion'
-import { m, useAnimationControls, useDragControls } from 'framer-motion'
-import { useAtomValue, useSetAtom } from 'jotai'
-import { selectAtom } from 'jotai/utils'
 import type {
   FC,
   ForwardedRef,
@@ -14,14 +6,22 @@ import type {
   PropsWithChildren,
   SyntheticEvent,
 } from 'react'
-import { createElement, Fragment, memo, useCallback, useEffect, useMemo, useRef } from 'react'
+import type { currentModalContextProps, ModalContentPropsInternal } from './Context'
+import type { ModalProps } from './types'
+import * as Dialog from '@radix-ui/react-dialog'
+import { useEventCallback } from '@renderer/hooks/use-event-callback'
+import { useIsUnMounted } from '@renderer/hooks/use-is-unmounted'
+import { nextFrame, stopPropagation } from '@renderer/lib/dom'
+import { cn } from '@renderer/lib/utils'
+import { m, useAnimationControls, useDragControls } from 'framer-motion'
+import { useAtomValue, useSetAtom } from 'jotai'
 
+import { selectAtom } from 'jotai/utils'
+import { createElement, Fragment, memo, useCallback, useEffect, useMemo, useRef } from 'react'
 import { ButtonWithIcon } from '../../button'
 import { Divider } from '../../divider'
 import { MODAL_STACK_Z_INDEX, modalMotionConfig } from './constants'
-import type { currentModalContextProps, ModalContentPropsInternal } from './Context'
 import { CurrentModalContext, modalStackAtom } from './Context'
-import type { ModalProps } from './types'
 
 interface ModalInternalProps extends PropsWithChildren {
   item: ModalProps & { id: string }
@@ -31,7 +31,7 @@ interface ModalInternalProps extends PropsWithChildren {
   ref?: ForwardedRef<HTMLDivElement>
 }
 
-export const ModalInternal: FC<ModalInternalProps> = memo(function Modal({ ref, ...props }) {
+export const ModalInternal: FC<ModalInternalProps> = memo(({ ref, ...props }) => {
   const { item, index, isTop, onClose: onPropsClose, children } = props
   const setStack = useSetAtom(modalStackAtom)
   const close = useEventCallback(() => {
@@ -216,7 +216,7 @@ export const ModalInternal: FC<ModalInternalProps> = memo(function Modal({ ref, 
                   'p-2 shadow-2xl shadow-stone-300 backdrop-blur-sm dark:shadow-md dark:shadow-stone-800',
                   max
                     ? 'h-[90vh] w-[90vw]'
-                    : 'max-h-[70vh] min-w-[300px] max-w-[90vw] lg:max-h-[calc(100vh-20rem)] lg:max-w-[70vw]',
+                    : 'max-h-[70vh] max-w-[90vw] min-w-[300px] lg:max-h-[calc(100vh-20rem)] lg:max-w-[70vw]',
 
                   'border border-slate-200 dark:border-neutral-800',
                   classNames?.modalClassName,
@@ -251,9 +251,9 @@ export const ModalInternal: FC<ModalInternalProps> = memo(function Modal({ ref, 
                     />
                   </Dialog.DialogClose>
                 </div>
-                <Divider className="mb-0 mt-2 shrink-0 border-slate-200 opacity-80 dark:border-neutral-800" />
+                <Divider className="mt-2 mb-0 shrink-0 border-slate-200 opacity-80 dark:border-neutral-800" />
 
-                <div className="h-full shrink grow ">{finalChildren}</div>
+                <div className="h-full shrink grow">{finalChildren}</div>
               </m.div>
             </div>
           </Dialog.Content>

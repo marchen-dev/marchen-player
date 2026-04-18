@@ -1,6 +1,6 @@
 import type { Converter } from 'opencc-js/core'
-import { ConverterFactory } from 'opencc-js/core'
 import type { LocaleOption } from 'opencc-js/preset'
+import { ConverterFactory } from 'opencc-js/core'
 import * as Locale from 'opencc-js/preset'
 
 /**

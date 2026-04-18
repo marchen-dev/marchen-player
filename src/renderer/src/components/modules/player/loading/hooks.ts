@@ -1,3 +1,8 @@
+import type { DB_Danmaku, DB_History } from '@renderer/database/schemas/history'
+import type { CommentsModel } from '@renderer/request/models/comment'
+import type { MatchResponseV2 } from '@renderer/request/models/match'
+import type { UseQueryResult } from '@tanstack/react-query'
+import type { ChangeEvent, DragEvent } from 'react'
 import { MARCHEN_PROTOCOL_PREFIX } from '@main/constants/protocol'
 import {
   currentMatchedVideoAtom,
@@ -9,20 +14,15 @@ import {
 } from '@renderer/atoms/player'
 import { usePlayerSettingsValue } from '@renderer/atoms/settings/player'
 import { db } from '@renderer/database/db'
-import type { DB_Danmaku, DB_History } from '@renderer/database/schemas/history'
 import { usePlayAnimeFailedToast } from '@renderer/hooks/use-toast'
 import { calculateFileHash } from '@renderer/lib/calc-file-hash'
 import { chineseConverter } from '@renderer/lib/cht-to-chs'
 import { tipcClient } from '@renderer/lib/client'
 import { checkIsVideoType, isWeb } from '@renderer/lib/utils'
 import { apiClient } from '@renderer/request'
-import type { CommentsModel } from '@renderer/request/models/comment'
-import type { MatchResponseV2 } from '@renderer/request/models/match'
 import { RouteName } from '@renderer/router'
-import type { UseQueryResult } from '@tanstack/react-query'
 import { useQueries, useQuery } from '@tanstack/react-query'
 import { useAtom, useAtomValue, useSetAtom } from 'jotai'
-import type { ChangeEvent, DragEvent } from 'react'
 import { useCallback, useEffect, useMemo, useRef } from 'react'
 import { useLocation, useNavigate } from 'react-router'
 
@@ -336,7 +336,6 @@ export const useDanmakuData = () => {
       // if (!currentMatchedVideo.episodeId && manualResult?.length > 0) {
       //   return manualResult
       // }
-      return
     },
   })
   const mergedDanmakuData = useMemo(() => {

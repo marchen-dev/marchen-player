@@ -21,7 +21,6 @@ export const toFileExtension = (mimeType: string) => {
   mimeType = mimeType.toLowerCase()
   for (const t of mimeTypes) {
     if (mimeType === t.t) {
-      // eslint-disable-next-line @typescript-eslint/prefer-for-of
       for (let j = 0; j < t.e.length; j++) {
         if (t.e[j].length === 3) return t.e[j]
       }

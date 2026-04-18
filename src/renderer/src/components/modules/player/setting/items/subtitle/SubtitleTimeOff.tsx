@@ -27,7 +27,7 @@ export const SubtitleTimeOff = memo(() => {
           })
           return
         }
-        // @ts-ignore
+        // @ts-expect-error timeOffset not in type definition
         subtitleInstance.timeOffset = timeOffset
 
         const history = await db.history.get(hash)

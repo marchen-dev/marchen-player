@@ -1,4 +1,6 @@
 import type { MatchedVideoType } from '@renderer/atoms/player'
+import type { MatchResponseV2, MatchResultV2 } from '@renderer/request/models/match'
+import type { FC } from 'react'
 import Show from '@renderer/components/common/Show'
 import {
   Accordion,
@@ -12,9 +14,7 @@ import { Input } from '@renderer/components/ui/input'
 import { ScrollArea } from '@renderer/components/ui/scrollArea'
 import { useToast } from '@renderer/components/ui/toast'
 import { cn } from '@renderer/lib/utils'
-import type { MatchResponseV2, MatchResultV2 } from '@renderer/request/models/match'
 import { useAtomValue } from 'jotai'
-import type { FC } from 'react'
 import { useEffect, useMemo } from 'react'
 
 import { showMatchAnimeDialog, showMatchAnimeDialogAtom, useSearchAnime } from './hooks'
@@ -92,7 +92,7 @@ export const MatchAnimeDialog: FC<MatchAnimeDialogProps> = (props) => {
           >
             <Accordion type="single" collapsible className="w-full">
               {accordionData?.length === 0 && (
-                <p className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+                <p className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
                   暂无匹配的弹幕库
                 </p>
               )}
@@ -103,7 +103,7 @@ export const MatchAnimeDialog: FC<MatchAnimeDialogProps> = (props) => {
                   <AccordionItem key={animeId} value={`${animeId}`}>
                     <AccordionTrigger>{animeTitle}</AccordionTrigger>
                     <AccordionContent>
-                      <ul className="mt-2 space-y-5 ">
+                      <ul className="mt-2 space-y-5">
                         {match.map((item) => (
                           <li
                             key={item.episodeId}

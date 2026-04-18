@@ -1,7 +1,7 @@
-import './index.css'
-
 import { handlers, tipcClient } from '@renderer/lib/client'
+
 import { Plugin } from '@suemor/xgplayer'
+import './index.css'
 
 export default class fullEntireScreen extends Plugin {
   static readonly pluginName = 'fullEntireScreen'

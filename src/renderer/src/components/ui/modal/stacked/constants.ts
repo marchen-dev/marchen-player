@@ -1,4 +1,4 @@
-import type { motion, Spring, Target, Transition } from 'framer-motion'
+import type { motion, Target, Transition } from 'framer-motion'
 import type { ComponentProps } from 'react'
 
 const enterStyle: Target = {
@@ -11,7 +11,7 @@ const initialStyle: Target = {
   opacity: 0,
 }
 
-export const microReboundPreset: Spring = {
+export const microReboundPreset: Transition = {
   type: 'spring',
   stiffness: 300,
   damping: 20,
@@ -23,7 +23,7 @@ export const modalMotionConfig: ModalMotionConfig = {
   initial: initialStyle,
   animate: enterStyle,
   exit: initialStyle,
-  transition: microReboundPreset as Transition, // 明确类型转换
+  transition: microReboundPreset,
 }
 
 export const MODAL_STACK_Z_INDEX = 100

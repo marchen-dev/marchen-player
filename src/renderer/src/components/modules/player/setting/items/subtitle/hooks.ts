@@ -1,6 +1,6 @@
 import SubtitlesOctopus from '@jellyfin/libass-wasm'
-import workerUrl from '@jellyfin/libass-wasm/dist/js/subtitles-octopus-worker.js?url'
 import legacyWorkerUrl from '@jellyfin/libass-wasm/dist/js/subtitles-octopus-worker-legacy.js?url'
+import workerUrl from '@jellyfin/libass-wasm/dist/js/subtitles-octopus-worker.js?url'
 import { MARCHEN_PROTOCOL_PREFIX } from '@main/constants/protocol'
 import { videoAtom } from '@renderer/atoms/player'
 import { useToast } from '@renderer/components/ui/toast'
@@ -158,7 +158,7 @@ export const useSubtitle = () => {
         if (!subtitlePath || !data?.tags?.[index]) {
           const message = subtitleData?.message ?? '视频内嵌字幕加载失败'
           toast({
-            title: message
+            title: message,
           })
           throw new Error(message)
         }
@@ -224,13 +224,13 @@ export const useSubtitle = () => {
 
 type FetchSubtitleBodyParams = ParamsWithId | ParamsWithPath
 
-type ParamsWithId = {
+interface ParamsWithId {
   id: number
   path?: undefined
   fileName?: undefined
 }
 
-type ParamsWithPath = {
+interface ParamsWithPath {
   id?: undefined
   path: string
   fileName: string
