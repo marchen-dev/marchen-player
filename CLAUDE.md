@@ -39,13 +39,14 @@ pnpm format       # Prettier 格式化
 - Web 构建使用 `vite`（配置在 `vite.config.ts`）
 - 两套 tsconfig：`tsconfig.node.json`（main 进程）和 `tsconfig.web.json`（renderer）
 
-### 主进程与渲染进程通信（TIPC）
+### 主进程与渲染进程通信（IPC）
 
-使用 `@egoist/tipc` 实现类型安全的 IPC 通信，类似 tRPC 的模式：
+使用自建的 `@marchen/electron-ipc` 包实现类型安全的 IPC 通信，采用分组（defineGroup）+ handler 的模式：
 
-- **定义端**：`src/main/tipc/` 下按模块定义路由（app、player、setting、utils）
-- **调用端**：`src/renderer/src/lib/client.ts` 创建 tipcClient，渲染进程通过 `tipcClient?.xxx()` 调用
-- Web 环境下 `tipcClient` 为 null，需要用 `tipcClient?.` 可选链调用
+- **定义端**：`src/main/tipc/` 下按模块定义分组（app、player、setting、utils），使用 `defineGroup` + `handler` API
+- **调用端**：`src/renderer/src/lib/client.ts` 创建 ipcClient，渲染进程通过 `ipcClient?.group.method()` 带命名空间调用
+- **事件推送**：main → renderer 使用 `createEmitter`，renderer 端使用 `createListener` 监听
+- Web 环境下 `ipcClient` 为 null，需要用 `ipcClient?.` 可选链调用
 
 ### 状态管理
 
@@ -71,7 +72,7 @@ Electron 端使用 `marchen://` 协议处理本地文件访问，相关逻辑在
 ### UI 组件
 
 - 基础组件基于 shadcn/ui（Radix UI），位于 `src/renderer/src/components/ui/`
-- 使用 Tailwind CSS + DaisyUI，主题为 `cmyk`（亮色）和 `dark`（暗色）
+- 使用 Tailwind CSS，主题为 `cmyk`（亮色）和 `dark`（暗色）
 - 图标使用 Iconify（`@iconify-json/mingcute`），类名格式 `icon-[mingcute--xxx]`
 - 动画使用 Framer Motion
 
@@ -81,18 +82,24 @@ Electron 端使用 `marchen://` 协议处理本地文件访问，相关逻辑在
 
 ### Web 兼容
 
-代码中通过 `isWeb`（`src/renderer/src/lib/utils.ts`）判断运行环境。Electron 专属功能（tipcClient、TipcListener 等）在 Web 环境下会被跳过。
-
-## 路线图
-
-项目路线图和变更历史见 [marchen/roadmap.md](./marchen/roadmap.md)，调研笔记和外部参考见 [marchen/references/](./marchen/references/)。
+代码中通过 `isWeb`（`src/renderer/src/lib/utils.ts`）判断运行环境。Electron 专属功能（ipcClient、IpcListener 等）在 Web 环境下会被跳过。
 
 ## 路径别名
 
 - `@renderer` → `src/renderer/src`
 - `@main` → `src/main`
 - `@pkg` → `package.json`
+- `@marchen/electron-ipc` → `packages/electron-ipc`
+- `@marchen/shared` → `packages/shared`
 
-## 项目语言
+## Monorepo 结构
 
-项目 UI 和注释均使用中文。
+项目使用 pnpm workspace，内部包位于 `packages/`：
+
+- `@marchen/electron-ipc`：类型安全的 Electron IPC 通信封装
+- `@marchen/shared`：main/renderer 共享的常量、工具函数和类型
+
+## 代码风格
+
+- 项目 UI 和注释均使用中文
+- 写代码时适当添加注释，帮助理解意图和上下文
