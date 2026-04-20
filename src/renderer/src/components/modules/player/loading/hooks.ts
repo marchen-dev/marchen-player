@@ -3,7 +3,8 @@ import type { CommentsModel } from '@renderer/request/models/comment'
 import type { MatchResponseV2 } from '@renderer/request/models/match'
 import type { UseQueryResult } from '@tanstack/react-query'
 import type { ChangeEvent, DragEvent } from 'react'
-import { MARCHEN_PROTOCOL_PREFIX } from '@main/constants/protocol'
+import { MARCHEN_PROTOCOL_PREFIX } from '@marchen/shared/constants/protocol'
+import { calculateFileHash } from '@marchen/shared/lib/calc-file-hash'
 import {
   currentMatchedVideoAtom,
   isLoadDanmakuAtom,
@@ -15,9 +16,8 @@ import {
 import { usePlayerSettingsValue } from '@renderer/atoms/settings/player'
 import { db } from '@renderer/database/db'
 import { usePlayAnimeFailedToast } from '@renderer/hooks/use-toast'
-import { calculateFileHash } from '@renderer/lib/calc-file-hash'
 import { chineseConverter } from '@renderer/lib/cht-to-chs'
-import { tipcClient } from '@renderer/lib/client'
+import { ipcClient } from '@renderer/lib/client'
 import { checkIsVideoType, isWeb } from '@renderer/lib/utils'
 import { apiClient } from '@renderer/request'
 import { RouteName } from '@renderer/router'
@@ -63,9 +63,9 @@ export const useVideo = () => {
       url = URL.createObjectURL(file)
     } else {
       const path = window.api.showFilePath(file)
-      playList = (await tipcClient?.getAnimeInSamePath({ path })) ?? []
+      playList = (await ipcClient?.player.getAnimeInSamePath({ path })) ?? []
       url = `${MARCHEN_PROTOCOL_PREFIX}${path}`
-      tipcClient?.addRecentDocument({ path })
+      ipcClient?.app.addRecentDocument({ path })
     }
     const { size, name: fileName } = file
     try {
@@ -81,12 +81,12 @@ export const useVideo = () => {
   // 只在 electron 环境生效，点击导入视频时，会触发该函数
   const importAnimeViaIPC = useCallback(async (params?: { path?: string }) => {
     clearPlayingVideo()
-    const path = params?.path ?? (await tipcClient?.importAnime())
+    const path = params?.path ?? (await ipcClient?.player.importAnime())
     if (!path) {
       return
     }
-    const playList = (await tipcClient?.getAnimeInSamePath({ path })) ?? []
-    const animeData = await tipcClient?.getAnimeDetailByPath({ path })
+    const playList = (await ipcClient?.player.getAnimeInSamePath({ path })) ?? []
+    const animeData = await ipcClient?.player.getAnimeDetailByPath({ path })
     if (!animeData?.ok) {
       showFailedToast({ title: '播放失败', description: animeData?.message || '' })
       return
@@ -104,7 +104,7 @@ export const useVideo = () => {
       name: fileName,
       playList,
     }))
-    tipcClient?.addRecentDocument({ path: filePath })
+    ipcClient?.app.addRecentDocument({ path: filePath })
     setProgress(LoadingStatus.CALC_HASH)
   }, [])
   return {
@@ -425,7 +425,7 @@ export const useLoadingHistoricalAnime = () => {
       return
     }
 
-    const animeData = await tipcClient?.getAnimeDetailByPath({ path: anime.path })
+    const animeData = await ipcClient?.player.getAnimeDetailByPath({ path: anime.path })
     if (!animeData?.ok) {
       showFailedToast({ title: '播放失败', description: animeData?.message || '未找到历史记录' })
       return
@@ -437,7 +437,7 @@ export const useLoadingHistoricalAnime = () => {
       return
     }
 
-    const playList = (await tipcClient?.getAnimeInSamePath({ path: anime.path })) ?? []
+    const playList = (await ipcClient?.player.getAnimeInSamePath({ path: anime.path })) ?? []
     setVideo({
       hash: fileHash,
       name: fileName,
@@ -445,7 +445,7 @@ export const useLoadingHistoricalAnime = () => {
       url: anime.path,
       playList,
     })
-    tipcClient?.addRecentDocument({ path: anime.path })
+    ipcClient?.app.addRecentDocument({ path: anime.path })
     setProgress(LoadingStatus.CALC_HASH)
   }, [episodeId, hash])
 

@@ -1,4 +1,4 @@
-import { handlers, tipcClient } from '@renderer/lib/client'
+import { handlers, ipcClient } from '@renderer/lib/client'
 
 import { Plugin } from '@suemor/xgplayer'
 import './index.css'
@@ -41,15 +41,15 @@ export default class fullEntireScreen extends Plugin {
 
   private toggleButtonClickFunction() {
     if (this.config.isFullscreen) {
-      tipcClient?.windowAction({ action: 'leave-full-screen' })
+      ipcClient?.app.windowAction({ action: 'leave-full-screen' })
     } else {
-      tipcClient?.windowAction({ action: 'enter-full-screen' })
+      ipcClient?.app.windowAction({ action: 'enter-full-screen' })
     }
     this.updateFullScreenState()
   }
 
   private async updateFullScreenState() {
-    const isFullScreen = await tipcClient?.getWindowIsFullScreen()
+    const isFullScreen = await ipcClient?.setting.getWindowIsFullScreen()
     if (isFullScreen && !this.player?.cssfullscreen) {
       this.player.getCssFullscreen()
     }

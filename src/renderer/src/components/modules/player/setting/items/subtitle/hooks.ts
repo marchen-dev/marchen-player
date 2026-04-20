@@ -1,11 +1,11 @@
 import SubtitlesOctopus from '@jellyfin/libass-wasm'
 import legacyWorkerUrl from '@jellyfin/libass-wasm/dist/js/subtitles-octopus-worker-legacy.js?url'
 import workerUrl from '@jellyfin/libass-wasm/dist/js/subtitles-octopus-worker.js?url'
-import { MARCHEN_PROTOCOL_PREFIX } from '@main/constants/protocol'
+import { MARCHEN_PROTOCOL_PREFIX } from '@marchen/shared/constants/protocol'
 import { videoAtom } from '@renderer/atoms/player'
 import { useToast } from '@renderer/components/ui/toast'
 import { db } from '@renderer/database/db'
-import { tipcClient } from '@renderer/lib/client'
+import { ipcClient } from '@renderer/lib/client'
 import { isWeb } from '@renderer/lib/utils'
 import NotoSansSC from '@renderer/styles/fonts/notoSansSC-medium.woff2?url'
 import { useQuery } from '@tanstack/react-query'
@@ -28,7 +28,7 @@ export const useSubtitle = () => {
   const { data, isFetching } = useQuery({
     queryKey: ['getAllSubtitlesFromAnime', url],
     queryFn: async () => {
-      const subtitleDetails = await tipcClient?.getSubtitlesIntroFromAnime({ path: url })
+      const subtitleDetails = await ipcClient?.player.getSubtitlesIntroFromAnime({ path: url })
       const anime = await db.history.get(hash)
       const defaultId =
         anime?.subtitles?.defaultId ??
@@ -150,7 +150,7 @@ export const useSubtitle = () => {
 
         setIsLoadingEmbeddedSubtitle(true)
         // 通过 ipc 获取被选中的动漫内嵌字幕
-        const subtitleData = await tipcClient?.getSubtitlesBody({
+        const subtitleData = await ipcClient?.player.getSubtitlesBody({
           path: url,
           index,
         })
@@ -193,12 +193,12 @@ export const useSubtitle = () => {
       }
 
       // 读取文件夹下的字幕文件
-      const localSubtitles = await tipcClient?.matchSubtitleFile({ path: url })
+      const localSubtitles = await ipcClient?.player.matchSubtitleFile({ path: url })
       if (!localSubtitles || localSubtitles.length === 0) {
         return
       }
 
-      const covertedSubtitle = await tipcClient?.coverSubtitleToAss({
+      const covertedSubtitle = await ipcClient?.utils.coverSubtitleToAss({
         path: localSubtitles[0]?.filePath,
       })
       if (!covertedSubtitle) {

@@ -1,14 +1,14 @@
 import path from 'node:path'
 
-import { registerIpcMain } from '@egoist/tipc/main'
+import { registerIpc } from '@marchen/electron-ipc/main'
+import { MARCHEN_PROTOCOL } from '@marchen/shared/constants/protocol'
 import { app, protocol } from 'electron'
 import logger from 'electron-log'
 
 import { createStorageFolder } from '../constants/app'
-import { MARCHEN_PROTOCOL } from '../constants/protocol'
 import { isDev, isWindows } from '../lib/env'
 import { quickLaunchViaVideo } from '../lib/utils'
-import { router } from '../tipc'
+import { ipcGroups } from '../tipc'
 import { getMainWindow } from '../windows/main'
 import { getRendererHandlers } from '../windows/setting'
 import { enableHardwareDecodingOnLinux } from './flag'
@@ -20,7 +20,7 @@ export const initializeApp = () => {
   limitSingleInstance()
   enableHardwareDecodingOnLinux()
   registerSentry()
-  registerIpcMain(router)
+  registerIpc(ipcGroups)
   registerAppMenu()
   registerLog()
   app.setAsDefaultProtocolClient(MARCHEN_PROTOCOL)

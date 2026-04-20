@@ -2,95 +2,102 @@ import { getFilePathFromProtocolURL } from '@main/lib/protocols'
 import { parseReleaseNotes } from '@main/lib/utils'
 import { getMainWindow } from '@main/windows/main'
 import { clearData } from '@main/windows/setting'
+import { defineGroup, handler } from '@marchen/electron-ipc/main'
 import { version } from '@pkg'
 import { app, BrowserWindow, dialog } from 'electron'
 import Logger from 'electron-log'
 import updater from 'electron-updater'
 
-import { t } from './_instance'
+/**
+ * app 分组：应用级别的 IPC handler
+ * 包含窗口操作、更新检查、对话框等通用功能
+ */
+export const appGroup = defineGroup('app', {
+  /**
+   * 窗口操作：关闭、最小化、最大化、全屏切换等
+   * 根据 action 类型执行对应的窗口操作
+   */
+  windowAction: handler<{
+    action:
+      | 'close'
+      | 'minimize'
+      | 'maximum'
+      | 'restart'
+      | 'reset'
+      | 'laungh-at-login'
+      | 'enter-full-screen'
+      | 'leave-full-screen'
+      | 'switch-full-screen'
+      | 'hidden-title-bar'
+      | 'show-title-bar'
+      | 'hidden-title-bar'
+    checked?: boolean
+  }>().action(async ({ context, input }) => {
+    const webcontent = context.sender
 
-export const appRoute = {
-  windowAction: t.procedure
-    .input<{
-      action:
-        | 'close'
-        | 'minimize'
-        | 'maximum'
-        | 'restart'
-        | 'reset'
-        | 'laungh-at-login'
-        | 'enter-full-screen'
-        | 'leave-full-screen'
-        | 'switch-full-screen'
-        | 'hidden-title-bar'
-        | 'show-title-bar'
-        | 'hidden-title-bar'
-      checked?: boolean
-    }>()
-    .action(async ({ context, input }) => {
-      const webcontent = context.sender
+    const window = BrowserWindow.fromWebContents(webcontent)
+    if (!window) return
 
-      const window = BrowserWindow.fromWebContents(webcontent)
-      if (!window) return
-
-      switch (input.action) {
-        case 'close': {
-          window.close()
-          break
-        }
-        case 'minimize': {
-          window.minimize()
-          break
-        }
-        case 'maximum': {
-          if (window.isMaximized()) {
-            window.unmaximize()
-          } else {
-            window.maximize()
-          }
-          break
-        }
-        case 'restart': {
-          getMainWindow()?.reload()
-          break
-        }
-        case 'reset': {
-          clearData()
-          break
-        }
-        case 'laungh-at-login': {
-          app.setLoginItemSettings({
-            openAtLogin: input.checked,
-          })
-          break
-        }
-        case 'switch-full-screen': {
-          if (window.isFullScreen()) {
-            window.setFullScreen(false)
-          } else {
-            window.setFullScreen(true)
-          }
-          break
-        }
-        case 'enter-full-screen': {
-          window.setFullScreen(true)
-          break
-        }
-        case 'leave-full-screen': {
-          window.setFullScreen(false)
-          break
-        }
-        case 'hidden-title-bar': {
-          window?.setWindowButtonVisibility(false)
-          break
-        }
-        case 'show-title-bar': {
-          window?.setWindowButtonVisibility(true)
-          break
-        }
+    switch (input.action) {
+      case 'close': {
+        window.close()
+        break
       }
-    }),
-  checkUpdate: t.procedure.action(async () => {
+      case 'minimize': {
+        window.minimize()
+        break
+      }
+      case 'maximum': {
+        if (window.isMaximized()) {
+          window.unmaximize()
+        } else {
+          window.maximize()
+        }
+        break
+      }
+      case 'restart': {
+        getMainWindow()?.reload()
+        break
+      }
+      case 'reset': {
+        clearData()
+        break
+      }
+      case 'laungh-at-login': {
+        app.setLoginItemSettings({
+          openAtLogin: input.checked,
+        })
+        break
+      }
+      case 'switch-full-screen': {
+        if (window.isFullScreen()) {
+          window.setFullScreen(false)
+        } else {
+          window.setFullScreen(true)
+        }
+        break
+      }
+      case 'enter-full-screen': {
+        window.setFullScreen(true)
+        break
+      }
+      case 'leave-full-screen': {
+        window.setFullScreen(false)
+        break
+      }
+      case 'hidden-title-bar': {
+        window?.setWindowButtonVisibility(false)
+        break
+      }
+      case 'show-title-bar': {
+        window?.setWindowButtonVisibility(true)
+        break
+      }
+    }
+  }),
+
+  /** 检查应用更新，弹出对话框显示结果 */
+  checkUpdate: handler().action(async () => {
     try {
       const updateCheckResult = await updater.autoUpdater.checkForUpdates()
       if (updateCheckResult?.updateInfo.version === version) {
@@ -119,10 +126,14 @@ export const appRoute = {
       })
     }
   }),
-  installUpdate: t.procedure.action(async () => {
+
+  /** 退出应用并安装已下载的更新 */
+  installUpdate: handler().action(async () => {
     updater.autoUpdater.quitAndInstall()
   }),
-  confirmationDialog: t.procedure.input<{ title: string }>().action(async ({ input }) => {
+
+  /** 显示确认对话框，返回用户是否点击了"确认" */
+  confirmationDialog: handler<{ title: string }>().action(async ({ input }) => {
     const result = await dialog.showMessageBox({
       type: 'warning',
       message: input.title,
@@ -130,8 +141,10 @@ export const appRoute = {
     })
     return !!result.response
   }),
-  addRecentDocument: t.procedure.input<{ path: string }>().action(async ({ input }) => {
+
+  /** 将文件路径添加到系统的"最近打开"列表 */
+  addRecentDocument: handler<{ path: string }>().action(async ({ input }) => {
     const filePath = getFilePathFromProtocolURL(input.path)
     app.addRecentDocument(filePath)
   }),
-}
+})

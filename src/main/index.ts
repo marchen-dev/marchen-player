@@ -1,8 +1,8 @@
 import { electronApp, optimizer } from '@electron-toolkit/utils'
+import { MARCHEN_PROTOCOL } from '@marchen/shared/constants/protocol'
 import { name } from '@pkg'
-import { app, BrowserWindow, protocol } from 'electron'
 
-import { MARCHEN_PROTOCOL } from './constants/protocol'
+import { app, BrowserWindow, protocol } from 'electron'
 import { initializeApp } from './initialize'
 import { isDev } from './lib/env'
 import { getIconPath } from './lib/icon'

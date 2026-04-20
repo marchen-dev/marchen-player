@@ -1,6 +1,6 @@
 import { useAppSettings } from '@renderer/atoms/settings/app'
 import { SettingSwitch } from '@renderer/components/modules/shared/setting/SettingSwitch'
-import { tipcClient } from '@renderer/lib/client'
+import { ipcClient } from '@renderer/lib/client'
 import { isWeb } from '@renderer/lib/utils'
 
 import { FieldLayout, FieldsCardLayout, SettingViewContainer } from '../Layout'
@@ -16,7 +16,7 @@ export const GeneralView = () => {
             <SettingSwitch
               value={appSettings.launchAtLogin}
               onCheckedChange={async (checked) => {
-                await tipcClient?.windowAction({ action: 'laungh-at-login', checked })
+                await ipcClient?.app.windowAction({ action: 'laungh-at-login', checked })
                 setAppSettings((prev) => ({ ...prev, launchAtLogin: checked }))
               }}
             />

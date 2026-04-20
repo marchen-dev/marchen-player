@@ -15,8 +15,9 @@ export default defineConfig({
     resolve: {
       alias: {
         '@main': resolve('src/main'),
-        '@renderer': resolve('src/renderer/src'),
         '@pkg': resolve('./package.json'),
+        '@marchen/electron-ipc': resolve('packages/electron-ipc/src'),
+        '@marchen/shared': resolve('packages/shared/src'),
       },
     },
   },
@@ -25,8 +26,9 @@ export default defineConfig({
     resolve: {
       alias: {
         '@renderer': resolve('src/renderer/src'),
-        '@main': resolve('src/main'),
         '@pkg': resolve('./package.json'),
+        '@marchen/electron-ipc': resolve('packages/electron-ipc/src'),
+        '@marchen/shared': resolve('packages/shared/src'),
       },
     },
     plugins: [

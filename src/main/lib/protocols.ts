@@ -2,7 +2,7 @@ import type { ReadStream } from 'node:fs'
 import fs, { createReadStream, statSync } from 'node:fs'
 import path from 'node:path'
 
-import { MARCHEN_PROTOCOL } from '@main/constants/protocol'
+import { MARCHEN_PROTOCOL } from '@marchen/shared/constants/protocol'
 
 import { isWindows } from './env'
 import { fromFilename } from './mime-utils'

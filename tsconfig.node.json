@@ -7,8 +7,9 @@
     "moduleResolution": "Bundler",
     "paths": {
       "@pkg": ["./package.json"],
-      "@renderer/*": ["src/renderer/src/*"],
-      "@main/*": ["src/main/*"]
+      "@main/*": ["src/main/*"],
+      "@marchen/electron-ipc/*": ["packages/electron-ipc/src/*"],
+      "@marchen/shared/*": ["packages/shared/src/*"]
     },
     "types": ["electron-vite/node"]
   },
@@ -18,6 +19,7 @@
     "src/preload/**/*",
     "types/**/*.d.ts",
     "src/shared/src/**/*",
-    "src/renderer/src/lib/calc-file-hash.ts"
+    "packages/electron-ipc/src/**/*",
+    "packages/shared/src/**/*"
   ]
 }

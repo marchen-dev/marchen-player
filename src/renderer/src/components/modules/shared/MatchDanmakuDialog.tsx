@@ -1,7 +1,7 @@
 import type { MatchedVideoType } from '@renderer/atoms/player'
 import { currentMatchedVideoAtom } from '@renderer/atoms/player'
 import { db } from '@renderer/database/db'
-import { tipcClient } from '@renderer/lib/client'
+import { ipcClient } from '@renderer/lib/client'
 import { apiClient } from '@renderer/request'
 import { RouteName, useCurrentRoute } from '@renderer/router'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
@@ -23,7 +23,7 @@ export const MatchDanmakuDialog = () => {
       if (!historyData?.path) {
         return
       }
-      const animeDetail = await tipcClient?.getAnimeDetailByPath({ path: historyData.path })
+      const animeDetail = await ipcClient?.player.getAnimeDetailByPath({ path: historyData.path })
       if (!animeDetail || animeDetail.ok !== 1) {
         return
       }

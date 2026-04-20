@@ -8,7 +8,7 @@ import { Input } from '@renderer/components/ui/input'
 import { Label } from '@renderer/components/ui/label'
 import { useToast } from '@renderer/components/ui/toast'
 import { db } from '@renderer/database/db'
-import { tipcClient } from '@renderer/lib/client'
+import { ipcClient } from '@renderer/lib/client'
 import { mergeDanmaku, parseDanmakuData } from '@renderer/lib/danmaku'
 import queryClient from '@renderer/lib/query-client'
 import { isWeb } from '@renderer/lib/utils'
@@ -113,7 +113,7 @@ export const AddDanmaku = () => {
   )
 
   const handleImportDanmakuFile = useCallback(async () => {
-    const danmakuFile = await tipcClient?.immportDanmakuFile()
+    const danmakuFile = await ipcClient?.player.immportDanmakuFile()
     const danmakuFileData = danmakuFile?.data
     if (!danmakuFile?.ok || !danmakuFileData?.danmaku) {
       danmakuFile?.message && toast({ title: danmakuFile?.message })
