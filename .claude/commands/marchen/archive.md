@@ -1,5 +1,5 @@
 ---
-name: 'Marchen: Archive'
+name: "Marchen: Archive"
 description: 归档已完成的变更
 category: Workflow
 tags: [workflow, archive]
@@ -39,15 +39,19 @@ tags: [workflow, archive]
    - 用 **AskUserQuestion** 确认是否继续
    - 用户确认后继续，不阻塞
 
-3. **执行归档**
+3. **生成摘要**
+
+   读取 `marchen/changes/<name>/proposal.md`，从中生成一句话中文摘要（≤50字），概括这次变更做了什么。摘要应包含关键语义词，便于后续 AI 检索。
+
+4. **执行归档**
 
    ```bash
-   marchen archive <name> --json
+   marchen archive <name> --summary "<生成的摘要>" --json
    ```
 
    解析返回的 JSON 获取归档结果。
 
-4. **显示结果**
+5. **显示结果**
 
    ```
    变更 "<name>" 已归档

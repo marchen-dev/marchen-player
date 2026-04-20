@@ -19,7 +19,7 @@ export const SettingModal = () => {
         </ul>
       </div>
       <DividerVertical className="mr-0 shrink-0 border-slate-200 opacity-80 dark:border-neutral-800" />
-      <div className="bg-base-100 flex-1">
+      <div className="bg-background flex-1">
         <ScrollArea className="h-full">{component}</ScrollArea>
       </div>
     </div>
@@ -33,7 +33,7 @@ export const SettingTabItem: FC<SettingTabsModel> = (props) => {
     <li
       className={cn(
         'flex cursor-default items-center gap-1 px-3 py-1',
-        title === currentTitle && 'bg-base-200 rounded-lg',
+        title === currentTitle && 'bg-muted rounded-lg',
       )}
       onClick={() => setCurrentSetting(props)}
     >

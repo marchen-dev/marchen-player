@@ -247,7 +247,7 @@ export const ModalInternal: FC<ModalInternalProps> = memo(({ ref, ...props }) =>
                   >
                     <ButtonWithIcon
                       icon="icon-[mingcute--close-line] text-lg"
-                      className="hover:bg-base-200"
+                      className="hover:bg-muted"
                     />
                   </Dialog.DialogClose>
                 </div>

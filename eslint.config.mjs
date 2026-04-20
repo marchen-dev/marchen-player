@@ -16,10 +16,7 @@ export default antfu(
     },
   },
   {
-    files: ['**/*.md'],
-    rules: {
-      'markdown/require-alt-text': 'off',
-    },
+    ignores: ['**/*.md/**', '**/*.md'],
   },
   {
     rules: {

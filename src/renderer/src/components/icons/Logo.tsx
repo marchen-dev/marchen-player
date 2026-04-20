@@ -52,7 +52,7 @@ export const Logo: FC<{ clasNames?: { wrapper?: string; icon?: string }; round?:
     return <LogoSvg fill={isDarkMode ? '#A6ADBB' : '#000'} className={cn('size-full', icon)} />
   }
   return (
-    <div className={cn('bg-base-100 rounded-xl', wrapper)}>
+    <div className={cn('bg-background rounded-xl', wrapper)}>
       <LogoSvg fill={isDarkMode ? '#A6ADBB' : '#000'} className={cn('size-full', icon)} />
     </div>
   )

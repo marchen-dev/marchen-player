@@ -19,8 +19,8 @@ const contexts: JSX.Element[] = [
   // @ts-expect-error ThemeProvider type mismatch
   <ThemeProvider
     key="ThemeProvider"
-    attribute={['data-theme', 'class']}
-    themes={['cmyk', 'dark']}
+    attribute="class"
+    themes={['light', 'dark']}
   />,
   <ModalStackProvider key="modalStackProvider" />,
 ]

@@ -2,7 +2,7 @@ import { tipcClient } from '@renderer/lib/client'
 import { useTheme } from 'next-themes'
 import { useCallback } from 'react'
 
-export type AppTheme = 'cmyk' | 'dark' | 'system'
+export type AppTheme = 'light' | 'dark' | 'system'
 export const useAppTheme = () => {
   const { setTheme, theme } = useTheme()
   const isDarkMode = theme === 'dark'

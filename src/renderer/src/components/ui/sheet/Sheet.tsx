@@ -79,7 +79,7 @@ const SheetContent = ({
     {overlay && <SheetOverlay className={classNames?.sheetOverlay} />}
     <SheetPrimitive.Content ref={ref} className={cn(sheetVariants({ side }), className)} {...props}>
       {children}
-      <SheetPrimitive.Close className="data-[state=open]:bg-cn-secondaryy no-drag-region ring-offset-background focus:ring-ring absolute top-4 right-4 cursor-default rounded-sm opacity-70 transition-opacity hover:opacity-100 focus:ring-2 focus:ring-offset-2 focus:outline-none disabled:pointer-events-none">
+      <SheetPrimitive.Close className="data-[state=open]:bg-secondary no-drag-region ring-offset-background focus:ring-ring absolute top-4 right-4 cursor-default rounded-sm opacity-70 transition-opacity hover:opacity-100 focus:ring-2 focus:ring-offset-2 focus:outline-none disabled:pointer-events-none">
         <X className="size-4" />
         <span className="sr-only">Close</span>
       </SheetPrimitive.Close>

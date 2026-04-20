@@ -29,7 +29,7 @@ const ContextMenuSubTrigger = ({
   <ContextMenuPrimitive.SubTrigger
     ref={ref}
     className={cn(
-      'focus:text-accent-foreground focus:bg-cn-accent data-[state=open]:bg-cn-accent data-[state=open]:text-cn-accent-foreground flex cursor-default items-center rounded-sm px-2 py-1.5 text-sm outline-none select-none',
+      'focus:text-accent-foreground focus:bg-accent data-[state=open]:bg-accent data-[state=open]:text-accent-foreground flex cursor-default items-center rounded-sm px-2 py-1.5 text-sm outline-none select-none',
       inset && 'pl-8',
       className,
     )}
@@ -90,7 +90,7 @@ const ContextMenuItem = ({
   <ContextMenuPrimitive.Item
     ref={ref}
     className={cn(
-      'focus:bg-cn-accent focus:text-cn-accent-foreground relative flex cursor-default items-center rounded-sm px-2 py-1.5 text-sm outline-none select-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
+      'focus:bg-accent focus:text-accent-foreground relative flex cursor-default items-center rounded-sm px-2 py-1.5 text-sm outline-none select-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
       inset && 'pl-8',
       className,
     )}
@@ -111,7 +111,7 @@ const ContextMenuCheckboxItem = ({
   <ContextMenuPrimitive.CheckboxItem
     ref={ref}
     className={cn(
-      'focus:bg-cn-accent focus:text-cn-accent-foreground relative flex cursor-default items-center rounded-sm py-1.5 pr-2 pl-8 text-sm outline-none select-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
+      'focus:bg-accent focus:text-accent-foreground relative flex cursor-default items-center rounded-sm py-1.5 pr-2 pl-8 text-sm outline-none select-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
       className,
     )}
     checked={checked}
@@ -138,7 +138,7 @@ const ContextMenuRadioItem = ({
   <ContextMenuPrimitive.RadioItem
     ref={ref}
     className={cn(
-      'focus:bg-cn-accent focus:text-cn-accent-foreground relative flex cursor-default items-center rounded-sm py-1.5 pr-2 pl-8 text-sm outline-none select-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
+      'focus:bg-accent focus:text-accent-foreground relative flex cursor-default items-center rounded-sm py-1.5 pr-2 pl-8 text-sm outline-none select-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
       className,
     )}
     {...props}

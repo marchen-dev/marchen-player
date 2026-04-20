@@ -3,11 +3,6 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
-@plugin 'daisyui' {
-  themes:
-    cmyk --default,
-    dark --prefersdark;
-}
 @plugin '@iconify/tailwind4';
 
 @source '../../../node_modules/rc-modal-sheet/**/*.js';
@@ -33,14 +28,14 @@
   --color-background: hsl(var(--background));
   --color-foreground: hsl(var(--foreground));
 
-  --color-cn-primary: hsl(var(--primary));
-  --color-cn-primary-foreground: hsl(var(--primary-foreground));
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
 
-  --color-cn-secondary: hsl(var(--secondary));
-  --color-cn-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
 
-  --color-cn-accent: hsl(var(--accent));
-  --color-cn-accent-foreground: hsl(var(--accent-foreground));
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
 
   --color-destructive: hsl(var(--destructive));
   --color-destructive-foreground: hsl(var(--destructive-foreground));
