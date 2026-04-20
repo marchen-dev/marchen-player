@@ -9,7 +9,7 @@ import { Button, ButtonWithIcon } from '@renderer/components/ui/button'
 import { Progress } from '@renderer/components/ui/progress'
 import { PROJECT_NAME } from '@renderer/constants'
 import { useNetworkStatus } from '@renderer/hooks/use-network-status'
-import { tipcClient } from '@renderer/lib/client'
+import { ipcClient } from '@renderer/lib/client'
 import { getStorageNS } from '@renderer/lib/ns'
 import { cn, isMac, isWeb } from '@renderer/lib/utils'
 import { RouteName, siderbarRoutes } from '@renderer/router'
@@ -128,12 +128,12 @@ export const UpdateProgress = () => {
       <Button
         variant="outline"
         onClick={() => {
-          // 这里执行 tipcClient?.installUpdate() 会立即退出程序安装更新，所以更新 localStorage 只能用 localStorage.setItem, 用 atom 更新不及时
+          // 这里执行 ipcClient?.app.installUpdate() 会立即退出程序安装更新，所以更新 localStorage 只能用 localStorage.setItem, 用 atom 更新不及时
           localStorage.setItem(
             getStorageNS('app'),
             JSON.stringify({ ...appSettingsValue, showUpdateNote: true }),
           )
-          tipcClient?.installUpdate()
+          ipcClient?.app.installUpdate()
         }}
       >
         <i className="icon-[mingcute--entrance-line] text-lg" />

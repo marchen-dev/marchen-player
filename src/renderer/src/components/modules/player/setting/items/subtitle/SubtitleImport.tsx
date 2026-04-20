@@ -12,7 +12,7 @@ import {
 } from '@renderer/components/ui/select'
 import { useToast } from '@renderer/components/ui/toast'
 import { db } from '@renderer/database/db'
-import { tipcClient } from '@renderer/lib/client'
+import { ipcClient } from '@renderer/lib/client'
 import { isWeb } from '@renderer/lib/utils'
 import { useQuery } from '@tanstack/react-query'
 import { useAtomValue } from 'jotai'
@@ -71,7 +71,7 @@ export const SubtitleImport = () => {
   }
 
   const importSubtitleFromClient = async () => {
-    const subtitlePath = await tipcClient?.importSubtitle()
+    const subtitlePath = await ipcClient?.player.importSubtitle()
     if (!subtitlePath) {
       return
     }

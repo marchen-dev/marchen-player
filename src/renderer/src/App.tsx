@@ -6,7 +6,7 @@ import { Prepare } from './components/modules/app/Prepare'
 import AnimatedOutlet from './components/ui/animate/AnimatedOutlet'
 import { isWeb } from './lib/utils'
 import { RootProviders } from './providers'
-import { TipcListener } from './providers/TipcListener'
+import { IpcListener } from './providers/IpcListener'
 
 function App(): JSX.Element {
   return (
@@ -16,7 +16,7 @@ function App(): JSX.Element {
       <RootLayout>
         <Sidebar />
         <Content />
-        {!isWeb && <TipcListener />}
+        {!isWeb && <IpcListener />}
       </RootLayout>
     </RootProviders>
   )

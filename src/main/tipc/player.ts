@@ -1,23 +1,27 @@
 import fs from 'node:fs'
 import path from 'node:path'
 
-import { MARCHEN_PROTOCOL_PREFIX } from '@main/constants/protocol'
 import { parseBilibiliDanmaku } from '@main/lib/danmaku'
 import FFmpeg from '@main/lib/ffmpeg'
 import { getFilePathFromProtocolURL } from '@main/lib/protocols'
 import { coverSubtitleToAss } from '@main/lib/utils'
 import { showFileSelectionDialog } from '@main/modules/showDialog'
-import { calculateFileHashByBuffer } from '@renderer/lib/calc-file-hash'
+import { defineGroup, handler } from '@marchen/electron-ipc/main'
+import { MARCHEN_PROTOCOL_PREFIX } from '@marchen/shared/constants/protocol'
+import { calculateFileHashByBuffer } from '@marchen/shared/lib/calc-file-hash'
 import { dialog } from 'electron'
 import naturalCompare from 'string-natural-compare'
 
-import { t } from './_instance'
-
+/** 防止重复打开文件选择对话框的标志位 */
 let isDialogOpen = false
 
-export const playerRoute = {
-  showWarningDialog: t.procedure
-    .input<{ title: string; content: string }>()
+/**
+ * player 分组：播放器相关的 IPC handler
+ * 包含视频文件操作、字幕处理、弹幕导入等功能
+ */
+export const playerGroup = defineGroup('player', {
+  /** 显示警告对话框（同步阻塞式） */
+  showWarningDialog: handler<{ title: string; content: string }>()
     .action(async ({ input }) =>
       dialog.showMessageBoxSync({
         message: input.title,
@@ -25,7 +29,12 @@ export const playerRoute = {
         type: 'warning',
       }),
     ),
-  getAnimeDetailByPath: t.procedure.input<{ path: string }>().action(async ({ input }) => {
+
+  /**
+   * 根据文件路径获取视频详情
+   * 包括文件名、大小、MD5 哈希（用于弹幕匹配）和协议 URL
+   */
+  getAnimeDetailByPath: handler<{ path: string }>().action(async ({ input }) => {
     try {
       let animePath = input.path
       if (animePath.startsWith(MARCHEN_PROTOCOL_PREFIX)) {
@@ -41,6 +50,7 @@ export const playerRoute = {
       const fileName = path.basename(animePath)
       const fileSize = stats.size
 
+      // 读取文件前 16MB 用于计算哈希
       const bufferSize = Math.min(fileSize, 16 * 1024 * 1024)
       const buffer = Buffer.alloc(bufferSize)
       const fd = fs.openSync(animePath, 'r')
@@ -62,7 +72,9 @@ export const playerRoute = {
       }
     }
   }),
-  grabFrame: t.procedure.input<{ path: string; time: string }>().action(async ({ input }) => {
+
+  /** 使用 FFmpeg 截取视频指定时间点的帧，返回 base64 图片 */
+  grabFrame: handler<{ path: string; time: string }>().action(async ({ input }) => {
     let filePath = input.path
     if (filePath.startsWith(MARCHEN_PROTOCOL_PREFIX)) {
       filePath = getFilePathFromProtocolURL(filePath)
@@ -71,8 +83,9 @@ export const playerRoute = {
     const base64Image = (await ffmpeg.grabFrame(input.time)) as string
     return base64Image
   }),
-  importAnime: t.procedure.action(async () => {
-    // 确保不重复打开对话框
+
+  /** 打开文件选择对话框，让用户选择视频文件（mp4/mkv） */
+  importAnime: handler().action(async () => {
     if (isDialogOpen) {
       return
     }
@@ -101,7 +114,9 @@ export const playerRoute = {
       isDialogOpen = false
     }
   }),
-  getAnimeInSamePath: t.procedure.input<{ path: string }>().action(async ({ input }) => {
+
+  /** 获取同目录下同格式的视频文件列表，用于播放列表 */
+  getAnimeInSamePath: handler<{ path: string }>().action(async ({ input }) => {
     let selectedFilePath = input.path
     if (selectedFilePath.startsWith(MARCHEN_PROTOCOL_PREFIX)) {
       selectedFilePath = getFilePathFromProtocolURL(selectedFilePath)
@@ -131,7 +146,9 @@ export const playerRoute = {
 
     return playList
   }),
-  importSubtitle: t.procedure.action(async () => {
+
+  /** 打开字幕文件选择对话框，并将字幕转换为 ASS 格式 */
+  importSubtitle: handler().action(async () => {
     const filePath = await showFileSelectionDialog({
       filters: [{ name: '字幕文件', extensions: ['srt', 'ass', 'ssa', 'vtt'] }],
     })
@@ -140,13 +157,16 @@ export const playerRoute = {
     }
     return coverSubtitleToAss(filePath)
   }),
-  getSubtitlesIntroFromAnime: t.procedure.input<{ path: string }>().action(async ({ input }) => {
+
+  /** 从视频文件中提取内嵌字幕轨道信息 */
+  getSubtitlesIntroFromAnime: handler<{ path: string }>().action(async ({ input }) => {
     const ffmpeg = new FFmpeg(getFilePathFromProtocolURL(input.path))
     const subtitles = await ffmpeg.getSubtitlesIntroFromAnime()
     return subtitles
   }),
-  getSubtitlesBody: t.procedure
-    .input<{ path: string; index: number }>()
+
+  /** 从视频文件中提取指定索引的字幕内容 */
+  getSubtitlesBody: handler<{ path: string; index: number }>()
     .action(async ({ input }) => {
       try {
         const ffmpeg = new FFmpeg(getFilePathFromProtocolURL(input.path))
@@ -162,7 +182,9 @@ export const playerRoute = {
         }
       }
     }),
-  matchSubtitleFile: t.procedure.input<{ path: string }>().action(async ({ input }) => {
+
+  /** 根据视频文件名匹配同目录下的同名字幕文件 */
+  matchSubtitleFile: handler<{ path: string }>().action(async ({ input }) => {
     const filePath = getFilePathFromProtocolURL(input.path)
     if (!fs.existsSync(filePath)) {
       return
@@ -180,8 +202,9 @@ export const playerRoute = {
 
     return matchedFiles
   }),
-  immportDanmakuFile: t.procedure.action(async () => {
-    // 确保不重复打开对话框
+
+  /** 打开弹幕文件选择对话框，解析 B 站弹幕格式（xml/json） */
+  immportDanmakuFile: handler().action(async () => {
     if (isDialogOpen) {
       return
     }
@@ -221,4 +244,4 @@ export const playerRoute = {
       isDialogOpen = false
     }
   }),
-}
+})

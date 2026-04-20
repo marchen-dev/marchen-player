@@ -1,6 +1,6 @@
 import { useClearPlayingVideo } from '@renderer/atoms/player'
 import { useToast } from '@renderer/components/ui/toast'
-import { tipcClient } from '@renderer/lib/client'
+import { ipcClient } from '@renderer/lib/client'
 import { isWeb } from '@renderer/lib/utils'
 import { useCallback } from 'react'
 
@@ -46,7 +46,7 @@ const useAppToast = () => {
         })
       }
 
-      return tipcClient?.showWarningDialog({ title, content: description })
+      return ipcClient?.player.showWarningDialog({ title, content: description })
     },
     [toast],
   )

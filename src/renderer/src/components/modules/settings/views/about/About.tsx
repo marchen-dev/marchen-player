@@ -4,7 +4,7 @@ import { Button } from '@renderer/components/ui/button'
 import { useToast } from '@renderer/components/ui/toast'
 import { db } from '@renderer/database/db'
 import { useConfirmationDialog } from '@renderer/hooks/use-dialog'
-import { tipcClient } from '@renderer/lib/client'
+import { ipcClient } from '@renderer/lib/client'
 import { resetApp } from '@renderer/lib/ns'
 import { cn, isWeb } from '@renderer/lib/utils'
 import { useMutation } from '@tanstack/react-query'
@@ -17,7 +17,7 @@ export const AboutView = () => {
   const showConfirmationDialog = useConfirmationDialog()
 
   const { mutate, isPending } = useMutation({
-    mutationFn: async () => tipcClient?.checkUpdate(),
+    mutationFn: async () => ipcClient?.app.checkUpdate(),
   })
 
   const handleClearDanmakuCache = useCallback(async () => {

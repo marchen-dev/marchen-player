@@ -2,7 +2,7 @@ import type { PlayerType } from './hooks'
 import { useClearPlayingVideo, videoAtom } from '@renderer/atoms/player'
 import { usePlayerSettingsValue } from '@renderer/atoms/settings/player'
 import { db } from '@renderer/database/db'
-import { tipcClient } from '@renderer/lib/client'
+import { ipcClient } from '@renderer/lib/client'
 import { isWeb } from '@renderer/lib/utils'
 import * as Sentry from '@sentry/react'
 import { Events } from '@suemor/xgplayer'
@@ -49,11 +49,11 @@ const usePlayerInitialize = (player: PlayerType | null | undefined) => {
     }
     const handleKeyDown = async (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
-        const isFull = await tipcClient?.getWindowIsFullScreen()
+        const isFull = await ipcClient?.setting.getWindowIsFullScreen()
         if (!isFull) {
           player?.exitCssFullscreen()
         }
-        tipcClient?.windowAction({ action: 'leave-full-screen' })
+        ipcClient?.app.windowAction({ action: 'leave-full-screen' })
       }
     }
     window.addEventListener('keydown', handleKeyDown)
@@ -65,7 +65,7 @@ const usePlayerInitialize = (player: PlayerType | null | undefined) => {
         window.clearTimeout(clickTimeout.current)
         clickTimeout.current = null
       }
-      tipcClient?.windowAction({ action: 'switch-full-screen' })
+      ipcClient?.app.windowAction({ action: 'switch-full-screen' })
     }
 
     const handleSingleClick = () => {
@@ -155,7 +155,7 @@ const usePlayerInitialize = (player: PlayerType | null | undefined) => {
     })
 
     player.on(Events.PLAYNEXT, async (url: string) => {
-      const path = await tipcClient?.getFilePathFromProtocolURL({ path: url })
+      const path = await ipcClient?.utils.getFilePathFromProtocolURL({ path: url })
       if (!path) {
         return
       }
@@ -163,8 +163,8 @@ const usePlayerInitialize = (player: PlayerType | null | undefined) => {
     })
     // 点击左上角关闭按钮
     player.on('exit', async () => {
-      const isFull = await tipcClient?.getWindowIsFullScreen()
-      isFull && tipcClient?.windowAction({ action: 'leave-full-screen' })
+      const isFull = await ipcClient?.setting.getWindowIsFullScreen()
+      isFull && ipcClient?.app.windowAction({ action: 'leave-full-screen' })
       resetVideo()
       // 如果是 css 全屏，需要延迟销毁，否则会导致退出动画无法正常播放
       // 全屏模式不执行动画，否者会卡顿
@@ -193,7 +193,7 @@ const usePlayerInitialize = (player: PlayerType | null | undefined) => {
             ? ((latestAnime?.progress ?? 3) - 3).toString()
             : latestAnime?.progress.toString() || '0'
         }
-        const base64Image = await tipcClient?.grabFrame({
+        const base64Image = await ipcClient?.player.grabFrame({
           path: latestAnime?.path,
           time: grabTime,
         })

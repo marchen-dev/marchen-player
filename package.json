@@ -39,7 +39,6 @@
   },
   "devDependencies": {
     "@antfu/eslint-config": "^8.2.0",
-    "@egoist/tipc": "^0.3.2",
     "@electron-toolkit/preload": "^3.0.2",
     "@electron-toolkit/tsconfig": "^2.0.0",
     "@electron-toolkit/utils": "^4.0.0",
@@ -49,6 +48,8 @@
     "@iconify-json/mingcute": "^1.2.7",
     "@iconify/tailwind4": "^1.2.3",
     "@jellyfin/libass-wasm": "^4.2.4",
+    "@marchen/electron-ipc": "workspace:*",
+    "@marchen/shared": "workspace:*",
     "@radix-ui/react-accordion": "^1.2.12",
     "@radix-ui/react-checkbox": "^1.3.3",
     "@radix-ui/react-context-menu": "^2.2.16",
@@ -125,18 +126,6 @@
     "vite-plugin-static-copy": "^3.0.0",
     "xml2js": "^0.6.2",
     "zod": "^4.3.6"
-  },
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "@ffmpeg-installer/darwin-arm64",
-      "@ffprobe-installer/darwin-arm64",
-      "@swc/core",
-      "core-js",
-      "electron",
-      "es5-ext",
-      "esbuild",
-      "simple-git-hooks"
-    ]
   },
   "simple-git-hooks": {
     "pre-commit": "npx lint-staged"

@@ -1,7 +1,7 @@
 import { toast } from '@renderer/components/ui/toast'
 import { db } from '@renderer/database/db'
 
-import { tipcClient } from './client'
+import { ipcClient } from './client'
 import { isWeb } from './utils'
 
 const ns = 'marchen'
@@ -29,5 +29,5 @@ export const resetApp = async () => {
     }, 3000)
     return
   }
-  tipcClient?.windowAction({ action: 'reset' })
+  ipcClient?.app.windowAction({ action: 'reset' })
 }

@@ -1,0 +1,13 @@
+{
+  "name": "@marchen/shared",
+  "version": "0.0.1",
+  "private": true,
+  "exports": {
+    "./constants/protocol": "./src/constants/protocol.ts",
+    "./lib/calc-file-hash": "./src/lib/calc-file-hash.ts",
+    "./types/renderer-handlers": "./src/types/renderer-handlers.ts"
+  },
+  "dependencies": {
+    "spark-md5": "^3.0.2"
+  }
+}

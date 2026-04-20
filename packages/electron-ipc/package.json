@@ -1,0 +1,13 @@
+{
+  "name": "@marchen/electron-ipc",
+  "version": "0.0.1",
+  "private": true,
+  "exports": {
+    "./main": "./src/main.ts",
+    "./renderer": "./src/renderer.ts",
+    "./types": "./src/types.ts"
+  },
+  "peerDependencies": {
+    "electron": ">=32.0.0"
+  }
+}

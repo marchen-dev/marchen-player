@@ -1,6 +1,6 @@
 import { Button } from '@renderer/components/ui/button'
 import { useModalStack } from '@renderer/components/ui/modal'
-import { tipcClient } from '@renderer/lib/client'
+import { ipcClient } from '@renderer/lib/client'
 import { isWeb } from '@renderer/lib/utils'
 import { useCallback } from 'react'
 
@@ -44,7 +44,7 @@ export const useConfirmationDialog = () => {
           ),
         })
       }
-      tipcClient?.confirmationDialog({ title: params.title }).then((result) => {
+      ipcClient?.app.confirmationDialog({ title: params.title }).then((result) => {
         if (!result) {
           return params.handleCancel?.()
         }

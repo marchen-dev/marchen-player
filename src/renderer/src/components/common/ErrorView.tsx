@@ -1,4 +1,4 @@
-import { tipcClient } from '@renderer/lib/client'
+import { ipcClient } from '@renderer/lib/client'
 import * as Sentry from '@sentry/react'
 import { useEffect } from 'react'
 import { useRouteError } from 'react-router'
@@ -20,7 +20,7 @@ export default function ErrorView() {
       </p>
       <Button
         onClick={() => {
-          tipcClient?.windowAction({ action: 'restart' })
+          ipcClient?.app.windowAction({ action: 'restart' })
         }}
       >
         重新加载页面

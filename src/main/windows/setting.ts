@@ -1,28 +1,35 @@
-import type { RendererHandlers } from '../tipc/renderer-handlers'
-import { getRendererHandlers as getAppRendererHandlers } from '@egoist/tipc/main'
+import type { RendererHandlers } from '@marchen/shared/types/renderer-handlers'
 import { clearAllData } from '@main/lib/cleaner'
+import { createEmitter } from '@marchen/electron-ipc/main'
 
 import { dialog } from 'electron'
 import { getMainWindow } from './main'
 
+/**
+ * 获取 main → renderer 的事件发射器
+ * 通过 createEmitter 创建，替代原来的 getRendererHandlers
+ */
 export const getRendererHandlers = () => {
   const mainWindow = getMainWindow()
   if (!mainWindow) {
     return
   }
-  return getAppRendererHandlers<RendererHandlers>(mainWindow.webContents)
+  return createEmitter<RendererHandlers>(mainWindow.webContents)
 }
 
+/** 打开设置窗口，可选指定要显示的 tab */
 export const createSettingWindow = (tab?: string) => {
   const handlers = getRendererHandlers()
   handlers?.showSetting.send(tab)
 }
 
+/** 通知 renderer 导入动画文件 */
 export const importAnime = () => {
   const handlers = getRendererHandlers()
   handlers?.importAnime.send()
 }
 
+/** 清除应用全部数据（需用户确认） */
 export const clearData = async () => {
   const win = getMainWindow()
   if (!win) {
@@ -41,6 +48,7 @@ export const clearData = async () => {
   return clearAllData()
 }
 
+/** 向 renderer 推送更新进度 */
 export const updateProgress = (params: {
   progress: number
   status: 'downloading' | 'installing'

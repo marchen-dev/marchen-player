@@ -1,4 +1,4 @@
-import { tipcClient } from '@renderer/lib/client'
+import { ipcClient } from '@renderer/lib/client'
 import { useTheme } from 'next-themes'
 import { useCallback } from 'react'
 
@@ -10,7 +10,7 @@ export const useAppTheme = () => {
     (themes: AppTheme) => {
       setTheme(themes)
       if (window.electron) {
-        tipcClient?.setTheme(themes)
+        ipcClient?.setting.setTheme(themes)
       }
     },
     [setTheme],

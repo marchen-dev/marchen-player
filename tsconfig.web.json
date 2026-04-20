@@ -10,7 +10,9 @@
     "paths": {
       "@renderer/*": ["src/renderer/src/*"],
       "@main/*": ["src/main/*"],
-      "@pkg": ["./package.json"]
+      "@pkg": ["./package.json"],
+      "@marchen/electron-ipc/*": ["packages/electron-ipc/src/*"],
+      "@marchen/shared/*": ["packages/shared/src/*"]
     },
     "strict": true,
     "noUnusedLocals": false
@@ -21,14 +23,15 @@
     "src/renderer/src/**/*.tsx",
     "src/preload/*.d.ts",
     "src/shared/src/**/*",
+    "src/main/tipc/**/*",
     "src/main/lib/*",
     "src/main/windows/*",
-    "src/main/tipc/**/*",
     "src/main/modules/**/*",
     "src/main/types/**/*",
-    "src/main/constants",
+    "src/main/constants/*",
+    "packages/electron-ipc/src/**/*",
+    "packages/shared/src/**/*",
     "types/**/*.d.ts",
-    "src/env.ts",
-    "src/main/types/ffmpeg-custom.d.ts"
+    "src/env.ts"
   ]
 }

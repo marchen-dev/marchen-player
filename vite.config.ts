@@ -27,9 +27,10 @@ const vite = () =>
     envDir: resolve(__dirname, '.'),
     resolve: {
       alias: {
-        '@main': resolve('src/main'),
         '@pkg': resolve('./package.json'),
         '@renderer': resolve('src/renderer/src'),
+        '@marchen/electron-ipc': resolve('packages/electron-ipc/src'),
+        '@marchen/shared': resolve('packages/shared/src'),
       },
     },
     base: '/',

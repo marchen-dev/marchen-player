@@ -13,7 +13,7 @@ import { RouteName } from '@renderer/router'
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router'
 
-export const TipcListener = () => {
+export const IpcListener = () => {
   const showModal = useSettingModal()
   const { importAnimeViaIPC } = useVideo()
   const navigation = useNavigate()
