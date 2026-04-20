@@ -22,7 +22,7 @@ import { useSettingModal } from '../../modules/settings/hooks'
 export const Sidebar = () => {
   const showModal = useSettingModal()
   return (
-    <div className="bg-base-200 relative flex h-full w-[250px] flex-col justify-between px-3 pt-2.5">
+    <div className="bg-muted relative flex h-full w-[250px] flex-col justify-between px-3 pt-2.5">
       <div>
         <div className={cn('drag-region flex items-center', 'justify-between')}>
           <Link to={RouteName.PLAYER} draggable={false} className="cursor-default">
@@ -65,7 +65,7 @@ const NavLinkItem: FC<SidebarRouteObject> = ({ path, meta }) => {
     <NavLink
       draggable={false}
       to={path}
-      className={cn(pathname === path && 'bg-base-300 rounded-md')}
+      className={cn(pathname === path && 'bg-zinc-200 dark:bg-zinc-700 rounded-md')}
     >
       <p className="flex cursor-default items-center gap-1.5 p-2">
         <i className={cn(icon, 'text-xl')} />

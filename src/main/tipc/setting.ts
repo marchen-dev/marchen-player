@@ -2,7 +2,7 @@ import { BrowserWindow, nativeTheme } from 'electron'
 
 import { t } from './_instance'
 
-export type AppTheme = 'cmyk' | 'dark' | 'system'
+export type AppTheme = 'light' | 'dark' | 'system'
 
 export const settingRoute = {
   getWindowIsFullScreen: t.procedure.action(async ({ context }) => {
@@ -10,7 +10,7 @@ export const settingRoute = {
     return BrowserWindow.fromWebContents(webContents)?.isFullScreen()
   }),
   setTheme: t.procedure.input<AppTheme>().action(async ({ input }) => {
-    if (input === 'cmyk') {
+    if (input === 'light') {
       nativeTheme.themeSource = 'light'
       return
     }

@@ -11,7 +11,7 @@ export const DarkModeToggle = () => {
         defaultValue={theme}
         onValueChange={(value: string) => toggleMode(value as AppTheme)}
       >
-        <TabsList className="bg-base-200 h-8">
+        <TabsList className="bg-muted h-8">
           {themes.map((item) => (
             <TabsTrigger
               className="flex items-center space-x-0.5 rounded-sm py-0.5 text-sm"
@@ -36,7 +36,7 @@ const themes = [
   },
   {
     name: '白天',
-    value: 'cmyk',
+    value: 'light',
     icon: <i className="icon-[mingcute--sun-line]" />,
   },
   {

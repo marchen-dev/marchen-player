@@ -30,7 +30,7 @@ export const ButtonWithIcon: FC<
     <button
       type="button"
       className={cn(
-        'no-drag-region hover:bg-base-300 flex size-8 cursor-default items-center justify-center rounded-md transition-colors',
+        'no-drag-region hover:bg-accent flex size-8 cursor-default items-center justify-center rounded-md transition-colors',
         className,
       )}
       {...props}
