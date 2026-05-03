@@ -66,7 +66,7 @@ tags: [workflow, implementation]
 5. **显示结果**
 
    全部完成时：
-   "全部完成 (N/N)，可以用 `/marchen:archive` 归档。"
+   "全部完成 (N/N)，可以用 `/marchen:review` 检查实现，或直接 `/marchen:archive` 归档。"
 
    暂停时：
    "暂停于任务 N/M: <原因>"
@@ -77,5 +77,6 @@ tags: [workflow, implementation]
 - 每完成一个任务立即勾选 checkbox，不要攒着
 - 改动最小化，只做任务要求的事
 - 不确定就暂停问，不要猜
+- 如果实现过程中遇到不确定的设计决策，可以用 `marchen search "<关键词>" --json` 搜索历史变更中的相关方案
 - 使用 AskUserQuestion 时，选项不超过 4 个
 - `instruction` 是给你的指引，不要原样复制到代码注释中

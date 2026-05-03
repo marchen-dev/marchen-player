@@ -1,3 +1,6 @@
 schema: full
-context: ''
-perArtifactRules: {}
+providers:
+  - claude-code
+version: 0.7.3
+search:
+  enabled: true
