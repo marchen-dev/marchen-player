@@ -1,6 +1,6 @@
 import { getFilePathFromProtocolURL } from '@main/lib/protocols'
 import { coverSubtitleToAss } from '@main/lib/utils'
-import { defineGroup, handler } from '@marchen/electron-ipc/main'
+import { defineGroup } from '@marchen/electron-ipc/main'
 
 /**
  * utils 分组：通用工具类 IPC handler
@@ -8,12 +8,12 @@ import { defineGroup, handler } from '@marchen/electron-ipc/main'
  */
 export const utilsGroup = defineGroup('utils', {
   /** 将 marchen:// 协议 URL 转换为本地文件路径 */
-  getFilePathFromProtocolURL: handler<{ path: string }>().action(async ({ input }) => {
+  getFilePathFromProtocolURL: async ({ input }) => {
     return getFilePathFromProtocolURL(input.path)
-  }),
+  },
 
   /** 将字幕文件（srt/vtt 等）转换为 ASS 格式 */
-  coverSubtitleToAss: handler<{ path: string }>().action(async ({ input }) => {
+  coverSubtitleToAss: async ({ input }) => {
     return coverSubtitleToAss(input.path)
-  }),
+  },
 })

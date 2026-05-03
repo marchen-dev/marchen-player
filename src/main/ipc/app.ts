@@ -2,7 +2,7 @@ import { getFilePathFromProtocolURL } from '@main/lib/protocols'
 import { parseReleaseNotes } from '@main/lib/utils'
 import { getMainWindow } from '@main/windows/main'
 import { clearData } from '@main/windows/setting'
-import { defineGroup, handler } from '@marchen/electron-ipc/main'
+import { defineGroup } from '@marchen/electron-ipc/main'
 import { version } from '@pkg'
 import { app, BrowserWindow, dialog } from 'electron'
 import Logger from 'electron-log'
@@ -17,22 +17,7 @@ export const appGroup = defineGroup('app', {
    * 窗口操作：关闭、最小化、最大化、全屏切换等
    * 根据 action 类型执行对应的窗口操作
    */
-  windowAction: handler<{
-    action:
-      | 'close'
-      | 'minimize'
-      | 'maximum'
-      | 'restart'
-      | 'reset'
-      | 'laungh-at-login'
-      | 'enter-full-screen'
-      | 'leave-full-screen'
-      | 'switch-full-screen'
-      | 'hidden-title-bar'
-      | 'show-title-bar'
-      | 'hidden-title-bar'
-    checked?: boolean
-  }>().action(async ({ context, input }) => {
+  windowAction: async ({ context, input }) => {
     const webcontent = context.sender
 
     const window = BrowserWindow.fromWebContents(webcontent)
@@ -94,10 +79,10 @@ export const appGroup = defineGroup('app', {
         break
       }
     }
-  }),
+  },
 
   /** 检查应用更新，弹出对话框显示结果 */
-  checkUpdate: handler().action(async () => {
+  checkUpdate: async () => {
     try {
       const updateCheckResult = await updater.autoUpdater.checkForUpdates()
       if (updateCheckResult?.updateInfo.version === version) {
@@ -125,26 +110,26 @@ export const appGroup = defineGroup('app', {
         message: '检查更新失败',
       })
     }
-  }),
+  },
 
   /** 退出应用并安装已下载的更新 */
-  installUpdate: handler().action(async () => {
+  installUpdate: async () => {
     updater.autoUpdater.quitAndInstall()
-  }),
+  },
 
   /** 显示确认对话框，返回用户是否点击了"确认" */
-  confirmationDialog: handler<{ title: string }>().action(async ({ input }) => {
+  confirmationDialog: async ({ input }) => {
     const result = await dialog.showMessageBox({
       type: 'warning',
       message: input.title,
       buttons: ['取消', '确认'],
     })
     return !!result.response
-  }),
+  },
 
   /** 将文件路径添加到系统的"最近打开"列表 */
-  addRecentDocument: handler<{ path: string }>().action(async ({ input }) => {
+  addRecentDocument: async ({ input }) => {
     const filePath = getFilePathFromProtocolURL(input.path)
     app.addRecentDocument(filePath)
-  }),
+  },
 })

@@ -6,7 +6,7 @@ import FFmpeg from '@main/lib/ffmpeg'
 import { getFilePathFromProtocolURL } from '@main/lib/protocols'
 import { coverSubtitleToAss } from '@main/lib/utils'
 import { showFileSelectionDialog } from '@main/modules/showDialog'
-import { defineGroup, handler } from '@marchen/electron-ipc/main'
+import { defineGroup } from '@marchen/electron-ipc/main'
 import { MARCHEN_PROTOCOL_PREFIX } from '@marchen/shared/constants/protocol'
 import { calculateFileHashByBuffer } from '@marchen/shared/lib/calc-file-hash'
 import { dialog } from 'electron'
@@ -21,20 +21,18 @@ let isDialogOpen = false
  */
 export const playerGroup = defineGroup('player', {
   /** 显示警告对话框（同步阻塞式） */
-  showWarningDialog: handler<{ title: string; content: string }>()
-    .action(async ({ input }) =>
-      dialog.showMessageBoxSync({
-        message: input.title,
-        detail: input.content,
-        type: 'warning',
-      }),
-    ),
+  showWarningDialog: async ({ input }) =>
+    dialog.showMessageBoxSync({
+      message: input.title,
+      detail: input.content,
+      type: 'warning',
+    }),
 
   /**
    * 根据文件路径获取视频详情
    * 包括文件名、大小、MD5 哈希（用于弹幕匹配）和协议 URL
    */
-  getAnimeDetailByPath: handler<{ path: string }>().action(async ({ input }) => {
+  getAnimeDetailByPath: async ({ input }) => {
     try {
       let animePath = input.path
       if (animePath.startsWith(MARCHEN_PROTOCOL_PREFIX)) {
@@ -71,10 +69,10 @@ export const playerGroup = defineGroup('player', {
         message: '获取视频信息失败',
       }
     }
-  }),
+  },
 
   /** 使用 FFmpeg 截取视频指定时间点的帧，返回 base64 图片 */
-  grabFrame: handler<{ path: string; time: string }>().action(async ({ input }) => {
+  grabFrame: async ({ input }) => {
     let filePath = input.path
     if (filePath.startsWith(MARCHEN_PROTOCOL_PREFIX)) {
       filePath = getFilePathFromProtocolURL(filePath)
@@ -82,10 +80,10 @@ export const playerGroup = defineGroup('player', {
     const ffmpeg = new FFmpeg(filePath)
     const base64Image = (await ffmpeg.grabFrame(input.time)) as string
     return base64Image
-  }),
+  },
 
   /** 打开文件选择对话框，让用户选择视频文件（mp4/mkv） */
-  importAnime: handler().action(async () => {
+  importAnime: async () => {
     if (isDialogOpen) {
       return
     }
@@ -113,10 +111,10 @@ export const playerGroup = defineGroup('player', {
     } finally {
       isDialogOpen = false
     }
-  }),
+  },
 
   /** 获取同目录下同格式的视频文件列表，用于播放列表 */
-  getAnimeInSamePath: handler<{ path: string }>().action(async ({ input }) => {
+  getAnimeInSamePath: async ({ input }) => {
     let selectedFilePath = input.path
     if (selectedFilePath.startsWith(MARCHEN_PROTOCOL_PREFIX)) {
       selectedFilePath = getFilePathFromProtocolURL(selectedFilePath)
@@ -145,10 +143,10 @@ export const playerGroup = defineGroup('player', {
     }))
 
     return playList
-  }),
+  },
 
   /** 打开字幕文件选择对话框，并将字幕转换为 ASS 格式 */
-  importSubtitle: handler().action(async () => {
+  importSubtitle: async () => {
     const filePath = await showFileSelectionDialog({
       filters: [{ name: '字幕文件', extensions: ['srt', 'ass', 'ssa', 'vtt'] }],
     })
@@ -156,35 +154,34 @@ export const playerGroup = defineGroup('player', {
       return
     }
     return coverSubtitleToAss(filePath)
-  }),
+  },
 
   /** 从视频文件中提取内嵌字幕轨道信息 */
-  getSubtitlesIntroFromAnime: handler<{ path: string }>().action(async ({ input }) => {
+  getSubtitlesIntroFromAnime: async ({ input }) => {
     const ffmpeg = new FFmpeg(getFilePathFromProtocolURL(input.path))
     const subtitles = await ffmpeg.getSubtitlesIntroFromAnime()
     return subtitles
-  }),
+  },
 
   /** 从视频文件中提取指定索引的字幕内容 */
-  getSubtitlesBody: handler<{ path: string; index: number }>()
-    .action(async ({ input }) => {
-      try {
-        const ffmpeg = new FFmpeg(getFilePathFromProtocolURL(input.path))
-        const data = await ffmpeg.extractSubtitles(input.index)
-        return {
-          ok: 1,
-          data,
-        }
-      } catch (error: any) {
-        return {
-          ok: 0,
-          message: error?.message || '',
-        }
+  getSubtitlesBody: async ({ input }) => {
+    try {
+      const ffmpeg = new FFmpeg(getFilePathFromProtocolURL(input.path))
+      const data = await ffmpeg.extractSubtitles(input.index)
+      return {
+        ok: 1,
+        data,
       }
-    }),
+    } catch (error: any) {
+      return {
+        ok: 0,
+        message: error?.message || '',
+      }
+    }
+  },
 
   /** 根据视频文件名匹配同目录下的同名字幕文件 */
-  matchSubtitleFile: handler<{ path: string }>().action(async ({ input }) => {
+  matchSubtitleFile: async ({ input }) => {
     const filePath = getFilePathFromProtocolURL(input.path)
     if (!fs.existsSync(filePath)) {
       return
@@ -201,10 +198,10 @@ export const playerGroup = defineGroup('player', {
       }))
 
     return matchedFiles
-  }),
+  },
 
   /** 打开弹幕文件选择对话框，解析 B 站弹幕格式（xml/json） */
-  immportDanmakuFile: handler().action(async () => {
+  immportDanmakuFile: async () => {
     if (isDialogOpen) {
       return
     }
@@ -243,5 +240,5 @@ export const playerGroup = defineGroup('player', {
     } finally {
       isDialogOpen = false
     }
-  }),
+  },
 })
