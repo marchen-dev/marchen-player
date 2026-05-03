@@ -6,9 +6,9 @@ import { app, protocol } from 'electron'
 import logger from 'electron-log'
 
 import { createStorageFolder } from '../constants/app'
+import { ipcGroups } from '../ipc'
 import { isDev, isWindows } from '../lib/env'
 import { quickLaunchViaVideo } from '../lib/utils'
-import { ipcGroups } from '../tipc'
 import { getMainWindow } from '../windows/main'
 import { getRendererHandlers } from '../windows/setting'
 import { enableHardwareDecodingOnLinux } from './flag'
@@ -44,7 +44,7 @@ export const initializeApp = () => {
     event.preventDefault()
     logger.info('[app] macOS open-file url', url)
     const mainWindow = getMainWindow()
-    // 当主窗口已经创建时，通过 tipc 通知渲染进程打开视频文件
+    // 当主窗口已经创建时，通过 IPC 通知渲染进程打开视频文件
     if (mainWindow) {
       return getRendererHandlers()?.importAnime.send({ path: url })
     }

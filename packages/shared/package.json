@@ -5,7 +5,8 @@
   "exports": {
     "./constants/protocol": "./src/constants/protocol.ts",
     "./lib/calc-file-hash": "./src/lib/calc-file-hash.ts",
-    "./types/renderer-handlers": "./src/types/renderer-handlers.ts"
+    "./types/renderer-handlers": "./src/types/renderer-handlers.ts",
+    "./types/ipc-router": "./src/types/ipc-router.ts"
   },
   "dependencies": {
     "spark-md5": "^3.0.2"

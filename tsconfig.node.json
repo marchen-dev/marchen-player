@@ -18,7 +18,6 @@
     "src/main/**/*",
     "src/preload/**/*",
     "types/**/*.d.ts",
-    "src/shared/src/**/*",
     "packages/electron-ipc/src/**/*",
     "packages/shared/src/**/*"
   ]

@@ -44,7 +44,7 @@ export const useConfirmationDialog = () => {
           ),
         })
       }
-      ipcClient?.app.confirmationDialog({ title: params.title }).then((result) => {
+      return ipcClient?.app.confirmationDialog({ title: params.title }).then((result) => {
         if (!result) {
           return params.handleCancel?.()
         }
