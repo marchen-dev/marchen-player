@@ -16,7 +16,6 @@ const contexts: JSX.Element[] = [
   <LazyMotion features={domMax} key="lazyMotion" />,
   <QueryClientProvider client={queryClient} key="queryClientProvider" />,
   <JotaiProvider store={jotaiStore} key="jotaiProvider" />,
-  // @ts-expect-error ThemeProvider type mismatch
   <ThemeProvider
     key="ThemeProvider"
     attribute="class"

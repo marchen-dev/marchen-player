@@ -9,7 +9,7 @@
  * 调用方需通过 ipcClient?.group.method() 的可选链方式使用
  */
 
-import type { IpcRouter } from '@main/tipc'
+import type { IpcRouter } from '@marchen/shared/types/ipc-router'
 import type { RendererHandlers } from '@marchen/shared/types/renderer-handlers'
 import { createClient, createListener } from '@marchen/electron-ipc/renderer'
 

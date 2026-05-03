@@ -336,6 +336,7 @@ export const useDanmakuData = () => {
       // if (!currentMatchedVideo.episodeId && manualResult?.length > 0) {
       //   return manualResult
       // }
+      return undefined
     },
   })
   const mergedDanmakuData = useMemo(() => {
