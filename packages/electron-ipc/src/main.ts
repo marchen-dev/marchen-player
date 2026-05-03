@@ -2,74 +2,82 @@
  * @marchen/electron-ipc - Main 进程入口
  *
  * 提供 main 进程侧的 IPC 能力：
- * - handler / defineGroup：定义带命名空间的 IPC handler
+ * - defineGroup：定义带命名空间的 IPC handler（类型由 IpcHandlerMap 契约自动约束）
  * - registerIpc：将所有 group 注册到 Electron 的 ipcMain
  * - createEmitter：创建 main → renderer 的事件发射器
  *
  * 使用方式：
- *   import { defineGroup, handler, registerIpc, createEmitter } from '@marchen/electron-ipc/main'
+ *   import { defineGroup, registerIpc, createEmitter } from '@marchen/electron-ipc/main'
  */
 
 import type { WebContents } from 'electron'
-import type { IpcContext, IpcGroup, IpcHandler } from './types'
+import type { IpcContext, IpcGroup, IpcHandler, IpcHandlerMap } from './types'
 
 import { ipcMain } from 'electron'
 
 /**
- * 创建链式调用的内部辅助函数
- * 支持 handler<InputType>().action(fn) 的链式写法
- *
- * @template TInput - handler 接收的输入类型
+ * 从 IpcHandlerMap 的函数签名提取 Input 类型
  */
-const createChainFns = <TInput = void>() => ({
-  /**
-   * 定义 handler 的处理函数
-   * @param action - 接收 { context, input } 参数的异步函数
-   * @returns IpcHandler 对象
-   */
-  action: <TOutput>(
-    action: (params: { context: IpcContext; input: TInput }) => Promise<TOutput>,
-  ): IpcHandler<TInput, TOutput> => ({ action }),
-})
+type ExtractInput<T> = T extends (input: infer I) => Promise<any> ? I : void
 
 /**
- * 创建一个 IPC handler 定义
- * 通过泛型参数指定输入类型，然后链式调用 .action() 定义处理逻辑
- *
- * @template TInput - handler 接收的输入类型，不传则为 void（无参数）
- *
- * @example
- * // 无参数的 handler
- * handler().action(async ({ context }) => { ... })
- *
- * // 有参数的 handler
- * handler<{ action: string }>().action(async ({ context, input }) => { ... })
+ * 从 IpcHandlerMap 的函数签名提取 Output 类型
  */
-export const handler = <TInput = void>() => createChainFns<TInput>()
+type ExtractOutput<T> = T extends (...args: any[]) => Promise<infer O> ? O : never
+
+/**
+ * 将 IpcHandlerMap 中的函数签名转换为 defineGroup 接受的 action 函数映射
+ * 每个方法变成 (params: { context, input }) => Promise<O> 格式
+ */
+type ActionHandlers<T> = {
+  [K in keyof T]: (params: {
+    context: IpcContext
+    input: ExtractInput<T[K]>
+  }) => Promise<ExtractOutput<T[K]>>
+}
 
 /**
  * 将多个 handler 组织为一个命名分组
  * 分组名称会作为 IPC channel 的前缀，格式为 `{groupName}:{methodName}`
  *
+ * 当 IpcHandlerMap 中存在对应 group 定义时，自动约束 handlers 必须实现所有方法，
+ * 且每个 action 函数的 input/output 类型与契约匹配。input 类型在回调内自动推导。
+ *
  * @param groupName - 分组名称（如 'app'、'player'、'setting'）
- * @param handlers - 该分组下的 handler 映射
+ * @param handlers - 该分组下的 action 函数映射
  * @returns IpcGroup 对象，用于传给 registerIpc
  *
  * @example
- * export const appGroup = defineGroup('app', {
- *   windowAction: handler<{ action: string }>()
- *     .action(async ({ context, input }) => { ... }),
- *   checkUpdate: handler()
- *     .action(async () => { ... }),
+ * export const settingGroup = defineGroup('setting', {
+ *   setTheme: async ({ input }) => {
+ *     // input 自动推导为 AppTheme
+ *     nativeTheme.themeSource = input
+ *   },
  * })
  */
-export const defineGroup = <
-  TName extends string,
-  THandlers extends Record<string, IpcHandler<any, any>>,
+export function defineGroup<
+  TName extends string & keyof IpcHandlerMap,
 >(
   groupName: TName,
-  handlers: THandlers,
-): IpcGroup<TName, THandlers> => ({ groupName, handlers })
+  handlers: ActionHandlers<IpcHandlerMap[TName]>,
+): IpcGroup<TName, { [K in keyof IpcHandlerMap[TName]]: IpcHandler<ExtractInput<IpcHandlerMap[TName][K]>, ExtractOutput<IpcHandlerMap[TName][K]>> }>
+export function defineGroup<
+  TName extends string,
+>(
+  groupName: TName,
+  handlers: Record<string, (params: { context: IpcContext; input: any }) => Promise<any>>,
+): IpcGroup<TName>
+export function defineGroup(
+  groupName: string,
+  handlers: Record<string, (params: { context: IpcContext; input: any }) => Promise<any>>,
+): IpcGroup {
+  // 将 action 函数包装为 IpcHandler 对象
+  const wrappedHandlers: Record<string, IpcHandler<any, any>> = {}
+  for (const [name, action] of Object.entries(handlers)) {
+    wrappedHandlers[name] = { action }
+  }
+  return { groupName, handlers: wrappedHandlers }
+}
 
 /**
  * 将所有 IPC group 注册到 Electron 的 ipcMain.handle

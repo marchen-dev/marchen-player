@@ -9,6 +9,12 @@
 import type { WebContents } from 'electron'
 
 /**
+ * IPC Handler 映射表（通过 module augmentation 由应用侧扩展）
+ * 应用侧在 shared 包中 declare module '@marchen/electron-ipc/types' 来填充具体方法签名
+ */
+export interface IpcHandlerMap {}
+
+/**
  * IPC handler 的执行上下文
  * 每次 renderer 调用 handler 时，main 端会收到这个上下文
  */
