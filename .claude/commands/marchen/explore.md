@@ -56,16 +56,17 @@ tags: [workflow, explore, thinking]
 **可视化**
 ```
 ┌─────────────────────────────────────────┐
-│       大量使用 ASCII 图表               │
+│     Use ASCII diagrams liberally        │
 ├─────────────────────────────────────────┤
 │                                         │
 │   ┌────────┐         ┌────────┐        │
-│   │ 状态   │────────▶│ 状态   │        │
+│   │ State  │────────▶│ State  │        │
 │   │   A    │         │   B    │        │
 │   └────────┘         └────────┘        │
 │                                         │
-│   系统图、状态机、数据流、               │
-│   架构草图、依赖关系图、对比表           │
+│   System diagrams, state machines,      │
+│   data flows, architecture sketches,    │
+│   dependency graphs, comparison tables  │
 │                                         │
 └─────────────────────────────────────────┘
 ```
@@ -90,12 +91,31 @@ tags: [workflow, explore, thinking]
 marchen list --json
 ```
 
-2. 变更历史：
+2. 变更历史概览：
 ```bash
 cat marchen/changelog.md
 ```
+这是所有已归档变更的索引，每条包含日期、变更名和一句话摘要。先扫一遍找到与用户话题相关的条目。如果找到，直接读对应 archive 目录下的 proposal.md 或 design.md 了解详情。
 
-这是项目所有已归档变更的索引。如果某条与当前讨论相关，读取对应 archive 目录下的 proposal.md 或 design.md 了解详情。
+3. 语义搜索：
+
+这是 RAG 搜索，不是 grep——构造语义完整的短语，不要用单个泛词。
+
+```bash
+marchen search "<语义完整的查询短语>" --json
+```
+
+**查询构造指引：**
+- 用描述性短语，不用单个词：
+  "初始化适配多个 agent 客户端" → `"multi-agent provider 初始化"`
+  "之前怎么处理错误的" → `"错误处理 error handling 重构"`
+  "暗色模式的设计决策" → `"dark mode 设计方案"`
+- 中英文混合效果更好（归档内容里中英都有）
+- 如果结果不理想，换个角度重新构造查询
+
+如果有匹配结果（score >= 0.4），读取对应 archive 目录下的 design.md 或 proposal.md 了解详细决策。
+
+如果 `marchen search` 不可用（命令报错），回退到 changelog.md + 手动读 archive 目录。
 
 这告诉你：
 - 是否有进行中的变更
@@ -107,10 +127,19 @@ cat marchen/changelog.md
 
 ### 没有变更时
 
-自由思考。当洞察结晶时，你可以提议：
+自由思考。当洞察结晶时，根据复杂度推荐下一步：
 
-- "想法差不多成型了。要用 `/marchen:propose` 创建变更吗？"
-- 或者继续探索——不急于形式化
+**判断标准：**
+- `/marchen:lite` — bug 修复、小改动、单一任务组、不需要设计文档
+- `/marchen:propose` — 新功能、多步骤、需要 design/specs、涉及多模块
+
+**推荐方式：** 直接在回复中输出推荐，说明理由，让用户自行输入命令。示例：
+
+> 想法差不多成型了。这个改动比较简单（只涉及一个文件的小调整），建议用 `/marchen:lite` 直接走轻量流程。
+>
+> 如果你觉得需要更完整的设计文档，也可以用 `/marchen:propose`。
+
+根据讨论内容给出你的推荐和理由，但让用户自己决定输入哪个命令。
 
 ### 有变更时
 
@@ -161,7 +190,7 @@ cat marchen/changelog.md
 
 没有固定的结束方式。探索可能：
 
-- **流向 proposal**："准备好了？我可以用 `/marchen:propose` 创建变更。"
+- **流向下一阶段**：用 **AskUserQuestion** 提供 `/marchen:lite` 和 `/marchen:propose` 选项，附带推荐理由
 - **更新 artifact**："已将这些决策更新到 design.md"
 - **只是提供清晰度**：用户得到了需要的，继续前进
 - **稍后继续**："随时可以继续"
