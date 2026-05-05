@@ -1,6 +1,11 @@
-import type { CommentModel } from '@renderer/request/models/comment'
+/**
+ * 播放器初始化 hooks
+ *
+ * useXgPlayer：创建 xgplayer 实例，从 service state 读取弹幕数据
+ * useXgPlayerUtils：响应式设置更新
+ */
+
 import type { Danmu, IPlayerOptions } from '@suemor/xgplayer'
-import { currentMatchedVideoAtom, danmakuDataAtom, isLoadDanmakuAtom, videoAtom } from '@renderer/atoms/player'
 import { usePlayerSettingsValue } from '@renderer/atoms/settings/player'
 import { useToast } from '@renderer/components/ui/toast'
 import NextEpisode from '@renderer/components/ui/xgplayer/plugins/nextEpisode'
@@ -8,8 +13,9 @@ import PreviousEpisode from '@renderer/components/ui/xgplayer/plugins/previousEp
 import { db } from '@renderer/database/db'
 import { parseDanmakuData } from '@renderer/lib/danmaku'
 import { isWeb } from '@renderer/lib/utils'
+import { usePlayerLoadingService } from '@renderer/services/player-loading/hooks'
+import { getPlayerLoadingService } from '@renderer/services/player-loading/index'
 import XgPlayer from '@suemor/xgplayer'
-import { useAtomValue } from 'jotai'
 import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { danmakuConfig, playerBaseConfigForClient, playerBaseConfigForWeb } from './config'
@@ -24,14 +30,11 @@ export const useXgPlayer = (url: string) => {
   const [playerInstance, setPlayerInstance] = useState<PlayerType | null>(null)
   const playerRef = useRef<HTMLDivElement | null>(null)
   const { toast, dismiss } = useToast()
-  const currentMatchedVideo = useAtomValue(currentMatchedVideoAtom)
-  const isLoadDanmaku = useAtomValue(isLoadDanmakuAtom)
-  const video = useAtomValue(videoAtom)
+  const service = usePlayerLoadingService()
   const playerSettings = usePlayerSettingsValue()
   const { danmakuDuration, danmakuFontSize, danmakuEndArea, enableMiniProgress } = playerSettings
   const { setResponsiveSettingsUpdate } = useXgPlayerUtils()
-  // 从 atom 读取 pipeline 加载完成的弹幕数据
-  const danmakuData = useAtomValue(danmakuDataAtom)
+
   useEffect(() => {
     setResponsiveSettingsUpdate(playerInstance)
     return () => {
@@ -42,7 +45,12 @@ export const useXgPlayer = (url: string) => {
   useEffect(() => {
     const handleInitalizePlayer = async () => {
       if (playerRef.current && !playerInstance) {
-        const anime = await db.history.get(video.hash)
+        // 从 service state 读取当前状态
+        const state = service.currentState
+        const video = 'video' in state ? state.video : null
+        if (!video || !('hash' in video) || !video.hash) return
+
+        const anime = await db.history.get(video.hash as string)
         const enablePositioningProgress = !!anime?.progress
         let startTime = 0
         if (enablePositioningProgress) {
@@ -61,21 +69,15 @@ export const useXgPlayer = (url: string) => {
           startTime,
         } as IPlayerOptions
 
-        let manualDanmaku: CommentModel[] = []
+        // 从 service state 读取弹幕数据
+        const mergedComments = 'mergedComments' in state ? state.mergedComments : []
+        const playList = video.playList ?? []
+        const match = 'match' in state ? state.match : null
 
-        if (!isLoadDanmaku) {
-          // 未匹配弹幕库时，加载用户手动导入的本地弹幕
-          manualDanmaku =
-            anime?.danmaku
-              ?.filter((item) => item.type === 'local')
-              .filter((danmaku) => danmaku.selected)
-              .map((danmaku) => danmaku?.content)
-              .flatMap((danmaku) => danmaku.comments) ?? []
-        }
         xgplayerConfig.danmu = {
           ...danmakuConfig,
           comments: parseDanmakuData({
-            danmuData: [...(danmakuData || []), ...manualDanmaku],
+            danmuData: mergedComments,
             duration: +danmakuDuration,
           }),
           fontSize: +danmakuFontSize,
@@ -88,21 +90,35 @@ export const useXgPlayer = (url: string) => {
         if (!isWeb) {
           xgplayerConfig.plugins = [...(xgplayerConfig.plugins || []), NextEpisode, PreviousEpisode]
           xgplayerConfig.nextEpisode = {
-            urlList: video.playList?.map((item) => item.urlWithPrefix) ?? [],
+            urlList: playList.map((item) => item.urlWithPrefix),
           }
-
           xgplayerConfig.previousEpisode = {
-            urlList: video.playList?.map((item) => item.urlWithPrefix) ?? [],
+            urlList: playList.map((item) => item.urlWithPrefix),
           }
         }
+
         _playerInstance = new XgPlayer(xgplayerConfig)
         setPlayerInstance(_playerInstance)
-        if (isLoadDanmaku) {
+
+        // 连接 PlayerBridge，支持播放中热更新弹幕
+        service.connectPlayer({
+          updateDanmaku: (comments) => {
+            const parsed = parseDanmakuData({
+              danmuData: comments,
+              duration: +danmakuDuration,
+            })
+            _playerInstance?.danmu?.clear()
+            _playerInstance?.danmu?.updateComments(parsed, true)
+          },
+        })
+
+        // 显示加载完成提示
+        if (match && match.episodeId) {
           toast({
-            title: `${currentMatchedVideo.animeTitle} - ${currentMatchedVideo.episodeTitle}`,
+            title: `${match.animeTitle} - ${match.episodeTitle}`,
             description: (
               <div>
-                <p>共加载 {danmakuData?.length} 条弹幕</p>
+                <p>共加载 {mergedComments?.length ?? 0} 条弹幕</p>
               </div>
             ),
             duration: 5000,
@@ -112,6 +128,8 @@ export const useXgPlayer = (url: string) => {
     }
     handleInitalizePlayer()
     return () => {
+      // 断开 PlayerBridge
+      getPlayerLoadingService().disconnectPlayer()
       _playerInstance?.destroy()
       playerInstance?.destroy()
       setPlayerInstance(null)

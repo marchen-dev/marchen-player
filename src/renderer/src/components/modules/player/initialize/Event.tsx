@@ -1,9 +1,10 @@
 import type { PlayerType } from './hooks'
-import { useClearPlayingVideo, videoAtom } from '@renderer/atoms/player'
+import { videoAtom } from '@renderer/atoms/player'
 import { usePlayerSettingsValue } from '@renderer/atoms/settings/player'
 import { db } from '@renderer/database/db'
 import { ipcClient } from '@renderer/lib/client'
 import { isWeb } from '@renderer/lib/utils'
+import { getPlayerLoadingService } from '@renderer/services/player-loading/index'
 import * as Sentry from '@sentry/react'
 import { Events } from '@suemor/xgplayer'
 import { useAtomValue } from 'jotai'
@@ -11,7 +12,6 @@ import { throttle } from 'lodash-es'
 
 import { useCallback, useEffect, useRef } from 'react'
 import { usePlayerInstance } from '../Context'
-import { useVideo } from '../loading/hooks'
 
 export const InitializeEvent = () => {
   const player = usePlayerInstance()
@@ -39,8 +39,6 @@ export const InitializeEvent = () => {
 const usePlayerInitialize = (player: PlayerType | null | undefined) => {
   const clickTimeout = useRef<number | null>(null)
   const { hash } = useAtomValue(videoAtom)
-  const { importAnimeViaIPC } = useVideo()
-  const resetVideo = useClearPlayingVideo()
   const { enableAutomaticEpisodeSwitching } = usePlayerSettingsValue()
   // 需要对 xgplayer 自带的全屏事件进行重写，以适配 electron 的全屏
   const initializePlayerListener = useCallback(() => {
@@ -159,13 +157,15 @@ const usePlayerInitialize = (player: PlayerType | null | undefined) => {
       if (!path) {
         return
       }
-      importAnimeViaIPC({ path })
+      // 通过 service 加载下一集
+      getPlayerLoadingService().loadFromPath(path)
     })
     // 点击左上角关闭按钮
     player.on('exit', async () => {
       const isFull = await ipcClient?.setting.getWindowIsFullScreen()
       isFull && ipcClient?.app.windowAction({ action: 'leave-full-screen' })
-      resetVideo()
+      // 取消加载并重置
+      getPlayerLoadingService().cancel()
       // 如果是 css 全屏，需要延迟销毁，否则会导致退出动画无法正常播放
       // 全屏模式不执行动画，否者会卡顿
       if (player.cssfullscreen && !isFull) {

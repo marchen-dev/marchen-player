@@ -1,11 +1,11 @@
-import { isPlayingAtom } from '@renderer/atoms/player'
 import { useWindowState, WindowState } from '@renderer/atoms/window'
 import { ElECTRON_CUSTOM_TITLEBAR_HEIGHT, ELECTRON_WINDOWS_RADIUS } from '@renderer/constants'
 import { ipcClient } from '@renderer/lib/client'
-import { useAtomValue } from 'jotai'
+import { usePlayerLoadingSelector } from '@renderer/services/player-loading/hooks'
 
 export const Titlebar = () => {
-  const isPlaying = useAtomValue(isPlayingAtom)
+  // 播放中隐藏标题栏
+  const isPlaying = usePlayerLoadingSelector((s) => s.step === 'playing' || s.step === 'reloading')
   const windowState = useWindowState()
 
   // Hide titlebar when playing

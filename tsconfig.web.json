@@ -12,7 +12,9 @@
       "@main/*": ["src/main/*"],
       "@pkg": ["./package.json"],
       "@marchen/electron-ipc/*": ["packages/electron-ipc/src/*"],
-      "@marchen/shared/*": ["packages/shared/src/*"]
+      "@marchen/shared/*": ["packages/shared/src/*"],
+      "@marchen/player-core": ["packages/player-core/src/index.ts"],
+      "@marchen/player-core/*": ["packages/player-core/src/*"]
     },
     "strict": true,
     "noUnusedLocals": false
@@ -25,6 +27,7 @@
     "src/main/ipc/**/*",
     "packages/electron-ipc/src/**/*",
     "packages/shared/src/**/*",
+    "packages/player-core/src/**/*",
     "types/**/*.d.ts",
     "src/env.ts"
   ]

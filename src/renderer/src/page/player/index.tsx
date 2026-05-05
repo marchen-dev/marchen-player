@@ -1,30 +1,61 @@
-import type { FC } from 'react'
+import type { ChangeEvent, DragEvent, FC } from 'react'
 import { Player } from '@renderer/components/modules/player'
-import { useVideo } from '@renderer/components/modules/player/loading/hooks'
 import { VideoProvider } from '@renderer/components/modules/player/loading/PlayerProvider'
-import { cn, isWeb } from '@renderer/lib/utils'
+import { usePlayAnimeFailedToast } from '@renderer/hooks/use-toast'
+import { ipcClient } from '@renderer/lib/client'
+import { checkIsVideoType, cn, isWeb } from '@renderer/lib/utils'
+import { usePlayerLoadingSelector, usePlayerLoadingService } from '@renderer/services/player-loading/hooks'
 import { AnimatePresence, m } from 'framer-motion'
 import { useCallback, useMemo, useRef } from 'react'
 
 export default function VideoPlayer() {
-  const { importAnimeViaIPC, importAnimeViaDragging, video } = useVideo()
+  const service = usePlayerLoadingService()
+  const { showFailedToast } = usePlayAnimeFailedToast()
   const fileInputRef = useRef<HTMLInputElement | null>(null)
-  const { url } = video
-  const manualImport = useCallback(() => {
+
+  // 从 service state 读取当前视频 URL（playing 状态时有值）
+  const url = usePlayerLoadingSelector((s) =>
+    'video' in s && s.video ? s.video.url : '',
+  )
+
+  // 拖拽/点击导入
+  const handleImport = useCallback(
+    (e: DragEvent<HTMLDivElement> | ChangeEvent<HTMLInputElement>) => {
+      e.preventDefault()
+      let file: File | undefined
+      if (e.type === 'drop') {
+        file = (e as DragEvent<HTMLDivElement>).dataTransfer?.files[0]
+      } else if (e.type === 'change') {
+        file = (e as ChangeEvent<HTMLInputElement>).target?.files?.[0]
+      }
+      if (!file || !checkIsVideoType(file.name)) {
+        return showFailedToast({ title: '格式错误', description: '请导入 mp4 或者 mkv 格式的动漫' })
+      }
+      service.loadFromFile(file)
+    },
+    [service],
+  )
+
+  // 点击导入（Electron 打开文件对话框，Web 触发 input）
+  const manualImport = useCallback(async () => {
     if (isWeb) {
       return fileInputRef.current?.click()
     }
-    importAnimeViaIPC()
-  }, [importAnimeViaIPC])
+    const path = await ipcClient?.player.importAnime()
+    if (path) {
+      service.loadFromPath(path)
+    }
+  }, [service])
 
   const content = useMemo(
     () => (url ? <Player url={url} key={url} /> : <DragTips key={url} onClick={manualImport} />),
     [url, manualImport],
   )
+
   return (
     <VideoProvider>
       <div
-        onDrop={importAnimeViaDragging}
+        onDrop={handleImport}
         onDragOver={(e) => e.preventDefault()}
         className={cn('flex size-full items-center justify-center')}
       >
@@ -34,7 +65,7 @@ export default function VideoPlayer() {
             type="file"
             accept="video/mp4, video/x-matroska"
             ref={fileInputRef}
-            onChange={importAnimeViaDragging}
+            onChange={handleImport}
             className="hidden"
           />
         )}
