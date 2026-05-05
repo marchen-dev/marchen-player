@@ -1,6 +1,6 @@
 schema: full
 providers:
   - claude-code
-version: 0.7.3
+version: 0.7.4
 search:
   enabled: true
