@@ -65,7 +65,7 @@ export default class FFmpeg {
 
   getSubtitlesIntroFromAnime = (): Promise<ffmpeg.FfprobeStream[]> => {
     return new Promise((resolve) => {
-      ffmpeg.ffprobe(this.ffmpeg._inputs[0].source, (err, metadata) => {
+      ffmpeg.ffprobe((this.ffmpeg as any)._inputs[0].source, (err, metadata) => {
         if (err) {
           resolve([])
         }
@@ -97,7 +97,7 @@ export default class FFmpeg {
           resolve(outputPath)
         })
         .on('error', async (ffmpegError) => {
-          ffmpeg.ffprobe(this.ffmpeg._inputs[0].source, (err, metadata) => {
+          ffmpeg.ffprobe((this.ffmpeg as any)._inputs[0].source, (err, metadata) => {
             if (err) {
               return reject(err)
             }

@@ -6,7 +6,7 @@ import { app, protocol } from 'electron'
 import logger from 'electron-log'
 
 import { createStorageFolder } from '../constants/app'
-import { ipcGroups } from '../ipc'
+import { router } from '../ipc'
 import { isDev, isWindows } from '../lib/env'
 import { quickLaunchViaVideo } from '../lib/utils'
 import { getMainWindow } from '../windows/main'
@@ -20,7 +20,7 @@ export const initializeApp = () => {
   limitSingleInstance()
   enableHardwareDecodingOnLinux()
   registerSentry()
-  registerIpc(ipcGroups)
+  registerIpc(router)
   registerAppMenu()
   registerLog()
   app.setAsDefaultProtocolClient(MARCHEN_PROTOCOL)

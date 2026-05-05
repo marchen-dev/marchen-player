@@ -9,6 +9,7 @@
     "moduleResolution": "Bundler",
     "paths": {
       "@renderer/*": ["src/renderer/src/*"],
+      "@main/*": ["src/main/*"],
       "@pkg": ["./package.json"],
       "@marchen/electron-ipc/*": ["packages/electron-ipc/src/*"],
       "@marchen/shared/*": ["packages/shared/src/*"]
@@ -21,6 +22,7 @@
     "src/renderer/src/**/*",
     "src/renderer/src/**/*.tsx",
     "src/preload/*.d.ts",
+    "src/main/ipc/**/*",
     "packages/electron-ipc/src/**/*",
     "packages/shared/src/**/*",
     "types/**/*.d.ts",
