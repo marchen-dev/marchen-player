@@ -1,8 +1,7 @@
 'use client'
 
-import { loadingDanmuProgressAtom, LoadingStatus } from '@renderer/atoms/player'
 import { cn } from '@renderer/lib/utils'
-import { useAtomValue } from 'jotai'
+import { usePlayerLoadingSelector } from '@renderer/services/player-loading/hooks'
 
 import {
   Toast,
@@ -16,8 +15,7 @@ import { useToast } from './use-toast'
 
 export function Toaster() {
   const { toasts } = useToast()
-  const loadingProgress = useAtomValue(loadingDanmuProgressAtom)
-  const videoPlaying = loadingProgress === LoadingStatus.START_PLAY
+  const isPlaying = usePlayerLoadingSelector((s) => s.step === 'playing' || s.step === 'reloading')
   return (
     <ToastProvider>
       {toasts.map(({ id, title, description, action, ...props }) => (
@@ -31,7 +29,7 @@ export function Toaster() {
         </Toast>
       ))}
       {/* 防止弹窗遮住视频进度条 */}
-      <ToastViewport className={cn(videoPlaying && 'sm:bottom-14')} />
+      <ToastViewport className={cn(isPlaying && 'sm:bottom-14')} />
     </ToastProvider>
   )
 }

@@ -1,10 +1,20 @@
-import type { CommentModel } from '@renderer/request/models/comment'
-import { atom, useSetAtom } from 'jotai'
+/**
+ * 播放器相关的 jotai atom
+ *
+ * 只保留简单 UI 状态（设置面板开关）。
+ * 加载流程的状态已迁移到 PlayerLoadingService。
+ */
 
 import { atomWithReset, useResetAtom } from 'jotai/utils'
 
 import { jotaiStore } from './store'
 
+// 设置面板开关状态
+export const playerSettingSheetAtom = atomWithReset(false)
+
+export const showPlayerSettingSheet = () => jotaiStore.set(playerSettingSheetAtom, true)
+
+// videoAtom 保留：被 Event.tsx（进度保存）和 DanmakuSource（hash 读取）使用
 export const videoAtom = atomWithReset<{
   url: string
   hash: string
@@ -19,54 +29,23 @@ export const videoAtom = atomWithReset<{
   playList: [],
 })
 
-export enum LoadingStatus {
-  IMPORT_VIDEO = 0,
-  CALC_HASH = 1,
-  MATCH_ANIME = 2,
-  GET_DANMU = 3,
-  READY_PLAY = 4,
-  START_PLAY = 5,
-}
-
-export const loadingDanmuProgressAtom = atomWithReset<LoadingStatus | null>(null)
-
-export const initialMatchedVideo = {
-  episodeId: 0,
-  animeTitle: '',
-  episodeTitle: '',
-  animeId: 0,
-}
-
-export const playerSettingSheetAtom = atomWithReset(false)
-
-export type MatchedVideoType = typeof initialMatchedVideo
-
-export const currentMatchedVideoAtom = atomWithReset<MatchedVideoType>(initialMatchedVideo)
-
-export const isLoadDanmakuAtom = atom((get) => get(currentMatchedVideoAtom).episodeId !== 0)
-
-export const isPlayingAtom = atom(
-  (get) => get(loadingDanmuProgressAtom) === LoadingStatus.START_PLAY,
-)
-export const useSetLoadingDanmuProgress = () => useSetAtom(loadingDanmuProgressAtom)
-
+/**
+ * 重置播放状态（关闭播放器时调用）
+ */
 export const useClearPlayingVideo = () => {
   const resetVideo = useResetAtom(videoAtom)
-  const resetProgress = useResetAtom(loadingDanmuProgressAtom)
-  const resetCurrentMatchedVideo = useResetAtom(currentMatchedVideoAtom)
   const resetPlayerSettingSheet = useResetAtom(playerSettingSheetAtom)
-  const resetDanmakuData = useResetAtom(danmakuDataAtom)
 
   return () => {
     resetVideo()
-    resetProgress()
-    resetCurrentMatchedVideo()
     resetPlayerSettingSheet()
-    resetDanmakuData()
   }
 }
 
-export const showPlayerSettingSheet = () => jotaiStore.set(playerSettingSheetAtom, true)
-
-// pipeline 加载完成后写入的弹幕数据，供播放器初始化时消费
-export const danmakuDataAtom = atomWithReset<CommentModel[] | null>(null)
+// 以下已迁移到 PlayerLoadingService，保留类型导出供过渡期使用
+export interface MatchedVideoType {
+  episodeId: number
+  animeTitle: string
+  episodeTitle: string
+  animeId: number
+}

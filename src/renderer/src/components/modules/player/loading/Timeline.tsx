@@ -1,22 +1,36 @@
-import type { LoadingStatus } from '@renderer/atoms/player'
-import type { FC } from 'react'
-import { loadingDanmuProgressAtom } from '@renderer/atoms/player'
-import { cn } from '@renderer/lib/utils'
-import { useAtomValue } from 'jotai'
+/**
+ * 加载进度 Timeline（水平 stepper）
+ *
+ * 从 service state 读取当前步骤，渲染对应的视觉状态。
+ * 纯 Tailwind 实现，不依赖外部 CSS 组件库。
+ */
 
-const steps = ['视频导入', '计算哈希', '匹配动漫', '获取弹幕', '准备播放']
+import type { StepName } from '@marchen/player-core'
+import type { FC } from 'react'
+import { VISIBLE_STEPS } from '@marchen/player-core'
+import { cn } from '@renderer/lib/utils'
+import { usePlayerLoadingSelector } from '@renderer/services/player-loading/hooks'
+
+const stepLabels: Record<(typeof VISIBLE_STEPS)[number], string> = {
+  importing: '视频导入',
+  hashing: '计算哈希',
+  matching: '匹配动漫',
+  loading_danmaku: '获取弹幕',
+  ready: '准备播放',
+}
 
 export const LoadingDanmuTimeLine = () => {
-  const loadingProgress = useAtomValue(loadingDanmuProgressAtom)
+  const step = usePlayerLoadingSelector((s) => s.step)
   return (
     <div className="flex h-full items-center justify-center">
-      {steps.map((title, index) => (
+      {VISIBLE_STEPS.map((stepName, index) => (
         <StepItem
-          key={title}
-          title={title}
+          key={stepName}
+          title={stepLabels[stepName]}
+          stepName={stepName}
           index={index}
-          isLast={index === steps.length - 1}
-          progress={loadingProgress}
+          isLast={index === VISIBLE_STEPS.length - 1}
+          currentStep={step}
         />
       ))}
     </div>
@@ -25,15 +39,16 @@ export const LoadingDanmuTimeLine = () => {
 
 interface StepItemProps {
   title: string
+  stepName: string
   index: number
   isLast: boolean
-  progress: LoadingStatus | null
+  currentStep: StepName
 }
 
-const StepItem: FC<StepItemProps> = ({ title, index, isLast, progress }) => {
-  const currentStep = progress ?? -1
-  const isCompleted = index < currentStep
-  const isActive = index === currentStep
+const StepItem: FC<StepItemProps> = ({ title, index, isLast, currentStep }) => {
+  const currentIndex = VISIBLE_STEPS.indexOf(currentStep as any)
+  const isCompleted = currentIndex > index
+  const isActive = currentIndex === index
 
   return (
     <>
@@ -48,10 +63,8 @@ const StepItem: FC<StepItemProps> = ({ title, index, isLast, progress }) => {
           )}
         >
           {isCompleted ? (
-            // 完成状态：显示 check icon
             <i className="icon-[mingcute--check-line] text-xs" />
           ) : isActive ? (
-            // 进行中：显示脉冲动画圆点
             <span className="size-2 animate-pulse rounded-full bg-primary" />
           ) : null}
         </div>

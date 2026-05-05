@@ -3,19 +3,18 @@ import { updateProgressAtom } from '@renderer/atoms/progress'
 import { appSettingAtom } from '@renderer/atoms/settings/app'
 import { jotaiStore } from '@renderer/atoms/store'
 import { WindowState, windowStateAtom } from '@renderer/atoms/window'
-import { useVideo } from '@renderer/components/modules/player/loading/hooks'
 import { useSettingModal } from '@renderer/components/modules/settings/hooks'
 import { settingTabs } from '@renderer/components/modules/settings/tabs'
 import { toast } from '@renderer/components/ui/toast/use-toast'
 import { handlers } from '@renderer/lib/client'
 import { getStorageNS } from '@renderer/lib/ns'
 import { RouteName } from '@renderer/router'
+import { getPlayerLoadingService } from '@renderer/services/player-loading/index'
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router'
 
 export const IpcListener = () => {
   const showModal = useSettingModal()
-  const { importAnimeViaIPC } = useVideo()
   const navigation = useNavigate()
   useEffect(() => {
     const unlisten = [
@@ -35,7 +34,8 @@ export const IpcListener = () => {
 
       handlers?.importAnime.listen((params) => {
         navigation(RouteName.PLAYER)
-        importAnimeViaIPC({ path: params?.path })
+        // 通过 service 加载视频
+        getPlayerLoadingService().loadFromPath(params?.path ?? '')
       }),
       handlers?.updateProgress.listen((params) => {
         jotaiStore.set(updateProgressAtom, { progress: params.progress, status: params.status })

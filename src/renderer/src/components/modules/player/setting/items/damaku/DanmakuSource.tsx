@@ -21,6 +21,7 @@ import {
 } from '@renderer/lib/danmaku'
 import queryClient from '@renderer/lib/query-client'
 import { isWeb } from '@renderer/lib/utils'
+import { getPlayerLoadingService } from '@renderer/services/player-loading/index'
 import { useAtomValue } from 'jotai'
 import { debounce } from 'lodash-es'
 import { memo } from 'react'
@@ -28,7 +29,6 @@ import { memo } from 'react'
 import { usePlayerInstance } from '../../../Context'
 import { useXgPlayerUtils } from '../../../initialize/hooks'
 import { showMatchAnimeDialog } from '../../../loading/dialog/hooks'
-import { useVideo } from '../../../loading/hooks'
 import { SettingProviderQueryKey, useSettingConfig } from '../../Sheet'
 
 export const DanmakuSource = memo(() => {
@@ -157,7 +157,6 @@ const RematchDanmaku = () => {
 
 const ClearDanmakuCache = () => {
   const video = useAtomValue(videoAtom)
-  const { importAnimeViaIPC } = useVideo()
   const present = useConfirmationDialog()
   if (isWeb) {
     return null
@@ -171,7 +170,8 @@ const ClearDanmakuCache = () => {
           handleConfirm: async () => {
             await db.history.update(video.hash, { danmaku: undefined })
             jotaiStore.set(playerSettingSheetAtom, false)
-            importAnimeViaIPC({ path: video.url })
+            // 通过 service 重新加载
+            getPlayerLoadingService().loadFromPath(video.url)
           },
         })
       }}
