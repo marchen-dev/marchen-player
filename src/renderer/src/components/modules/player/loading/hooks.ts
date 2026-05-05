@@ -1,30 +1,190 @@
 import type { DB_Danmaku, DB_History } from '@renderer/database/schemas/history'
-import type { CommentsModel } from '@renderer/request/models/comment'
 import type { MatchResponseV2 } from '@renderer/request/models/match'
-import type { UseQueryResult } from '@tanstack/react-query'
 import type { ChangeEvent, DragEvent } from 'react'
 import { MARCHEN_PROTOCOL_PREFIX } from '@marchen/shared/constants/protocol'
 import { calculateFileHash } from '@marchen/shared/lib/calc-file-hash'
 import {
   currentMatchedVideoAtom,
-  isLoadDanmakuAtom,
+  danmakuDataAtom,
   loadingDanmuProgressAtom,
   LoadingStatus,
   useClearPlayingVideo,
   videoAtom,
 } from '@renderer/atoms/player'
-import { usePlayerSettingsValue } from '@renderer/atoms/settings/player'
+import { playerSettingAtom } from '@renderer/atoms/settings/player'
+import { jotaiStore } from '@renderer/atoms/store'
 import { db } from '@renderer/database/db'
 import { usePlayAnimeFailedToast } from '@renderer/hooks/use-toast'
-import { chineseConverter } from '@renderer/lib/cht-to-chs'
 import { ipcClient } from '@renderer/lib/client'
+import { mergeDanmaku } from '@renderer/lib/danmaku'
 import { checkIsVideoType, isWeb } from '@renderer/lib/utils'
 import { apiClient } from '@renderer/request'
 import { RouteName } from '@renderer/router'
-import { useQueries, useQuery } from '@tanstack/react-query'
-import { useAtom, useAtomValue, useSetAtom } from 'jotai'
-import { useCallback, useEffect, useMemo, useRef } from 'react'
+
+import { useAtom, useSetAtom } from 'jotai'
+import { useCallback, useEffect, useRef } from 'react'
 import { useLocation, useNavigate } from 'react-router'
+
+// --- Pipeline 核心：async 函数，通过 jotaiStore.set 更新状态 ---
+
+// 当前 pipeline 的 AbortController，用于取消正在进行的加载
+let currentAbortController: AbortController | null = null
+
+/**
+ * 取消当前正在进行的 pipeline
+ */
+export const cancelPipeline = () => {
+  currentAbortController?.abort()
+  currentAbortController = null
+}
+
+/**
+ * 读取用户的繁简转换设置（从 jotai atom 读取，非 hook 环境）
+ */
+const getChConvert = (): number => {
+  const settings = jotaiStore.get(playerSettingAtom)
+  return settings.enableTraditionalToSimplified ? 1 : 0
+}
+
+/**
+ * 匹配动漫：先查本地缓存，再调 API
+ */
+const matchAnime = async (hash: string, size: number, name: string): Promise<MatchResponseV2> => {
+  const historyData = await db.history.get(hash)
+  // 如果历史记录中有匹配数据，直接返回
+  if (historyData?.episodeId && historyData?.animeId) {
+    const { episodeId, episodeTitle, animeId, animeTitle } = historyData
+    return {
+      isMatched: true,
+      matches: [{ episodeTitle, episodeId, animeId, animeTitle }],
+    } satisfies MatchResponseV2
+  }
+  return apiClient.match.postVideoEpisodeId({ fileSize: size, fileHash: hash, fileName: name })
+}
+
+/**
+ * 获取弹幕：优先使用缓存，新番或无缓存时重新请求
+ * 也被 MatchDanmakuDialog 在播放中重新匹配时调用
+ * @param forceRefresh 强制跳过缓存重新请求（重新匹配弹幕库时使用）
+ */
+export const fetchDanmakuForEpisode = async (
+  episodeId: number,
+  hash: string,
+  forceRefresh = false,
+): Promise<DB_Danmaku[]> => {
+  const history = await db.history.get(hash)
+
+  // 检查是否有可用的弹幕缓存（非新番且非强制刷新时使用缓存）
+  if (!forceRefresh) {
+    const autoDanmaku = history?.danmaku?.find((item) => item.type === 'auto')
+    if (autoDanmaku && !history?.newBangumi) {
+      return history!.danmaku!
+    }
+  }
+
+  // 请求新弹幕，withRelated=true 包含所有第三方源
+  const chConvert = getChConvert()
+  const fetchData = await apiClient.comment.getDanmu(episodeId, {
+    withRelated: true,
+    chConvert,
+  })
+
+  // 构建新的弹幕数据，保留已有的 local 弹幕
+  const localDanmaku = history?.danmaku?.filter((item) => item.type === 'local') ?? []
+  const newDanmaku: DB_Danmaku[] = [
+    { type: 'auto', source: 'dandanplay', content: fetchData, selected: true },
+    ...localDanmaku,
+  ]
+
+  return newDanmaku
+}
+
+/**
+ * Pipeline 第二段：获取弹幕 → 保存历史 → 开始播放
+ * 当用户从对话框选择了动漫后调用
+ */
+export const continuePipeline = async (params: {
+  episodeId: number
+  animeTitle: string
+  episodeTitle: string
+  animeId: number
+  hash: string
+  url: string
+}) => {
+  const { episodeId, animeTitle, episodeTitle, animeId, hash, url } = params
+
+  // 更新匹配状态
+  jotaiStore.set(currentMatchedVideoAtom, { episodeId, animeTitle, episodeTitle, animeId })
+  jotaiStore.set(loadingDanmuProgressAtom, LoadingStatus.MATCH_ANIME)
+
+  try {
+    // 获取弹幕
+    const danmakuData = await fetchDanmakuForEpisode(episodeId, hash)
+    jotaiStore.set(loadingDanmuProgressAtom, LoadingStatus.GET_DANMU)
+
+    // 合并选中的弹幕用于播放器渲染
+    const mergedComments = mergeDanmaku(danmakuData)
+    jotaiStore.set(danmakuDataAtom, mergedComments ?? null)
+
+    // 保存到历史记录
+    await saveToHistory({
+      hash,
+      path: url,
+      episodeId,
+      animeTitle,
+      episodeTitle,
+      animeId,
+      danmaku: danmakuData,
+    })
+
+    // 准备播放
+    jotaiStore.set(loadingDanmuProgressAtom, LoadingStatus.READY_PLAY)
+    setTimeout(() => {
+      jotaiStore.set(loadingDanmuProgressAtom, LoadingStatus.START_PLAY)
+    }, 100)
+  } catch (error) {
+    console.error('获取弹幕失败:', error)
+    // 弹幕获取失败时仍然允许播放（无弹幕）
+    await saveToHistory({ hash, path: url, animeTitle })
+    jotaiStore.set(loadingDanmuProgressAtom, LoadingStatus.START_PLAY)
+  }
+}
+
+/**
+ * Pipeline 第一段：hash → match → 如果精准匹配则继续获取弹幕
+ * 返回 matchData 供 PlayerProvider 判断是否需要弹出对话框
+ */
+export const startMatchAndLoad = async (hash: string, size: number, name: string, url: string) => {
+  cancelPipeline()
+  currentAbortController = new AbortController()
+
+  try {
+    const matchData = await matchAnime(hash, size, name)
+
+    // 检查是否被取消
+    if (currentAbortController?.signal.aborted) return null
+
+    // 精准匹配：自动继续 pipeline
+    if (matchData.isMatched && matchData.matches?.[0]) {
+      const matched = matchData.matches[0]
+      await continuePipeline({
+        episodeId: matched.episodeId,
+        animeTitle: matched.animeTitle || '',
+        episodeTitle: matched.episodeTitle || '',
+        animeId: matched.animeId,
+        hash,
+        url,
+      })
+      return null
+    }
+
+    // 未精准匹配：返回 matchData，由 PlayerProvider 弹出对话框
+    return matchData
+  } catch (error) {
+    if (currentAbortController?.signal.aborted) return null
+    throw error
+  }
+}
 
 export const useVideo = () => {
   const [video, setVideo] = useAtom(videoAtom)
@@ -32,8 +192,7 @@ export const useVideo = () => {
   const { showFailedToast } = usePlayAnimeFailedToast()
   const clearPlayingVideo = useClearPlayingVideo()
 
-  // 对于浏览器环境，当通过拖拽或者点击导入视频时，会触发该函数
-  // 对于 electron 环境，通过拖拽导入时，会触发该函数
+  // 浏览器环境拖拽/点击导入，Electron 环境拖拽导入
   const importAnimeViaDragging = async (
     e: DragEvent<HTMLDivElement> | ChangeEvent<HTMLInputElement>,
   ) => {
@@ -54,10 +213,7 @@ export const useVideo = () => {
     }
 
     let url = ''
-    let playList: {
-      urlWithPrefix: string
-      name: string
-    }[] = []
+    let playList: { urlWithPrefix: string; name: string }[] = []
 
     if (isWeb) {
       url = URL.createObjectURL(file)
@@ -78,7 +234,7 @@ export const useVideo = () => {
     }
   }
 
-  // 只在 electron 环境生效，点击导入视频时，会触发该函数
+  // Electron 环境点击导入或通过 IPC 导入
   const importAnimeViaIPC = useCallback(async (params?: { path?: string }) => {
     clearPlayingVideo()
     const path = params?.path ?? (await ipcClient?.player.importAnime())
@@ -107,6 +263,7 @@ export const useVideo = () => {
     ipcClient?.app.addRecentDocument({ path: filePath })
     setProgress(LoadingStatus.CALC_HASH)
   }, [])
+
   return {
     importAnimeViaDragging,
     importAnimeViaIPC,
@@ -114,246 +271,7 @@ export const useVideo = () => {
   }
 }
 
-// 匹配动漫
-export const useMatchAnimeData = () => {
-  const { hash, size, name, url } = useAtomValue(videoAtom)
-  const clearPlayingVideo = useClearPlayingVideo()
-  const location = useLocation()
-  const { showFailedToast } = usePlayAnimeFailedToast()
-  const setCurrentMatchedVideo = useSetAtom(currentMatchedVideoAtom)
-  const setLoadingProgress = useSetAtom(loadingDanmuProgressAtom)
-
-  // 先直接通过 hash 去匹配，如果匹配失败，则弹出匹配框，让用户选择
-  const { data: matchData, isError } = useQuery({
-    queryKey: [apiClient.match.Matchkeys.postVideoEpisodeId, hash],
-    queryFn: async () => {
-      const historyData = await db.history.get(hash)
-      // 如果历史记录中有匹配的数据，直接返回
-      if (historyData?.episodeId && historyData?.animeId) {
-        const { episodeId, episodeTitle, animeId, animeTitle } = historyData
-        return {
-          isMatched: true,
-          matches: [{ episodeTitle, episodeId, animeId, animeTitle }],
-        } satisfies MatchResponseV2
-      }
-      return apiClient.match.postVideoEpisodeId({ fileSize: size, fileHash: hash, fileName: name })
-    },
-    enabled: !!hash,
-  })
-
-  const matchedVideo = useMemo(() => {
-    // 确保为精准匹配
-    if (!matchData || !matchData.matches || !matchData.isMatched) {
-      return null
-    }
-    const matchedVideo = matchData?.matches[0]
-    return {
-      episodeId: matchedVideo.episodeId,
-      animeTitle: matchedVideo.animeTitle || '',
-      animeId: matchedVideo.animeId,
-      episodeTitle: matchedVideo.episodeTitle || '',
-    }
-  }, [matchData])
-
-  useEffect(() => {
-    // 如果精准匹配，就去设置 setCurrentMatchedVideo(matchedVideo)，之后就会触发 useDanmuData() 里的 useQuery 和 useEffect
-    if (matchData && matchedVideo) {
-      setCurrentMatchedVideo(matchedVideo)
-      setLoadingProgress(LoadingStatus.MATCH_ANIME)
-    }
-  }, [matchData])
-
-  useEffect(() => {
-    if (isError) {
-      showFailedToast({ title: '匹配失败', description: '请检查网络连接或稍后再试' })
-      clearPlayingVideo()
-    }
-  }, [location.pathname, isError])
-
-  return { matchData, url, clearPlayingVideo }
-}
-
-export const useDanmakuData = () => {
-  const isLoadDanmaku = useAtomValue(isLoadDanmakuAtom)
-  const video = useAtomValue(videoAtom)
-  const { enableTraditionalToSimplified } = usePlayerSettingsValue()
-  const [currentMatchedVideo] = useAtom(currentMatchedVideoAtom)
-  const { episodeId } = currentMatchedVideo
-  const { data: thirdPartyDanmakuUrlData } = useQuery({
-    queryKey: [apiClient.related.relatedkeys.getRelatedDanmakuByEpisodeId, episodeId],
-    queryFn: async () => {
-      const history = await db.history.get(video.hash)
-      // 如果历史记录中有弹幕库，就返回历史记录中的弹幕库
-      if (history?.danmaku?.length) {
-        const historyDanmaku = history?.danmaku
-          ?.filter((item) => item.type === 'third-party-auto')
-          .map((item) => ({ url: item.source, shift: 0 }))
-        return historyDanmaku
-      }
-      const getRelatedDanmakuByEpisodeId =
-        await apiClient.related.getRelatedDanmakuByEpisodeId(episodeId)
-      return getRelatedDanmakuByEpisodeId.relateds
-    },
-    enabled: isLoadDanmaku && !!episodeId,
-  })
-  const onlyLoadDandanplayDanmaku = !thirdPartyDanmakuUrlData?.length
-  // setCurrentMatchedVideo() 之后会触发该 useQuery, 获取弹幕数据
-  // 目前共两种可能性会触发该 useQuery
-  // 1. 上方 useMatchAnimeData() 为精准匹配
-  // 2. 用户通过对话框, 手动匹配了弹幕库
-  // 获取弹幕数据后，会触发下发 useEffect
-  const danmakuData = useQueries({
-    queries: [
-      ...(thirdPartyDanmakuUrlData?.map((related) => ({
-        queryKey: [apiClient.comment.Commentkeys.getExtcomment, episodeId, related.url],
-        queryFn: async () => {
-          const history = await db.history.get(video.hash)
-          const historyDanmaku = history?.danmaku?.find((item) => item.source === related.url)
-
-          const handleIsSelected = () => {
-            // bilibili 弹幕库感觉有重复的弹幕，目前只默认加载一个 bilibili 弹幕库
-            if (related.url.includes('bilibili')) {
-              return (
-                related.url ===
-                thirdPartyDanmakuUrlData?.find((item) => item.url.includes('bilibili'))?.url
-              )
-            }
-            return true
-          }
-          // 使用弹幕缓存
-          if (historyDanmaku && !history?.newBangumi) {
-            return {
-              ...historyDanmaku?.content,
-              selected: historyDanmaku?.selected,
-            }
-          }
-          try {
-            const fetchData = await apiClient.comment.getExtcomment({ url: related.url })
-            if (enableTraditionalToSimplified && related.url.includes('ani.gamer')) {
-              fetchData.comments.forEach((comment) => {
-                comment.m = chineseConverter.convert(comment.m)
-              })
-            }
-
-            return {
-              ...fetchData,
-              selected: handleIsSelected(),
-            }
-          } catch {
-            return null
-          }
-
-          // 当开启繁体转简体时，且为动漫疯弹幕库时，将弹幕转为简体
-        },
-        enabled: !!episodeId,
-        refetchOnMount: false,
-      })) ?? []),
-      {
-        queryKey: [apiClient.comment.Commentkeys.getDanmu, episodeId],
-        queryFn: async () => {
-          const history = await db.history.get(video.hash)
-          const historyDanmaku = history?.danmaku?.find((item) => item.source === 'dandanplay')
-          if (historyDanmaku && !history?.newBangumi) {
-            return {
-              ...historyDanmaku.content,
-              selected: historyDanmaku.selected,
-            }
-          }
-          const fetchData = await apiClient.comment.getDanmu(+currentMatchedVideo.episodeId, {
-            chConvert: enableTraditionalToSimplified ? 1 : 0,
-          })
-          return {
-            ...fetchData,
-            selected: true,
-          }
-        },
-        enabled: !!episodeId,
-        refetchOnMount: false,
-      },
-      {
-        queryKey: ['manual-danmaku', episodeId],
-        queryFn: async () => {
-          const history = await db.history.get(video.hash)
-          const historyDanmaku = history?.danmaku?.filter(
-            (item) => item.type === 'local' || item.type === 'third-party-manual',
-          )
-          return historyDanmaku ?? []
-        },
-        enabled: !!episodeId,
-        refetchOnMount: false,
-      },
-    ],
-    combine: (results) => {
-      const manualResult = results.at(-1)?.data as DB_Danmaku[]
-      const dandanplayResult = results.at(-2)?.data as CommentsModel & { selected: boolean }
-      const thirdPartyResult = results.slice(0, -2) as UseQueryResult<
-        CommentsModel & { selected: boolean }
-      >[]
-      const dandanplayDanmakuData = {
-        type: 'dandanplay',
-        source: 'dandanplay',
-        content: dandanplayResult,
-        selected: dandanplayResult?.selected,
-      } satisfies DB_Danmaku
-      const thirdPartyDanmakuData = thirdPartyResult.map((result, index) => ({
-        type: 'third-party-auto',
-        content: result.data,
-        source: thirdPartyDanmakuUrlData?.[index].url,
-        selected: result.data?.selected,
-      })) as DB_Danmaku[]
-
-      // 只加载官方弹幕库，返回弹幕数据
-      if (onlyLoadDandanplayDanmaku && dandanplayDanmakuData.content) {
-        return [dandanplayDanmakuData, ...manualResult]
-      }
-
-      const dandanplaySettled = dandanplayResult !== undefined
-
-      const allThirdPartyQueriesSettled = thirdPartyResult.every(
-        (result) => result.data !== undefined,
-      )
-
-      // 官方弹幕库和第三方弹幕库都加载完成后，返回所有可用弹幕数据
-      if (
-        !onlyLoadDandanplayDanmaku &&
-        dandanplaySettled &&
-        allThirdPartyQueriesSettled &&
-        thirdPartyResult.length === thirdPartyDanmakuUrlData.length
-      ) {
-        // 只包含成功获取到数据的弹幕
-        const availableDanmaku: DB_Danmaku[] = []
-        if (dandanplayDanmakuData.content) {
-          availableDanmaku.push(dandanplayDanmakuData)
-        }
-        const successfulThirdPartyData = thirdPartyDanmakuData.filter(
-          (item) => item.content !== undefined && item.content !== null,
-        )
-        availableDanmaku.push(...successfulThirdPartyData, ...manualResult)
-        return availableDanmaku
-      }
-
-      // // 未匹配弹幕库，只加载用户手动导入弹幕
-      // if (!currentMatchedVideo.episodeId && manualResult?.length > 0) {
-      //   return manualResult
-      // }
-      return undefined
-    },
-  })
-  const mergedDanmakuData = useMemo(() => {
-    if (!danmakuData) {
-      return
-    }
-    return danmakuData
-      .filter((danmaku) => danmaku.selected)
-      .map((danmaku) => danmaku?.content)
-      .flatMap((danmaku) => danmaku.comments)
-  }, [danmakuData])
-
-  return {
-    danmakuData,
-    mergedDanmakuData,
-  }
-}
+// --- 历史记录保存 ---
 
 export const saveToHistory = async (
   params: Omit<DB_History, 'cover' | 'updatedAt' | 'progress' | 'duration'>,
@@ -378,6 +296,7 @@ export const saveToHistory = async (
       progress: 0,
       duration: 0,
     })
+    // 异步获取动漫封面和新番状态，不阻塞播放
     const updateBangumiData = async () => {
       const [bangumiDetail, bangumiShin] = await Promise.all([
         apiClient.bangumi.getBangumiDetailById(animeId),
@@ -391,13 +310,14 @@ export const saveToHistory = async (
       return db.history.update(primaryKey, historyData)
     }
 
-    // 减少加载时长，先插入数据库，直接播放动漫，之后再获取动漫详情
     updateBangumiData()
     return
   }
 
   return db.history.update(existingAnime.hash, historyData)
 }
+
+// --- 从历史记录加载动漫 ---
 
 export const useLoadingHistoricalAnime = () => {
   const clearPlayingVideo = useClearPlayingVideo()
@@ -407,7 +327,6 @@ export const useLoadingHistoricalAnime = () => {
   const setProgress = useSetAtom(loadingDanmuProgressAtom)
   const effectOnce = useRef(false)
   const { showFailedToast } = usePlayAnimeFailedToast()
-  const episodeId = location.state?.episodeId
   const hash = location.state?.hash
 
   const handleDeleteHistory = useCallback(async (hash: string) => {
@@ -448,7 +367,7 @@ export const useLoadingHistoricalAnime = () => {
     })
     ipcClient?.app.addRecentDocument({ path: anime.path })
     setProgress(LoadingStatus.CALC_HASH)
-  }, [episodeId, hash])
+  }, [hash])
 
   useEffect(() => {
     if (!effectOnce.current) {

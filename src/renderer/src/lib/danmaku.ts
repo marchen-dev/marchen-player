@@ -3,27 +3,20 @@ import type { CommentModel } from '@renderer/request/models/comment'
 
 /**
  * 将32位整数表示的颜色转换成十六进制颜色格式
- * @param color 32位整数表示的颜色
- * @returns 十六进制颜色格式字符串，例如 #ffffff
  */
 export function intToHexColor(color: number | string): string {
   if (typeof color === 'string' && color.startsWith('#')) {
     return color
   }
   const _color = +color
-  // 提取红色分量
   const r = (_color >> 16) & 0xFF
-  // 提取绿色分量
   const g = (_color >> 8) & 0xFF
-  // 提取蓝色分量
   const b = _color & 0xFF
 
-  // 将每个分量转换成两位的十六进制字符串
   const rHex = r.toString(16).padStart(2, '0')
   const gHex = g.toString(16).padStart(2, '0')
   const bHex = b.toString(16).padStart(2, '0')
 
-  // 拼接结果
   return `#${rHex}${gHex}${bHex}`
 }
 
@@ -34,39 +27,22 @@ export const DanmuPosition: Record<number, Mode> = {
   5: 'top',
 }
 
-const thirdpartyDanmakuMap = {
-  bilibili: '哔哩哔哩',
-  'ani.gamer.com.tw': '巴哈姆特动漫疯',
-  acfun: 'AcFun',
-  tucao: '吐槽弹幕网',
-  iqiyi: '爱奇艺',
-  youku: '优酷',
-}
-
+/**
+ * 获取弹幕源的显示名称
+ */
 export const danmakuPlatformMap = (danmaku?: DB_Danmaku) => {
   if (!danmaku) {
     return '未知弹幕'
   }
-  let mapName = ''
 
+  let mapName = ''
   switch (danmaku.type) {
-    case 'dandanplay': {
+    case 'auto': {
       mapName = '弹弹play'
       break
     }
     case 'local': {
       mapName = '本地弹幕'
-      break
-    }
-
-    case 'third-party-manual':
-    case 'third-party-auto': {
-      Object.entries(thirdpartyDanmakuMap).forEach(([key, value]) => {
-        danmaku.source?.includes(key) && (mapName = value)
-      })
-      if (!mapName) {
-        mapName = new URL(danmaku.source || '').hostname
-      }
       break
     }
     default: {
@@ -78,6 +54,9 @@ export const danmakuPlatformMap = (danmaku?: DB_Danmaku) => {
   return `${mapName} (${danmaku.content.count}条)`
 }
 
+/**
+ * 获取弹幕数量最多的源的显示名称
+ */
 export const mostDanmakuPlatform = (danmaku?: DB_Danmaku[]) => {
   if (!danmaku || danmaku.length === 0) {
     return '暂无弹幕'
@@ -90,6 +69,9 @@ export const mostDanmakuPlatform = (danmaku?: DB_Danmaku[]) => {
   return danmakuPlatformMap(maxDanmakuItem)
 }
 
+/**
+ * 将弹幕数据解析为播放器可用的格式
+ */
 export const parseDanmakuData = (params: { danmuData?: CommentModel[]; duration: number }) =>
   params.danmuData?.map((comment) => {
     const [start, postition, color] = comment.p.split(',')
@@ -97,24 +79,27 @@ export const parseDanmakuData = (params: { danmuData?: CommentModel[]; duration:
     const mode = DanmuPosition[+postition]
     const danmakuColor = intToHexColor(color)
     return {
-      duration: params.duration, // 弹幕持续显示时间,毫秒(最低为5000毫秒)
-      id: comment.cid, // 弹幕id，需唯一
-      start: startInMs, // 弹幕出现时间，毫秒BB
-      txt: comment.m, // 弹幕文字内容
+      duration: params.duration,
+      id: comment.cid,
+      start: startInMs,
+      txt: comment.m,
       mode,
       style: {
         color: danmakuColor,
         fontWeight: 600,
         textShadow: `
-      rgb(0, 0, 0) 1px 0px 1px, 
-      rgb(0, 0, 0) 0px 1px 1px, 
-      rgb(0, 0, 0) 0px -1px 1px, 
+      rgb(0, 0, 0) 1px 0px 1px,
+      rgb(0, 0, 0) 0px 1px 1px,
+      rgb(0, 0, 0) 0px -1px 1px,
       rgb(0, 0, 0) -1px 0px 1px
     `,
       },
     }
   })
 
+/**
+ * 合并所有选中的弹幕源为一个 CommentModel 数组
+ */
 export const mergeDanmaku = (danmakuData: DB_Danmaku[] | undefined) => {
   if (!danmakuData) {
     return

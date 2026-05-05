@@ -31,7 +31,9 @@ interface DB_Subtitles {
 }
 
 export interface DB_Danmaku {
-  type: 'dandanplay' | 'third-party-auto' | 'third-party-manual' | 'local'
+  // 'auto': 通过 API (withRelated=true) 自动获取的弹幕
+  // 'local': 用户通过本地文件导入的弹幕
+  type: 'auto' | 'local'
   source: string
   selected?: boolean
   content: CommentsModel

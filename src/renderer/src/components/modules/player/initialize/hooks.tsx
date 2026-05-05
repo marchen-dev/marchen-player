@@ -1,6 +1,6 @@
 import type { CommentModel } from '@renderer/request/models/comment'
 import type { Danmu, IPlayerOptions } from '@suemor/xgplayer'
-import { currentMatchedVideoAtom, isLoadDanmakuAtom, videoAtom } from '@renderer/atoms/player'
+import { currentMatchedVideoAtom, danmakuDataAtom, isLoadDanmakuAtom, videoAtom } from '@renderer/atoms/player'
 import { usePlayerSettingsValue } from '@renderer/atoms/settings/player'
 import { useToast } from '@renderer/components/ui/toast'
 import NextEpisode from '@renderer/components/ui/xgplayer/plugins/nextEpisode'
@@ -12,7 +12,6 @@ import XgPlayer from '@suemor/xgplayer'
 import { useAtomValue } from 'jotai'
 import { useCallback, useEffect, useRef, useState } from 'react'
 
-import { useDanmakuData } from '../loading/hooks'
 import { danmakuConfig, playerBaseConfigForClient, playerBaseConfigForWeb } from './config'
 
 export interface PlayerType extends XgPlayer {
@@ -31,7 +30,8 @@ export const useXgPlayer = (url: string) => {
   const playerSettings = usePlayerSettingsValue()
   const { danmakuDuration, danmakuFontSize, danmakuEndArea, enableMiniProgress } = playerSettings
   const { setResponsiveSettingsUpdate } = useXgPlayerUtils()
-  const { mergedDanmakuData } = useDanmakuData()
+  // 从 atom 读取 pipeline 加载完成的弹幕数据
+  const danmakuData = useAtomValue(danmakuDataAtom)
   useEffect(() => {
     setResponsiveSettingsUpdate(playerInstance)
     return () => {
@@ -64,9 +64,10 @@ export const useXgPlayer = (url: string) => {
         let manualDanmaku: CommentModel[] = []
 
         if (!isLoadDanmaku) {
+          // 未匹配弹幕库时，加载用户手动导入的本地弹幕
           manualDanmaku =
             anime?.danmaku
-              ?.filter((item) => item.type === 'local' || item.type === 'third-party-manual')
+              ?.filter((item) => item.type === 'local')
               .filter((danmaku) => danmaku.selected)
               .map((danmaku) => danmaku?.content)
               .flatMap((danmaku) => danmaku.comments) ?? []
@@ -74,7 +75,7 @@ export const useXgPlayer = (url: string) => {
         xgplayerConfig.danmu = {
           ...danmakuConfig,
           comments: parseDanmakuData({
-            danmuData: [...(mergedDanmakuData || []), ...manualDanmaku],
+            danmuData: [...(danmakuData || []), ...manualDanmaku],
             duration: +danmakuDuration,
           }),
           fontSize: +danmakuFontSize,
@@ -101,7 +102,7 @@ export const useXgPlayer = (url: string) => {
             title: `${currentMatchedVideo.animeTitle} - ${currentMatchedVideo.episodeTitle}`,
             description: (
               <div>
-                <p>共加载 {mergedDanmakuData?.length} 条弹幕</p>
+                <p>共加载 {danmakuData?.length} 条弹幕</p>
               </div>
             ),
             duration: 5000,
