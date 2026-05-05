@@ -12,7 +12,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [18.x]
+        node-version: [22.x]
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -35,7 +35,7 @@ jobs:
       - name: Lint and Typecheck
         run: |
           pnpm run typecheck
-          npm run lint
+          pnpm run lint
 
       - name: Build project
         run: pnpm run build:web
