@@ -1,4 +1,6 @@
+import type { CommentModel } from '@renderer/request/models/comment'
 import { atom, useSetAtom } from 'jotai'
+
 import { atomWithReset, useResetAtom } from 'jotai/utils'
 
 import { jotaiStore } from './store'
@@ -53,13 +55,18 @@ export const useClearPlayingVideo = () => {
   const resetProgress = useResetAtom(loadingDanmuProgressAtom)
   const resetCurrentMatchedVideo = useResetAtom(currentMatchedVideoAtom)
   const resetPlayerSettingSheet = useResetAtom(playerSettingSheetAtom)
+  const resetDanmakuData = useResetAtom(danmakuDataAtom)
 
   return () => {
     resetVideo()
     resetProgress()
     resetCurrentMatchedVideo()
     resetPlayerSettingSheet()
+    resetDanmakuData()
   }
 }
 
 export const showPlayerSettingSheet = () => jotaiStore.set(playerSettingSheetAtom, true)
+
+// pipeline 加载完成后写入的弹幕数据，供播放器初始化时消费
+export const danmakuDataAtom = atomWithReset<CommentModel[] | null>(null)

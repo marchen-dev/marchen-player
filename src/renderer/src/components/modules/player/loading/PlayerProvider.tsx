@@ -1,83 +1,94 @@
+import type { MatchedVideoType } from '@renderer/atoms/player'
+import type { MatchResponseV2 } from '@renderer/request/models/match'
 import type { FC, PropsWithChildren } from 'react'
 import {
   currentMatchedVideoAtom,
+  danmakuDataAtom,
   loadingDanmuProgressAtom,
   LoadingStatus,
-  videoAtom,
+  useClearPlayingVideo,
 } from '@renderer/atoms/player'
+import { jotaiStore } from '@renderer/atoms/store'
 import { MatchAnimeDialog } from '@renderer/components/modules/player/loading/dialog/MatchAnimeDialog'
 import { LoadingDanmuTimeLine } from '@renderer/components/modules/player/loading/Timeline'
-import queryClient from '@renderer/lib/query-client'
-import { apiClient } from '@renderer/request'
+import { db } from '@renderer/database/db'
+import { usePlayAnimeFailedToast } from '@renderer/hooks/use-toast'
+import { mergeDanmaku } from '@renderer/lib/danmaku'
 import { useAtom, useAtomValue } from 'jotai'
-import { useEffect } from 'react'
+
+import { useEffect, useRef, useState } from 'react'
 
 import {
+  continuePipeline,
   saveToHistory,
-  useDanmakuData,
+  startMatchAndLoad,
   useLoadingHistoricalAnime,
-  useMatchAnimeData,
+  useVideo,
 } from './hooks'
 
 export const VideoProvider: FC<PropsWithChildren> = ({ children }) => {
   useLoadingHistoricalAnime()
-  const { clearPlayingVideo, matchData } = useMatchAnimeData()
-  const { url, hash, name } = useAtomValue(videoAtom)
-  const { danmakuData } = useDanmakuData()
-  const [currentMatchedVideo, setCurrentMatchedVideo] = useAtom(currentMatchedVideoAtom)
+  const { video } = useVideo()
+  const { hash, url, size, name } = video
   const [loadingProgress, setLoadingProgress] = useAtom(loadingDanmuProgressAtom)
+  const currentMatchedVideo = useAtomValue(currentMatchedVideoAtom)
+  const clearPlayingVideo = useClearPlayingVideo()
+  const { showFailedToast } = usePlayAnimeFailedToast()
 
-  // 当上方 useQuery 获取弹幕成功后，会触发下方 useEffect, 保存到历史记录并开始播放
+  // 未精准匹配时的 matchData，用于弹出对话框
+  const [pendingMatchData, setPendingMatchData] = useState<MatchResponseV2 | null>(null)
+  const pipelineTriggered = useRef(false)
+
+  // 当 hash 就绪时触发 pipeline
   useEffect(() => {
-    let timeoutId: NodeJS.Timeout
-    const handleSaveToHistory = async () => {
-      if (danmakuData && currentMatchedVideo && hash) {
-        await saveToHistory({
-          ...currentMatchedVideo,
-          hash,
-          danmaku: danmakuData,
-          path: url,
-        })
-        setLoadingProgress(LoadingStatus.READY_PLAY)
-        timeoutId = setTimeout(() => {
-          setLoadingProgress(LoadingStatus.START_PLAY)
-        }, 100)
+    if (!hash || !size || !name || loadingProgress !== LoadingStatus.CALC_HASH) {
+      return
+    }
+    if (pipelineTriggered.current) return
+    pipelineTriggered.current = true
+
+    const runPipeline = async () => {
+      try {
+        const matchData = await startMatchAndLoad(hash, size, name, url)
+        if (matchData) {
+          setPendingMatchData(matchData)
+        }
+      } catch (error) {
+        console.error('Pipeline 执行失败:', error)
+        showFailedToast({ title: '匹配失败', description: '请检查网络连接或稍后再试' })
+        clearPlayingVideo()
       }
     }
-    handleSaveToHistory()
-    return () => {
-      clearTimeout(timeoutId)
-    }
-  }, [danmakuData, currentMatchedVideo])
+    runPipeline()
+  }, [hash, loadingProgress])
 
+  // hash 变化时重置 pipeline 状态
+  useEffect(() => {
+    pipelineTriggered.current = false
+    setPendingMatchData(null)
+  }, [hash])
+
+  // 加载中：显示 stepper + 对话框
   if (loadingProgress !== null && loadingProgress < LoadingStatus.START_PLAY) {
     return (
       <>
-        {/* 加载进度条 */}
         <LoadingDanmuTimeLine />
-        {/* 如果在 useMatchAnimeData() 里面没有匹配弹幕库成功， 就会弹出下方对话框，让用户手动匹配*/}
         <MatchAnimeDialog
-          matchData={currentMatchedVideo.episodeId ? undefined : matchData}
-          onSelected={async (params) => {
-            // 如果用户选择不加载弹幕
+          matchData={currentMatchedVideo.episodeId ? undefined : (pendingMatchData ?? undefined)}
+          onSelected={async (params?: MatchedVideoType) => {
+            // 用户选择不加载弹幕
             if (!params) {
-              // 保存到历史记录
-              await saveToHistory({
-                hash,
-                path: url,
-                animeTitle: name,
-              })
-              // 如果用户选择不加载弹幕, 就直接开始播放
+              const history = await db.history.get(hash)
+              const localDanmaku = history?.danmaku?.filter((item) => item.type === 'local') ?? []
+              if (localDanmaku.length > 0) {
+                const merged = mergeDanmaku(localDanmaku)
+                jotaiStore.set(danmakuDataAtom, merged ?? null)
+              }
+              await saveToHistory({ hash, path: url, animeTitle: name })
               return setLoadingProgress(LoadingStatus.START_PLAY)
             }
-            // 如果用户手动选择了弹幕库，就使用用户选择的弹幕库，之后就会触发 useDanmuData() 里的 useQuery 和 useEffect
-            setCurrentMatchedVideo(params)
-
-            // 因为用户手动选择了弹幕库，所以需要更新 queryClient 的数据, 确保下次加载的时候不会再次弹出对话框
-            queryClient.setQueryData([apiClient.match.Matchkeys.postVideoEpisodeId, hash], {
-              isMatched: true,
-              matches: [{ ...params }],
-            })
+            // 用户选择了弹幕库，继续 pipeline
+            await continuePipeline({ ...params, hash, url })
           }}
           onClosed={clearPlayingVideo}
           isLoading

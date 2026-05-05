@@ -5,3 +5,4 @@
 - 2026-05-03: [contract-first-ipc](./archive/2026-05-03-contract-first-ipc/) — 改造defineGroup为contract-first模式，IPC类型只在shared定义一次，去掉handler()包装层，input自动推导
 - 2026-05-05: [implementation-first-ipc](./archive/2026-05-05-implementation-first-ipc/) — 重写@marchen/electron-ipc为tipc风格链式API，通过typeof推导实现Go to Definition跳转到handler实现
 - 2026-05-05: [upgrade-node-22](./archive/2026-05-05-upgrade-node-22/) — 统一 CI workflow Node 版本到 22.x，修复 ESLint 10 正则兼容性报错
+- 2026-05-05: [refactor-danmaku-loading](./archive/2026-05-05-refactor-danmaku-loading/) — 迁移弹幕API至withRelated模式，用async pipeline替代react-query编排，简化数据模型和Loading UI

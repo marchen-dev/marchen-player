@@ -23,7 +23,8 @@ const createPlayerDefaultSettings = () => {
   }
 }
 
-const atom = createSettingATom('player', createPlayerDefaultSettings)
+const playerSettingAtom = createSettingATom('player', createPlayerDefaultSettings)
 
-export const usePlayerSettings = () => useAtom(atom)
-export const usePlayerSettingsValue = () => useAtomValue(atom)
+export { playerSettingAtom }
+export const usePlayerSettings = () => useAtom(playerSettingAtom)
+export const usePlayerSettingsValue = () => useAtomValue(playerSettingAtom)

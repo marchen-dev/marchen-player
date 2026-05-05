@@ -1,20 +1,23 @@
 import type { MatchedVideoType } from '@renderer/atoms/player'
-import { currentMatchedVideoAtom } from '@renderer/atoms/player'
+import { currentMatchedVideoAtom, danmakuDataAtom } from '@renderer/atoms/player'
+import { jotaiStore } from '@renderer/atoms/store'
 import { db } from '@renderer/database/db'
 import { ipcClient } from '@renderer/lib/client'
+import { mergeDanmaku } from '@renderer/lib/danmaku'
+import queryClient from '@renderer/lib/query-client'
 import { apiClient } from '@renderer/request'
 import { RouteName, useCurrentRoute } from '@renderer/router'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useQuery } from '@tanstack/react-query'
 import { useAtomValue, useSetAtom } from 'jotai'
 
 import { showMatchAnimeDialogAtom } from '../player/loading/dialog/hooks'
 import { MatchAnimeDialog } from '../player/loading/dialog/MatchAnimeDialog'
-import { saveToHistory } from '../player/loading/hooks'
+import { fetchDanmakuForEpisode, saveToHistory } from '../player/loading/hooks'
+import { SettingProviderQueryKey } from '../player/setting/Sheet'
 
 export const MatchDanmakuDialog = () => {
   const { hash } = useAtomValue(showMatchAnimeDialogAtom)
   const setCurrentMatchedVideoAtom = useSetAtom(currentMatchedVideoAtom)
-  const queryClient = useQueryClient()
   const routes = useCurrentRoute()
   const { data: matchData } = useQuery({
     queryKey: [apiClient.match.Matchkeys.postVideoEpisodeId, hash],
@@ -37,6 +40,7 @@ export const MatchDanmakuDialog = () => {
     // 仅在历史记录页面才需要重新获取匹配数据
     enabled: !!hash && routes?.path === RouteName.HISTORY,
   })
+
   const handleUpdateHistory = async (params?: MatchedVideoType) => {
     const old = await db.history.get({ hash })
     if (!old || !hash) {
@@ -48,18 +52,29 @@ export const MatchDanmakuDialog = () => {
       return
     }
     const { episodeId, episodeTitle, animeId, animeTitle } = params
+
+    // 获取新弹幕并更新播放器（强制刷新，因为 episodeId 变了）
+    const danmakuData = await fetchDanmakuForEpisode(episodeId, hash, true)
+    const mergedComments = mergeDanmaku(danmakuData)
+    jotaiStore.set(danmakuDataAtom, mergedComments ?? null)
+
     await saveToHistory({
       path,
       subtitles,
       hash,
       ...params,
+      danmaku: danmakuData,
     })
 
-    // 如果之前之前播放过动漫，就更新匹配数据
-    queryClient.setQueryData([apiClient.match.Matchkeys.postVideoEpisodeId, hash], {
-      isMatched: true,
-      matches: [{ episodeTitle, episodeId, animeId, animeTitle }],
-    })
+    // 更新设置面板的弹幕数据缓存
+    queryClient.setQueryData([SettingProviderQueryKey, hash], (oldData: any) => ({
+      ...oldData,
+      danmaku: danmakuData,
+      episodeId,
+      episodeTitle,
+      animeId,
+      animeTitle,
+    }))
 
     setCurrentMatchedVideoAtom(params)
   }

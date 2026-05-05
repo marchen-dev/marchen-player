@@ -115,11 +115,6 @@ const SourceList = memo(() => {
         />
         <Label htmlFor={item.source}>
           {danmakuPlatform}
-          {item.type === 'third-party-manual' && (
-            <Badge className="ml-2 py-0" variant="secondary">
-              自定义第三方网址
-            </Badge>
-          )}
           {item.type === 'local' && (
             <Badge className="ml-2 py-0" variant="secondary">
               本地弹幕文件
