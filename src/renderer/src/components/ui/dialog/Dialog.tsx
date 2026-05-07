@@ -33,13 +33,14 @@ const DialogContent = ({
   ref,
   onClosed,
   className,
+  overlayClassName,
   children,
   ...props
-}: React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content> & { onClosed?: () => void } & {
+}: React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content> & { onClosed?: () => void; overlayClassName?: string } & {
   ref?: React.RefObject<React.ElementRef<typeof DialogPrimitive.Content>>
 }) => (
   <DialogPortal>
-    <DialogOverlay />
+    <DialogOverlay className={overlayClassName} />
     <DialogPrimitive.Content
       ref={ref}
       className={cn(
