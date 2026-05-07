@@ -8,3 +8,4 @@
 - 2026-05-05: [refactor-danmaku-loading](./archive/2026-05-05-refactor-danmaku-loading/) — 迁移弹幕API至withRelated模式，用async pipeline替代react-query编排，简化数据模型和Loading UI
 - 2026-05-07: [fix-danmaku-font-reset](./archive/2026-05-07-fix-danmaku-font-reset/) — 修复热更新弹幕后字体大小重置为默认值的问题
 - 2026-05-07: [loading-step-description](./archive/2026-05-07-loading-step-description/) — 加载Timeline stepper下方新增步骤描述副标题，显示文件名、匹配结果和弹幕数量
+- 2026-05-07: [add-ai-settings-tab](./archive/2026-05-07-add-ai-settings-tab/) — 新增AI设置Tab，支持多Provider管理（OpenAI/Anthropic）、模型列表获取、连接测试和AI SDK客户端工厂

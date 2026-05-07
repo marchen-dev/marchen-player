@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 
 import { AboutView } from './views/about/About'
+import { AIView } from './views/ai/AIView'
 import { GeneralView } from './views/general/General'
 import { PlayerView } from './views/player'
 
@@ -14,6 +15,11 @@ export const settingTabs = [
     title: '播放器',
     icon: 'icon-[mingcute--play-circle-line]',
     component: <PlayerView />,
+  },
+  {
+    title: 'AI',
+    icon: 'icon-[mingcute--sparkles-2-line]',
+    component: <AIView />,
   },
   {
     title: '关于',

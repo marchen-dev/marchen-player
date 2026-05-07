@@ -1,3 +1,4 @@
+import { ai } from './api/ai'
 import { bangumi } from './api/bangumi'
 import { comment } from './api/comment'
 import { match } from './api/match'
@@ -8,4 +9,5 @@ export const apiClient = {
   comment,
   search,
   bangumi,
+  ai,
 }

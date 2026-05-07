@@ -34,8 +34,12 @@
     "typecheck:web": "tsc --noEmit -p tsconfig.web.json --composite false"
   },
   "dependencies": {
+    "@ai-sdk/anthropic": "^3.0.75",
+    "@ai-sdk/openai": "^3.0.62",
     "@ffmpeg-installer/ffmpeg": "^1.1.0",
-    "@ffprobe-installer/ffprobe": "^2.1.2"
+    "@ffprobe-installer/ffprobe": "^2.1.2",
+    "ai": "^6.0.175",
+    "nanoid": "^5.1.11"
   },
   "devDependencies": {
     "@antfu/eslint-config": "^8.2.0",
