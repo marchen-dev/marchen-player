@@ -109,6 +109,9 @@ export const useXgPlayer = (url: string) => {
             })
             _playerInstance?.danmu?.clear()
             _playerInstance?.danmu?.updateComments(parsed, true)
+            _playerInstance?.danmu?.setFontSize(+danmakuFontSize, 24)
+            _playerInstance?.danmu?.setAllDuration('all', +danmakuDuration)
+            _playerInstance?.danmu?.setArea({ start: 0, end: +danmakuEndArea })
           },
         })
 

@@ -6,3 +6,5 @@
 - 2026-05-05: [implementation-first-ipc](./archive/2026-05-05-implementation-first-ipc/) — 重写@marchen/electron-ipc为tipc风格链式API，通过typeof推导实现Go to Definition跳转到handler实现
 - 2026-05-05: [upgrade-node-22](./archive/2026-05-05-upgrade-node-22/) — 统一 CI workflow Node 版本到 22.x，修复 ESLint 10 正则兼容性报错
 - 2026-05-05: [refactor-danmaku-loading](./archive/2026-05-05-refactor-danmaku-loading/) — 迁移弹幕API至withRelated模式，用async pipeline替代react-query编排，简化数据模型和Loading UI
+- 2026-05-07: [fix-danmaku-font-reset](./archive/2026-05-07-fix-danmaku-font-reset/) — 修复热更新弹幕后字体大小重置为默认值的问题
+- 2026-05-07: [loading-step-description](./archive/2026-05-07-loading-step-description/) — 加载Timeline stepper下方新增步骤描述副标题，显示文件名、匹配结果和弹幕数量
