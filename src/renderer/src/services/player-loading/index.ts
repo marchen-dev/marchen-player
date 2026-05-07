@@ -48,17 +48,13 @@ export function getPlayerLoadingService(): PlayerLoadingService {
 
     // 同步 service state 中的 video 信息到 videoAtom
     // 这样 SettingProvider、Event.tsx 等仍然从 videoAtom 读取 hash 的组件能正常工作
+    // 只在 video 信息完整时（hash 存在）才同步，跳过 hashing 阶段的 Partial<VideoInfo>
     serviceInstance.state$.subscribe((state) => {
-      if ('video' in state && state.video) {
+      if ('video' in state && state.video && state.video.hash) {
+        const { url, hash, size, name, playList } = state.video as Required<typeof state.video>
         const current = jotaiStore.get(videoAtom)
-        if (current.hash !== state.video.hash || current.url !== state.video.url) {
-          jotaiStore.set(videoAtom, {
-            url: state.video.url,
-            hash: state.video.hash,
-            size: state.video.size,
-            name: state.video.name,
-            playList: state.video.playList,
-          })
+        if (current.hash !== hash || current.url !== url) {
+          jotaiStore.set(videoAtom, { url, hash, size, name, playList })
         }
       }
     })
