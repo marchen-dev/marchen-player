@@ -5,11 +5,11 @@
  * 纯 Tailwind 实现，不依赖外部 CSS 组件库。
  */
 
-import type { StepName } from '@marchen/player-core'
+import type { LoadingState, StepName } from '@marchen/player-core'
 import type { FC } from 'react'
 import { VISIBLE_STEPS } from '@marchen/player-core'
 import { cn } from '@renderer/lib/utils'
-import { usePlayerLoadingSelector } from '@renderer/services/player-loading/hooks'
+import { usePlayerLoadingState } from '@renderer/services/player-loading/hooks'
 
 const stepLabels: Record<(typeof VISIBLE_STEPS)[number], string> = {
   importing: '视频导入',
@@ -20,19 +20,22 @@ const stepLabels: Record<(typeof VISIBLE_STEPS)[number], string> = {
 }
 
 export const LoadingDanmuTimeLine = () => {
-  const step = usePlayerLoadingSelector((s) => s.step)
+  const state = usePlayerLoadingState()
   return (
-    <div className="flex h-full items-center justify-center">
-      {VISIBLE_STEPS.map((stepName, index) => (
-        <StepItem
-          key={stepName}
-          title={stepLabels[stepName]}
-          stepName={stepName}
-          index={index}
-          isLast={index === VISIBLE_STEPS.length - 1}
-          currentStep={step}
-        />
-      ))}
+    <div className="flex h-full flex-col items-center justify-center gap-4">
+      <div className="flex items-center">
+        {VISIBLE_STEPS.map((stepName, index) => (
+          <StepItem
+            key={stepName}
+            title={stepLabels[stepName]}
+            stepName={stepName}
+            index={index}
+            isLast={index === VISIBLE_STEPS.length - 1}
+            currentStep={state.step}
+          />
+        ))}
+      </div>
+      <StepDescription state={state} />
     </div>
   )
 }
@@ -89,5 +92,37 @@ const StepItem: FC<StepItemProps> = ({ title, index, isLast, currentStep }) => {
         />
       )}
     </>
+  )
+}
+
+function getStepDescription(state: LoadingState): string {
+  switch (state.step) {
+    case 'importing':
+      return '正在导入视频...'
+    case 'hashing':
+    case 'matching':
+      return 'video' in state && state.video ? (('name' in state.video && state.video.name) || '') : ''
+    case 'loading_danmaku':
+      return `${state.match.animeTitle} - ${state.match.episodeTitle}`
+    case 'ready':
+      return `${state.match.animeTitle} - ${state.match.episodeTitle} · ${state.mergedComments.length} 条弹幕`
+    case 'error':
+      return state.error.message
+    default:
+      return ''
+  }
+}
+
+const StepDescription: FC<{ state: LoadingState }> = ({ state }) => {
+  const text = getStepDescription(state)
+  if (!text) return null
+
+  return (
+    <p className={cn(
+      'max-w-md truncate text-center text-sm animate-in fade-in',
+      state.step === 'error' ? 'text-destructive' : 'text-muted-foreground',
+    )}>
+      {text}
+    </p>
   )
 }
