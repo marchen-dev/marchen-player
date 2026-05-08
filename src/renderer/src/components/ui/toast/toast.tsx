@@ -1,10 +1,10 @@
 'use client'
 
 import type { VariantProps } from 'class-variance-authority'
-import * as ToastPrimitives from '@radix-ui/react-toast'
 import { cn } from '@renderer/lib/utils'
 import { cva } from 'class-variance-authority'
 import { X } from 'lucide-react'
+import { Toast as ToastPrimitives } from 'radix-ui'
 import * as React from 'react'
 
 const ToastProvider = ToastPrimitives.Provider
@@ -19,7 +19,7 @@ const ToastViewport = ({
   <ToastPrimitives.Viewport
     ref={ref}
     className={cn(
-      'fixed top-0 z-[150] flex max-h-screen w-full flex-col-reverse p-4 sm:top-auto sm:right-0 sm:bottom-0 sm:flex-col md:max-w-[420px]',
+      'fixed top-0 z-(--z-toast) flex max-h-screen w-full flex-col-reverse p-4 sm:top-auto sm:right-0 sm:bottom-0 sm:flex-col md:max-w-[420px]',
       className,
     )}
     {...props}

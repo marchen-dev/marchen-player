@@ -1,5 +1,6 @@
 import type { motion, Target, Transition } from 'framer-motion'
 import type { ComponentProps } from 'react'
+import { Z_INDEX } from '@renderer/lib/constants/z-index'
 
 const enterStyle: Target = {
   scale: 1,
@@ -26,4 +27,4 @@ export const modalMotionConfig: ModalMotionConfig = {
   transition: microReboundPreset,
 }
 
-export const MODAL_STACK_Z_INDEX = 100
+export const MODAL_STACK_Z_INDEX = Z_INDEX.modalStack

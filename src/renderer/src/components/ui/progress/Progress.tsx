@@ -1,5 +1,5 @@
-import * as ProgressPrimitive from '@radix-ui/react-progress'
 import { cn } from '@renderer/lib/utils'
+import { Progress as ProgressPrimitive } from 'radix-ui'
 import * as React from 'react'
 
 const Progress = ({

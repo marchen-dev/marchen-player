@@ -1,8 +1,8 @@
 'use client'
 
-import * as CheckboxPrimitive from '@radix-ui/react-checkbox'
 import { cn } from '@renderer/lib/utils'
 import { Check } from 'lucide-react'
+import { Checkbox as CheckboxPrimitive } from 'radix-ui'
 import * as React from 'react'
 
 const Checkbox = ({

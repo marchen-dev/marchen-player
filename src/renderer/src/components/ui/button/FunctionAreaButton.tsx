@@ -1,5 +1,5 @@
-import type * as TogglePrimitive from '@radix-ui/react-toggle'
 import type { ButtonProps } from '@renderer/components/ui/button'
+import type { Toggle as TogglePrimitive } from 'radix-ui'
 import type { ComponentPropsWithRef, FC, PropsWithChildren } from 'react'
 import { Button } from '@renderer/components/ui/button'
 import { Toggle } from '@renderer/components/ui/toggle'

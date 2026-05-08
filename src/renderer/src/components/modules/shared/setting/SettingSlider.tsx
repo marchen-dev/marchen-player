@@ -1,9 +1,12 @@
-import type { SliderProps } from '@radix-ui/react-slider'
+import type { Slider as SliderPrimitive } from 'radix-ui'
 import type { FC } from 'react'
+import type * as React from 'react'
 import { Slider } from '@renderer/components/ui/slider'
 import { cn } from '@renderer/lib/utils'
 import { debounce } from 'lodash-es'
 import { memo, useCallback, useState } from 'react'
+
+type SliderProps = Omit<React.ComponentProps<typeof SliderPrimitive.Root>, 'ref'>
 
 interface SettingSliderProps extends SliderProps {
   onValueChangeWithDebounce?: (value: number[]) => void

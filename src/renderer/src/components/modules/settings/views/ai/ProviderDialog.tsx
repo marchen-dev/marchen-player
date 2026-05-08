@@ -109,7 +109,7 @@ export const ProviderDialog: FC<ProviderDialogProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="z-[200] sm:max-w-md" overlayClassName="z-[200]" onInteractOutside={(e) => e.preventDefault()}>
+      <DialogContent className="sm:max-w-md" onInteractOutside={(e) => e.preventDefault()}>
         <DialogHeader>
           <DialogTitle>{editingProvider ? '编辑服务商' : '添加服务商'}</DialogTitle>
         </DialogHeader>

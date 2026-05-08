@@ -1,7 +1,6 @@
-import type { CheckedState } from '@radix-ui/react-checkbox'
 import type { DB_History } from '@renderer/database/schemas/history'
+import type { Checkbox as CheckboxPrimitive} from 'radix-ui';
 import type { FC, PropsWithChildren } from 'react'
-import { Separator } from '@radix-ui/react-select'
 import { playerSettingSheetAtom, videoAtom } from '@renderer/atoms/player'
 import { usePlayerSettingsValue } from '@renderer/atoms/settings/player'
 import { jotaiStore } from '@renderer/atoms/store'
@@ -24,6 +23,7 @@ import { isWeb } from '@renderer/lib/utils'
 import { getPlayerLoadingService } from '@renderer/services/player-loading/index'
 import { useAtomValue } from 'jotai'
 import { debounce } from 'lodash-es'
+import { Select as SelectPrimitive } from 'radix-ui'
 import { memo } from 'react'
 
 import { usePlayerInstance } from '../../../Context'
@@ -47,7 +47,7 @@ export const DanmakuSource = memo(() => {
               <ClearDanmakuCache />
             </div>
           </PopoverContentLayout>
-          <Separator />
+          <SelectPrimitive.Separator />
         </PopoverContent>
       </Popover>
     </FieldLayout>
@@ -60,7 +60,7 @@ const SourceList = memo(() => {
   const video = useAtomValue(videoAtom)
   const player = usePlayerInstance()
   const { setResponsiveSettingsUpdate } = useXgPlayerUtils()
-  const handleCheckDanmaku = debounce((params: { checked: CheckedState; source: string }) => {
+  const handleCheckDanmaku = debounce((params: { checked: CheckboxPrimitive.CheckedState; source: string }) => {
     const { checked, source } = params
     if (checked === 'indeterminate') {
       return

@@ -8,15 +8,15 @@ import type {
 } from 'react'
 import type { currentModalContextProps, ModalContentPropsInternal } from './Context'
 import type { ModalProps } from './types'
-import * as Dialog from '@radix-ui/react-dialog'
 import { useEventCallback } from '@renderer/hooks/use-event-callback'
 import { useIsUnMounted } from '@renderer/hooks/use-is-unmounted'
 import { nextFrame, stopPropagation } from '@renderer/lib/dom'
 import { cn } from '@renderer/lib/utils'
 import { m, useAnimationControls, useDragControls } from 'framer-motion'
 import { useAtomValue, useSetAtom } from 'jotai'
-
 import { selectAtom } from 'jotai/utils'
+
+import { Dialog } from 'radix-ui'
 import { createElement, Fragment, memo, useCallback, useEffect, useMemo, useRef } from 'react'
 import { ButtonWithIcon } from '../../button'
 import { Divider } from '../../divider'

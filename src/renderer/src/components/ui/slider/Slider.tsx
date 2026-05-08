@@ -1,5 +1,5 @@
-import * as SliderPrimitive from '@radix-ui/react-slider'
 import { cn } from '@renderer/lib/utils'
+import { Slider as SliderPrimitive } from 'radix-ui'
 import * as React from 'react'
 
 const Slider = ({
