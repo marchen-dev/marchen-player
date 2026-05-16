@@ -2,6 +2,7 @@ import type { PlayerType } from './hooks'
 import { videoAtom } from '@renderer/atoms/player'
 import { usePlayerSettingsValue } from '@renderer/atoms/settings/player'
 import { db } from '@renderer/database/db'
+import { markEpisodeWatched } from '@renderer/database/lib/library-writer'
 import { ipcClient } from '@renderer/lib/client'
 import { isWeb } from '@renderer/lib/utils'
 import { getPlayerLoadingService } from '@renderer/services/player-loading/index'
@@ -114,6 +115,14 @@ const usePlayerInitialize = (player: PlayerType | null | undefined) => {
           progress: data?.currentTime,
           duration: data?.duration,
         })
+        // 播放进度超过 90% 时标记该集为已观看
+        if (data?.currentTime && data?.duration && data.currentTime / data.duration > 0.9) {
+          db.history.get(hash).then((record) => {
+            if (record?.animeId && record?.episodeId) {
+              markEpisodeWatched(record.animeId, record.episodeId)
+            }
+          })
+        }
       }, 2000),
     )
 
@@ -137,6 +146,12 @@ const usePlayerInitialize = (player: PlayerType | null | undefined) => {
       await db.history.update(hash, {
         progress: latestAnime?.duration,
       })
+
+      // 标记该集为已观看（library 表）
+      if (latestAnime?.animeId && latestAnime?.episodeId) {
+        markEpisodeWatched(latestAnime.animeId, latestAnime.episodeId)
+      }
+
       if (!enableAutomaticEpisodeSwitching || isWeb) {
         return
       }

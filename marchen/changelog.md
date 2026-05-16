@@ -10,3 +10,5 @@
 - 2026-05-07: [loading-step-description](./archive/2026-05-07-loading-step-description/) — 加载Timeline stepper下方新增步骤描述副标题，显示文件名、匹配结果和弹幕数量
 - 2026-05-07: [add-ai-settings-tab](./archive/2026-05-07-add-ai-settings-tab/) — 新增AI设置Tab，支持多Provider管理（OpenAI/Anthropic）、模型列表获取、连接测试和AI SDK客户端工厂
 - 2026-05-08: [refactor-ui-foundations](./archive/2026-05-08-refactor-ui-foundations/) — shadcn UI 基础设施重构：17 个独立 Radix 包合并为统一 radix-ui，建立全局 z-index 层级体系（CSS 变量 + TS 常量），清理硬编码层级
+- 2026-05-16: [fix-getanime-eperm](./archive/2026-05-16-fix-getanime-eperm/) — 修复 getAnimeInSamePath 因目录权限被拒导致 handler 崩溃的问题
+- 2026-05-16: [add-library](./archive/2026-05-16-add-library/) — 新增影视库功能：以作品为单位管理观看进度，替代原播放记录页面

@@ -123,9 +123,20 @@ export const playerGroup = {
 
       const selectedFileDirname = path.dirname(selectedFilePath)
 
-      const fileNameWithSameSuffix = fs
-        .readdirSync(selectedFileDirname)
-        .filter((file) => path.extname(file).toLowerCase() === selectedFileExtname)
+      let fileNameWithSameSuffix: string[]
+      try {
+        fileNameWithSameSuffix = fs
+          .readdirSync(selectedFileDirname)
+          .filter((file) => path.extname(file).toLowerCase() === selectedFileExtname)
+      } catch {
+        // macOS TCC 权限拒绝等情况，降级为只返回当前文件
+        return [
+          {
+            urlWithPrefix: `${MARCHEN_PROTOCOL_PREFIX}${selectedFilePath}`,
+            name: path.basename(selectedFilePath),
+          },
+        ]
+      }
 
       const filePathWithSameSuffix = fileNameWithSameSuffix.map((fileName) =>
         path.join(selectedFileDirname, fileName),

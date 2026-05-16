@@ -1,7 +1,7 @@
 import type { NonIndexRouteObject, RouteObject } from 'react-router'
 import App from '@renderer/App'
 import ErrorView from '@renderer/components/common/ErrorView'
-import History from '@renderer/page/history'
+import Library from '@renderer/page/library'
 import VideoPlayer from '@renderer/page/player'
 import { createHashRouter, Navigate, useLocation } from 'react-router'
 
@@ -24,22 +24,14 @@ export const siderbarRoutes = [
     errorElement: <ErrorView />,
     element: <VideoPlayer />,
   },
-  // {
-  //   path: RouteName.LATEST_ANIME,
-  //   meta: {
-  //     icon: 'icon-[mingcute--lightning-line]',
-  //     title: '最新番剧',
-  //   },
-  //   element: <LastAnime />,
-  // },
   {
-    path: RouteName.HISTORY,
+    path: RouteName.LIBRARY,
     meta: {
-      icon: 'icon-[mingcute--history-line]',
-      title: '播放记录',
+      icon: 'icon-[mingcute--movie-line]',
+      title: '影视库',
     },
     errorElement: <ErrorView />,
-    element: <History />,
+    element: <Library />,
   },
 ] satisfies SidebarRouteObject[]
 
