@@ -265,7 +265,7 @@ packages/
 - **关注点分离**：遵循项目已有的分层架构（Port 接口、Service、Pipeline、Adapter），新代码应保持同样的解耦程度。
 - **响应式模式**：涉及异步流和状态管理时，优先使用 RxJS operator 组合，避免命令式嵌套回调。
 - **平台兼容**：新增功能需考虑 Electron 和 Web 双端兼容，Electron 专属逻辑通过 `isWeb` 判断或可选链 `ipcClient?.` 隔离。
-- **UI 预览**：开发 UI 相关功能时，善用 Chrome DevTools MCP 工具预览实际效果，确保视觉和交互符合预期后再提交。
+- **UI 预览**：开发 UI 相关功能时，善用 Chrome DevTools MCP 工具预览实际效果，确保视觉和交互符合预期后再提交。MCP 已配置为 attach 模式（`.mcp.json` 中的 `--browserUrl=http://127.0.0.1:9222`），直接 `pnpm dev` 启动 Electron 即可，`isDev` 下主进程会自动暴露 9222 调试端口。attach 后用 `list_pages` 选中主窗口 target 再操作（可能会同时列出设置窗、DevTools 等其他 target）。若 9222 端口已被本机其他 Chrome 占用，改用其他端口并同步更新 `src/main/index.ts` 与 `.mcp.json`。
 
 ## 环境变量
 

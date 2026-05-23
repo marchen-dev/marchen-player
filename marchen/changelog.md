@@ -12,3 +12,4 @@
 - 2026-05-08: [refactor-ui-foundations](./archive/2026-05-08-refactor-ui-foundations/) — shadcn UI 基础设施重构：17 个独立 Radix 包合并为统一 radix-ui，建立全局 z-index 层级体系（CSS 变量 + TS 常量），清理硬编码层级
 - 2026-05-16: [fix-getanime-eperm](./archive/2026-05-16-fix-getanime-eperm/) — 修复 getAnimeInSamePath 因目录权限被拒导致 handler 崩溃的问题
 - 2026-05-16: [add-library](./archive/2026-05-16-add-library/) — 新增影视库功能：以作品为单位管理观看进度，替代原播放记录页面
+- 2026-05-23: [chrome-devtools-mcp-attach](./archive/2026-05-23-chrome-devtools-mcp-attach/) — Electron dev 暴露 CDP 9222，chrome-devtools-mcp 改 attach 模式

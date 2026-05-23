@@ -1,6 +1,8 @@
 schema: full
 providers:
   - claude-code
-version: 0.7.4
+version: 0.8.0
 search:
-  enabled: true
+  enabled: false
+models:
+  endpoint: https://hf-mirror.com

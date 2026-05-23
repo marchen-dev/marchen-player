@@ -105,7 +105,13 @@ description: 提出新变更，创建并填充所有 artifact。适用于用户�
 完成后显示：
 - 变更名称和目录位置
 - 已创建的 artifact 列表及简要说明
-- 提示："所有 artifact 已就绪，可以用 `/marchen:apply` 或让我直接开始实现。"
+- 用纯文字（不调用 AskUserQuestion，不自动执行）提示下一步两个并列选项，由用户自行决定：
+
+  ```
+  下一步：
+    /marchen:apply <name>           直接开始实现
+    /marchen:propose-preview <name> 先看一眼浓缩摘要再决定
+  ```
 
 **护栏**
 
