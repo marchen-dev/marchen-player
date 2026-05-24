@@ -13,3 +13,5 @@
 - 2026-05-16: [fix-getanime-eperm](./archive/2026-05-16-fix-getanime-eperm/) — 修复 getAnimeInSamePath 因目录权限被拒导致 handler 崩溃的问题
 - 2026-05-16: [add-library](./archive/2026-05-16-add-library/) — 新增影视库功能：以作品为单位管理观看进度，替代原播放记录页面
 - 2026-05-23: [chrome-devtools-mcp-attach](./archive/2026-05-23-chrome-devtools-mcp-attach/) — Electron dev 暴露 CDP 9222，chrome-devtools-mcp 改 attach 模式
+- 2026-05-23: [rewrite-library-cinematic](./archive/2026-05-23-rewrite-library-cinematic/) — 重写影视库为 Infuse 风格：scoped 红橙 token、Hero + 双 Rail + DetailOverlay，Web 隐藏路由
+- 2026-05-24: [redesign-sidebar-thin](./archive/2026-05-24-redesign-sidebar-thin/) — 重写 sidebar 为 72px 细 icon-only，去除 brand-mark 与红色 accent，使其与项目黑白灰 token 一致；红绿灯位置对齐 macOS 原生

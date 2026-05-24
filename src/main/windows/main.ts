@@ -19,7 +19,7 @@ globalThis.windows = windows
 export default function createWindow() {
   // Create the browser window.
   const baseWindowsConfig: Electron.BrowserWindowConstructorOptions = {
-    width: 1200,
+    width: 1400,
     height: 900,
     minWidth: 800, // 设置最小宽度
     minHeight: 650, // 设置最小高度
@@ -34,8 +34,8 @@ export default function createWindow() {
     case 'darwin': {
       Object.assign(baseWindowsConfig, {
         trafficLightPosition: {
-          x: 18,
-          y: 18,
+          x: 8,
+          y: 12,
         },
         titleBarStyle: 'hiddenInset',
       } as Electron.BrowserWindowConstructorOptions)
