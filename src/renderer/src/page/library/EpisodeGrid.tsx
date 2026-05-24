@@ -1,17 +1,15 @@
 import type { DB_Library, DB_LibraryEpisode } from '@renderer/database/schemas/library'
 import type { FC } from 'react'
+import { db } from '@renderer/database/db'
 import { cn } from '@renderer/lib/utils'
+import { useLiveQuery } from 'dexie-react-hooks'
 import { memo, useMemo } from 'react'
 
 /**
  * DetailOverlay 内的剧集网格。
  *
- * 每个 ep-tile 三种状态：
- *  - watched：已观看，标题变灰、集号显示完成色
- *  - is-next：首个未观看且有 fileHash 的下一集，accent 高亮 + NEXT 小标签
- *  - no-file：缺 fileHash（未关联本地文件），整体半透明且不可点击
- *
- * 网格列数由 `repeat(auto-fill, minmax(280px, 1fr))` 自动决定，剧场版（单集）也能优雅渲染。
+ * 每集右列三态：watched → ✓、有进度 → NN%、其余 → —。
+ * NEXT 标签优先级最高，占用右列时不显示进度。
  */
 interface EpisodeGridProps {
   item: DB_Library
@@ -19,20 +17,30 @@ interface EpisodeGridProps {
 }
 
 export const EpisodeGrid: FC<EpisodeGridProps> = memo(({ item, onPlay }) => {
-  // 已观看集合（O(1) 查询）
   const watchedSet = useMemo(() => new Set(item.watchedEpisodeIds), [item.watchedEpisodeIds])
 
-  // 集数按 episodeNumber 升序，避免数据库写入顺序乱序导致显示混乱
   const sortedEpisodes = useMemo(
     () => [...item.episodes].sort((a, b) => a.episodeNumber - b.episodeNumber),
     [item.episodes],
   )
 
-  // 下一集的 episodeId：首个未观看 且 有 fileHash 的剧集
   const nextEpisodeId = useMemo(
     () => sortedEpisodes.find((ep) => !watchedSet.has(ep.episodeId) && !!ep.fileHash)?.episodeId,
     [sortedEpisodes, watchedSet],
   )
+
+  // 按 fileHash 批量拉 history，得到每集 0~1 进度比例
+  const progressMap = useLiveQuery(async () => {
+    const hashes = sortedEpisodes.map((ep) => ep.fileHash).filter((h): h is string => !!h)
+    if (hashes.length === 0) return new Map<string, number>()
+    const records = await db.history.bulkGet(hashes)
+    const map = new Map<string, number>()
+    for (const r of records) {
+      if (!r || !r.duration || r.duration <= 0) continue
+      map.set(r.hash, Math.min(1, Math.max(0, r.progress / r.duration)))
+    }
+    return map
+  }, [sortedEpisodes])
 
   return (
     <div className="library-ep-grid">
@@ -40,6 +48,8 @@ export const EpisodeGrid: FC<EpisodeGridProps> = memo(({ item, onPlay }) => {
         const hasFile = !!ep.fileHash
         const watched = watchedSet.has(ep.episodeId)
         const isNext = ep.episodeId === nextEpisodeId
+        const ratio = hasFile ? progressMap?.get(ep.fileHash!) ?? 0 : 0
+        const pct = Math.round(ratio * 100)
 
         return (
           <div
@@ -68,7 +78,12 @@ export const EpisodeGrid: FC<EpisodeGridProps> = memo(({ item, onPlay }) => {
             {isNext ? (
               <span className="library-ep-next-pill">NEXT</span>
             ) : (
-              <span className="library-ep-date">{formatDate(ep.airDate)}</span>
+              <span
+                className={cn('library-ep-progress', watched && 'is-watched')}
+                aria-label={watched ? '已看完' : pct > 0 ? `已观看 ${pct}%` : '未开始'}
+              >
+                {watched ? '✓' : pct >= 1 ? `${pct}%` : '—'}
+              </span>
             )}
           </div>
         )
@@ -78,11 +93,3 @@ export const EpisodeGrid: FC<EpisodeGridProps> = memo(({ item, onPlay }) => {
 })
 
 EpisodeGrid.displayName = 'EpisodeGrid'
-
-/** 把 ISO 日期格式化为 "MM-DD"。空串或非法日期返回 ''。 */
-function formatDate(iso: string): string {
-  if (!iso) return ''
-  const d = new Date(iso)
-  if (Number.isNaN(d.getTime())) return ''
-  return `${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
-}

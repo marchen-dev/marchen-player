@@ -7,7 +7,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@renderer/components/ui/Tooltip'
-import { cn, isMac } from '@renderer/lib/utils'
+import { cn } from '@renderer/lib/utils'
 import { siderbarRoutes } from '@renderer/router'
 import { NavLink, useLocation } from 'react-router'
 
@@ -15,19 +15,14 @@ import { useSettingModal } from '../../modules/settings/hooks'
 
 /**
  * Thin icon-only sidebar（72px 宽，纯黑白灰系统）。
- *
- * 三段布局：顶部 macOS 红绿灯让位区（drag-region）/ 中部 nav / 底部 设置齿轮。
- * 状态层次完全用容器填充浓度区分，不引入项目 primary 之外的颜色。
+ * 从 AppHeader 下方齐平开始，不再承担红绿灯让位与拖窗。
  */
 export const Sidebar = () => {
   const showModal = useSettingModal()
 
   return (
     <TooltipProvider delayDuration={300}>
-      <aside className={cn('sidebar', isMac && 'is-mac')}>
-        {/* 顶部空白区：macOS 给红绿灯留位 + 通用拖窗区 */}
-        <div className="sidebar-top drag-region" />
-
+      <aside className="sidebar">
         <nav className="sidebar-nav no-drag-region select-none">
           {siderbarRoutes.map((route) => (
             <SidebarNavItem key={route.path} {...route} />

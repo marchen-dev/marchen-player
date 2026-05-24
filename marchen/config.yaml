@@ -3,6 +3,6 @@ providers:
   - claude-code
 version: 0.8.0
 search:
-  enabled: false
+  enabled: true
 models:
   endpoint: https://hf-mirror.com

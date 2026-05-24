@@ -1,5 +1,6 @@
 import type { JSX } from 'react'
 
+import { AppHeader } from './components/layout/app-header/AppHeader'
 import { RootLayout } from './components/layout/root/RootLayout'
 import { Sidebar } from './components/layout/sidebar'
 import { Prepare } from './components/modules/app/Prepare'
@@ -16,6 +17,7 @@ function App(): JSX.Element {
       <Prepare />
 
       <RootLayout>
+        <AppHeader />
         <Sidebar />
         <Content />
         {!isWeb && (
@@ -44,11 +46,8 @@ const GlobalDesktopToasts = () => {
   return null
 }
 
-// min-w-0 是必需的：flex 子项的 min-width 默认是 content min size，
-// 若内部有 flex-shrink:0 的横滚卡片（如 library 的 rail-track）会撑大整个 main，
-// 进而把 sidebar 挤压到 0 宽度。
 const Content = () => (
-  <main className="flex-1 min-w-0">
+  <main>
     <AnimatedOutlet />
   </main>
 )

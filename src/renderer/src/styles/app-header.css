@@ -1,0 +1,85 @@
+/* Marchen AppHeader — 全宽窗口 header，承载红绿灯让位 + 拖窗 + 页面注入内容 */
+
+:root {
+  --app-header-h: 44px;
+  --sidebar-w: 72px;
+}
+:root:has(.app-header.is-mac) {
+  --app-header-h: 40px;
+}
+
+.root-layout {
+  display: grid;
+  grid-template-rows: var(--app-header-h) 1fr;
+  grid-template-columns: var(--sidebar-w) 1fr;
+  height: 100vh;
+  overflow: hidden;
+}
+.root-layout > .app-header {
+  grid-column: 1 / -1;
+  grid-row: 1;
+}
+.root-layout > .sidebar {
+  grid-column: 1;
+  grid-row: 2;
+}
+.root-layout > main {
+  grid-column: 2;
+  grid-row: 2;
+  min-width: 0;
+  overflow: auto;
+}
+
+.app-header {
+  height: var(--app-header-h);
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 16px;
+  background: var(--sidebar-bg);
+  border-bottom: 1px solid var(--sidebar-line);
+  position: relative;
+  z-index: 20;
+}
+
+/* macOS 红绿灯让位：右端 ≈ x=60，加 20px 视觉缓冲 */
+.app-header-tl-spacer {
+  width: 64px;
+  flex-shrink: 0;
+}
+
+/* macOS 原生窗口标题风格：绝对居中于整条 header */
+.app-header-title {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--sidebar-fg-2);
+  pointer-events: none;
+}
+
+.app-header-actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* manage 变形：title 区被 actions 整条接管，hidden left padding 不变 */
+.app-header.is-manage .app-header-title {
+  flex: 1;
+}
+
+/* library 路由 hero blend：透明背景 + 蒙版。
+   AppHeader 不是 LibraryShell 的后代，靠 :has() 上升到根容器判定。 */
+.root-layout:has([data-page-blend='hero']) > .app-header {
+  background: color-mix(in oklch, var(--sidebar-bg) 60%, transparent);
+  backdrop-filter: blur(24px) saturate(140%);
+  -webkit-backdrop-filter: blur(24px) saturate(140%);
+}

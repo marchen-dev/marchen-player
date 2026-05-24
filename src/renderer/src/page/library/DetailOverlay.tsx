@@ -3,7 +3,7 @@ import type { FC } from 'react'
 import { memo, useEffect } from 'react'
 
 import { EpisodeGrid } from './EpisodeGrid'
-import { ctaLabel, isWatching, pickNextEpisode } from './utils/shows'
+import { ctaLabel, isWatching, pickNextEpisode } from './selectors'
 
 /**
  * 全屏覆盖详情页（替代旧的侧拉 DetailSheet）。

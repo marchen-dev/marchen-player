@@ -2,7 +2,7 @@ import type { DB_Library } from '@renderer/database/schemas/library'
 import type { FC } from 'react'
 import { memo } from 'react'
 
-import { ctaLabel, isWatching } from './utils/shows'
+import { ctaLabel, isWatching } from './selectors'
 
 /**
  * 静态 Hero 主推区。

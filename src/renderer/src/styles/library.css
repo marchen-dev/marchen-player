@@ -186,255 +186,14 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* ── TopBar ─────────────────────────────────────────────────────────────── */
-.library-topbar {
-  position: sticky;
-  top: 0;
-  /* 局部层级即可，足够压在 Hero 之上 */
-  z-index: 30;
-  padding: 16px 44px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  background: var(--library-topbar-grad);
-  /* 让背景渐变区可拖窗，按钮自己加 no-drag-region */
-  pointer-events: none;
-}
-.library-topbar > * {
-  pointer-events: auto;
-}
-
-.library-topbar-title {
-  font-size: 17px;
-  font-weight: 700;
-  letter-spacing: -0.01em;
-  margin-right: auto;
-  color: var(--library-fg);
-}
-.library-topbar-title .library-muted {
-  font-weight: 500;
-  margin-left: 6px;
-}
-
-.library-topbar-manage {
-  background: var(--library-bg-2);
-  border-bottom: 1px solid var(--library-line-1);
-  padding: 12px 44px;
-  pointer-events: auto;
-  z-index: 35;
-}
-.library-topbar-manage .library-topbar-title {
-  font-weight: 600;
-}
-.library-topbar-manage .library-accent-text {
-  color: var(--library-accent);
-}
-.library-manage-spacer {
-  flex: 1;
-}
-
-/* ── SearchPill ──────────────────────────────────────────────────────────── */
-.library-search-pill {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  height: 32px;
-  padding: 0 12px;
-  background: var(--library-glass);
-  border: 1px solid var(--library-line-2);
-  backdrop-filter: blur(20px);
-  border-radius: 999px;
-  color: var(--library-fg-2);
-  width: 240px;
-  transition: width 0.15s, background 0.12s, border-color 0.12s;
-}
-.library-search-pill:focus-within {
-  background: var(--library-glass-strong);
-  border-color: var(--library-line-2);
-  width: 280px;
-}
-.library-search-pill input {
-  flex: 1;
-  min-width: 0;
-  font-size: 13px;
-  background: transparent;
-  border: 0;
-  outline: none;
-  color: inherit;
-}
-.library-search-pill input::placeholder {
-  color: var(--library-fg-3);
-}
-.library-search-pill kbd {
-  font-family: ui-monospace, 'SF Mono', Menlo, monospace;
-  font-size: 10px;
-  background: var(--library-panel-2);
-  border-radius: 4px;
-  padding: 1px 5px;
-  color: var(--library-fg-3);
-}
-
-/* ── 通用图标圆按钮 ───────────────────────────────────────────────────── */
-.library-icon-btn {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: var(--library-glass);
-  border: 1px solid var(--library-line-2);
-  backdrop-filter: blur(20px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--library-fg-2);
-  cursor: default;
-}
-.library-icon-btn:hover {
-  background: var(--library-glass-strong);
-  color: var(--library-fg);
-}
-.library-icon-btn.is-open {
-  background: var(--library-glass-strong);
-  color: var(--library-fg);
-  border-color: var(--library-line-2);
-}
-
-/* ── 文本按钮（manage 模式用） ──────────────────────────────────────── */
-.library-btn-text {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  height: 32px;
-  padding: 0 12px;
-  border-radius: 8px;
-  font-size: 13px;
-  color: var(--library-fg-2);
-  background: var(--library-panel-1);
-  border: 1px solid var(--library-line-1);
-  cursor: default;
-}
-.library-btn-text:hover {
-  background: var(--library-panel-2);
-  color: var(--library-fg);
-}
-
-.library-btn-delete {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  height: 32px;
-  padding: 0 14px;
-  border-radius: 8px;
-  background: var(--library-accent);
-  color: #fff;
-  font-size: 13px;
-  font-weight: 600;
-  box-shadow: 0 4px 14px var(--library-accent-glow);
-  cursor: default;
-  border: 0;
-}
-.library-btn-delete:hover {
-  background: var(--library-accent-press);
-}
-.library-btn-delete:disabled {
-  background: var(--library-panel-2);
-  color: var(--library-fg-4);
-  box-shadow: none;
-  cursor: default;
-}
-
-/* ── 弹出菜单（sort/more 共用） ───────────────────────────────────────── */
-.library-menu-wrap {
-  position: relative;
-  pointer-events: auto;
-}
-.library-menu-popover {
-  position: absolute;
-  top: calc(100% + 8px);
-  right: 0;
-  min-width: 240px;
-  background: var(--library-bg-2);
-  border: 1px solid var(--library-line-2);
-  border-radius: 12px;
-  padding: 6px;
-  box-shadow: var(--library-shadow-md), 0 0 0 1px var(--library-line-1);
-  z-index: var(--z-popover);
-  animation: library-pop-in 0.14s cubic-bezier(0.16, 1, 0.3, 1);
-  backdrop-filter: blur(20px);
-}
-@keyframes library-pop-in {
-  from {
-    opacity: 0;
-    transform: translateY(-4px) scale(0.98);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-.library-menu-section {
-  padding: 8px 12px 6px;
-  font-family: ui-monospace, 'SF Mono', Menlo, monospace;
-  font-size: 9.5px;
-  letter-spacing: 0.14em;
-  color: var(--library-fg-3);
-}
-.library-menu-item {
-  display: grid;
-  grid-template-columns: 22px 1fr auto;
-  align-items: center;
-  gap: 10px;
-  width: 100%;
-  padding: 8px 12px;
-  border-radius: 8px;
-  font-size: 13px;
-  color: var(--library-fg);
-  text-align: left;
-  transition: background 0.1s;
-  background: transparent;
-  border: 0;
-  cursor: default;
-}
-.library-menu-item:hover {
-  background: var(--library-panel-2);
-}
-.library-menu-item.is-on {
-  color: var(--library-accent);
-}
-.library-menu-item.is-danger {
-  color: var(--library-accent);
-}
-.library-menu-item.is-danger:hover {
-  background: color-mix(in oklch, var(--library-accent) 12%, transparent);
-}
-.library-menu-check,
-.library-menu-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 18px;
-  height: 18px;
-  color: currentColor;
-}
-.library-menu-label {
-  white-space: nowrap;
-}
-.library-menu-hint {
-  font-family: ui-monospace, 'SF Mono', Menlo, monospace;
-  font-size: 10.5px;
-  color: var(--library-fg-3);
-  letter-spacing: 0.04em;
-}
-.library-menu-divider {
-  height: 1px;
-  background: var(--library-line-1);
-  margin: 6px 4px;
-}
 
 /* ── Hero ────────────────────────────────────────────────────────────────── */
 .library-hero {
   position: relative;
-  margin-top: -64px; /* 让 Hero 上溢到 TopBar 下方，背景延伸感 */
-  height: 580px;
+  /* 渗到 AppHeader 下方 + 顶部多 10px 缓冲让 AppHeader 透出更稳 */
+  margin-top: calc(-1 * var(--app-header-h, 52px));
+  padding-top: var(--app-header-h, 52px);
+  height: calc(580px + var(--app-header-h, 52px));
   overflow: hidden;
   display: flex;
   align-items: flex-end;
@@ -625,40 +384,15 @@
 }
 
 /* ── Chips ───────────────────────────────────────────────────────────────── */
-.library-chips {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  padding: 32px 44px 0;
+/* PosterGrid（所有作品竖向网格），与 Rail 共用 .library-rail / .library-rail-head 容器 */
+.library-poster-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(var(--library-rail-card-w), 1fr));
+  gap: 14px;
+  padding: 0 44px 4px;
 }
-.library-chip {
-  height: 34px;
-  padding: 0 16px;
-  border-radius: 999px;
-  background: var(--library-panel-1);
-  border: 1px solid var(--library-line-1);
-  color: var(--library-fg-2);
-  font-size: 13px;
-  font-weight: 500;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  transition: background 0.12s, border-color 0.12s;
-  cursor: default;
-}
-.library-chip:hover {
-  background: var(--library-panel-2);
-  color: var(--library-fg);
-}
-.library-chip.is-active {
-  background: var(--library-chip-on-bg);
-  color: var(--library-chip-on-fg);
-  border-color: var(--library-chip-on-bg);
-}
-.library-chip-count {
-  font-family: ui-monospace, 'SF Mono', Menlo, monospace;
-  font-size: 11px;
-  opacity: 0.55;
+.library-poster-grid > .library-poster-card {
+  width: 100%;
 }
 
 /* ── Rail ────────────────────────────────────────────────────────────────── */
@@ -839,37 +573,6 @@
   height: 100%;
   background: var(--library-accent);
   border-radius: 999px;
-}
-
-/* hover 时显示的播放按钮蒙层（仅 normal 模式） */
-.library-poster-hover {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  opacity: 0;
-  background: var(--library-poster-hover-shade);
-  transition: opacity 0.18s;
-}
-.library-poster-card:hover .library-poster-hover {
-  opacity: 1;
-}
-.library-poster-play {
-  width: 52px;
-  height: 52px;
-  border-radius: 50%;
-  background: var(--library-accent);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #fff;
-  box-shadow: 0 12px 32px var(--library-accent-glow), inset 0 1px 0 rgba(255, 255, 255, 0.2);
-  transform: scale(0.85);
-  transition: transform 0.18s;
-}
-.library-poster-card:hover .library-poster-play {
-  transform: scale(1);
 }
 
 /* 卡片下方文字 */
@@ -1317,11 +1020,17 @@
   color: var(--library-fg-3);
   font-weight: 400;
 }
-.library-ep-date {
+.library-ep-progress {
   font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+  font-variant-numeric: tabular-nums;
   font-size: 10.5px;
   color: var(--library-fg-4);
   letter-spacing: 0.04em;
+  min-width: 28px;
+  text-align: right;
+}
+.library-ep-progress.is-watched {
+  color: var(--library-fg-3);
 }
 .library-ep-next-pill {
   font-family: ui-monospace, 'SF Mono', Menlo, monospace;

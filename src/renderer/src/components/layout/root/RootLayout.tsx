@@ -15,5 +15,5 @@ export const RootLayout: FC<PropsWithChildren> = ({ children }) => {
     }
   }, [location.pathname])
 
-  return <div className="flex h-screen overflow-hidden">{children}</div>
+  return <div className="root-layout">{children}</div>
 }

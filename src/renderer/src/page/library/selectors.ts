@@ -79,10 +79,19 @@ export function computeCounts(shows: DB_Library[]): CategoryCounts {
  * 用于 Hero / DetailOverlay 主 CTA「继续观看 · 第 XX 话」。
  */
 export function pickNextEpisode(item: DB_Library) {
+  // 只在"已导入文件 (fileHash 非空)"的剧集里挑，避免指向没下载的集号。
+  // 顺序：lastWatched 的下一集 → 未看过的第一集 → lastWatched 自己（用户重看）。
+  const sorted = [...item.episodes].sort((a, b) => a.episodeNumber - b.episodeNumber)
+  const last = sorted.find((ep) => ep.episodeId === item.lastWatchedEpisodeId)
+  if (last) {
+    const next = sorted.find((ep) => !!ep.fileHash && ep.episodeNumber > last.episodeNumber)
+    if (next) return next
+  }
   const watched = new Set(item.watchedEpisodeIds)
-  return [...item.episodes]
-    .sort((a, b) => a.episodeNumber - b.episodeNumber)
-    .find((ep) => !watched.has(ep.episodeId))
+  const unwatched = sorted.find((ep) => !!ep.fileHash && !watched.has(ep.episodeId))
+  if (unwatched) return unwatched
+  // 全部看过 + 无新可播：让用户重看上次那一集（前提它有文件）
+  return last && last.fileHash ? last : undefined
 }
 
 /**

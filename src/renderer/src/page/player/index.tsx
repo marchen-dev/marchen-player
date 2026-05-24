@@ -1,6 +1,7 @@
 import type { ChangeEvent, DragEvent, FC } from 'react'
 import { Player } from '@renderer/components/modules/player'
 import { VideoProvider } from '@renderer/components/modules/player/loading/PlayerProvider'
+import { usePageHeader } from '@renderer/hooks/use-page-header'
 import { usePlayAnimeFailedToast } from '@renderer/hooks/use-toast'
 import { ipcClient } from '@renderer/lib/client'
 import { checkIsVideoType, cn, isWeb } from '@renderer/lib/utils'
@@ -8,10 +9,14 @@ import { usePlayerLoadingSelector, usePlayerLoadingService } from '@renderer/ser
 import { AnimatePresence, m } from 'framer-motion'
 import { useCallback, useMemo, useRef } from 'react'
 
+const PLAYER_HEADER = { title: '视频播放', actions: null }
+
 export default function VideoPlayer() {
   const service = usePlayerLoadingService()
   const { showFailedToast } = usePlayAnimeFailedToast()
   const fileInputRef = useRef<HTMLInputElement | null>(null)
+
+  usePageHeader(PLAYER_HEADER)
 
   // 从 service state 读取当前视频 URL（playing 状态时有值）
   const url = usePlayerLoadingSelector((s) =>

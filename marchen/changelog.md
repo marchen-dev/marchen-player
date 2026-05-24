@@ -15,3 +15,9 @@
 - 2026-05-23: [chrome-devtools-mcp-attach](./archive/2026-05-23-chrome-devtools-mcp-attach/) — Electron dev 暴露 CDP 9222，chrome-devtools-mcp 改 attach 模式
 - 2026-05-23: [rewrite-library-cinematic](./archive/2026-05-23-rewrite-library-cinematic/) — 重写影视库为 Infuse 风格：scoped 红橙 token、Hero + 双 Rail + DetailOverlay，Web 隐藏路由
 - 2026-05-24: [redesign-sidebar-thin](./archive/2026-05-24-redesign-sidebar-thin/) — 重写 sidebar 为 72px 细 icon-only，去除 brand-mark 与红色 accent，使其与项目黑白灰 token 一致；红绿灯位置对齐 macOS 原生
+- 2026-05-24: [simplify-library](./archive/2026-05-24-simplify-library/) — 砍掉 library 搜索/排序/管理/Chips，所有作品改竖向 grid（max 50）、继续观看 max 10，并扁平化目录
+- 2026-05-24: [continue-watching-thumbnail](./archive/2026-05-24-continue-watching-thumbnail/) — 继续观看横版卡用上次播放关键帧（history.thumbnail）替代封面，文案改为续看 · EP NN
+- 2026-05-24: [library-click-behavior](./archive/2026-05-24-library-click-behavior/) — Hero/继续观看卡点击直接播放下一集，所有作品卡保留弹详情，移除卡片中央 hover 播放图标
+- 2026-05-24: [center-app-header-title](./archive/2026-05-24-center-app-header-title/) — AppHeader 标题居中显示，player 注入视频播放、library 显示影视库；清理 latest-anime 死代码
+- 2026-05-24: [redesign-app-shell-header](./archive/2026-05-24-redesign-app-shell-header/) — 引入全宽 AppHeader 与 jotai page-header 注入机制，RootLayout 改 grid，library TopBar 上提
+- 2026-05-24: [player-loading-service](./archive/2026-05-24-player-loading-service/) — 重构播放器加载为基于 RxJS 的 player-core 状态机包，Port 接口依赖反转，Strategy/Observer 分离
