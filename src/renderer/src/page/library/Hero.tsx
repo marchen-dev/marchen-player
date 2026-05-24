@@ -2,7 +2,7 @@ import type { DB_Library } from '@renderer/database/schemas/library'
 import type { FC } from 'react'
 import { memo } from 'react'
 
-import { ctaLabel, isWatching } from './selectors'
+import { ctaLabel } from './selectors'
 
 /**
  * 静态 Hero 主推区。
@@ -21,13 +21,13 @@ interface HeroProps {
   onDetails: () => void
   /** 是否禁用主 CTA（如无可播放剧集），disabled 状态由上层判定后传入 */
   playDisabled?: boolean
+  /** lastWatched 集的单集进度，由父层 progressMap 注入 */
+  episodePct?: { episodeNumber: number, ratio: number }
 }
 
-export const Hero: FC<HeroProps> = memo(({ item, onPlay, onDetails, playDisabled }) => {
-  const watched = item.watchedEpisodeIds.length
-  const percent = item.totalEpisodes > 0 ? Math.round((watched / item.totalEpisodes) * 100) : 0
-  const watching = isWatching(item)
+export const Hero: FC<HeroProps> = memo(({ item, onPlay, onDetails, playDisabled, episodePct }) => {
   const yearLabel = item.airDate ? `${new Date(item.airDate).getFullYear()}` : ''
+  const pct = episodePct ? Math.round(episodePct.ratio * 100) : null
 
   return (
     <section className="library-hero">
@@ -95,17 +95,15 @@ export const Hero: FC<HeroProps> = memo(({ item, onPlay, onDetails, playDisabled
           </button>
         </div>
 
-        {/* 进度条仅在已观看过的情况下显示 */}
-        {watching && (
+        {/* 进度条以「上次看的那一集」单集进度为准，无 history 数据则隐藏 */}
+        {episodePct && pct != null && (
           <div className="library-hero-progress">
             <div className="library-hero-progress-bar">
-              <div className="library-hero-progress-fill" style={{ width: `${percent}%` }} />
+              <div className="library-hero-progress-fill" style={{ width: `${pct}%` }} />
             </div>
             <div className="library-hero-progress-meta">
-              <span>
-                第 {String(watched).padStart(2, '0')} / {String(item.totalEpisodes).padStart(2, '0')} 话
-              </span>
-              <span>{percent}%</span>
+              <span>上次到 第 {String(episodePct.episodeNumber).padStart(2, '0')} 话</span>
+              <span>{pct}%</span>
             </div>
           </div>
         )}

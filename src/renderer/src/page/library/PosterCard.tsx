@@ -2,7 +2,7 @@ import type { DB_Library } from '@renderer/database/schemas/library'
 import type { FC } from 'react'
 import { memo } from 'react'
 
-import { isCompleted, isWatching, pickNextEpisode } from './selectors'
+import { isCompleted, isWatching } from './selectors'
 
 interface PosterCardProps {
   item: DB_Library
@@ -14,8 +14,6 @@ export const PosterCard: FC<PosterCardProps> = memo(({ item, onClick }) => {
   const completed = isCompleted(item)
   const watching = isWatching(item)
   const percent = item.totalEpisodes > 0 ? Math.round((watched / item.totalEpisodes) * 100) : 0
-
-  const nextEpNumber = watching ? pickNextEpisode(item)?.episodeNumber ?? null : null
 
   return (
     <article className="library-poster-card no-drag-region" onClick={onClick}>
@@ -61,9 +59,6 @@ export const PosterCard: FC<PosterCardProps> = memo(({ item, onClick }) => {
           <span className="library-tabular">
             {watched}/{item.totalEpisodes}
           </span>
-          {watching && nextEpNumber != null && (
-            <span className="library-next-badge">EP {String(nextEpNumber).padStart(2, '0')}</span>
-          )}
         </div>
       </div>
     </article>

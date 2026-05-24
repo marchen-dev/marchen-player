@@ -108,6 +108,8 @@ export class IndexedDBHistoryStore implements HistoryStore {
 
       await db.library.update(animeId, {
         episodes,
+        lastWatchedEpisodeId: episodeId,
+        lastWatchedAt: new Date().toISOString(),
       })
     } catch (error) {
       console.error('更新 library 失败:', error)

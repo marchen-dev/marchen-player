@@ -4,7 +4,8 @@ import type { DB_Library } from '@renderer/database/schemas/library'
  * 判定作品是否处于「在看」状态：已观看至少一集，但还没完结。
  */
 export function isWatching(item: DB_Library): boolean {
-  return item.watchedEpisodeIds.length > 0 && item.watchedEpisodeIds.length < item.totalEpisodes
+  const started = item.watchedEpisodeIds.length > 0 || !!item.lastWatchedEpisodeId
+  return started && item.watchedEpisodeIds.length < item.totalEpisodes
 }
 
 /**
@@ -98,7 +99,7 @@ export function pickNextEpisode(item: DB_Library) {
  * 主 CTA 的文案：未开始用「开始观看」，已观看用「继续观看 · 第 XX 话」（集号补零至 2 位）。
  */
 export function ctaLabel(item: DB_Library): string {
-  if (item.watchedEpisodeIds.length === 0) return '开始观看'
+  if (item.watchedEpisodeIds.length === 0 && !item.lastWatchedEpisodeId) return '开始观看'
   const next = pickNextEpisode(item)
   // 没有下一集（全部看完）时仍标作「继续观看」但不带集号
   if (!next) return '继续观看'

@@ -21,3 +21,7 @@
 - 2026-05-24: [center-app-header-title](./archive/2026-05-24-center-app-header-title/) — AppHeader 标题居中显示，player 注入视频播放、library 显示影视库；清理 latest-anime 死代码
 - 2026-05-24: [redesign-app-shell-header](./archive/2026-05-24-redesign-app-shell-header/) — 引入全宽 AppHeader 与 jotai page-header 注入机制，RootLayout 改 grid，library TopBar 上提
 - 2026-05-24: [player-loading-service](./archive/2026-05-24-player-loading-service/) — 重构播放器加载为基于 RxJS 的 player-core 状态机包，Port 接口依赖反转，Strategy/Observer 分离
+- 2026-05-24: [episode-progress-column](./archive/2026-05-24-episode-progress-column/) — 详情剧集列表右列由首播日期改为单集观看进度（✓/NN%/—）
+- 2026-05-24: [fix-episode-progress-priority](./archive/2026-05-24-fix-episode-progress-priority/) — 剧集进度列改为实时 pct 优先于 watched 标记，避免曾看完后回拖仍显示 ✓
+- 2026-05-24: [write-last-watched-on-load](./archive/2026-05-24-write-last-watched-on-load/) — 开始播放即写 lastWatchedEpisodeId/At，isWatching 放宽以让浅看作品进入继续观看 Rail
+- 2026-05-24: [fix-library-progress-display](./archive/2026-05-24-fix-library-progress-display/) — ctaLabel 走 lastWatched 指针、删 NEXT 徽章、Hero/Landscape 改用 lastWatched 集的单集进度

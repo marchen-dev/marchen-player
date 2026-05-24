@@ -8,8 +8,8 @@ import { memo, useMemo } from 'react'
 /**
  * DetailOverlay 内的剧集网格。
  *
- * 每集右列三态：watched → ✓、有进度 → NN%、其余 → —。
- * NEXT 标签优先级最高，占用右列时不显示进度。
+ * 每集右列四态：watched/≥95% → ✓、有进度 → NN%、其余 → —。
+ * 「接着看哪集」由 Hero CTA 表达，列表本身不再标 NEXT。
  */
 interface EpisodeGridProps {
   item: DB_Library
@@ -24,12 +24,6 @@ export const EpisodeGrid: FC<EpisodeGridProps> = memo(({ item, onPlay }) => {
     [item.episodes],
   )
 
-  const nextEpisodeId = useMemo(
-    () => sortedEpisodes.find((ep) => !watchedSet.has(ep.episodeId) && !!ep.fileHash)?.episodeId,
-    [sortedEpisodes, watchedSet],
-  )
-
-  // 按 fileHash 批量拉 history，得到每集 0~1 进度比例
   const progressMap = useLiveQuery(async () => {
     const hashes = sortedEpisodes.map((ep) => ep.fileHash).filter((h): h is string => !!h)
     if (hashes.length === 0) return new Map<string, number>()
@@ -47,7 +41,6 @@ export const EpisodeGrid: FC<EpisodeGridProps> = memo(({ item, onPlay }) => {
       {sortedEpisodes.map((ep) => {
         const hasFile = !!ep.fileHash
         const watched = watchedSet.has(ep.episodeId)
-        const isNext = ep.episodeId === nextEpisodeId
         const ratio = hasFile ? progressMap?.get(ep.fileHash!) ?? 0 : 0
         const pct = Math.round(ratio * 100)
 
@@ -59,7 +52,6 @@ export const EpisodeGrid: FC<EpisodeGridProps> = memo(({ item, onPlay }) => {
               hasFile && 'has-file',
               !hasFile && 'no-file',
               watched && 'watched',
-              isNext && 'is-next',
             )}
             onClick={() => hasFile && onPlay(ep)}
             role={hasFile ? 'button' : undefined}
@@ -75,16 +67,17 @@ export const EpisodeGrid: FC<EpisodeGridProps> = memo(({ item, onPlay }) => {
             <span className="library-ep-title" title={ep.title}>
               {ep.title}
             </span>
-            {isNext ? (
-              <span className="library-ep-next-pill">NEXT</span>
-            ) : (
-              <span
-                className={cn('library-ep-progress', watched && 'is-watched')}
-                aria-label={watched ? '已看完' : pct > 0 ? `已观看 ${pct}%` : '未开始'}
-              >
-                {watched ? '✓' : pct >= 1 ? `${pct}%` : '—'}
-              </span>
-            )}
+            <span
+              className={cn(
+                'library-ep-progress',
+                (pct >= 95 || (watched && pct < 1)) && 'is-watched',
+              )}
+              aria-label={
+                pct >= 95 ? '已看完' : pct >= 1 ? `已观看 ${pct}%` : watched ? '已看完' : '未开始'
+              }
+            >
+              {pct >= 95 ? '✓' : pct >= 1 ? `${pct}%` : watched ? '✓' : '—'}
+            </span>
           </div>
         )
       })}

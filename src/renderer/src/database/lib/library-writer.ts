@@ -63,6 +63,8 @@ export async function upsertLibraryEntry(
 
     await db.library.update(animeId, {
       episodes: finalEpisodes,
+      lastWatchedEpisodeId: episodeId,
+      lastWatchedAt: new Date().toISOString(),
       // 补全可能缺失的字段
       ...(existing.summary === '' && {
         summary: bangumi.summary || '',
@@ -98,6 +100,7 @@ export async function upsertLibraryEntry(
       intro: bangumi.metadata?.join(' / ') || '',
       episodes,
       watchedEpisodeIds: [],
+      lastWatchedEpisodeId: episodeId,
       lastWatchedAt: now,
       addedAt: now,
     }

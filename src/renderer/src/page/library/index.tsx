@@ -25,25 +25,36 @@ export default function Library() {
   const libraryData = useLiveQuery(() => db.library.toArray())
   const shows = useMemo<DB_Library[]>(() => libraryData ?? [], [libraryData])
 
-  // 拉取每部 anime 上次播放集对应 history 记录的 thumbnail，给 LandscapeCard 用
-  const thumbnailMap = useLiveQuery(async () => {
-    const hashes = (libraryData ?? [])
-      .map((s) => {
-        const ep = s.episodes.find((e) => e.episodeId === s.lastWatchedEpisodeId)
-        return ep?.fileHash
-      })
+  // 拉取每部 anime 上次播放集的 history 记录，得到 thumbnail + 单集进度比例
+  const lastWatchedInfo = useLiveQuery(async () => {
+    const thumbnails = new Map<number, string>()
+    const progress = new Map<number, { episodeNumber: number, ratio: number }>()
+    const items = libraryData ?? []
+    const hashes = items
+      .map((s) => s.episodes.find((e) => e.episodeId === s.lastWatchedEpisodeId)?.fileHash)
       .filter((h): h is string => !!h)
-    if (hashes.length === 0) return new Map<number, string>()
+    if (hashes.length === 0) return { thumbnails, progress }
     const records = await db.history.bulkGet(hashes)
-    const byHash = new Map(records.filter((r) => r?.thumbnail).map((r) => [r!.hash, r!.thumbnail!]))
-    const result = new Map<number, string>()
-    for (const s of libraryData ?? []) {
+    const byHash = new Map(
+      records.filter((r): r is NonNullable<typeof r> => !!r).map((r) => [r.hash, r]),
+    )
+    for (const s of items) {
       const ep = s.episodes.find((e) => e.episodeId === s.lastWatchedEpisodeId)
-      const thumb = ep?.fileHash ? byHash.get(ep.fileHash) : undefined
-      if (thumb) result.set(s.animeId, thumb)
+      if (!ep?.fileHash) continue
+      const rec = byHash.get(ep.fileHash)
+      if (!rec) continue
+      if (rec.thumbnail) thumbnails.set(s.animeId, rec.thumbnail)
+      if (rec.duration && rec.duration > 0) {
+        progress.set(s.animeId, {
+          episodeNumber: ep.episodeNumber,
+          ratio: Math.min(1, Math.max(0, rec.progress / rec.duration)),
+        })
+      }
     }
-    return result
+    return { thumbnails, progress }
   }, [libraryData])
+  const thumbnailMap = lastWatchedInfo?.thumbnails
+  const progressMap = lastWatchedInfo?.progress
 
   const [selectedAnime, setSelectedAnime] = useState<DB_Library | null>(null)
 
@@ -101,6 +112,7 @@ export default function Library() {
           onPlay={() => playOrOpen(featured)}
           onDetails={() => setSelectedAnime(featured)}
           playDisabled={!pickNextEpisode(featured)}
+          episodePct={progressMap?.get(featured.animeId)}
         />
       )}
 
@@ -111,6 +123,7 @@ export default function Library() {
               key={item.animeId}
               item={item}
               thumbnail={thumbnailMap?.get(item.animeId)}
+              episodePct={progressMap?.get(item.animeId)}
               onClick={() => playOrOpen(item)}
             />
           ))}
