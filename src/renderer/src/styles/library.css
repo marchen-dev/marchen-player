@@ -757,10 +757,20 @@
   background: var(--library-bg-2);
   border-radius: 14px;
   overflow: hidden;
-  display: flex;
-  flex-direction: column;
   box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6), 0 0 0 1px var(--library-line-2);
   animation: library-dt-in 0.24s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.library-dt-scroll {
+  height: 100%;
+  overflow-y: auto;
+  scroll-behavior: smooth;
+}
+.library-dt-scroll::-webkit-scrollbar {
+  width: 8px;
+}
+.library-dt-scroll::-webkit-scrollbar-thumb {
+  background: var(--library-panel-2);
+  border-radius: 4px;
 }
 @keyframes library-fade-in {
   from {
@@ -806,7 +816,6 @@
   position: relative;
   height: 320px;
   overflow: hidden;
-  flex-shrink: 0;
   background: var(--library-panel-2);
 }
 .library-dt-banner img {
@@ -826,23 +835,13 @@
 }
 
 .library-dt-body {
-  flex: 1;
-  min-height: 0;
   display: grid;
   grid-template-columns: 220px 1fr;
   gap: 32px;
   padding: 0 40px 40px;
-  overflow-y: auto;
   position: relative;
   margin-top: -120px;
   z-index: 2;
-}
-.library-dt-body::-webkit-scrollbar {
-  width: 8px;
-}
-.library-dt-body::-webkit-scrollbar-thumb {
-  background: var(--library-panel-2);
-  border-radius: 4px;
 }
 
 .library-dt-poster {

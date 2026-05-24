@@ -25,3 +25,4 @@
 - 2026-05-24: [fix-episode-progress-priority](./archive/2026-05-24-fix-episode-progress-priority/) — 剧集进度列改为实时 pct 优先于 watched 标记，避免曾看完后回拖仍显示 ✓
 - 2026-05-24: [write-last-watched-on-load](./archive/2026-05-24-write-last-watched-on-load/) — 开始播放即写 lastWatchedEpisodeId/At，isWatching 放宽以让浅看作品进入继续观看 Rail
 - 2026-05-24: [fix-library-progress-display](./archive/2026-05-24-fix-library-progress-display/) — ctaLabel 走 lastWatched 指针、删 NEXT 徽章、Hero/Landscape 改用 lastWatched 集的单集进度
+- 2026-05-24: [detail-overlay-unified-scroll](./archive/2026-05-24-detail-overlay-unified-scroll/) — DetailOverlay 改为统一滚动容器，banner 与内容一起流式滚动消除 poster 半截被遮的视觉

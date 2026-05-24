@@ -72,6 +72,7 @@ export const DetailOverlay: FC<DetailOverlayProps> = memo(({ item, onClose, onPl
           <CrossGlyph />
         </button>
 
+        <div className="library-dt-scroll">
         <div className="library-dt-banner">
           {item.imageUrl && (
             <img
@@ -162,6 +163,7 @@ export const DetailOverlay: FC<DetailOverlayProps> = memo(({ item, onClose, onPl
               <EpisodeGrid item={item} onPlay={onPlayEpisode} />
             </div>
           </div>
+        </div>
         </div>
       </div>
     </>
