@@ -48,7 +48,7 @@
     "@electron-toolkit/tsconfig": "^2.0.0",
     "@electron-toolkit/utils": "^4.0.0",
     "@electron/notarize": "^3.1.1",
-    "@eslint-react/eslint-plugin": "^3.0.0",
+    "@eslint-react/eslint-plugin": "^5.0.0",
     "@fontsource/manrope": "^5.2.8",
     "@iconify-json/mingcute": "^1.2.7",
     "@iconify/tailwind4": "^1.2.3",
