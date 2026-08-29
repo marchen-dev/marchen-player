@@ -37,7 +37,7 @@ tags: [workflow, implementation]
 
    根据 `state` 处理：
    - `"blocked"` → 提示先完成 artifacts（`/marchen:propose`）
-   - `"all_done"` → 提示归档（`/marchen:archive`）
+   - `"all_done"` → 先 `marchen acceptance status <name> --json`：已 accepted 则提示归档且不要开新轮；rejected 则按待修改项修改后开新一轮 acceptance；尚无验收则走第 5 步的验收收尾
    - `"ready"` → 继续
 
 3. **显示进度**
@@ -59,14 +59,17 @@ tags: [workflow, implementation]
 
    **暂停条件：**
    - 任务不清晰 → 询问用户
-   - 发现设计问题 → 建议更新 artifact
+   - 发现设计问题 → 建议用 `/marchen:update` 修订计划
    - 遇到错误或阻塞 → 报告并等待
    - 用户中断
 
 5. **显示结果**
 
-   全部完成时：
-   "全部完成 (N/N)，可以用 `/marchen:review` 检查实现，或直接 `/marchen:archive` 归档。"
+   全部完成时（任务从「未全部完成」变为「全部完成」的这一次）：
+   MUST 接着执行 `/marchen:acceptance` 的流程（预检、写 `rounds/1`、`render`、`serve`、轮询决定）。不要只打印一句提示就结束。
+   禁止代人点验收页上的接受、打回修改或「让 AI 修改」。
+
+   人接受后询问是否归档；提交待修改则按 `decision.items` 继续改，修完开新轮。
 
    暂停时：
    "暂停于任务 N/M: <原因>"

@@ -26,18 +26,23 @@ tags: [workflow, archive]
 
    ```bash
    marchen status <name> --json
+   marchen acceptance status <name> --json
    ```
 
    解析 JSON，检查：
    - `artifacts`：每个 artifact 的 `status` 是否为 `filled`
    - `tasks.completed` vs `tasks.total`（`tasks` 为 null 时视为无任务，跳过检查）
+   - 验收：`acceptance exists` 为 false，或 `decision` 不是 accepted → 警告「尚未签核」
 
-   **如果全部完成：** 直接进入下一步。
+   **如果本次来自 lite「直接归档」：** 不要再问尚未验收，继续。
 
-   **如果有未完成的 artifact 或 task：**
+   **如果全部完成且已 accepted（或 lite 已声明跳过）：** 直接进入下一步。先 `marchen acceptance stop <name>`。
+
+   **如果有未完成的 artifact、task，或尚未签核：**
    - 显示警告，列出未完成项
    - 用 **AskUserQuestion** 确认是否继续
    - 用户确认后继续，不阻塞
+   - 归档前尽量 `marchen acceptance stop <name>`
 
 3. **生成摘要**
 

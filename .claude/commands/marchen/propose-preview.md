@@ -50,7 +50,8 @@ tags: [workflow, preview]
 
    ```
    /marchen:apply <name>           开始实现
-   /marchen:propose <name>         修改提案
+   /marchen:update <name>          修订细节（方案、需求、任务的局部调整）
+   /marchen:propose <name>         重新提案（变更意图或方向改变）
    ```
 
 ---

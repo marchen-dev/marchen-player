@@ -1,6 +1,6 @@
 ---
 name: "Marchen: Lite"
-description: 一键式轻量变更流程。创建 lite 变更、实现任务、询问归档，一气呵成
+description: 一键式轻量变更流程。创建 lite 变更、实现任务、询问验收或归档，一气呵成
 category: Workflow
 tags: [workflow, lite]
 ---
@@ -90,37 +90,29 @@ tags: [workflow, lite]
 
    **暂停条件：**
    - 任务不清晰 → 询问用户
-   - 发现设计问题 → 建议更新 artifact
+   - 发现设计问题 → 建议用 `/marchen:update` 修订计划
    - 遇到错误或阻塞 → 报告并等待
    - 用户中断
 
    暂停时显示："暂停于任务 N/M: <原因>"，流程结束。
 
-6. **全部完成 → 询问归档**
+6. **全部完成 → 一道题**
 
-   所有任务完成后，用 **AskUserQuestion** 询问：
+   所有任务完成后，用 **AskUserQuestion** 只问一次：
 
-   > "全部任务已完成 (N/N)，是否归档这个变更？"
-   > - 归档
-   > - 暂不归档
+   > "全部任务已完成 (N/N)，下一步？"
+   > - 验收再归档
+   > - 直接归档
+   > - 只验收
+   > - 先不动
 
-   **如果用户选择归档：**
+   **验收再归档：** 执行 `/marchen:acceptance` 全文。等到 `decision.status` 为 accepted 再归档；若人点了「让 AI 修改」（`rejected`）则不归档，按待修改项修并开新轮。归档前 `marchen acceptance stop`。
 
-   读取 `marchen/changes/<name>/tasks.md` 的背景段，生成一句话中文摘要（≤50字）。
+   **直接归档：** 不要创建 `acceptance/`。读取 tasks.md 背景段生成一句话摘要，执行 `marchen archive <name> --summary "<摘要>" --json`。不要再问「尚未验收」。
 
-   ```bash
-   marchen archive <name> --summary "<摘要>" --json
-   ```
+   **只验收：** 执行 acceptance，不要 archive。
 
-   显示：
-   ```
-   变更 "<name>" 已归档
-   归档到: <archivedTo>
-   ```
-
-   **如果用户选择暂不归档：**
-
-   显示："好的，后续可以用 `/marchen:archive <name>` 归档。"
+   **先不动：** 显示后续可用 `/marchen:acceptance <name>` 或 `/marchen:archive <name>`。
 
 **护栏**
 

@@ -7,7 +7,7 @@ tags: [workflow, explore, thinking]
 
 进入探索模式。深入思考，自由可视化，跟随对话走向任何方向。
 
-**重要：探索模式只用于思考，不用于实现。** 可以读文件、搜索代码、调查代码库，但绝不能写代码或实现功能。如果用户要求实现，提醒他们先退出探索模式并用 `/marchen:propose` 创建变更。可以创建 MarchenSpec artifact（proposal、design、spec）——那是捕获思考，不是实现。
+**重要：探索模式只用于思考，不用于实现。** 可以读文件、搜索代码、调查代码库，但绝不能写代码或实现功能。如果用户要求实现，提醒他们先退出探索模式并用 `/marchen:propose` 创建变更。可以创建 Marchen artifact（proposal、design、spec）——那是捕获思考，不是实现。
 
 **这是一种姿态，不是工作流。** 没有固定步骤、没有必须的顺序、没有强制输出。你是帮助用户探索的思考伙伴。
 
@@ -78,9 +78,9 @@ tags: [workflow, explore, thinking]
 
 ---
 
-## MarchenSpec 感知
+## Marchen 感知
 
-你了解 MarchenSpec 系统。自然地使用它，不要强制。
+你了解 Marchen 系统。自然地使用它，不要强制。
 
 ### 检查上下文
 
@@ -201,7 +201,7 @@ marchen search "<语义完整的查询短语>" --json
 
 ## 护栏
 
-- **不实现** — 绝不写代码或实现功能。创建 MarchenSpec artifact 可以，写应用代码不行
+- **不实现** — 绝不写代码或实现功能。创建 Marchen artifact 可以，写应用代码不行
 - **不伪装理解** — 不清楚就深挖
 - **不催促** — 探索是思考时间，不是任务时间
 - **不强制结构** — 让模式自然浮现
