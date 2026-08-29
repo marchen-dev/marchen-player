@@ -1,13 +1,26 @@
+minimumReleaseAgeExclude:
+  - react-router@8.3.1
+  - '@ai-sdk/anthropic@4.0.45'
+  - '@ai-sdk/gateway@4.0.68'
+  - '@ai-sdk/openai@4.0.51'
+  - '@ai-sdk/provider-utils@5.0.33'
+  - ai@7.0.84
+shamefullyHoist: true
 shellEmulator: true
 trustPolicy: no-downgrade
+trustPolicyExclude:
+  - prettier-plugin-tailwindcss@0.7.4
+  - semver@5.7.2
+  - semver@6.3.1
 packages:
-  - "packages/*"
-onlyBuiltDependencies:
-  - "@ffmpeg-installer/darwin-arm64"
-  - "@ffprobe-installer/darwin-arm64"
-  - "@swc/core"
-  - core-js
-  - electron
-  - es5-ext
-  - esbuild
-  - simple-git-hooks
+  - 'packages/*'
+allowBuilds:
+  '@ffmpeg-installer/darwin-arm64': true
+  '@ffprobe-installer/darwin-arm64': true
+  '@swc/core': true
+  core-js: true
+  electron: true
+  electron-winstaller: false
+  es5-ext: true
+  esbuild: true
+  simple-git-hooks: true

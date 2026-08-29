@@ -14,12 +14,10 @@ export const clearAllData = async () => {
 
     await ses.clearStorageData({
       storages: [
-        'websql',
         'filesystem',
         'indexdb',
         'localstorage',
         'shadercache',
-        'websql',
         'serviceworkers',
         'cookies',
       ],

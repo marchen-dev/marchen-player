@@ -14,7 +14,7 @@ function bootstrap() {
   // 开发模式下暴露 Chrome DevTools Protocol 远程调试端口，
   // 供 chrome-devtools-mcp 以 attach 模式连入真实 Electron 实例。
   // 必须在 app.whenReady() 之前调用 switch 才会生效。
-  if (isDev) {
+  if (isDev && !app.commandLine.hasSwitch('remote-debugging-port')) {
     app.commandLine.appendSwitch('remote-debugging-port', '9222')
   }
 

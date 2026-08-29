@@ -10,8 +10,6 @@ const { autoUpdater } = updater
 export async function autoUpdateInit() {
   // 避免启动代码过多,更新检测延迟1s
   await sleep(1000)
-  //每次启动自动更新检查 更新版本
-  autoUpdater.checkForUpdates()
   autoUpdater.logger = logger
   autoUpdater.disableWebInstaller = false
   autoUpdater.autoDownload = false //这个必须写成false，写成true时，我这会报没权限更新，也没清楚什么原因
@@ -46,4 +44,12 @@ export async function autoUpdateInit() {
     logger.info(res)
     updateProgress({ progress: 100, status: 'installing' })
   })
+
+  // 每次启动自动检查更新。unpacked 产物没有 app-update.yml，
+  // electron-updater 会拒绝 Promise；这里显式收口，避免形成未处理异常影响主进程。
+  try {
+    await autoUpdater.checkForUpdates()
+  } catch {
+    // error 事件已统一记录；这里只负责消费 Promise 拒绝。
+  }
 }

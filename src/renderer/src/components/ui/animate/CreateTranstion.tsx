@@ -19,7 +19,6 @@ export interface TransitionViewProps extends HTMLMotionProps<'div'> {
 export const createTransition = (params: CreateTranstionParams) => {
   const { from, to, exit } = params
 
-  // eslint-disable-next-line react/component-hook-factories
   const TransitionView = ({
     ref,
     ...props

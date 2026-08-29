@@ -2,7 +2,6 @@ import type { FC, PropsWithChildren } from 'react'
 import { usePlayerSettings } from '@renderer/atoms/settings/player'
 import { SettingSelect } from '@renderer/components/modules/shared/setting/SettingSelect'
 import { SettingSwitch } from '@renderer/components/modules/shared/setting/SettingSwitch'
-import { useMemo } from 'react'
 
 import { FieldLayout, FieldsCardLayout } from '../Layout'
 import { danmakuDurationList, danmakuEndAreaList, danmakuFontSizeList } from './list'
@@ -16,17 +15,9 @@ export const DanmakuSetting: FC<DanmakuSettingProps> = (props) => {
   const { classNames, children, onTraditionalToSimplifiedChange } = props
   const [playerSetting, setPlayerSetting] = usePlayerSettings()
   const isPlaying = !!classNames?.cardLayout
-  const CardLayout = useMemo(() => {
-    return ({ children }) =>
-      isPlaying ? (
-        <div className={classNames?.cardLayout}>{children}</div>
-      ) : (
-        <FieldsCardLayout title="弹幕">{children}</FieldsCardLayout>
-      )
-  }, [classNames?.cardLayout, isPlaying])
 
-  return (
-    <CardLayout>
+  const content = (
+    <>
       {!isPlaying && (
         <FieldLayout title="繁体转简体">
           <SettingSwitch
@@ -69,6 +60,12 @@ export const DanmakuSetting: FC<DanmakuSettingProps> = (props) => {
         />
       </FieldLayout>
       {children}
-    </CardLayout>
+    </>
+  )
+
+  return isPlaying ? (
+    <div className={classNames?.cardLayout}>{content}</div>
+  ) : (
+    <FieldsCardLayout title="弹幕">{content}</FieldsCardLayout>
   )
 }

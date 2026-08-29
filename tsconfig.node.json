@@ -3,13 +3,12 @@
   "compilerOptions": {
     "composite": true,
     "ignoreDeprecations": "6.0",
-    "baseUrl": ".",
     "moduleResolution": "Bundler",
     "paths": {
       "@pkg": ["./package.json"],
-      "@main/*": ["src/main/*"],
-      "@marchen/electron-ipc/*": ["packages/electron-ipc/src/*"],
-      "@marchen/shared/*": ["packages/shared/src/*"]
+      "@main/*": ["./src/main/*"],
+      "@marchen/electron-ipc/*": ["./packages/electron-ipc/src/*"],
+      "@marchen/shared/*": ["./packages/shared/src/*"]
     },
     "types": ["electron-vite/node"]
   },

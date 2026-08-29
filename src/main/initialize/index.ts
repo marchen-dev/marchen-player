@@ -17,7 +17,10 @@ import { registerAppMenu } from './menu'
 import { registerSentry } from './sentry'
 
 export const initializeApp = () => {
-  limitSingleInstance()
+  // 自动化验收或并行调试时可显式开启开发多实例；生产环境始终保持单实例。
+  if (!isDev || process.env.MARCHEN_ALLOW_MULTIPLE_INSTANCES !== '1') {
+    limitSingleInstance()
+  }
   enableHardwareDecodingOnLinux()
   registerSentry()
   registerIpc(router)

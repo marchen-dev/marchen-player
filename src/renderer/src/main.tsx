@@ -2,7 +2,7 @@ import * as Sentry from '@sentry/react'
 
 import { ClickToComponent } from 'click-to-react-component'
 import ReactDOM from 'react-dom/client'
-import { RouterProvider } from 'react-router'
+import { RouterProvider } from 'react-router/dom'
 import { initializeApp } from './initialize'
 
 import { reactRouter } from './router'

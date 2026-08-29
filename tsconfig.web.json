@@ -5,16 +5,15 @@
     "target": "ES2022",
     "jsx": "react-jsx",
     "ignoreDeprecations": "6.0",
-    "baseUrl": ".",
     "moduleResolution": "Bundler",
     "paths": {
-      "@renderer/*": ["src/renderer/src/*"],
-      "@main/*": ["src/main/*"],
+      "@renderer/*": ["./src/renderer/src/*"],
+      "@main/*": ["./src/main/*"],
       "@pkg": ["./package.json"],
-      "@marchen/electron-ipc/*": ["packages/electron-ipc/src/*"],
-      "@marchen/shared/*": ["packages/shared/src/*"],
-      "@marchen/player-core": ["packages/player-core/src/index.ts"],
-      "@marchen/player-core/*": ["packages/player-core/src/*"]
+      "@marchen/electron-ipc/*": ["./packages/electron-ipc/src/*"],
+      "@marchen/shared/*": ["./packages/shared/src/*"],
+      "@marchen/player-core": ["./packages/player-core/src/index.ts"],
+      "@marchen/player-core/*": ["./packages/player-core/src/*"]
     },
     "strict": true,
     "noUnusedLocals": false

@@ -8,6 +8,6 @@
     "./types": "./src/types.ts"
   },
   "peerDependencies": {
-    "electron": ">=32.0.0"
+    "electron": ">=44.0.0"
   }
 }

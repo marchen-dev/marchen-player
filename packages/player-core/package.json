@@ -1,5 +1,6 @@
 {
   "name": "@marchen/player-core",
+  "type": "module",
   "version": "0.0.1",
   "private": true,
   "exports": {
@@ -13,6 +14,6 @@
     "rxjs": "^7.8.2"
   },
   "devDependencies": {
-    "vitest": "^3.1.3"
+    "vitest": "^4.1.11"
   }
 }
