@@ -27,3 +27,4 @@
 - 2026-05-24: [fix-library-progress-display](./archive/2026-05-24-fix-library-progress-display/) — ctaLabel 走 lastWatched 指针、删 NEXT 徽章、Hero/Landscape 改用 lastWatched 集的单集进度
 - 2026-05-24: [detail-overlay-unified-scroll](./archive/2026-05-24-detail-overlay-unified-scroll/) — DetailOverlay 改为统一滚动容器，banner 与内容一起流式滚动消除 poster 半截被遮的视觉
 - 2026-08-29: [upgrade-latest-dependency-stack](./archive/2026-08-29-upgrade-latest-dependency-stack/) — 升级并验证 Node、Electron、构建链及应用依赖，建立最新优先技术基线
+- 2026-08-29: [fix-pnpm-linux-installer-builds](./archive/2026-08-29-fix-pnpm-linux-installer-builds/) — 批准 Linux x64 FFmpeg 与 FFprobe installer 构建脚本，恢复 pnpm 11 CI 依赖安装。
