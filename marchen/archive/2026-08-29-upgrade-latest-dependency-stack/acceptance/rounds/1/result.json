@@ -1,0 +1,76 @@
+{
+  "title": "最新依赖栈升级验收",
+  "plan": [
+    {
+      "id": "ui-runtime",
+      "name": "桌面 UI 与主题"
+    },
+    {
+      "id": "core-playback",
+      "name": "弹幕播放与续播记录"
+    },
+    {
+      "id": "subtitle-media",
+      "name": "字幕与媒体兼容性"
+    }
+  ],
+  "cases": [
+    {
+      "id": "ui-runtime",
+      "name": "桌面 UI 与主题",
+      "status": "passed",
+      "observation": "播放器、影视库与设置均可进入；设置弹层在夜间主题下正常显示，主题选中态与页面样式一致。",
+      "evidence": [
+        {
+          "path": "assets/ui-settings-dark.png",
+          "type": "image",
+          "text": "Electron 设置弹层与夜间主题"
+        }
+      ]
+    },
+    {
+      "id": "core-playback",
+      "name": "弹幕播放与续播记录",
+      "status": "passed",
+      "observation": "真实动画完成匹配并加载 5943 条弹幕后持续播放；重新打开后影视库保留作品、集数和播放进度，可继续观看。",
+      "evidence": [
+        {
+          "path": "assets/core-playback.png",
+          "type": "image",
+          "text": "视频、字幕与弹幕同时播放"
+        },
+        {
+          "path": "assets/library-history.png",
+          "type": "image",
+          "text": "影视库中的继续观看与进度记录"
+        }
+      ]
+    },
+    {
+      "id": "subtitle-media",
+      "name": "字幕与媒体兼容性",
+      "status": "passed",
+      "observation": "MKV 内嵌字幕可枚举并由 libass 加载，外部 ASS 可设为当前字幕；H.264/AAC 与 HEVC/AAC 可播放，EAC-3 音轨仍保持 Chromium 既有限制。",
+      "evidence": [
+        {
+          "path": "assets/subtitle-settings.png",
+          "type": "image",
+          "text": "播放中打开字幕设置并选中外部 ASS"
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "verdict": "passed",
+    "conclusion": "升级后的可见产品行为通过本轮验收取证，可由维护者签核。"
+  },
+  "commit": "working-tree@cf8331659cef3c21774fcf1d7e33f29a1a5702f6",
+  "surfaces": [
+    "Electron 播放器与影视库",
+    "Electron 设置与主题",
+    "Web 播放器入口",
+    "弹弹play 弹幕加载",
+    "ASS 与内嵌字幕",
+    "macOS arm64 unpacked 应用"
+  ]
+}

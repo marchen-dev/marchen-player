@@ -1,0 +1,75 @@
+{
+  "title": "最新依赖栈升级验收（第 2 轮）",
+  "plan": [
+    {
+      "id": "ui-runtime",
+      "name": "桌面 UI 与主题"
+    },
+    {
+      "id": "core-playback",
+      "name": "弹幕播放与续播记录"
+    },
+    {
+      "id": "subtitle-media",
+      "name": "字幕与媒体兼容性"
+    }
+  ],
+  "cases": [
+    {
+      "id": "ui-runtime",
+      "name": "桌面 UI 与主题",
+      "status": "passed",
+      "observation": "重新启动 Electron 后，播放器、影视库与设置仍可进入；夜间主题选中态和设置弹层显示正常。",
+      "evidence": [
+        {
+          "path": "assets/ui-settings-dark.png",
+          "type": "image",
+          "text": "第 2 轮重新取证的夜间主题与设置弹层"
+        }
+      ]
+    },
+    {
+      "id": "core-playback",
+      "name": "弹幕播放与续播记录",
+      "status": "passed",
+      "observation": "再次导入真实动画后从已保存位置继续播放，弹幕正常出现；影视库同步显示作品、继续观看集数和 4% 播放进度。",
+      "evidence": [
+        {
+          "path": "assets/core-playback.png",
+          "type": "image",
+          "text": "第 2 轮续播画面与弹幕"
+        },
+        {
+          "path": "assets/library-history.png",
+          "type": "image",
+          "text": "第 2 轮影视库继续观看与进度"
+        }
+      ]
+    },
+    {
+      "id": "subtitle-media",
+      "name": "字幕与媒体兼容性",
+      "status": "passed",
+      "observation": "MKV 再次播放成功并创建 libass canvas；播放设置可见外部 ASS 仍为当前字幕，弹幕来源和字幕时间偏移均可操作。",
+      "evidence": [
+        {
+          "path": "assets/subtitle-settings.png",
+          "type": "image",
+          "text": "第 2 轮外部 ASS 与播放设置"
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "verdict": "passed",
+    "conclusion": "按新版 marchen-acceptance 重新取证后，三个用户可见验收目标仍全部通过。"
+  },
+  "commit": "working-tree@cf8331659cef3c21774fcf1d7e33f29a1a5702f6",
+  "surfaces": [
+    "Electron 播放器与影视库",
+    "Electron 设置与主题",
+    "弹弹play 弹幕加载",
+    "播放进度恢复",
+    "ASS 与内嵌字幕"
+  ]
+}

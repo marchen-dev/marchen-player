@@ -26,3 +26,4 @@
 - 2026-05-24: [write-last-watched-on-load](./archive/2026-05-24-write-last-watched-on-load/) — 开始播放即写 lastWatchedEpisodeId/At，isWatching 放宽以让浅看作品进入继续观看 Rail
 - 2026-05-24: [fix-library-progress-display](./archive/2026-05-24-fix-library-progress-display/) — ctaLabel 走 lastWatched 指针、删 NEXT 徽章、Hero/Landscape 改用 lastWatched 集的单集进度
 - 2026-05-24: [detail-overlay-unified-scroll](./archive/2026-05-24-detail-overlay-unified-scroll/) — DetailOverlay 改为统一滚动容器，banner 与内容一起流式滚动消除 poster 半截被遮的视觉
+- 2026-08-29: [upgrade-latest-dependency-stack](./archive/2026-08-29-upgrade-latest-dependency-stack/) — 升级并验证 Node、Electron、构建链及应用依赖，建立最新优先技术基线
