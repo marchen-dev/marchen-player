@@ -1,0 +1,5 @@
+interface:
+  display_name: "弹弹play API"
+  short_description: "查询弹弹play开放网络接入规范、全部接口与数据模型"
+  default_prompt: "使用 $dandanplay-api 查询并实现弹弹play开放弹幕网络接口。"
+
