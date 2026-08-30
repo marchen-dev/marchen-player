@@ -16,10 +16,13 @@ export const useConfirmationDialog = () => {
   return useCallback(
     (params: showConfirmationBox) => {
       if (isWeb) {
+        const trigger =
+          document.activeElement instanceof HTMLElement ? document.activeElement : null
         return present({
           id: 'DIALOG',
           title: params.title,
           overlay: true,
+          returnFocusRef: { current: trigger },
           content: ({ dismiss }) => (
             <div className="mt-3 flex justify-end gap-2">
               <Button

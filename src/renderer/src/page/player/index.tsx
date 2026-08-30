@@ -1,11 +1,16 @@
-import type { ChangeEvent, DragEvent, FC } from 'react'
+import type { ChangeEvent, FC } from 'react'
 import { VideoProvider } from '@renderer/components/modules/player/loading/PlayerProvider'
 import { NativePlayer } from '@renderer/components/modules/player/NativePlayer'
+import { VideoDropZone } from '@renderer/components/modules/shared/VideoDropZone'
 import { usePageHeader } from '@renderer/hooks/use-page-header'
 import { usePlayAnimeFailedToast } from '@renderer/hooks/use-toast'
 import { ipcClient } from '@renderer/lib/client'
 import { checkIsVideoType, cn, isWeb } from '@renderer/lib/utils'
-import { usePlayerLoadingSelector, usePlayerLoadingService } from '@renderer/services/player-loading/hooks'
+import {
+  usePlayerLoadingSelector,
+  usePlayerLoadingService,
+} from '@renderer/services/player-loading/hooks'
+import { markNextPlayerImportSource } from '@renderer/services/telemetry/player-loading-observer'
 import { AnimatePresence, m } from 'framer-motion'
 import { useCallback, useMemo, useRef } from 'react'
 
@@ -22,22 +27,21 @@ export default function VideoPlayer() {
     state.step === 'ready' || state.step === 'reloading' ? state.video : null,
   )
 
-  // 拖拽/点击导入
-  const handleImport = useCallback(
-    (e: DragEvent<HTMLDivElement> | ChangeEvent<HTMLInputElement>) => {
-      e.preventDefault()
-      let file: File | undefined
-      if (e.type === 'drop') {
-        file = (e as DragEvent<HTMLDivElement>).dataTransfer?.files[0]
-      } else if (e.type === 'change') {
-        file = (e as ChangeEvent<HTMLInputElement>).target?.files?.[0]
-      }
+  // 拖拽与 Web input 共用同一格式校验和加载入口。
+  const importFile = useCallback(
+    (file: File | undefined, source: 'click' | 'drop') => {
       if (!file || !checkIsVideoType(file.name)) {
         return showFailedToast({ title: '格式错误', description: '请导入 mp4 或者 mkv 格式的动漫' })
       }
+      markNextPlayerImportSource(source)
       service.loadFromFile(file)
     },
-    [service],
+    [service, showFailedToast],
+  )
+
+  const handleInputChange = useCallback(
+    (event: ChangeEvent<HTMLInputElement>) => importFile(event.target.files?.[0], 'click'),
+    [importFile],
   )
 
   // 点击导入（Electron 打开文件对话框，Web 触发 input）
@@ -47,6 +51,7 @@ export default function VideoPlayer() {
     }
     const path = await ipcClient?.player.importAnime()
     if (path) {
+      markNextPlayerImportSource('click')
       service.loadFromPath(path)
     }
   }, [service])
@@ -63,9 +68,9 @@ export default function VideoPlayer() {
 
   return (
     <VideoProvider>
-      <div
-        onDrop={handleImport}
-        onDragOver={(e) => e.preventDefault()}
+      <VideoDropZone
+        active={!preparedVideo}
+        onFileDrop={(file) => importFile(file, 'drop')}
         className={cn('flex size-full items-center justify-center')}
       >
         <AnimatePresence>{content}</AnimatePresence>
@@ -74,11 +79,11 @@ export default function VideoPlayer() {
             type="file"
             accept="video/mp4, video/x-matroska"
             ref={fileInputRef}
-            onChange={handleImport}
+            onChange={handleInputChange}
             className="hidden"
           />
         )}
-      </div>
+      </VideoDropZone>
     </VideoProvider>
   )
 }

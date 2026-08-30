@@ -1,0 +1,74 @@
+{
+  "title": "播放器首页扁平化重做验收",
+  "plan": [
+    {
+      "id": "electron-resume-launcher",
+      "name": "Electron 扁平续播启动台"
+    },
+    {
+      "id": "web-import-boundary",
+      "name": "Web 扁平播放器舞台"
+    },
+    {
+      "id": "light-dark-theme",
+      "name": "浅色与夜间低层级主题"
+    }
+  ],
+  "cases": [
+    {
+      "id": "electron-resume-launcher",
+      "name": "Electron 扁平续播启动台",
+      "status": "passed",
+      "observation": "Electron 首页保留续播 Hero、导入入口和四个最近播放项，但页面改为纯色画布；Hero、导入区和缩略图不再使用悬浮投影，依靠内容、留白与细边界建立主次。",
+      "evidence": [
+        {
+          "path": "assets/electron-home-flat.jpeg",
+          "type": "image",
+          "text": "Electron 扁平有历史首页"
+        }
+      ]
+    },
+    {
+      "id": "web-import-boundary",
+      "name": "Web 扁平播放器舞台",
+      "status": "passed",
+      "observation": "Web 空态使用居中的 16:9 播放器舞台承载导入操作，只有纯色表面和细边界，没有孤立的小型悬浮卡片，也不出现不可执行的历史入口。",
+      "evidence": [
+        {
+          "path": "assets/web-stage-light.png",
+          "type": "image",
+          "text": "Web 浅色扁平播放器舞台"
+        }
+      ]
+    },
+    {
+      "id": "light-dark-theme",
+      "name": "浅色与夜间低层级主题",
+      "status": "passed",
+      "observation": "浅色与夜间模式均移除径向背景、毛玻璃和普通卡片投影，表面只通过语义色与细边界分层，主按钮仍保持清晰对比。",
+      "evidence": [
+        {
+          "path": "assets/web-stage-light.png",
+          "type": "image",
+          "text": "浅色扁平舞台"
+        },
+        {
+          "path": "assets/web-stage-dark.png",
+          "type": "image",
+          "text": "夜间扁平舞台"
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "verdict": "passed",
+    "conclusion": "第 1 轮的重阴影与 Web 悬浮卡片问题已重做：首页现在使用纯色背景、细边界和更克制的圆角，Web 形成明确但不悬浮的播放器舞台，等待维护者重新签核。"
+  },
+  "commit": "working-tree@173e45a69f4b1cd75f08829fe46cf675ac8f46d3",
+  "surfaces": [
+    "Electron 播放器首页",
+    "Web 桌面播放器空态",
+    "续播 Hero、导入区与最近播放",
+    "浅色与夜间主题"
+  ]
+}

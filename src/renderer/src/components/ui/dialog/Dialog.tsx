@@ -32,13 +32,16 @@ DialogOverlay.displayName = DialogPrimitive.Overlay.displayName
 const DialogContent = ({
   ref,
   onClosed,
+  container,
   className,
   children,
   ...props
-}: React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content> & { onClosed?: () => void } & {
+}: React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content> & {
+  onClosed?: () => void
+  container?: Element | DocumentFragment | null
   ref?: React.RefObject<React.ElementRef<typeof DialogPrimitive.Content>>
 }) => (
-  <DialogPortal>
+  <DialogPortal container={container}>
     <DialogOverlay />
     <DialogPrimitive.Content
       ref={ref}
@@ -55,7 +58,7 @@ const DialogContent = ({
         className="ring-offset-background focus:ring-ring data-[state=open]:bg-accent data-[state=open]:text-muted-foreground absolute top-4 right-4 cursor-default rounded-sm opacity-70 transition-opacity hover:opacity-100 focus:ring-2 focus:ring-offset-2 focus:outline-none disabled:pointer-events-none"
       >
         <X className="size-4" />
-        <span className="sr-only">Close</span>
+        <span className="sr-only">关闭</span>
       </DialogPrimitive.Close>
     </DialogPrimitive.Content>
   </DialogPortal>

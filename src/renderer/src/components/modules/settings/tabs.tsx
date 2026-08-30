@@ -1,35 +1,40 @@
-import type { ReactNode } from 'react'
+import type { AppSettingsSection } from '@marchen/shared/types/renderer-handlers'
+import type { ComponentType } from 'react'
 
 import { AboutView } from './views/about/About'
 import { AIView } from './views/ai/AIView'
 import { GeneralView } from './views/general/General'
-import { PlayerView } from './views/player'
+export interface SettingTabModel {
+  id: AppSettingsSection
+  label: string
+  description: string
+  icon: string
+  component: ComponentType
+}
 
-export const settingTabs = [
+export const settingTabs: SettingTabModel[] = [
   {
-    title: '通用',
+    id: 'general',
+    label: '通用',
+    description: '管理应用行为、外观与本地数据',
     icon: 'icon-[mingcute--settings-3-line]',
-    component: <GeneralView />,
+    component: GeneralView,
   },
   {
-    title: '播放器',
-    icon: 'icon-[mingcute--play-circle-line]',
-    component: <PlayerView />,
-  },
-  {
-    title: 'AI',
+    id: 'ai',
+    label: 'AI 服务',
+    description: '配置用于智能功能的模型服务商',
     icon: 'icon-[mingcute--sparkles-2-line]',
-    component: <AIView />,
+    component: AIView,
   },
   {
-    title: '关于',
+    id: 'about',
+    label: '关于',
+    description: '查看版本、更新与反馈渠道',
     icon: 'icon-[mingcute--information-line]',
-    component: <AboutView />,
+    component: AboutView,
   },
 ]
 
-export interface SettingTabsModel {
-  title: string
-  icon: string
-  component: ReactNode
-}
+export const getSettingTab = (section: AppSettingsSection) =>
+  settingTabs.find((tab) => tab.id === section) ?? settingTabs[0]

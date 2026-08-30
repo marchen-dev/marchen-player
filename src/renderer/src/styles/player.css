@@ -9,6 +9,16 @@
   --player-track: rgb(255 255 255 / 16%);
   --player-buffered: rgb(255 255 255 / 30%);
   --player-progress: rgb(238 246 250 / 92%);
+  /* 播放器设置始终使用同一套 IINA 风格材质，不跟随应用 light/dark 主题。 */
+  --player-settings-panel: rgb(30 30 35 / 82%);
+  --player-settings-raised: rgb(255 255 255 / 8%);
+  --player-settings-selected: rgb(255 255 255 / 14%);
+  --player-settings-border: rgb(255 255 255 / 11%);
+  --player-settings-fg: rgb(255 255 255 / 94%);
+  --player-settings-muted: rgb(255 255 255 / 58%);
+  --player-settings-accent: #0a84ff;
+  --player-settings-focus: #64b5ff;
+  --player-settings-width: clamp(380px, 28vw, 440px);
 }
 
 @supports not (backdrop-filter: blur(1px)) {
@@ -16,12 +26,9 @@
   [data-player-mobile-dock] > div {
     background: var(--player-surface-solid);
   }
-}
 
-@media (prefers-reduced-transparency: reduce) {
-  [data-player-floating-controller],
-  [data-player-mobile-dock] > div {
-    background: var(--player-surface-solid);
+  [data-player-settings-panel] {
+    background: rgb(30 30 35);
     backdrop-filter: none;
   }
 }
@@ -47,12 +54,21 @@
   pointer-events: auto;
 }
 
-/* 设置面板位于强制白字的播放器根节点内，显式覆盖 shadcn 的浅色输入底色。 */
-[data-player-setting-sheet] :is(button, [role='combobox'], input, select, textarea).bg-background {
-  color: var(--player-fg);
-  background-color: rgb(255 255 255 / 8%);
+[data-player-settings-panel] > button[aria-label],
+[data-player-settings-panel] > button:has(.sr-only) {
+  color: var(--player-settings-muted);
+  background: rgb(255 255 255 / 6%);
+  border-radius: 0.5rem;
 }
 
-[data-player-setting-sheet] .border-input {
-  border-color: rgb(255 255 255 / 14%);
+[data-player-settings-panel] > button:hover {
+  color: var(--player-settings-fg);
+  background: var(--player-settings-selected);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-player-settings-panel] {
+    animation: none;
+    transition: none;
+  }
 }

@@ -15,7 +15,7 @@ export const registerAppMenu = () => {
         {
           type: 'normal',
           label: `关于 Marchen Play`,
-          click: () => createSettingWindow('关于'),
+          click: () => createSettingWindow('about'),
         },
         { type: 'separator' },
         {

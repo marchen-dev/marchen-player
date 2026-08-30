@@ -17,12 +17,12 @@ import { getPlayerLoadingService } from '@renderer/services/player-loading/index
 import { useAtomValue } from 'jotai'
 import { useCallback } from 'react'
 
-import { SettingProviderQueryKey, useSettingConfig } from '../../Sheet'
+import { danmakuSourceQueryKey, useDanmakuSourceConfig } from '../../danmaku-source-context'
 
 export const AddDanmaku = () => {
   const { hash } = useAtomValue(videoAtom)
   const { toast } = useToast()
-  const { danmaku } = useSettingConfig()
+  const { danmaku } = useDanmakuSourceConfig()
 
   // 从本地弹幕文件导入（仅 Electron 环境）
   const handleImportDanmakuFile = useCallback(async () => {
@@ -52,12 +52,10 @@ export const AddDanmaku = () => {
     })
 
     // 更新设置面板的 UI 缓存
-    queryClient.setQueryData([SettingProviderQueryKey, hash], (oldData: DB_History) => ({
+    queryClient.setQueryData([danmakuSourceQueryKey, hash], (oldData: DB_History) => ({
       ...oldData,
       danmaku:
-        service.currentState.step === 'ready'
-          ? service.currentState.danmaku
-          : oldData?.danmaku,
+        service.currentState.step === 'ready' ? service.currentState.danmaku : oldData?.danmaku,
     }))
 
     toast({ title: '导入成功' })
@@ -70,8 +68,15 @@ export const AddDanmaku = () => {
   return (
     <div className="space-y-6 pt-1">
       <div className="flex flex-col gap-3">
-        <Label className="text-zinc-600">从弹幕文件导入，支持 XML 和 JSON 格式</Label>
-        <Button size="sm" variant="outline" onClick={handleImportDanmakuFile}>
+        <Label className="text-[var(--player-settings-muted)]">
+          从弹幕文件导入，支持 XML 和 JSON 格式
+        </Label>
+        <Button
+          size="sm"
+          variant="outline"
+          className="border-white/11 bg-white/8 text-white hover:bg-white/14 hover:text-white"
+          onClick={handleImportDanmakuFile}
+        >
           点击导入弹幕文件
         </Button>
       </div>

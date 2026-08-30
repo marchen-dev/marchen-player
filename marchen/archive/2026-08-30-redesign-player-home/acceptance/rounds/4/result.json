@@ -1,0 +1,74 @@
+{
+  "title": "播放器原版空态恢复验收",
+  "plan": [
+    {
+      "id": "electron-original-empty-state",
+      "name": "Electron 原版播放器空态"
+    },
+    {
+      "id": "web-import-boundary",
+      "name": "Web 原版点击与拖拽入口"
+    },
+    {
+      "id": "light-dark-theme",
+      "name": "浅色与夜间原版空态"
+    }
+  ],
+  "cases": [
+    {
+      "id": "electron-original-empty-state",
+      "name": "Electron 原版播放器空态",
+      "status": "passed",
+      "observation": "Electron 已恢复原版线框播放图标与‘点击或拖拽动漫到此处播放’，页面不再展示续播、最近播放、卡片、分格或阴影。",
+      "evidence": [
+        {
+          "path": "assets/electron-original-home.jpeg",
+          "type": "image",
+          "text": "Electron 原版播放器空态"
+        }
+      ]
+    },
+    {
+      "id": "web-import-boundary",
+      "name": "Web 原版点击与拖拽入口",
+      "status": "passed",
+      "observation": "Web 恢复与 Electron 相同的原版图标与文案，并恢复原有侧栏；点击打开文件和整页拖拽仍沿用既有导入流程。",
+      "evidence": [
+        {
+          "path": "assets/web-original-light.jpeg",
+          "type": "image",
+          "text": "Web 浅色原版空态"
+        }
+      ]
+    },
+    {
+      "id": "light-dark-theme",
+      "name": "浅色与夜间原版空态",
+      "status": "passed",
+      "observation": "原版灰色线框图标与文案在浅色和夜间主题下均保持可读，没有新增背景、边框或阴影。",
+      "evidence": [
+        {
+          "path": "assets/web-original-light.jpeg",
+          "type": "image",
+          "text": "浅色原版空态"
+        },
+        {
+          "path": "assets/web-original-dark.jpeg",
+          "type": "image",
+          "text": "夜间原版空态"
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "verdict": "passed",
+    "conclusion": "前三轮播放器首页重设计已撤回，Electron 与 Web 均恢复维护者指定的原版点击/拖拽空态，等待重新签核。"
+  },
+  "commit": "working-tree@173e45a69f4b1cd75f08829fe46cf675ac8f46d3",
+  "surfaces": [
+    "Electron 播放器原版空态",
+    "Web 桌面播放器原版空态",
+    "点击与拖拽导入",
+    "浅色与夜间主题"
+  ]
+}

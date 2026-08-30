@@ -2,10 +2,7 @@ import { spawnSync } from 'node:child_process'
 import { mkdirSync, writeFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 
-const outputDirectory = resolve(
-  process.cwd(),
-  process.argv[2] ?? 'test-results/player-acceptance',
-)
+const outputDirectory = resolve(process.cwd(), process.argv[2] ?? 'test-results/player-acceptance')
 
 mkdirSync(outputDirectory, { recursive: true })
 
@@ -45,20 +42,30 @@ Dialogue: Marked=0,0:00:06.00,0:00:10.00,Default,,0,0,0,,Web 外挂字幕验收
 writeFileSync(resolve(outputDirectory, 'fixture.ass'), ass)
 writeFileSync(resolve(outputDirectory, 'fixture.ssa'), ssa)
 
+const denseTexts = [
+  '短',
+  '中等长度弹幕用于碰撞回归',
+  '这是一条明显更长的高密度弹幕，用于覆盖不同速度下的追击边界',
+]
+
 const createDanmaku = (count, dense) =>
-  Array.from({ length: count }, (_, index) => ({
-    id: index + 1,
-    mode: index % 15 === 0 ? 5 : index % 11 === 0 ? 4 : 1,
-    progress: dense ? 2_000 + (index % 120) * 20 : 500 + index * 350,
-    fontsize: 25,
-    color: index % 7 === 0 ? 0x66CCFF : 0xFFFFFF,
-    midHash: 'generated-fixture',
-    content: `${dense ? '高密度' : '本地'}弹幕 ${index + 1}`,
-    ctime: 1_700_000_000 + index,
-    weight: 0,
-    idStr: String(index + 1),
-    attr: 0,
-  }))
+  Array.from({ length: count }, (_, index) => {
+    const mode = index % 15 === 0 ? 5 : index % 11 === 0 ? 4 : 1
+    const text = dense ? denseTexts[index % denseTexts.length] : `本地弹幕 ${index + 1}`
+    return {
+      id: index + 1,
+      mode,
+      progress: dense ? 2_000 + (index % 80) * 12 : 500 + index * 350,
+      fontsize: dense ? [18, 25, 36][index % 3] : 25,
+      color: index % 7 === 0 ? 0x66_CC_FF : 0xFF_FF_FF,
+      midHash: 'generated-fixture',
+      content: dense ? `${text} #${index + 1}` : text,
+      ctime: 1_700_000_000 + index,
+      weight: 0,
+      idStr: String(index + 1),
+      attr: 0,
+    }
+  })
 
 writeFileSync(
   resolve(outputDirectory, 'local-danmaku.json'),
@@ -104,6 +111,37 @@ runFfmpeg([
   '-shortest',
   mp4Path,
 ])
+
+const visualScenarios = [
+  [
+    'sidebar-bright.mp4',
+    'color=c=#f2eadf:size=1280x720:rate=30,drawgrid=width=160:height=90:color=#ffffff@0.8:thickness=3',
+  ],
+  [
+    'sidebar-dark.mp4',
+    'color=c=#090b12:size=1280x720:rate=30,drawgrid=width=160:height=90:color=#24304f@0.9:thickness=3',
+  ],
+  ['sidebar-high-contrast.mp4', 'testsrc2=size=1280x720:rate=30,eq=contrast=2.0:saturation=1.5'],
+]
+
+for (const [filename, source] of visualScenarios) {
+  runFfmpeg([
+    '-f',
+    'lavfi',
+    '-i',
+    source,
+    '-t',
+    '4',
+    '-an',
+    '-c:v',
+    'libx264',
+    '-preset',
+    'ultrafast',
+    '-pix_fmt',
+    'yuv420p',
+    resolve(outputDirectory, filename),
+  ])
+}
 
 // 部分自动化 Chromium 不含专有 H.264 解码器，额外提供开放编码的 Web 验收样本。
 runFfmpeg([

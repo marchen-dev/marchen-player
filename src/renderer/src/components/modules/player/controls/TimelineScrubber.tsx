@@ -110,6 +110,7 @@ export const TimelineScrubber = ({
     >
       <div
         data-timeline-track
+        data-telemetry-replay-block
         className="relative h-1.5 w-full overflow-hidden rounded-full bg-[var(--player-track)] transition-[height] group-hover:h-2"
       >
         {buffered.map(([start, end]) => {

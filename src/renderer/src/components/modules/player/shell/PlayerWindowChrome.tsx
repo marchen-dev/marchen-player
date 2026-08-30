@@ -1,16 +1,20 @@
+import { playerSettingsPanelAtom } from '@renderer/atoms/player'
 import { useWindowFullscreen, useWindowState, WindowState } from '@renderer/atoms/window'
 import { ipcClient } from '@renderer/lib/client'
 import { cn, isMac, isWeb, isWindows } from '@renderer/lib/utils'
+import { useAtomValue } from 'jotai'
 
 export const PlayerWindowChrome = ({ onClose }: { onClose: () => void }) => {
   const fullscreen = useWindowFullscreen()
   const windowState = useWindowState()
+  const settingsPanelOpen = useAtomValue(playerSettingsPanelAtom).open
 
   return (
     <header
       data-player-window-chrome
+      style={{ right: settingsPanelOpen ? 'var(--player-settings-width)' : 0 }}
       className={cn(
-        'drag-region pointer-events-none absolute inset-x-0 top-0 z-40 h-20',
+        'drag-region pointer-events-none absolute top-0 left-0 z-40 h-20',
         'bg-gradient-to-b from-black/60 via-black/20 to-transparent px-4 text-white/70',
       )}
     >

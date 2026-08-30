@@ -41,7 +41,12 @@ export const PlayerIconButton = ({
           <i className={cn(icon, compact ? 'text-lg' : 'text-xl')} aria-hidden />
         </button>
       </TooltipTrigger>
-      <TooltipContent container={portalContainer} side="top" sideOffset={8}>
+      <TooltipContent
+        container={portalContainer}
+        side="top"
+        sideOffset={8}
+        className="border border-white/11 bg-[rgb(38_38_44/96%)] text-white shadow-lg"
+      >
         {label}
       </TooltipContent>
     </Tooltip>

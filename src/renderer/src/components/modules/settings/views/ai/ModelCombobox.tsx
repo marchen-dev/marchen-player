@@ -2,11 +2,7 @@ import type { AIProviderType } from '@renderer/request/models/ai'
 import type { FC } from 'react'
 import { Button } from '@renderer/components/ui/button'
 import { Input } from '@renderer/components/ui/input'
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@renderer/components/ui/popover'
+import { Popover, PopoverContent, PopoverTrigger } from '@renderer/components/ui/popover'
 import { apiClient } from '@renderer/request'
 import { PRESET_MODELS } from '@renderer/request/models/ai'
 import { useCallback, useState } from 'react'
@@ -17,6 +13,8 @@ interface ModelComboboxProps {
   baseUrl: string
   value: string
   onChange: (value: string) => void
+  triggerId?: string
+  'aria-labelledby'?: string
 }
 
 export const ModelCombobox: FC<ModelComboboxProps> = ({
@@ -25,6 +23,8 @@ export const ModelCombobox: FC<ModelComboboxProps> = ({
   baseUrl,
   value,
   onChange,
+  triggerId,
+  'aria-labelledby': ariaLabelledBy,
 }) => {
   const [open, setOpen] = useState(false)
   const [models, setModels] = useState<string[]>(PRESET_MODELS[type])
@@ -53,11 +53,21 @@ export const ModelCombobox: FC<ModelComboboxProps> = ({
     <div className="flex gap-2">
       <Popover open={open} onOpenChange={setOpen} modal>
         <PopoverTrigger asChild>
-          <Button variant="outline" className="flex-1 justify-start font-normal">
+          <Button
+            id={triggerId}
+            variant="outline"
+            className="min-w-0 flex-1 justify-start truncate font-normal"
+            aria-labelledby={ariaLabelledBy}
+          >
             {value || '选择模型...'}
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-72 p-2" align="start" avoidCollisions onWheel={(e) => e.stopPropagation()}>
+        <PopoverContent
+          className="w-72 p-2"
+          align="start"
+          avoidCollisions
+          onWheel={(event) => event.stopPropagation()}
+        >
           <Input
             placeholder="搜索或输入模型名..."
             value={filter}
@@ -71,12 +81,15 @@ export const ModelCombobox: FC<ModelComboboxProps> = ({
             }}
             className="mb-2"
           />
-          <div className="max-h-40 overflow-y-auto overscroll-contain" onWheel={(e) => e.stopPropagation()}>
+          <div
+            className="max-h-40 overflow-y-auto overscroll-contain"
+            onWheel={(event) => event.stopPropagation()}
+          >
             {filteredModels.map((m) => (
               <button
                 key={m}
                 type="button"
-                className="w-full rounded px-2 py-1.5 text-left text-sm hover:bg-muted"
+                className="hover:bg-muted w-full rounded px-2 py-1.5 text-left text-sm"
                 onClick={() => {
                   onChange(m)
                   setOpen(false)
@@ -89,7 +102,7 @@ export const ModelCombobox: FC<ModelComboboxProps> = ({
             {filteredModels.length === 0 && filter && (
               <button
                 type="button"
-                className="w-full rounded px-2 py-1.5 text-left text-sm text-muted-foreground hover:bg-muted"
+                className="text-muted-foreground hover:bg-muted w-full rounded px-2 py-1.5 text-left text-sm"
                 onClick={() => {
                   onChange(filter)
                   setOpen(false)
@@ -109,8 +122,12 @@ export const ModelCombobox: FC<ModelComboboxProps> = ({
         onClick={handleFetchModels}
         disabled={fetching || !apiKey || !baseUrl}
         title="获取模型列表"
+        aria-label="获取模型列表"
       >
-        <i className={`icon-[mingcute--refresh-2-line] text-sm ${fetching ? 'animate-spin' : ''}`} />
+        <i
+          className={`icon-[mingcute--refresh-2-line] text-sm ${fetching ? 'animate-spin' : ''}`}
+          aria-hidden="true"
+        />
       </Button>
     </div>
   )

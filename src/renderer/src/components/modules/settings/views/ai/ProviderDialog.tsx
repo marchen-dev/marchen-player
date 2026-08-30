@@ -1,5 +1,5 @@
 import type { AIProviderConfig, AIProviderType } from '@renderer/request/models/ai'
-import type { FC } from 'react'
+import type { FC, RefObject } from 'react'
 import { useAISettings } from '@renderer/atoms/settings/ai'
 import { Button } from '@renderer/components/ui/button'
 import {
@@ -29,12 +29,14 @@ interface ProviderDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   editingProvider?: AIProviderConfig
+  returnFocusRef?: RefObject<HTMLElement | null>
 }
 
 export const ProviderDialog: FC<ProviderDialogProps> = ({
   open,
   onOpenChange,
   editingProvider,
+  returnFocusRef,
 }) => {
   const [, setSettings] = useAISettings()
   const [type, setType] = useState<AIProviderType>('openai')
@@ -109,16 +111,24 @@ export const ProviderDialog: FC<ProviderDialogProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md" onInteractOutside={(e) => e.preventDefault()}>
+      <DialogContent
+        className="sm:max-w-md"
+        onInteractOutside={(event) => event.preventDefault()}
+        onCloseAutoFocus={(event) => {
+          if (!returnFocusRef?.current) return
+          event.preventDefault()
+          returnFocusRef.current.focus()
+        }}
+      >
         <DialogHeader>
           <DialogTitle>{editingProvider ? '编辑服务商' : '添加服务商'}</DialogTitle>
         </DialogHeader>
 
         <div className="grid gap-4 py-4">
           <div className="grid gap-2">
-            <Label>类型</Label>
+            <Label id="provider-type-label">类型</Label>
             <Select value={type} onValueChange={(v) => handleTypeChange(v as AIProviderType)}>
-              <SelectTrigger>
+              <SelectTrigger aria-labelledby="provider-type-label">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -129,8 +139,9 @@ export const ProviderDialog: FC<ProviderDialogProps> = ({
           </div>
 
           <div className="grid gap-2">
-            <Label>名称（可选）</Label>
+            <Label htmlFor="provider-name">名称（可选）</Label>
             <Input
+              id="provider-name"
               placeholder={type === 'openai' ? 'OpenAI' : 'Anthropic'}
               value={name}
               onChange={(e) => setName(e.target.value)}
@@ -138,8 +149,9 @@ export const ProviderDialog: FC<ProviderDialogProps> = ({
           </div>
 
           <div className="grid gap-2">
-            <Label>API Key</Label>
+            <Label htmlFor="provider-api-key">API Key</Label>
             <Input
+              id="provider-api-key"
               type="password"
               placeholder={type === 'openai' ? 'sk-...' : 'sk-ant-...'}
               value={apiKey}
@@ -148,8 +160,9 @@ export const ProviderDialog: FC<ProviderDialogProps> = ({
           </div>
 
           <div className="grid gap-2">
-            <Label>Base URL</Label>
+            <Label htmlFor="provider-base-url">Base URL</Label>
             <Input
+              id="provider-base-url"
               placeholder={DEFAULT_BASE_URLS[type]}
               value={baseUrl}
               onChange={(e) => setBaseUrl(e.target.value)}
@@ -157,8 +170,10 @@ export const ProviderDialog: FC<ProviderDialogProps> = ({
           </div>
 
           <div className="grid gap-2">
-            <Label>模型</Label>
+            <Label id="provider-model-label">模型</Label>
             <ModelCombobox
+              triggerId="provider-model"
+              aria-labelledby="provider-model-label"
               type={type}
               apiKey={apiKey}
               baseUrl={baseUrl}
@@ -178,7 +193,9 @@ export const ProviderDialog: FC<ProviderDialogProps> = ({
               {testing ? '测试中...' : '测试连接'}
             </Button>
             {testResult && (
-              <span className={`text-xs ${testResult.success ? 'text-green-600' : 'text-destructive'}`}>
+              <span
+                className={`text-xs ${testResult.success ? 'text-green-600' : 'text-destructive'}`}
+              >
                 {testResult.message}
               </span>
             )}

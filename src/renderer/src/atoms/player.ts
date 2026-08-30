@@ -5,29 +5,39 @@
  * 加载流程的状态已迁移到 PlayerLoadingService。
  */
 
-import { atomWithReset, useResetAtom } from 'jotai/utils'
+import type { DurableMediaSource } from '@marchen/shared/media'
+import type { PlayerSettingsPanelState, PlayerSettingsSection } from './player-settings-state'
 
+import { atomWithReset, useResetAtom } from 'jotai/utils'
+import {
+  closePlayerSettingsPanel,
+  initialPlayerSettingsPanelState,
+  openPlayerSettingsPanel,
+} from './player-settings-state'
 import { jotaiStore } from './store'
 
-// 设置面板开关状态
-export const playerSettingSheetAtom = atomWithReset(false)
-export type PlayerSettingSection = 'playList' | 'danmaku' | 'subtitle'
-export const playerSettingSectionAtom = atomWithReset<PlayerSettingSection>('danmaku')
+// 设置面板的可见性和当前标签必须原子化更新，避免先打开旧标签再跳转的闪烁。
+export const playerSettingsPanelAtom = atomWithReset<PlayerSettingsPanelState>(
+  initialPlayerSettingsPanelState,
+)
 
-export const showPlayerSettingSheet = (section: PlayerSettingSection = 'danmaku') => {
-  jotaiStore.set(playerSettingSectionAtom, section)
-  jotaiStore.set(playerSettingSheetAtom, true)
+export const showPlayerSettingsPanel = (section: PlayerSettingsSection = 'playback') => {
+  jotaiStore.set(playerSettingsPanelAtom, (state) => openPlayerSettingsPanel(state, section))
+}
+
+export const hidePlayerSettingsPanel = () => {
+  jotaiStore.set(playerSettingsPanelAtom, closePlayerSettingsPanel)
 }
 
 // videoAtom 保留：被 Event.tsx（进度保存）和 DanmakuSource（hash 读取）使用
 export const videoAtom = atomWithReset<{
-  url: string
+  source: DurableMediaSource | null
   hash: string
   size: number
   name: string
-  playList: { urlWithPrefix: string; name: string }[]
+  playList: { path: string; fileHash?: string; name: string }[]
 }>({
-  url: '',
+  source: null,
   hash: '',
   size: 0,
   name: '',
@@ -39,13 +49,11 @@ export const videoAtom = atomWithReset<{
  */
 export const useClearPlayingVideo = () => {
   const resetVideo = useResetAtom(videoAtom)
-  const resetPlayerSettingSheet = useResetAtom(playerSettingSheetAtom)
-  const resetPlayerSettingSection = useResetAtom(playerSettingSectionAtom)
+  const resetPlayerSettingsPanel = useResetAtom(playerSettingsPanelAtom)
 
   return () => {
     resetVideo()
-    resetPlayerSettingSheet()
-    resetPlayerSettingSection()
+    resetPlayerSettingsPanel()
   }
 }
 

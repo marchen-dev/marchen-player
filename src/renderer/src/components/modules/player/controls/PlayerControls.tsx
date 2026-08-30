@@ -1,6 +1,6 @@
 import type { PlayerCapabilities } from '@renderer/services/player-runtime'
-import type { PlayerRotation } from './PlayerInspector'
-import { playerSettingSheetAtom } from '@renderer/atoms/player'
+import type { PlayerRotation } from '../setting/PlayerSettingsPanel'
+import { playerSettingsPanelAtom, showPlayerSettingsPanel } from '@renderer/atoms/player'
 import { usePlayerSettingsValue } from '@renderer/atoms/settings/player'
 import { TooltipProvider } from '@renderer/components/ui/Tooltip'
 import {
@@ -10,11 +10,12 @@ import {
   usePlaybackCommands,
   usePlaybackViewModel,
 } from '@renderer/services/player-runtime'
+import { captureFeatureUsed } from '@renderer/services/telemetry/features'
 import { useAtomValue } from 'jotai'
 import { useCallback, useMemo, useRef, useState } from 'react'
+import { PlayerSettingsPanel } from '../setting/PlayerSettingsPanel'
 import { FloatingController } from './FloatingController'
 import { PlayerIconButton } from './PlayerIconButton'
-import { PlayerInspector } from './PlayerInspector'
 import { TimelineScrubber } from './TimelineScrubber'
 import { useControllerVisibility } from './useControllerVisibility'
 import { usePlayerShortcuts } from './usePlayerShortcuts'
@@ -25,10 +26,6 @@ export interface PlayerControlsProps {
   capabilities: PlayerCapabilities
   onPrevious?: () => void
   onNext?: () => void
-  onDanmaku?: () => void
-  onSubtitle?: () => void
-  onPlaylist?: () => void
-  onExit?: () => void
   onFullscreen?: () => void
   onExitFullscreen?: () => void
   fullscreen?: boolean
@@ -40,10 +37,6 @@ export const PlayerControls = ({
   capabilities,
   onPrevious,
   onNext,
-  onDanmaku,
-  onSubtitle,
-  onPlaylist,
-  onExit,
   onFullscreen,
   onExitFullscreen,
   fullscreen = false,
@@ -62,15 +55,14 @@ export const PlayerControls = ({
   const [dragging, setDragging] = useState(false)
   const [seeking, setSeeking] = useState(false)
   const [focused, setFocused] = useState(false)
-  const [inspectorOpen, setInspectorOpen] = useState(false)
-  const settingSheetOpen = useAtomValue(playerSettingSheetAtom)
+  const settingsPanelOpen = useAtomValue(playerSettingsPanelAtom).open
   const { enableMiniProgress } = usePlayerSettingsValue()
 
   const playing = state.status === 'playing'
   const currentTime = getCurrentTime(state)
   const duration = 'duration' in state ? state.duration : initialSnapshot.duration
   const rate = 'rate' in state ? state.rate : initialSnapshot.rate
-  const controllerLocked = dragging || seeking || focused || inspectorOpen || settingSheetOpen
+  const controllerLocked = dragging || seeking || focused || settingsPanelOpen
   const { visible, markActivity } = useControllerVisibility({
     playing,
     locked: controllerLocked,
@@ -122,7 +114,7 @@ export const PlayerControls = ({
 
   usePlayerShortcuts({
     rootRef: controlsRef,
-    blocked: settingSheetOpen || inspectorOpen,
+    blocked: settingsPanelOpen,
     actions: shortcutActions,
   })
 
@@ -215,7 +207,7 @@ export const PlayerControls = ({
                 label="设置"
                 icon="icon-[mingcute--settings-3-line]"
                 compact
-                onClick={() => setInspectorOpen(true)}
+                onClick={() => showPlayerSettingsPanel('playback')}
               />
               {availability.fullscreen && (
                 <PlayerIconButton
@@ -251,18 +243,15 @@ export const PlayerControls = ({
             </>
           }
         />
-        <PlayerInspector
-          open={inspectorOpen}
-          onOpenChange={setInspectorOpen}
+        <PlayerSettingsPanel
           capabilities={capabilities}
           rate={rate}
           rotation={rotation}
-          onRateChange={commands.setRate}
+          onRateChange={(nextRate) => {
+            captureFeatureUsed('playback_rate', 'change', nextRate)
+            commands.setRate(nextRate)
+          }}
           onRotationChange={onRotationChange ?? (() => {})}
-          onDanmaku={onDanmaku}
-          onSubtitle={onSubtitle}
-          onPlaylist={onPlaylist}
-          onExit={onExit}
         />
         {enableMiniProgress && playing && !visible && duration > 0 && (
           <div

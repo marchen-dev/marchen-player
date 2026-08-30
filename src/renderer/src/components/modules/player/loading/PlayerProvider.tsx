@@ -12,6 +12,7 @@ import {
   usePlayerLoadingSelector,
   usePlayerLoadingService,
 } from '@renderer/services/player-loading/hooks'
+import { captureFeatureUsed } from '@renderer/services/telemetry/features'
 
 import { useLoadingHistoricalAnime } from './hooks'
 
@@ -56,9 +57,11 @@ const WaitingUserDialog: FC = () => {
       matchData={state.matchData}
       onSelected={(params) => {
         if (!params) {
+          captureFeatureUsed('danmaku_match', 'skip')
           service.skipDanmaku()
           return
         }
+        captureFeatureUsed('danmaku_match', 'select')
         service.selectMatch(params)
       }}
       onClosed={() => service.cancel()}

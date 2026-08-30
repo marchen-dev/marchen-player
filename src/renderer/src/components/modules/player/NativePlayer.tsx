@@ -1,5 +1,4 @@
-import type { PlayerRotation } from './controls/PlayerInspector'
-import { showPlayerSettingSheet } from '@renderer/atoms/player'
+import type { PlayerRotation } from './setting/PlayerSettingsPanel'
 import { usePlayerLoadingSelector } from '@renderer/services/player-loading/hooks'
 import { getPlayerLoadingService } from '@renderer/services/player-loading/index'
 import {
@@ -13,9 +12,9 @@ import {
   useNativePlayerRuntime,
   usePlaybackSessionObservers,
 } from '@renderer/services/player-runtime'
+import { captureFeatureUsed } from '@renderer/services/telemetry/features'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { PlayerControls } from './controls'
-import { SettingSheet } from './setting/Sheet'
 import {
   DanmakuSurface,
   InteractionSurface,
@@ -33,7 +32,7 @@ export const NativePlayer = () => {
   const [video, setVideo] = useState<HTMLVideoElement | null>(null)
   const [rotation, setRotation] = useState<PlayerRotation>(0)
   const [fullscreen, setFullscreen] = useState(ports.fullscreen.getSnapshot().active)
-  const runtime = useNativePlayerRuntime(video)
+  const runtime = useNativePlayerRuntime(video, ports.sourceLifecycle)
   const preparedVideo = usePlayerLoadingSelector((state) =>
     state.step === 'ready' || state.step === 'reloading' ? state.video : null,
   )
@@ -42,7 +41,7 @@ export const NativePlayer = () => {
     runtime,
     ports,
     hash: preparedVideo?.hash,
-    sourceUrl: preparedVideo?.url,
+    source: preparedVideo?.source,
   })
   const sessionReady = isPlayerSessionReady(runtime, video, preparedVideo, ports.subtitles)
 
@@ -50,10 +49,14 @@ export const NativePlayer = () => {
   useEffect(() => ports.fullscreen.subscribe((snapshot) => setFullscreen(snapshot.active)), [ports])
 
   const toggleFullscreen = () => {
-    if (rootRef.current) void ports.fullscreen.toggle(rootRef.current)
+    if (rootRef.current) {
+      captureFeatureUsed('fullscreen', fullscreen ? 'exit' : 'enter')
+      void ports.fullscreen.toggle(rootRef.current)
+    }
   }
 
   const exitFullscreen = () => {
+    captureFeatureUsed('fullscreen', 'exit')
     void ports.fullscreen.exit()
   }
 
@@ -74,10 +77,6 @@ export const NativePlayer = () => {
               rotation={rotation}
               fullscreen={fullscreen}
               onRotationChange={setRotation}
-              onDanmaku={() => showPlayerSettingSheet('danmaku')}
-              onSubtitle={() => showPlayerSettingSheet('subtitle')}
-              onPlaylist={() => showPlayerSettingSheet('playList')}
-              onExit={() => getPlayerLoadingService().cancel()}
               onFullscreen={toggleFullscreen}
               onExitFullscreen={fullscreen ? exitFullscreen : undefined}
             />
@@ -87,7 +86,6 @@ export const NativePlayer = () => {
             />
           </>
         )}
-        <SettingSheet />
       </PlayerPortalRoot>
     </PlayerShell>
   )
@@ -101,7 +99,7 @@ export const NativePlayer = () => {
           video={video}
           runtime={runtime}
           catalog={ports.subtitles}
-          sourceUrl={preparedVideo.url}
+          source={preparedVideo.source}
           hash={preparedVideo.hash}
         >
           {shell}

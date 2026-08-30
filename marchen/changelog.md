@@ -28,3 +28,7 @@
 - 2026-05-24: [detail-overlay-unified-scroll](./archive/2026-05-24-detail-overlay-unified-scroll/) — DetailOverlay 改为统一滚动容器，banner 与内容一起流式滚动消除 poster 半截被遮的视觉
 - 2026-08-29: [upgrade-latest-dependency-stack](./archive/2026-08-29-upgrade-latest-dependency-stack/) — 升级并验证 Node、Electron、构建链及应用依赖，建立最新优先技术基线
 - 2026-08-30: [replace-xgplayer-runtime](./archive/2026-08-30-replace-xgplayer-runtime/) — 以原生 video、自研播放核心和 DOM 弹幕替换 xgplayer，并完善桌面悬浮控制器
+- 2026-08-30: [unify-player-settings-sidebar](./archive/2026-08-30-unify-player-settings-sidebar/) — 统一播放器设置为固定深色毛玻璃侧栏，整合播放、弹幕、字幕和播放列表
+- 2026-08-30: [redesign-player-home](./archive/2026-08-30-redesign-player-home/) — 恢复播放器极简打开空态，并为播放器与影视库复用轻量视频拖拽提示
+- 2026-08-30: [harden-danmaku-collision-engine](./archive/2026-08-30-harden-danmaku-collision-engine/) — 强化 DOM 弹幕碰撞与生命周期同步，并让速度、字号和显示区域调整不清屏
+- 2026-08-30: [redesign-app-settings-dialog](./archive/2026-08-30-redesign-app-settings-dialog/) — 将应用设置重构为三分类双栏弹窗，完善主题、入口与无障碍交互

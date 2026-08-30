@@ -12,6 +12,7 @@ import { ipcClient } from '@renderer/lib/client'
 import { apiClient } from '@renderer/request'
 import { RouteName, useCurrentRoute } from '@renderer/router'
 import { getPlayerLoadingService } from '@renderer/services/player-loading/index'
+import { usePlayerPortalContainer } from '@renderer/services/player-runtime'
 import { useQuery } from '@tanstack/react-query'
 import { useAtomValue } from 'jotai'
 
@@ -21,6 +22,7 @@ import { MatchAnimeDialog } from '../player/loading/dialog/MatchAnimeDialog'
 export const MatchDanmakuDialog = () => {
   const { hash } = useAtomValue(showMatchAnimeDialogAtom)
   const routes = useCurrentRoute()
+  const portalContainer = usePlayerPortalContainer()
   const isLibraryPage = routes?.path === RouteName.LIBRARY
 
   // 仅在影视库页面获取匹配数据（播放中由 service 管理）
@@ -69,5 +71,11 @@ export const MatchDanmakuDialog = () => {
     handleRematchLibraryUpdate(oldAnimeId, params.animeId, params.episodeId, hash)
   }
 
-  return <MatchAnimeDialog matchData={matchData} onSelected={handleUpdateHistory} />
+  return (
+    <MatchAnimeDialog
+      container={isLibraryPage ? undefined : portalContainer}
+      matchData={matchData}
+      onSelected={handleUpdateHistory}
+    />
+  )
 }

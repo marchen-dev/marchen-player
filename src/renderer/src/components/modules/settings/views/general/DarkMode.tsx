@@ -8,8 +8,9 @@ export const DarkModeToggle = () => {
     <div className="text-center">
       <Tabs
         className="w-full"
-        defaultValue={theme}
+        value={theme}
         onValueChange={(value: string) => toggleMode(value as AppTheme)}
+        aria-label="主题偏好"
       >
         <TabsList className="bg-muted h-8">
           {themes.map((item) => (
@@ -18,7 +19,7 @@ export const DarkModeToggle = () => {
               key={item.value}
               value={item.value}
             >
-              {item.icon}
+              <i className={item.icon} aria-hidden="true" />
               <span>{item.name}</span>
             </TabsTrigger>
           ))}
@@ -32,16 +33,16 @@ const themes = [
   {
     name: '系统',
     value: 'system',
-    icon: <i className="icon-[mingcute--monitor-line]" />,
+    icon: 'icon-[mingcute--monitor-line]',
   },
   {
     name: '白天',
     value: 'light',
-    icon: <i className="icon-[mingcute--sun-line]" />,
+    icon: 'icon-[mingcute--sun-line]',
   },
   {
     name: '夜间',
     value: 'dark',
-    icon: <i className="icon-[mingcute--moon-line]" />,
+    icon: 'icon-[mingcute--moon-line]',
   },
 ]

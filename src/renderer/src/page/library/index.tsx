@@ -1,8 +1,13 @@
 import type { DB_Library, DB_LibraryEpisode } from '@renderer/database/schemas/library'
 import { MatchDanmakuDialog } from '@renderer/components/modules/shared/MatchDanmakuDialog'
+import { VideoDropZone } from '@renderer/components/modules/shared/VideoDropZone'
 import { db } from '@renderer/database/db'
 import { usePageHeader } from '@renderer/hooks/use-page-header'
+import { usePlayAnimeFailedToast } from '@renderer/hooks/use-toast'
+import { checkIsVideoType } from '@renderer/lib/utils'
 import { RouteName } from '@renderer/router'
+import { usePlayerLoadingService } from '@renderer/services/player-loading/hooks'
+import { captureFeatureUsed } from '@renderer/services/telemetry/features'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { useCallback, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router'
@@ -21,6 +26,8 @@ const MAX_CONTINUE = 10
 
 export default function Library() {
   const navigate = useNavigate()
+  const service = usePlayerLoadingService()
+  const { showFailedToast } = usePlayAnimeFailedToast()
 
   const libraryData = useLiveQuery(() => db.library.toArray())
   const shows = useMemo<DB_Library[]>(() => libraryData ?? [], [libraryData])
@@ -28,7 +35,7 @@ export default function Library() {
   // 拉取每部 anime 上次播放集的 history 记录，得到 thumbnail + 单集进度比例
   const lastWatchedInfo = useLiveQuery(async () => {
     const thumbnails = new Map<number, string>()
-    const progress = new Map<number, { episodeNumber: number, ratio: number }>()
+    const progress = new Map<number, { episodeNumber: number; ratio: number }>()
     const items = libraryData ?? []
     const hashes = items
       .map((s) => s.episodes.find((e) => e.episodeId === s.lastWatchedEpisodeId)?.fileHash)
@@ -72,6 +79,7 @@ export default function Library() {
   const playEpisode = useCallback(
     (episode: DB_LibraryEpisode) => {
       if (!episode.fileHash) return
+      captureFeatureUsed('library', 'play_episode')
       setSelectedAnime(null)
       navigate(RouteName.PLAYER, { state: { hash: episode.fileHash } })
     },
@@ -79,8 +87,22 @@ export default function Library() {
   )
 
   const onCardClick = useCallback((item: DB_Library) => {
+    captureFeatureUsed('library', 'open_details')
     setSelectedAnime(item)
   }, [])
+
+  const importDroppedVideo = useCallback(
+    (file: File) => {
+      if (!checkIsVideoType(file.name)) {
+        showFailedToast({ title: '格式错误', description: '请导入 mp4 或者 mkv 格式的动漫' })
+        return
+      }
+      navigate(RouteName.PLAYER)
+      captureFeatureUsed('library', 'drop_video')
+      service.loadFromFile(file)
+    },
+    [navigate, service, showFailedToast],
+  )
 
   // 直接播放下一集；无可播放（fileHash 缺失）时 fallback 打开详情让用户挑集
   const playOrOpen = useCallback(
@@ -95,57 +117,64 @@ export default function Library() {
   const headerState = useMemo(() => ({ title: '影视库', actions: null }), [])
   usePageHeader(headerState)
 
-  if (shows.length === 0) {
-    return (
-      <LibraryShell>
+  const content =
+    shows.length === 0 ? (
+      <>
         <EmptyState variant="empty" />
-        <MatchDanmakuDialog />
-      </LibraryShell>
+      </>
+    ) : (
+      <>
+        {featured && (
+          <Hero
+            item={featured}
+            onPlay={() => playOrOpen(featured)}
+            onDetails={() => setSelectedAnime(featured)}
+            playDisabled={!pickNextEpisode(featured)}
+            episodePct={progressMap?.get(featured.animeId)}
+          />
+        )}
+
+        {continueWatching.length > 0 && (
+          <Rail title="继续观看" sub="CONTINUE WATCHING">
+            {continueWatching.map((item) => (
+              <LandscapeCard
+                key={item.animeId}
+                item={item}
+                thumbnail={thumbnailMap?.get(item.animeId)}
+                episodePct={progressMap?.get(item.animeId)}
+                onClick={() => playOrOpen(item)}
+              />
+            ))}
+          </Rail>
+        )}
+
+        <PosterGrid
+          title="所有作品"
+          sub={`LIBRARY · ${allShows.length}`}
+          items={allShows}
+          onCardClick={onCardClick}
+        />
+
+        {selectedAnime && (
+          <DetailOverlay
+            item={selectedAnime}
+            onClose={() => setSelectedAnime(null)}
+            onPlayEpisode={playEpisode}
+          />
+        )}
+      </>
     )
-  }
 
   return (
-    <LibraryShell>
-      {featured && (
-        <Hero
-          item={featured}
-          onPlay={() => playOrOpen(featured)}
-          onDetails={() => setSelectedAnime(featured)}
-          playDisabled={!pickNextEpisode(featured)}
-          episodePct={progressMap?.get(featured.animeId)}
-        />
-      )}
-
-      {continueWatching.length > 0 && (
-        <Rail title="继续观看" sub="CONTINUE WATCHING">
-          {continueWatching.map((item) => (
-            <LandscapeCard
-              key={item.animeId}
-              item={item}
-              thumbnail={thumbnailMap?.get(item.animeId)}
-              episodePct={progressMap?.get(item.animeId)}
-              onClick={() => playOrOpen(item)}
-            />
-          ))}
-        </Rail>
-      )}
-
-      <PosterGrid
-        title="所有作品"
-        sub={`LIBRARY · ${allShows.length}`}
-        items={allShows}
-        onCardClick={onCardClick}
-      />
-
-      {selectedAnime && (
-        <DetailOverlay
-          item={selectedAnime}
-          onClose={() => setSelectedAnime(null)}
-          onPlayEpisode={playEpisode}
-        />
-      )}
-
-      <MatchDanmakuDialog />
-    </LibraryShell>
+    <VideoDropZone
+      active={selectedAnime == null}
+      onFileDrop={importDroppedVideo}
+      className="size-full"
+    >
+      <LibraryShell>
+        {content}
+        <MatchDanmakuDialog />
+      </LibraryShell>
+    </VideoDropZone>
   )
 }

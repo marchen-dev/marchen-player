@@ -7,9 +7,21 @@
  *
  * 事件流向：main → renderer（单向推送）
  */
+export const APP_SETTINGS_SECTIONS = ['general', 'ai', 'about'] as const
+
+export type AppSettingsSection = (typeof APP_SETTINGS_SECTIONS)[number]
+
+export const DEFAULT_APP_SETTINGS_SECTION: AppSettingsSection = 'general'
+
+/** 将外部事件中的未知分类安全收敛到应用设置支持的稳定 ID。 */
+export const resolveAppSettingsSection = (value?: unknown): AppSettingsSection =>
+  typeof value === 'string' && APP_SETTINGS_SECTIONS.includes(value as AppSettingsSection)
+    ? (value as AppSettingsSection)
+    : DEFAULT_APP_SETTINGS_SECTION
+
 export interface RendererHandlers {
-  /** 打开设置面板，可选指定要显示的 tab 名称 */
-  showSetting: (tab?: string) => void
+  /** 打开应用设置，可选指定稳定分类 ID。 */
+  showSetting: (section?: AppSettingsSection) => void
 
   /** 通知 renderer 导入动画文件（如通过系统文件关联或拖拽打开） */
   importAnime: (params?: { path: string }) => void
