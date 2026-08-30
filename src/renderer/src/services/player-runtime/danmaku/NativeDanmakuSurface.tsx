@@ -7,6 +7,7 @@ export const NativeDanmakuSurface = ({ className }: { className?: string }) => {
     <div
       ref={surfaceRef}
       data-player-danmaku-surface
+      data-telemetry-replay-block
       className={cn('pointer-events-none absolute inset-0 z-20 overflow-hidden', className)}
       aria-hidden="true"
     />

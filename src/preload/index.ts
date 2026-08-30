@@ -1,31 +1,25 @@
-import { electronAPI } from '@electron-toolkit/preload'
-import { contextBridge, webUtils } from 'electron'
+import { installPreloadErrorBridge } from './telemetry'
 
-// Custom APIs for renderer
-const api = {
-  showFilePath(file: File) {
-    // It's best not to expose the full file path to the web content if
-    // possible.
-    const path = webUtils.getPathForFile(file)
-    return path
-  },
-}
-// Use `contextBridge` APIs to expose Electron APIs to
-// renderer only if context isolation is enabled, otherwise
-// just add to the DOM global.
-if (process.contextIsolated) {
-  try {
-    contextBridge.exposeInMainWorld('electron', electronAPI)
-    contextBridge.exposeInMainWorld('api', api)
-    contextBridge.exposeInMainWorld('platform', process.platform)
-  } catch (error) {
-    console.error(error)
+const telemetryEnabled =
+  Boolean(import.meta.env.VITE_SENTRY_DSN?.trim()) &&
+  (__MARCHEN_ENVIRONMENT__ === 'production' || import.meta.env.VITE_TELEMETRY_DEBUG === 'true')
+
+const start = async () => {
+  if (telemetryEnabled) {
+    installPreloadErrorBridge()
+    try {
+      // Electron SDK 的 Preload 入口负责连接 Main/Renderer IPC；它不创建第二个客户端。
+      await import('@sentry/electron/preload')
+    } catch (error) {
+      console.warn('[telemetry] Preload 初始化失败，已降级继续暴露 bridge', {
+        runtime: 'preload',
+        release: __MARCHEN_RELEASE__,
+        error,
+      })
+    }
   }
-} else {
-  // @ts-expect-error (define in dts)
-  window.electron = electronAPI
-  // @ts-expect-error (define in dts)
-  window.api = api
-  // @ts-expect-error (define in dts)
-  window.platform = process.platform
+
+  await import('./bootstrap')
 }
+
+void start()

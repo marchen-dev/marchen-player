@@ -1,3 +1,4 @@
+import type { MediaCompatError } from '@marchen/shared/media'
 import type {
   FullscreenPort,
   PlayerPorts,
@@ -9,13 +10,20 @@ import type {
   SubtitleCatalogPort,
   SubtitleTrackDescriptor,
 } from './ports'
-import { MARCHEN_PROTOCOL_PREFIX } from '@marchen/shared/constants/protocol'
 import { jotaiStore } from '@renderer/atoms/store'
 import { windowFullscreenAtom } from '@renderer/atoms/window'
 import { handlers, ipcClient } from '@renderer/lib/client'
 import { getPlayerLoadingService } from '@renderer/services/player-loading/index'
+import { queryBrowserMediaCapabilities } from '../media-capabilities'
+import { createNativeDecodeFallbackPlan, createPlaybackPlan } from '../playback-plan'
 import { electronPlayerCapabilities } from './capabilities'
+import { resolveForcedOutputProfile } from './development-overrides'
+import { prepareElectronDirectLease } from './electron-direct-lease'
 import { toEmbeddedSubtitleTrack } from './embedded-subtitle'
+import { createPlaybackSourceLease } from './playback-lease'
+
+const asMediaCompatError = (detail: MediaCompatError): Error & MediaCompatError =>
+  Object.assign(new Error(detail.message), detail)
 
 export const createElectronPlayerPorts = (): PlayerPorts => ({
   capabilities: electronPlayerCapabilities,
@@ -71,34 +79,139 @@ export const createElectronFullscreenPort = (): FullscreenPort => {
   }
 }
 
+const waitForCompatibleLease = async (sessionId: string) => {
+  const deadline = Date.now() + 60_000
+  while (Date.now() < deadline) {
+    const response = await ipcClient?.media.get({ sessionId })
+    if (!response) throw new Error('媒体会话 IPC 不可用')
+    if (!response.ok) throw asMediaCompatError(response.error)
+    if (response.data.status === 'ready' && response.data.lease) return response.data.lease
+    if (response.data.status === 'failed') {
+      throw response.data.error
+        ? asMediaCompatError(response.data.error)
+        : new Error('兼容播放会话生成失败')
+    }
+    if (response.data.status === 'released') throw new Error('兼容播放会话已经释放')
+    await new Promise((resolve) => setTimeout(resolve, 150))
+  }
+  throw new Error('等待兼容播放首批分片超时')
+}
+
 export const createElectronSourceLifecyclePort = (): SourceLifecyclePort => ({
-  prepare: async (request): Promise<PlayerSourceHandle> => {
-    if (request.kind === 'blob') throw new Error('Electron 播放源不接受匿名 Blob')
-    const path = request.kind === 'file' ? window.api.showFilePath(request.file) : request.url
-    const url = path.startsWith(MARCHEN_PROTOCOL_PREFIX)
-      ? path
-      : `${MARCHEN_PROTOCOL_PREFIX}${path}`
-    return { id: createId(), url, release: () => {} }
+  prepare: async (source, options) => {
+    if (source.kind !== 'electron-file') throw new Error('Electron 播放源只接受本地文件路径')
+    const runtimeResponse = await ipcClient?.media.capabilities()
+    const runtimeCapabilities = runtimeResponse?.ok ? runtimeResponse.data : undefined
+    electronPlayerCapabilities.ffmpegPlayback = runtimeCapabilities?.available === true
+    electronPlayerCapabilities.ffmpegPlaybackStatus = runtimeCapabilities?.available
+      ? 'available'
+      : 'unavailable'
+
+    // FFmpeg 或 Gateway 自检失败时不阻塞既有直放；兼容能力明确降级为不可用。
+    if (!runtimeCapabilities?.available) {
+      if (options?.nativeDecodeFailed) throw new Error('FFmpeg 兼容播放后端当前不可用')
+      return prepareDirect(source)
+    }
+
+    const probeResponse = await ipcClient?.media.probe({ source })
+    if (!probeResponse) throw new Error('媒体探测 IPC 不可用')
+    if (!probeResponse.ok) throw asMediaCompatError(probeResponse.error)
+    const browserCapabilities = await queryBrowserMediaCapabilities(probeResponse.data)
+    const plannerCapabilities = {
+      toneMapToSdr: runtimeCapabilities.toneMapToSdr,
+      forceProfile: options?.forceProfile ?? resolveForcedOutputProfile(import.meta.env),
+    }
+    const planning = options?.nativeDecodeFailed
+      ? createNativeDecodeFallbackPlan(probeResponse.data, browserCapabilities, plannerCapabilities)
+      : createPlaybackPlan(probeResponse.data, browserCapabilities, plannerCapabilities)
+    if (!planning.ok) throw asMediaCompatError(planning.error)
+    if (planning.plan.kind === 'native') return prepareDirect(source)
+
+    const prepared = await ipcClient?.media.prepare({
+      requestId: createId(),
+      source,
+      plan: planning.plan,
+      startTime: Math.max(0, options?.startTime ?? 0),
+      attemptChain: options?.attemptChain ?? [planning.plan.kind],
+    })
+    if (!prepared) throw new Error('兼容播放会话 IPC 不可用')
+    if (!prepared.ok) throw asMediaCompatError(prepared.error)
+    const sessionId = prepared.data.id
+    try {
+      const descriptor =
+        prepared.data.status === 'ready' && prepared.data.lease
+          ? prepared.data.lease
+          : await waitForCompatibleLease(sessionId)
+      return createPlaybackSourceLease(
+        descriptor,
+        () => {
+          void ipcClient?.media.release({ sessionId })
+        },
+        async (logicalTime, expectedGeneration) => {
+          const seeked = await ipcClient?.media.seek({
+            sessionId,
+            expectedGeneration,
+            logicalTime,
+          })
+          if (!seeked) throw new Error('seek generation IPC 不可用')
+          if (!seeked.ok) throw asMediaCompatError(seeked.error)
+          if (seeked.data.status === 'ready' && seeked.data.lease) return seeked.data.lease
+          return waitForCompatibleLease(sessionId)
+        },
+        async (phase, generation, error) => {
+          const request =
+            phase === 'failed'
+              ? { sessionId, generation, phase, error: error! }
+              : { sessionId, generation, phase }
+          const acknowledged = await ipcClient?.media.acknowledge(request)
+          if (!acknowledged) throw new Error('媒体会话阶段确认 IPC 不可用')
+          if (!acknowledged.ok) throw asMediaCompatError(acknowledged.error)
+        },
+      )
+    } catch (error) {
+      void ipcClient?.media.release({ sessionId })
+      throw error
+    }
   },
-  release: () => {},
+  prepareResource: async (request): Promise<PlayerSourceHandle> => {
+    if (request.kind === 'url') return { id: createId(), url: request.url, release: () => {} }
+    const url = URL.createObjectURL(request.kind === 'file' ? request.file : request.blob)
+    return { id: createId(), url, release: () => URL.revokeObjectURL(url) }
+  },
+  release: (lease) => lease.release(),
+  releaseResource: () => {},
   dispose: () => {},
 })
 
+const prepareDirect = (
+  source: Extract<Parameters<SourceLifecyclePort['prepare']>[0], { kind: 'electron-file' }>,
+) =>
+  prepareElectronDirectLease(source, {
+    gatewayEnabled: import.meta.env.VITE_MEDIA_GATEWAY_DIRECT === '1',
+    prepareGateway: async (source) =>
+      ipcClient?.media.prepareDirect({ requestId: createId(), source }),
+    releaseGateway: (sessionId) => {
+      void ipcClient?.media.release({ sessionId })
+    },
+  })
+
 const createElectronPlaylistPort = (): PlaylistPort => ({
-  list: async (currentSourceUrl) => {
-    const items = (await ipcClient?.player.getAnimeInSamePath({ path: currentSourceUrl })) ?? []
+  list: async (currentSource) => {
+    if (currentSource.kind !== 'electron-file') return []
+    const items = (await ipcClient?.player.getAnimeInSamePath({ path: currentSource.path })) ?? []
     return items.map((item) => ({
-      id: item.urlWithPrefix,
+      id: item.path,
       name: item.name,
-      sourceUrl: item.urlWithPrefix,
+      path: item.path,
     }))
   },
-  play: (entry) => getPlayerLoadingService().loadFromPath(entry.sourceUrl),
+  play: (entry) => getPlayerLoadingService().loadFromPath(entry.path),
 })
 
 const createElectronSnapshotPort = (): SnapshotPort => ({
-  capture: async ({ sourceUrl, time }) => {
-    const snapshot = await ipcClient?.player.grabFrame({ path: sourceUrl, time: String(time) })
+  capture: async ({ source, time }) => {
+    if (source.kind !== 'electron-file') throw new Error('Electron 截图需要原始文件路径')
+    const snapshot = await ipcClient?.player.grabFrame({ path: source.path, time: String(time) })
     if (!snapshot) throw new Error('视频截图失败')
     return snapshot
   },
@@ -110,10 +223,11 @@ const createElectronSubtitleCatalogPort = (): SubtitleCatalogPort => {
   const nearbyTracks = new Map<string, { fileName: string; filePath: string }>()
 
   return {
-    list: async (sourceUrl) => {
+    list: async (source) => {
+      if (source.kind !== 'electron-file') return []
       const [streams, nearbyFiles] = await Promise.all([
-        ipcClient?.player.getSubtitlesIntroFromAnime({ path: sourceUrl }),
-        ipcClient?.player.matchSubtitleFile({ path: sourceUrl }),
+        ipcClient?.player.getSubtitlesIntroFromAnime({ path: source.path }),
+        ipcClient?.player.matchSubtitleFile({ path: source.path }),
       ])
       embeddedTracks.clear()
       nearbyTracks.clear()
@@ -155,7 +269,7 @@ const createElectronSubtitleCatalogPort = (): SubtitleCatalogPort => {
       externalTracks.set(track.id, { track, path })
       return resolveSubtitleFile(track, path)
     },
-    resolve: async (sourceUrl, track) => {
+    resolve: async (source, track) => {
       if (track.origin === 'external') {
         const external = externalTracks.get(track.id)
         if (external) return resolveSubtitleFile(external.track, external.path)
@@ -169,7 +283,8 @@ const createElectronSubtitleCatalogPort = (): SubtitleCatalogPort => {
 
       const index = Number(track.id.replace('embedded:', ''))
       if (!Number.isInteger(index)) throw new Error(`内嵌字幕标识无效：${track.id}`)
-      const result = await ipcClient?.player.getSubtitlesBody({ path: sourceUrl, index })
+      if (source.kind !== 'electron-file') throw new Error('Electron 内嵌字幕需要原始文件路径')
+      const result = await ipcClient?.player.getSubtitlesBody({ path: source.path, index })
       if (!result?.ok || !result.data) throw new Error(result?.message || '内嵌字幕提取失败')
       return resolveSubtitleFile(track, result.data)
     },

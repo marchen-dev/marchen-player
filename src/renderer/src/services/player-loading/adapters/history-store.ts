@@ -9,9 +9,11 @@
 import type { HistoryEntry, HistoryStore } from '@marchen/player-loading'
 import { db } from '@renderer/database/db'
 import { upsertLibraryEntry } from '@renderer/database/lib/library-writer'
+import { assertPersistentMediaPath } from '@renderer/database/persistence/media-path'
 import { apiClient } from '@renderer/request'
 export class IndexedDBHistoryStore implements HistoryStore {
   async save(entry: HistoryEntry): Promise<void> {
+    assertPersistentMediaPath(entry)
     const { hash } = entry
     const existing = await db.history.where({ hash }).first()
 
@@ -108,8 +110,6 @@ export class IndexedDBHistoryStore implements HistoryStore {
 
       await db.library.update(animeId, {
         episodes,
-        lastWatchedEpisodeId: episodeId,
-        lastWatchedAt: new Date().toISOString(),
       })
     } catch (error) {
       console.error('更新 library 失败:', error)

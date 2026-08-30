@@ -7,10 +7,14 @@ export default defineConfig({
       '@renderer': resolve('src/renderer/src'),
       '@marchen/danmaku-engine': resolve('packages/danmaku-engine/src/index.ts'),
       '@marchen/playback-core': resolve('packages/playback-core/src/index.ts'),
+      '@marchen/shared': resolve('packages/shared/src'),
     },
   },
   test: {
     environment: 'node',
-    include: ['src/renderer/src/services/player-runtime/tests/**/*.test.ts'],
+    include: [
+      'src/renderer/src/services/player-runtime/tests/**/*.test.ts',
+      'src/renderer/src/services/telemetry/tests/**/*.test.ts',
+    ],
   },
 })

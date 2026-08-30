@@ -1,5 +1,9 @@
 import { getFilePathFromProtocolURL } from '@main/lib/protocols'
 import { parseReleaseNotes } from '@main/lib/utils'
+import {
+  getOrCreateTelemetryInstallId,
+  telemetryAppSessionId,
+} from '@main/telemetry/identity'
 import { getMainWindow } from '@main/windows/main'
 import { clearData } from '@main/windows/setting'
 import { tipc } from '@marchen/electron-ipc/main'
@@ -11,6 +15,13 @@ import updater from 'electron-updater'
 const t = tipc.create()
 
 export const appGroup = {
+  getTelemetryIdentity: t.procedure.action(async () => ({
+    installId: await getOrCreateTelemetryInstallId(),
+    appSessionId: telemetryAppSessionId,
+    platform: process.platform,
+    arch: process.arch,
+  })),
+
   windowAction: t.procedure
     .input<{
       action:

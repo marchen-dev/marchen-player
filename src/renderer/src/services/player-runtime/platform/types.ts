@@ -5,6 +5,7 @@ export interface PlayerCapabilities {
   externalSubtitle: boolean
   snapshot: boolean
   ffmpegPlayback: boolean
+  ffmpegPlaybackStatus: 'checking' | 'available' | 'unavailable' | 'native-only'
   windowFullscreen: boolean
   domFullscreen: boolean
 }

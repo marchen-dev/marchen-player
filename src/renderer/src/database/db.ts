@@ -5,6 +5,8 @@ import type { DB_Library } from './schemas/library'
 import Dexie from 'dexie'
 import { LOCAL_DB_NAME, TABLES } from './constants'
 import { dbSchemaV1, dbSchemaV2, dbSchemaV3 } from './db.schema'
+import { migrateLegacyHistoryPath } from './migrations/media-path'
+import { assertPersistentMediaPath } from './persistence/media-path'
 
 class LocalDB extends Dexie {
   history: EntityTable<DB_History, 'hash'>
@@ -76,17 +78,38 @@ class LocalDB extends Dexie {
             tags: [],
             intro: '',
             episodes: [],
-            watchedEpisodeIds: records
-              .filter((r) => r.episodeId)
-              .map((r) => r.episodeId!),
+            watchedEpisodeIds: records.filter((r) => r.episodeId).map((r) => r.episodeId!),
             lastWatchedEpisodeId: latest.episodeId,
             lastWatchedAt: latest.updatedAt || new Date().toISOString(),
             addedAt: latest.updatedAt || new Date().toISOString(),
           })
         }
       })
+    // v5: 临时协议 URL 不再作为持久化 locator；无法保守恢复的记录保留诊断信息。
+    this.version(5)
+      .stores(dbSchemaV3)
+      .upgrade(async (trans) => {
+        const historyTable = trans.table<DB_History>(TABLES.HISTORY)
+        await historyTable.toCollection().modify((record) => {
+          if (!record.path) return
+          const result = migrateLegacyHistoryPath(record.path)
+          record.path = result.path
+          record.pathStatus = result.status
+          if (result.status === 'unresolved') {
+            record.originalPath = result.originalPath
+            record.pathMigrationError = result.reason
+          } else {
+            delete record.originalPath
+            delete record.pathMigrationError
+          }
+        })
+      })
     this.history = this.table(TABLES.HISTORY)
     this.library = this.table(TABLES.LIBRARY)
+    this.history.hook('creating', (_primaryKey, record) => assertPersistentMediaPath(record))
+    this.history.hook('updating', (changes, _primaryKey, record) => {
+      assertPersistentMediaPath({ ...record, ...changes })
+    })
   }
 
   async deleteDatabase(): Promise<void> {

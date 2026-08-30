@@ -3,6 +3,7 @@ import type {
   MediaEvent,
   MediaPort,
   PlaybackClock,
+  PlaybackMediaRestoreState,
   PlaybackMediaSnapshot,
   PlaybackSource,
   PlaybackState,
@@ -29,9 +30,9 @@ export class PlaybackSession {
 
   constructor(private readonly media: MediaPort) {
     this.clock = {
-      now: () => this.media.getSnapshot().currentTime,
+      now: () => this.toLogicalTime(this.media.getSnapshot().currentTime),
       snapshot: () => {
-        const value = this.media.getSnapshot()
+        const value = this.toLogicalSnapshot(this.media.getSnapshot())
         return {
           ...value,
           buffered: value.buffered.map(([start, end]) => [start, end] as const),
@@ -96,7 +97,8 @@ export class PlaybackSession {
   seek(time: number): void {
     if (this.destroyed || !this.source || !Number.isFinite(time)) return
 
-    const snapshot = this.media.getSnapshot()
+    const mediaSnapshot = this.media.getSnapshot()
+    const snapshot = this.toLogicalSnapshot(mediaSnapshot)
     const duration = Number.isFinite(snapshot.duration) ? Math.max(snapshot.duration, 0) : 0
     const targetTime = duration > 0 ? clamp(time, 0, duration) : Math.max(time, 0)
     this.pendingSeekResume = this.currentState.status === 'playing'
@@ -106,9 +108,9 @@ export class PlaybackSession {
       duration,
       targetTime,
       resumeAfterSeek: this.pendingSeekResume,
-      rate: snapshot.rate,
+      rate: mediaSnapshot.rate,
     })
-    this.media.seek(targetTime)
+    this.media.seek(this.toElementTime(targetTime, mediaSnapshot.duration))
   }
 
   setVolume(volume: number): void {
@@ -124,6 +126,40 @@ export class PlaybackSession {
   setRate(rate: number): void {
     if (this.destroyed || !Number.isFinite(rate) || rate <= 0) return
     this.media.setRate(rate)
+  }
+
+  /** 换 transport/generation 后按原始逻辑时间恢复媒体元素状态。 */
+  restore(state: PlaybackMediaRestoreState): void {
+    if (this.destroyed || !this.source) return
+    this.setVolume(state.volume)
+    this.setMuted(state.muted)
+    this.setRate(state.rate)
+
+    const mediaSnapshot = this.media.getSnapshot()
+    const logicalSnapshot = this.toLogicalSnapshot(mediaSnapshot)
+    const duration = Math.max(0, logicalSnapshot.duration)
+    const targetTime = duration > 0 ? clamp(state.currentTime, 0, duration) : state.currentTime
+    const elementTarget = this.toElementTime(targetTime, mediaSnapshot.duration)
+    const alreadyAtTarget =
+      !mediaSnapshot.seeking && Math.abs(mediaSnapshot.currentTime - elementTarget) < 0.01
+    this.pendingSeekResume = !state.paused
+    if (alreadyAtTarget) {
+      this.pendingSeekResume = false
+      this.stateSubject.next(
+        this.createTimedState(state.paused ? 'paused' : 'playing', mediaSnapshot),
+      )
+      if (!state.paused) void this.play()
+      return
+    }
+    this.stateSubject.next({
+      status: 'seeking',
+      source: this.source,
+      duration,
+      targetTime,
+      resumeAfterSeek: !state.paused,
+      rate: state.rate,
+    })
+    this.media.seek(elementTarget)
   }
 
   destroy(): void {
@@ -168,14 +204,17 @@ export class PlaybackSession {
       case 'volume-change':
         break
       case 'seeking':
-        this.stateSubject.next({
-          status: 'seeking',
-          source: this.source,
-          duration: event.snapshot.duration,
-          targetTime: event.snapshot.currentTime,
-          resumeAfterSeek: this.pendingSeekResume,
-          rate: event.snapshot.rate,
-        })
+        {
+          const snapshot = this.toLogicalSnapshot(event.snapshot)
+          this.stateSubject.next({
+            status: 'seeking',
+            source: this.source,
+            duration: snapshot.duration,
+            targetTime: snapshot.currentTime,
+            resumeAfterSeek: this.pendingSeekResume,
+            rate: snapshot.rate,
+          })
+        }
         break
       case 'seeked': {
         const shouldResume = this.pendingSeekResume
@@ -193,7 +232,7 @@ export class PlaybackSession {
         this.stateSubject.next({
           status: 'ended',
           source: this.source,
-          duration: event.snapshot.duration,
+          duration: this.toLogicalSnapshot(event.snapshot).duration,
           rate: event.snapshot.rate,
         })
         break
@@ -208,12 +247,13 @@ export class PlaybackSession {
     status: 'ready' | 'playing' | 'paused',
     snapshot: PlaybackMediaSnapshot,
   ): Extract<PlaybackState, { status: 'ready' | 'playing' | 'paused' }> {
+    const logical = this.toLogicalSnapshot(snapshot)
     return {
       status,
       source: this.source!,
-      duration: snapshot.duration,
-      currentTime: snapshot.currentTime,
-      rate: snapshot.rate,
+      duration: logical.duration,
+      currentTime: logical.currentTime,
+      rate: logical.rate,
     }
   }
 
@@ -222,4 +262,34 @@ export class PlaybackSession {
     if (status !== 'ready' && status !== 'playing' && status !== 'paused') return
     this.stateSubject.next(this.createTimedState(status, snapshot))
   }
+
+  private toLogicalTime(elementTime: number): number {
+    const offset = this.source?.timeline?.offset ?? this.source?.startTime ?? 0
+    const duration = this.source?.timeline?.originalDuration
+    const logical = Math.max(0, offset + finiteOr(elementTime, 0))
+    return duration && duration > 0 ? clamp(logical, 0, duration) : logical
+  }
+
+  private toElementTime(logicalTime: number, elementDuration: number): number {
+    const offset = this.source?.timeline?.offset ?? this.source?.startTime ?? 0
+    const local = Math.max(0, logicalTime - offset)
+    return elementDuration > 0 ? clamp(local, 0, elementDuration) : local
+  }
+
+  private toLogicalSnapshot(snapshot: PlaybackMediaSnapshot): PlaybackMediaSnapshot {
+    const duration = this.source?.timeline?.originalDuration
+    const logicalDuration = duration && duration > 0 ? duration : snapshot.duration
+    const offset = this.source?.timeline?.offset ?? this.source?.startTime ?? 0
+    return {
+      ...snapshot,
+      currentTime: this.toLogicalTime(snapshot.currentTime),
+      duration: logicalDuration,
+      buffered: snapshot.buffered.map(([start, end]) => [
+        clamp(offset + start, 0, logicalDuration),
+        clamp(offset + end, 0, logicalDuration),
+      ]),
+    }
+  }
 }
+
+const finiteOr = (value: number, fallback: number) => (Number.isFinite(value) ? value : fallback)

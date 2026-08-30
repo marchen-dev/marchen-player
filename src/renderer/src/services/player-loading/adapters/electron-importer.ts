@@ -6,7 +6,6 @@
  */
 
 import type { VideoImporter, VideoInfo } from '@marchen/player-loading'
-import { MARCHEN_PROTOCOL_PREFIX } from '@marchen/shared/constants/protocol'
 import { calculateFileHash } from '@marchen/shared/lib/calc-file-hash'
 import { ipcClient } from '@renderer/lib/client'
 
@@ -18,13 +17,12 @@ export class ElectronImporter implements VideoImporter {
   async importFromFile(file: File): Promise<VideoInfo> {
     const path = window.api.showFilePath(file)
     const playList = (await ipcClient?.player.getAnimeInSamePath({ path })) ?? []
-    const url = `${MARCHEN_PROTOCOL_PREFIX}${path}`
     const hash = await calculateFileHash(file)
 
     ipcClient?.app.addRecentDocument({ path })
 
     return {
-      url,
+      source: { kind: 'electron-file', path, hash, size: file.size, name: file.name },
       hash,
       size: file.size,
       name: file.name,
@@ -42,16 +40,22 @@ export class ElectronImporter implements VideoImporter {
       throw new Error(animeData?.message || '无法读取视频文件')
     }
 
-    const { fileHash, fileName, fileSize, filePath } = animeData
-    if (!fileHash || !fileName || !fileSize) {
+    const { fileHash, fileName, fileSize, rawPath } = animeData
+    if (!fileHash || !fileName || !fileSize || !rawPath) {
       throw new Error('无法读取视频文件信息')
     }
 
     const playList = (await ipcClient?.player.getAnimeInSamePath({ path })) ?? []
-    ipcClient?.app.addRecentDocument({ path: filePath })
+    ipcClient?.app.addRecentDocument({ path: rawPath })
 
     return {
-      url: filePath,
+      source: {
+        kind: 'electron-file',
+        path: rawPath,
+        hash: fileHash,
+        size: fileSize,
+        name: fileName,
+      },
       hash: fileHash,
       size: fileSize,
       name: fileName,

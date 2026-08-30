@@ -4,7 +4,9 @@ import { getRendererHandlers } from '@main/windows/setting'
 import logger from 'electron-log'
 
 import FFmpeg from './ffmpeg'
-import { getFilePathFromProtocolURL } from './protocols'
+import { isVideoFile } from './file-open'
+
+export { isVideoFile } from './file-open'
 
 export async function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms))
@@ -28,15 +30,8 @@ export const parseReleaseNotes = (releaseNotes: string | unknown[] | null | unde
   return releaseContent
 }
 
-export const isVideoFile = (filePath: string) => {
-  const videoExtensions = ['mp4', 'mkv']
-  const ext = filePath.split('.').pop()
-  return videoExtensions.includes(ext!)
-}
-
 // 通过视频文件快捷打开
-export function quickLaunchViaVideo() {
-  const { argv } = process
+export function quickLaunchViaVideo(argv: readonly string[] = process.argv) {
   const filePath = argv.at(-1)
   if (!filePath) {
     return
@@ -48,7 +43,7 @@ export function quickLaunchViaVideo() {
 }
 
 export async function coverSubtitleToAss(targetPath: string) {
-  const filePath = getFilePathFromProtocolURL(targetPath)
+  const filePath = targetPath
   const extName = path.extname(filePath)
   if (!extName) {
     return

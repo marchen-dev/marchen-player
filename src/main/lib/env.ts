@@ -2,6 +2,8 @@ import os from 'node:os'
 
 export const mode = process.env.NODE_ENV
 export const isDev = mode === 'development'
+export const SENTRY_DSN = import.meta.env.VITE_SENTRY_DSN?.trim() ?? ''
+export const isTelemetryEnabled = !isDev || import.meta.env.VITE_TELEMETRY_DEBUG === 'true'
 
 const { platform } = process
 export const isMacOS = platform === 'darwin'

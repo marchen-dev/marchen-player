@@ -13,7 +13,7 @@ export const RootLayout: FC<PropsWithChildren> = ({ children }) => {
     if (location.pathname !== RouteName.PLAYER) {
       clearPlayingVideo()
     }
-  }, [location.pathname])
+  }, [clearPlayingVideo, location.pathname])
 
   return <div className="root-layout">{children}</div>
 }

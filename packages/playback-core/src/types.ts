@@ -7,16 +7,16 @@ export interface PlaybackSource {
   title?: string
   mimeType?: string
   startTime?: number
+  timeline?: {
+    originalDuration: number
+    offset: number
+    calibrated: boolean
+  }
   autoplay?: boolean
 }
 
 export type PlaybackErrorCode =
-  | 'source-unavailable'
-  | 'not-supported'
-  | 'decode'
-  | 'network'
-  | 'aborted'
-  | 'unknown'
+  'source-unavailable' | 'not-supported' | 'decode' | 'network' | 'aborted' | 'unknown'
 
 export interface PlaybackError {
   code: PlaybackErrorCode
@@ -36,6 +36,11 @@ export interface PlaybackMediaSnapshot {
   ended: boolean
   buffered: ReadonlyArray<readonly [start: number, end: number]>
 }
+
+export type PlaybackMediaRestoreState = Pick<
+  PlaybackMediaSnapshot,
+  'currentTime' | 'volume' | 'muted' | 'rate' | 'paused'
+>
 
 /** 高频消费者按需读取的媒体时钟，不产生 RxJS/React 更新。 */
 export interface PlaybackClock {

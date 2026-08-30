@@ -12,6 +12,7 @@ export type {
   PlaybackClock,
   PlaybackError,
   PlaybackErrorCode,
+  PlaybackMediaRestoreState,
   PlaybackMediaSnapshot,
   PlaybackSource,
   PlaybackState,

@@ -8,19 +8,26 @@ import { resolvePlaylistNeighbors } from '../history/playlist'
 
 describe('播放列表相邻项', () => {
   const playlist = [
-    { id: '1', name: '第一集', sourceUrl: 'marchen:///anime/01.mkv' },
-    { id: '2', name: '第二集', sourceUrl: 'marchen:///anime/02.mkv' },
-    { id: '3', name: '第三集', sourceUrl: 'marchen:///anime/03.mkv' },
+    { id: '1', name: '第一集', path: '/anime/01.mkv' },
+    { id: '2', name: '第二集', path: '/anime/02.mkv' },
+    { id: '3', name: '第三集', path: '/anime/03.mkv' },
   ]
+  const source = (path: string) => ({
+    kind: 'electron-file' as const,
+    path,
+    hash: 'hash',
+    name: 'video.mkv',
+    size: 1,
+  })
 
   it('兼容带协议和原始路径并保持自然边界', () => {
-    expect(resolvePlaylistNeighbors(playlist, '/anime/02.mkv')).toEqual({
+    expect(resolvePlaylistNeighbors(playlist, source('/anime/02.mkv'))).toEqual({
       currentIndex: 1,
       previous: playlist[0],
       next: playlist[2],
     })
-    expect(resolvePlaylistNeighbors(playlist, '/anime/01.mkv').previous).toBeUndefined()
-    expect(resolvePlaylistNeighbors(playlist, '/anime/03.mkv').next).toBeUndefined()
+    expect(resolvePlaylistNeighbors(playlist, source('/anime/01.mkv')).previous).toBeUndefined()
+    expect(resolvePlaylistNeighbors(playlist, source('/anime/03.mkv')).next).toBeUndefined()
   })
 })
 

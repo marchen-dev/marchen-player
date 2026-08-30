@@ -2,11 +2,9 @@ import { scan } from 'react-scan'
 
 import { isDev } from '../lib/env'
 import { initializeDayjs } from './date'
-import { initializeSentry } from './sentry'
 
 export const initializeApp = () => {
   initializeDayjs()
-  initializeSentry()
 
   if (isDev) {
     scan({

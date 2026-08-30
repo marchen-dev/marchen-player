@@ -63,7 +63,6 @@ export type {
   PlayerRuntimeCommands,
   PlayerRuntimeDisposePhase,
   PlayerRuntimeDisposer,
-  SourceRelease,
 } from './runtime'
 export { isPlayerSessionReady } from './session-readiness'
 export { LibassSubtitleAdapter, NativeSubtitleProvider, useNativeSubtitles } from './subtitles'

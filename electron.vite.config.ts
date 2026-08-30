@@ -6,12 +6,35 @@ import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'electron-vite'
 import { viteStaticCopy } from 'vite-plugin-static-copy'
+import { createSentryBuildPlugin } from './src/main/build/sentry-vite'
+import {
+  createTelemetryDefine,
+  resolveTelemetryBuildMetadata,
+} from './src/main/build/telemetry-metadata'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const packageJson = JSON.parse(fs.readFileSync(join(__dirname, 'package.json'), 'utf-8'))
+const metadata = resolveTelemetryBuildMetadata({
+  target: 'electron',
+  version: packageJson.version,
+  mode: process.env.NODE_ENV ?? 'development',
+})
+const telemetryDefine = createTelemetryDefine(metadata)
+const sentryPlugin = (output: 'main' | 'preload' | 'renderer') =>
+  createSentryBuildPlugin({
+    metadata,
+    authToken: process.env.SENTRY_AUTH_TOKEN,
+    org: process.env.SENTRY_ORG,
+    project: process.env.SENTRY_PROJECT,
+    assets: `out/${output}/**/*.{js,mjs,cjs,map}`,
+    mapsToDelete: `out/${output}/**/*.map`,
+  })
 
 export default defineConfig({
   main: {
+    build: { sourcemap: 'hidden' },
+    plugins: [sentryPlugin('main')],
+    define: telemetryDefine,
     resolve: {
       alias: {
         '@main': resolve('src/main'),
@@ -22,7 +45,11 @@ export default defineConfig({
       },
     },
   },
-  preload: {},
+  preload: {
+    build: { sourcemap: 'hidden' },
+    plugins: [sentryPlugin('preload')],
+    define: telemetryDefine,
+  },
   renderer: {
     resolve: {
       alias: {
@@ -44,9 +71,12 @@ export default defineConfig({
           },
         ],
       }),
+      sentryPlugin('renderer'),
     ],
+    build: { sourcemap: 'hidden' },
     define: {
       APP_NAME: JSON.stringify(packageJson.name),
+      ...telemetryDefine,
     },
     server: {
       host: '0.0.0.0',

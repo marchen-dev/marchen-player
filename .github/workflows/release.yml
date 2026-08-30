@@ -1,4 +1,4 @@
-name: Build/release Electron app
+name: Build, release and deploy Marchen
 
 on:
   push:
@@ -6,76 +6,87 @@ on:
       - v*.*.*
 
 jobs:
-  release:
+  electron-artifacts:
+    name: Electron ${{ matrix.dist }}
     runs-on: ${{ matrix.os }}
-
     strategy:
+      fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
-        node-version: [24.x]
-
+        include:
+          - os: ubuntu-latest
+            dist: linux-x64
+            builder_target: linux
+            builder_arch: x64
+          - os: macos-latest
+            dist: darwin-x64
+            builder_target: mac
+            builder_arch: x64
+          - os: macos-latest
+            dist: darwin-arm64
+            builder_target: mac
+            builder_arch: arm64
+          - os: windows-latest
+            dist: win32-x64
+            builder_target: win
+            builder_arch: x64
     env:
       VITE_API_URL: ${{ secrets.VITE_API_URL }}
       VITE_SENTRY_DSN: ${{ secrets.VITE_SENTRY_DSN }}
+      VITE_POSTHOG_KEY: ${{ secrets.VITE_POSTHOG_KEY }}
+      VITE_POSTHOG_HOST: ${{ secrets.VITE_POSTHOG_HOST }}
+      SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+      SENTRY_ORG: ${{ vars.SENTRY_ORG }}
+      SENTRY_PROJECT: ${{ vars.SENTRY_PROJECT }}
+      MARCHEN_COMMIT: ${{ github.sha }}
+      MARCHEN_DIST: ${{ matrix.dist }}
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
           lfs: true
-
-      - name: Checkout LFS objects
-        run: git lfs checkout
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4.1.0
-
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v4
+      - run: git lfs checkout
+      - uses: pnpm/action-setup@v4.1.0
+      - uses: actions/setup-node@v4
         with:
-          node-version: ${{ matrix.node-version }}
+          node-version: 24.x
           cache: pnpm
 
-      - name: Install Dependencies
-        run: pnpm install
+      - name: Validate production observability configuration
+        shell: bash
+        run: |
+          required=(VITE_API_URL VITE_SENTRY_DSN VITE_POSTHOG_KEY VITE_POSTHOG_HOST SENTRY_AUTH_TOKEN SENTRY_ORG SENTRY_PROJECT)
+          for name in "${required[@]}"; do
+            if [ -z "${!name:-}" ]; then echo "Missing required release variable: $name" >&2; exit 1; fi
+          done
 
-      - name: Install snapcraft
-        if: matrix.os == 'ubuntu-latest'
-        run: sudo snap install snapcraft --classic
+      - run: pnpm install --frozen-lockfile
+      - name: Resolve release name
+        shell: bash
+        run: echo "SENTRY_RELEASE=Marchen@$(node -p "require('./package.json').version")+$GITHUB_SHA" >> "$GITHUB_ENV"
 
-      - name: Build for Linux
-        if: matrix.os == 'ubuntu-latest'
-        run: pnpm run build:linux
-
-      - name: Build for macOS
-        if: matrix.os == 'macos-latest'
-        run: pnpm run build:mac
+      - name: Build Electron bundle and package
+        shell: bash
+        run: |
+          pnpm exec electron-vite build
+          pnpm exec electron-builder --${{ matrix.builder_target }} --${{ matrix.builder_arch }} --publish never
         env:
-          APPLE_ID: ${{ secrets.APPLE_ID }}
-          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
-          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-          APPLE_APP_BUNDLE_ID: ${{ secrets.APPLE_APP_BUNDLE_ID }}
-          CSC_LINK: ${{ secrets.CSC_LINK }}
-          CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
+          APPLE_ID: ${{ matrix.builder_target == 'mac' && secrets.APPLE_ID || '' }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ matrix.builder_target == 'mac' && secrets.APPLE_APP_SPECIFIC_PASSWORD || '' }}
+          APPLE_TEAM_ID: ${{ matrix.builder_target == 'mac' && secrets.APPLE_TEAM_ID || '' }}
+          APPLE_APP_BUNDLE_ID: ${{ matrix.builder_target == 'mac' && secrets.APPLE_APP_BUNDLE_ID || '' }}
+          CSC_LINK: ${{ matrix.builder_target == 'mac' && secrets.CSC_LINK || '' }}
+          CSC_KEY_PASSWORD: ${{ matrix.builder_target == 'mac' && secrets.CSC_KEY_PASSWORD || '' }}
 
-      - name: Build for Windows
-        if: matrix.os == 'windows-latest'
-        run: pnpm run build:win
+      - name: Verify packaged observability boundary
+        shell: bash
+        run: node scripts/verify-observability-build.mjs --root out --expected-release "$SENTRY_RELEASE" --expected-dist "$MARCHEN_DIST" --require-no-maps
 
-      - name: Generate Changelog
-        if: github.event_name == 'push'
-        run: npx changelogithub@13.13.0
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Create Release
-        uses: softprops/action-gh-release@v2.2.1
+      - uses: actions/upload-artifact@v4
         with:
-          draft: false
-          prerelease: true
-          files: |
+          name: electron-${{ matrix.dist }}
+          path: |
             dist/*.exe
             dist/*.zip
             dist/*.dmg
@@ -85,3 +96,68 @@ jobs:
             dist/*.rpm
             dist/*.tar.gz
             dist/latest*.yml
+          if-no-files-found: error
+
+  web-artifact:
+    uses: ./.github/workflows/deploy.yml
+    secrets: inherit
+
+  coordinate-release:
+    name: Finalize Sentry, publish and deploy
+    needs: [electron-artifacts, web-artifact]
+    runs-on: ubuntu-latest
+    env:
+      SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+      SENTRY_ORG: ${{ vars.SENTRY_ORG }}
+      SENTRY_PROJECT: ${{ vars.SENTRY_PROJECT }}
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24.x
+      - name: Resolve release name
+        shell: bash
+        run: echo "SENTRY_RELEASE=Marchen@$(node -p "require('./package.json').version")+$GITHUB_SHA" >> "$GITHUB_ENV"
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: electron-*
+          path: dist
+          merge-multiple: true
+      - uses: actions/download-artifact@v4
+        with:
+          name: web-dist
+          path: out/web
+
+      - name: Set commits and finalize one Sentry release
+        shell: bash
+        run: |
+          npx --yes @sentry/cli releases set-commits "$SENTRY_RELEASE" --auto
+          npx --yes @sentry/cli releases finalize "$SENTRY_RELEASE"
+          npx --yes @sentry/cli releases deploys "$SENTRY_RELEASE" new -e production
+
+      - name: Deploy verified Web artifact
+        shell: bash
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
+        run: |
+          tar -cvf build.tar -C out/web .
+          key_file="$(mktemp)"
+          trap 'rm -f "$key_file"' EXIT
+          printf '%s' "$DEPLOY_KEY" > "$key_file"
+          chmod 600 "$key_file"
+          scp -i "$key_file" -o StrictHostKeyChecking=no build.tar "$DEPLOY_USER@$DEPLOY_HOST:/opt/1panel/www/sites/marchen-play.suemor.com/index/"
+          ssh -i "$key_file" -o StrictHostKeyChecking=no "$DEPLOY_USER@$DEPLOY_HOST" "cd /opt/1panel/www/sites/marchen-play.suemor.com/index/ && tar -xvf build.tar && rm build.tar"
+
+      - name: Generate changelog
+        run: npx changelogithub@13.13.0
+      - name: Create GitHub prerelease
+        uses: softprops/action-gh-release@v2.2.1
+        with:
+          draft: false
+          prerelease: true
+          files: dist/*

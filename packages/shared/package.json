@@ -4,7 +4,10 @@
   "private": true,
   "exports": {
     "./constants/protocol": "./src/constants/protocol.ts",
+    "./constants/telemetry": "./src/constants/telemetry.ts",
     "./lib/calc-file-hash": "./src/lib/calc-file-hash.ts",
+    "./media": "./src/media/index.ts",
+    "./telemetry/errors": "./src/telemetry/errors.ts",
     "./types/renderer-handlers": "./src/types/renderer-handlers.ts"
   },
   "dependencies": {

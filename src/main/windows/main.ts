@@ -5,6 +5,7 @@ import { quickLaunchViaVideo } from '@main/lib/utils'
 import { app, BrowserWindow, shell } from 'electron'
 
 import { getIconPath } from '../lib/icon'
+import { shutdownMediaSessions } from '../modules/media-gateway/session-service'
 import { getRendererHandlers } from './setting'
 
 const { platform } = process
@@ -28,6 +29,9 @@ export default function createWindow() {
     webPreferences: {
       preload: join(__dirname, '../preload/index.mjs'),
       sandbox: false,
+      contextIsolation: true,
+      nodeIntegration: false,
+      webSecurity: true,
     },
   }
   switch (platform) {
@@ -75,6 +79,15 @@ export default function createWindow() {
 export const getMainWindow = () => windows.mainWindow
 
 const initializeListeningEvent = (mainWindow: BrowserWindow) => {
+  const cleanupMedia = () => {
+    void shutdownMediaSessions().catch((error) =>
+      console.error('[media-session] Renderer 清理失败', error),
+    )
+  }
+
+  mainWindow.on('closed', cleanupMedia)
+  mainWindow.webContents.on('render-process-gone', cleanupMedia)
+
   mainWindow.on('ready-to-show', () => {
     isDev ? mainWindow.showInactive() : mainWindow.show()
 

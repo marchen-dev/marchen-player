@@ -1,3 +1,5 @@
+import type { DurableMediaSource } from '@marchen/shared/media'
+
 /**
  * @marchen/player-loading 类型定义
  *
@@ -32,19 +34,16 @@ export interface DanmakuEntry {
 
 /** 视频信息（导入后获得） */
 export interface VideoInfo {
-  url: string
+  source: DurableMediaSource
   hash: string
   size: number
   name: string
   playList: PlayListItem[]
-  /** 仅释放当前临时播放地址；实现必须幂等，且不会进入持久化数据。 */
-  releaseSource?: () => void
-  /** 为一个播放 Runtime 创建独立租约，避免 Strict Effects 复用已释放的 Object URL。 */
-  acquireSource?: () => { url: string; release: () => void }
 }
 
 export interface PlayListItem {
-  urlWithPrefix: string
+  path: string
+  fileHash?: string
   name: string
 }
 
@@ -65,7 +64,7 @@ export interface MatchedVideo {
 /** 历史记录条目 */
 export interface HistoryEntry {
   hash: string
-  path: string
+  path?: string
   episodeId?: number
   animeId?: number
   animeTitle?: string
@@ -74,6 +73,10 @@ export interface HistoryEntry {
   newBangumi?: boolean
   [key: string]: unknown
 }
+
+/** Web File 不可跨页面恢复，因此只有 Electron source 能提供持久化路径。 */
+export const getDurableMediaPath = (video: VideoInfo): string | undefined =>
+  video.source.kind === 'electron-file' ? video.source.path : undefined
 
 // ============================================================
 // 状态机：LoadingState（discriminated union）

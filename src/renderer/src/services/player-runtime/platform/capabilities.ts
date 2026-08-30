@@ -7,6 +7,7 @@ export const webPlayerCapabilities: PlayerCapabilities = {
   externalSubtitle: true,
   snapshot: false,
   ffmpegPlayback: false,
+  ffmpegPlaybackStatus: 'native-only',
   windowFullscreen: false,
   domFullscreen: true,
 }
@@ -18,6 +19,7 @@ export const electronPlayerCapabilities: PlayerCapabilities = {
   externalSubtitle: true,
   snapshot: true,
   ffmpegPlayback: false,
+  ffmpegPlaybackStatus: 'checking',
   windowFullscreen: true,
   domFullscreen: false,
 }

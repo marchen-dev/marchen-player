@@ -12,6 +12,7 @@ export interface PlaybackHistoryAdapterOptions {
   hash: string
   repository: PlaybackHistoryRepository
   markWatched: (animeId: number, episodeId: number) => Promise<void>
+  markStarted?: (animeId: number, episodeId: number, fileHash: string) => Promise<void>
   now?: () => number
   saveIntervalMs?: number
   onError?: (error: unknown) => void
@@ -30,6 +31,7 @@ export class PlaybackHistoryAdapter {
   private disposed = false
   private lastSavedAt = Number.NEGATIVE_INFINITY
   private watched = false
+  private started = false
   private lastStatus: PlaybackState['status'] = 'idle'
 
   constructor(private readonly options: PlaybackHistoryAdapterOptions) {
@@ -40,7 +42,9 @@ export class PlaybackHistoryAdapter {
 
   start(): void {
     if (this.unsubscribe || this.disposed) return
-    this.unsubscribe = this.options.runtime.subscribe(() => this.handleState(this.options.runtime.state))
+    this.unsubscribe = this.options.runtime.subscribe(() =>
+      this.handleState(this.options.runtime.state),
+    )
     void this.restore()
   }
 
@@ -62,6 +66,7 @@ export class PlaybackHistoryAdapter {
       if (!completed && progress > 0) this.options.runtime.commands.seek(progress)
       this.restored = true
       if (completed) void this.markAsWatched()
+      this.markStartedForState(this.options.runtime.state)
     } catch (error) {
       this.restored = true
       this.onError(error)
@@ -69,6 +74,7 @@ export class PlaybackHistoryAdapter {
   }
 
   private handleState(state: PlaybackState): void {
+    this.markStartedForState(state)
     if (!this.restored || this.disposed || !hasTimeline(state)) return
     if (state.status === 'ended') {
       void this.persist(state, true)
@@ -81,6 +87,24 @@ export class PlaybackHistoryAdapter {
     if (isCompleted(progress, state.duration)) void this.markAsWatched()
     void this.persist(state, state.status === 'paused' && this.lastStatus !== 'paused')
     this.lastStatus = state.status
+  }
+
+  private markStartedForState(state: PlaybackState): void {
+    if (this.started || (state.status !== 'ready' && state.status !== 'playing')) return
+    this.started = true
+    void this.markAsStarted()
+  }
+
+  private async markAsStarted(): Promise<void> {
+    if (!this.options.markStarted) return
+    try {
+      const record = await this.options.repository.get(this.options.hash)
+      if (record?.animeId && record.episodeId) {
+        await this.options.markStarted(record.animeId, record.episodeId, this.options.hash)
+      }
+    } catch (error) {
+      this.onError(error)
+    }
   }
 
   private async persist(state: PlaybackState, force: boolean): Promise<void> {
@@ -115,9 +139,8 @@ export class PlaybackHistoryAdapter {
   }
 }
 
-const hasTimeline = (
-  state: PlaybackState,
-): state is Extract<PlaybackState, { duration: number }> => 'duration' in state
+const hasTimeline = (state: PlaybackState): state is Extract<PlaybackState, { duration: number }> =>
+  'duration' in state
 
 const timelineProgress = (state: Extract<PlaybackState, { duration: number }>) => {
   if (state.status === 'ended') return finitePositive(state.duration)

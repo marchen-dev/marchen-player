@@ -1,20 +1,17 @@
-import path from 'node:path'
-
 import { registerIpc } from '@marchen/electron-ipc/main'
-import { MARCHEN_PROTOCOL } from '@marchen/shared/constants/protocol'
-import { app, protocol } from 'electron'
+import { app } from 'electron'
 import logger from 'electron-log'
 
 import { createStorageFolder } from '../constants/app'
 import { router } from '../ipc'
 import { isDev, isWindows } from '../lib/env'
 import { quickLaunchViaVideo } from '../lib/utils'
+import { sweepFfmpegMediaCache } from '../modules/ffmpeg/service'
 import { getMainWindow } from '../windows/main'
 import { getRendererHandlers } from '../windows/setting'
 import { enableHardwareDecodingOnLinux } from './flag'
 import { registerLog } from './log'
 import { registerAppMenu } from './menu'
-import { registerSentry } from './sentry'
 
 export const initializeApp = () => {
   // 自动化验收或并行调试时可显式开启开发多实例；生产环境始终保持单实例。
@@ -22,25 +19,13 @@ export const initializeApp = () => {
     limitSingleInstance()
   }
   enableHardwareDecodingOnLinux()
-  registerSentry()
   registerIpc(router)
   registerAppMenu()
   registerLog()
-  app.setAsDefaultProtocolClient(MARCHEN_PROTOCOL)
-  protocol.registerSchemesAsPrivileged([
-    {
-      scheme: MARCHEN_PROTOCOL,
-      privileges: {
-        bypassCSP: true,
-        stream: true,
-        standard: true,
-      },
-    },
-  ])
-  if (isDev) {
-    app.setPath('appData', path.join(app.getPath('appData'), 'Marchen (dev)'))
-  }
   createStorageFolder()
+  void sweepFfmpegMediaCache().catch((error) => {
+    logger.warn('[ffmpeg] 启动缓存清扫失败', error)
+  })
 
   // macOS 通过视频文件快捷打开
   app.on('open-file', (event, url) => {
@@ -58,14 +43,14 @@ export const initializeApp = () => {
 
   // windows 当主窗口已经创建情况下, 通过视频文件快捷打开
   if (isWindows) {
-    app.on('second-instance', () => {
+    app.on('second-instance', (_event, commandLine) => {
       const mainWindow = getMainWindow()
       if (mainWindow) {
         if (mainWindow.isMinimized()) mainWindow.restore()
         mainWindow.show()
       }
 
-      quickLaunchViaVideo()
+      quickLaunchViaVideo(commandLine)
     })
   }
 }

@@ -1,124 +1,23 @@
-import fs from 'node:fs'
-import path from 'node:path'
+import { createStorageFolder } from '@main/constants/app'
+import { getFfmpegMediaTools } from '@main/modules/ffmpeg/service'
 
-import ffmpegPath from '@ffmpeg-installer/ffmpeg'
-import ffprobePath from '@ffprobe-installer/ffprobe'
-import { createStorageFolder, screenshotsPath, subtitlesPath } from '@main/constants/app'
-import ffmpeg from 'fluent-ffmpeg'
-
-ffmpeg.setFfmpegPath(ffmpegPath.path.replace('app.asar', 'app.asar.unpacked'))
-ffmpeg.setFfprobePath(ffprobePath.path.replace('app.asar', 'app.asar.unpacked'))
-
+/**
+ * 保留原有 IPC 使用的轻量外观，实际命令统一进入运行时、自检、调度器和参数数组执行器。
+ */
 export default class FFmpeg {
-  ffmpeg: ffmpeg.FfmpegCommand
-
-  constructor(inputPath: string) {
+  constructor(private readonly inputPath: string) {
     createStorageFolder()
-    this.ffmpeg = ffmpeg(inputPath)
   }
 
-  grabFrame = (time: string): Promise<string> => {
-    const fileName = `${Date.now()}.jpeg`
-    const fullPath = path.join(screenshotsPath(), fileName)
-    return new Promise((resolve, reject) => {
-      if (!fs.existsSync(screenshotsPath())) {
-        fs.mkdirSync(screenshotsPath(), { recursive: true })
-      }
-      this.ffmpeg
-        .screenshots({
-          timestamps: [time],
-          filename: fileName,
-          folder: screenshotsPath(),
-          size: '640x360', // 可根据需要调整尺寸
-        })
-        .on('end', () => {
-          try {
-            const data = fs.readFileSync(fullPath)
-            const base64Image = `data:image/jpeg;base64,${data.toString('base64')}`
-            fs.unlinkSync(fullPath)
-            resolve(base64Image)
-          } catch (error) {
-            reject(error)
-          }
-        })
-        .on('error', (err) => {
-          reject(err?.message)
-        })
-    })
-  }
+  grabFrame = async (time: string): Promise<string> =>
+    (await getFfmpegMediaTools()).grabFrame(this.inputPath, time)
 
-  coverToAssSubtitle = (): Promise<{ fileName: string; filePath: string }> => {
-    const fileName = `${Date.now()}.ass`
-    const outPutPath = path.join(subtitlesPath(), fileName)
-    return new Promise((resolve, reject) => {
-      this.ffmpeg
-        .outputOptions('-c:s ass')
-        .save(outPutPath)
-        .on('end', () => {
-          resolve({ filePath: outPutPath, fileName })
-        })
-        .on('error', (err) => {
-          reject(err)
-        })
-    })
-  }
+  coverToAssSubtitle = async (): Promise<{ fileName: string; filePath: string }> =>
+    (await getFfmpegMediaTools()).convertSubtitle(this.inputPath)
 
-  getSubtitlesIntroFromAnime = (): Promise<ffmpeg.FfprobeStream[]> => {
-    return new Promise((resolve) => {
-      ffmpeg.ffprobe((this.ffmpeg as any)._inputs[0].source, (err, metadata) => {
-        if (err) {
-          resolve([])
-        }
-        const subtitleStreams = metadata.streams.filter(
-          (stream) => stream.codec_type === 'subtitle',
-        )
-        if (subtitleStreams.length === 0) {
-          resolve([])
-        }
+  getSubtitlesIntroFromAnime = async () =>
+    (await getFfmpegMediaTools()).getSubtitleStreams(this.inputPath)
 
-        return resolve(subtitleStreams)
-      })
-    })
-  }
-
-  extractSubtitles = async (index: number): Promise<string> => {
-    if (!fs.existsSync(subtitlesPath())) {
-      fs.mkdirSync(subtitlesPath(), { recursive: true })
-    }
-
-    const fileName = `${Date.now()}-${index}.ass`
-    const outputPath = path.join(subtitlesPath(), fileName)
-    return new Promise<string>((resolve, reject) => {
-      this.ffmpeg
-        .clone() // Ensure a new instance for each command
-        .outputOptions(['-map', `0:s:${index}`, '-c:s', 'ass'])
-        .save(outputPath)
-        .on('end', () => {
-          resolve(outputPath)
-        })
-        .on('error', async (ffmpegError) => {
-          ffmpeg.ffprobe((this.ffmpeg as any)._inputs[0].source, (err, metadata) => {
-            if (err) {
-              return reject(err)
-            }
-
-            const subtitleStream = metadata.streams
-              .filter((stream) => stream.codec_type === 'subtitle')
-              .at(index)
-
-            if (!subtitleStream) {
-              return reject(new Error('解析内嵌字幕发生错误'))
-            }
-            // 检查是否为 PGS 字幕
-            if (
-              subtitleStream.codec_name?.toLowerCase()?.includes('pgs') ||
-              subtitleStream.codec_tag_string?.toLowerCase()?.includes('pgs')
-            ) {
-              return reject(new Error('不支持加载「位图字幕」'))
-            }
-            reject(ffmpegError)
-          })
-        })
-    })
-  }
+  extractSubtitles = async (index: number): Promise<string> =>
+    (await getFfmpegMediaTools()).extractSubtitle(this.inputPath, index)
 }

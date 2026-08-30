@@ -6,16 +6,11 @@
  */
 
 import type { Observable } from 'rxjs'
-import type {
-  DanmakuEntry,
-  MatchedVideo,
-  PipelineEvent,
-  ServiceDeps,
-  VideoInfo,
-} from '../types'
-
+import type { DanmakuEntry, MatchedVideo, PipelineEvent, ServiceDeps, VideoInfo } from '../types'
 import { concat, defer, of } from 'rxjs'
+
 import { mergeDanmakuEntries } from '../state-machine'
+import { getDurableMediaPath } from '../types'
 
 /**
  * 创建重新匹配 pipeline
@@ -57,7 +52,7 @@ export function createRematchPipeline(
       // 更新历史记录
       await deps.history.save({
         hash,
-        path: video.url,
+        path: getDurableMediaPath(video),
         episodeId: match.episodeId,
         animeTitle: match.animeTitle,
         episodeTitle: match.episodeTitle,

@@ -22,17 +22,8 @@ import type {
   VideoInfo,
 } from './types'
 import { BehaviorSubject, concat, defer, EMPTY, merge, of, Subject } from 'rxjs'
+import { catchError, exhaustMap, filter, map, switchMap, takeUntil } from 'rxjs/operators'
 
-import {
-  catchError,
-  exhaustMap,
-  filter,
-  finalize,
-  map,
-  switchMap,
-  takeUntil,
-  tap,
-} from 'rxjs/operators'
 import {
   executeFetchDanmaku,
   executeFinish,
@@ -41,6 +32,7 @@ import {
 } from './pipelines/load'
 import { addLocalDanmakuEntry, createRematchPipeline } from './pipelines/rematch'
 import { INITIAL_STATE, mergeDanmakuEntries, reduce } from './state-machine'
+import { getDurableMediaPath } from './types'
 
 export class PlayerLoadingService {
   // 命令输入流
@@ -124,13 +116,11 @@ export class PlayerLoadingService {
 
   /** 从 File 对象加载（拖拽/点击选择） */
   loadFromFile(file: File): void {
-    this.releaseCurrentSource()
     this.command$.next({ type: 'loadFromFile', file })
   }
 
   /** 从文件路径加载（IPC/历史记录/播放列表切换） */
   loadFromPath(path: string): void {
-    this.releaseCurrentSource()
     this.command$.next({ type: 'loadFromPath', path })
   }
 
@@ -180,7 +170,7 @@ export class PlayerLoadingService {
     await this.deps.cache.set(state.video.hash, danmaku)
     await this.deps.history.save({
       hash: state.video.hash,
-      path: state.video.url,
+      path: getDurableMediaPath(state.video),
       danmaku,
     })
 
@@ -193,13 +183,11 @@ export class PlayerLoadingService {
 
   /** 取消当前加载 */
   cancel(): void {
-    this.releaseCurrentSource()
     this.command$.next({ type: 'cancel' })
   }
 
   /** 销毁 service（释放所有订阅） */
   destroy(): void {
-    this.releaseCurrentSource()
     this.destroy$.next()
     this.destroy$.complete()
     this.subscription.unsubscribe()
@@ -220,9 +208,6 @@ export class PlayerLoadingService {
   ): Observable<PipelineEvent> {
     // 用闭包保存中间数据，避免依赖 stateSubject 的更新时序
     let video: VideoInfo | undefined
-    let disposed = false
-    let retained = false
-
     return concat(
       // Step 1: 开始
       of<PipelineEvent>({ type: 'started' }),
@@ -233,7 +218,6 @@ export class PlayerLoadingService {
           cmd.type === 'loadFromFile'
             ? await this.deps.importer.importFromFile(cmd.file)
             : await this.deps.importer.importFromPath(cmd.path)
-        if (disposed) video.releaseSource?.()
         return { type: 'hashed' as const, video }
       }) as Observable<PipelineEvent>,
 
@@ -269,20 +253,7 @@ export class PlayerLoadingService {
 
         return EMPTY
       }),
-    ).pipe(
-      tap((event) => {
-        if (event.type === 'danmakuLoaded' || event.type === 'skipped') retained = true
-      }),
-      finalize(() => {
-        disposed = true
-        if (!retained) video?.releaseSource?.()
-      }),
     )
-  }
-
-  private releaseCurrentSource(): void {
-    const state = this.currentState
-    if ('video' in state) state.video.releaseSource?.()
   }
 
   /**
@@ -317,7 +288,7 @@ export class PlayerLoadingService {
       // 保存历史（无弹幕匹配信息）
       await this.deps.history.save({
         hash: video.hash,
-        path: video.url,
+        path: getDurableMediaPath(video),
         animeTitle: video.name,
         danmaku: localDanmaku.length > 0 ? localDanmaku : undefined,
       })

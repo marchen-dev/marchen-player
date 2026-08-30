@@ -1,3 +1,4 @@
+import type { DurableMediaSource } from '@marchen/shared/media'
 import type {
   PlayerRuntime,
   ResolvedSubtitleTrack,
@@ -6,6 +7,7 @@ import type {
 } from '@renderer/services/player-runtime'
 import type { PropsWithChildren } from 'react'
 import { db } from '@renderer/database/db'
+import { captureFeatureUsed } from '@renderer/services/telemetry/features'
 import { createContext, use, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { LibassSubtitleAdapter } from './libass-subtitle-adapter'
 import { allocateExternalHistoryId, selectPreferredSubtitleTrack } from './preferences'
@@ -31,7 +33,7 @@ interface NativeSubtitleProviderProps extends PropsWithChildren {
   video: HTMLVideoElement
   runtime: PlayerRuntime
   catalog: SubtitleCatalogPort
-  sourceUrl: string
+  source: DurableMediaSource
   hash: string
 }
 
@@ -39,7 +41,7 @@ export const NativeSubtitleProvider = ({
   video,
   runtime,
   catalog,
-  sourceUrl,
+  source,
   hash,
   children,
 }: NativeSubtitleProviderProps) => {
@@ -82,7 +84,7 @@ export const NativeSubtitleProvider = ({
       setLoading(true)
       setError(null)
       try {
-        const resolved = await catalog.resolve(sourceUrl, option)
+        const resolved = await catalog.resolve(source, option)
         adapter.setTrack(resolved.url, resolved.release)
         setSelectedId(option.id)
         if (shouldPersist) await persistSelection(option, resolved)
@@ -94,7 +96,7 @@ export const NativeSubtitleProvider = ({
         setLoading(false)
       }
     },
-    [catalog, persistSelection, sourceUrl],
+    [catalog, persistSelection, source],
   )
 
   useEffect(() => {
@@ -120,7 +122,7 @@ export const NativeSubtitleProvider = ({
       setError(null)
       try {
         const [catalogTracks, history] = await Promise.all([
-          catalog.list(sourceUrl),
+          catalog.list(source),
           db.history.get(hash),
         ])
         if (cancelled) return
@@ -174,13 +176,14 @@ export const NativeSubtitleProvider = ({
     return () => {
       cancelled = true
     }
-  }, [activateTrack, catalog, hash, sourceUrl])
+  }, [activateTrack, catalog, hash, source])
 
   const selectTrack = useCallback(
     async (id: string) => {
       const adapter = adapterRef.current
       if (!adapter) return
       if (id === 'off') {
+        captureFeatureUsed('subtitle', 'disable')
         adapter.close()
         setSelectedId('off')
         setError(null)
@@ -188,7 +191,10 @@ export const NativeSubtitleProvider = ({
         return
       }
       const option = tracks.find((track) => track.id === id)
-      if (option) await activateTrack(option)
+      if (option) {
+        captureFeatureUsed('subtitle', 'select', option.origin)
+        await activateTrack(option)
+      }
     },
     [activateTrack, persistSelection, tracks],
   )
@@ -199,6 +205,7 @@ export const NativeSubtitleProvider = ({
     try {
       const imported = await catalog.importExternal()
       if (!imported) return
+      captureFeatureUsed('subtitle', 'import', 'external')
       const history = await db.history.get(hash)
       const historyId = allocateExternalHistoryId(history?.subtitles?.tags ?? [], new Set())
       const option: SubtitleTrackOption = { ...imported, historyId }

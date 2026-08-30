@@ -1,58 +1,23 @@
-import { electronApp, optimizer } from '@electron-toolkit/utils'
-import { MARCHEN_PROTOCOL } from '@marchen/shared/constants/protocol'
-import { name } from '@pkg'
+import path from 'node:path'
 
-import { app, BrowserWindow, protocol } from 'electron'
-import { initializeApp } from './initialize'
+import { app } from 'electron'
+
 import { isDev } from './lib/env'
-import { getIconPath } from './lib/icon'
-import { getFilePathFromProtocolURL, handleCustomProtocol } from './lib/protocols'
-import { autoUpdateInit } from './lib/update'
-import createWindow from './windows/main'
+import './register-schemes'
 
-function bootstrap() {
-  // 开发模式下暴露 Chrome DevTools Protocol 远程调试端口，
-  // 供 chrome-devtools-mcp 以 attach 模式连入真实 Electron 实例。
-  // 必须在 app.whenReady() 之前调用 switch 才会生效。
-  if (isDev && !app.commandLine.hasSwitch('remote-debugging-port')) {
-    app.commandLine.appendSwitch('remote-debugging-port', '9222')
+// userData、身份与离线状态都依赖 appData；开发目录必须在任何遥测模块加载前确定。
+if (isDev) app.setPath('appData', path.join(app.getPath('appData'), 'Marchen (dev)'))
+
+const start = async () => {
+  try {
+    const { initializeMainTelemetry } = await import('./telemetry/sentry')
+    await initializeMainTelemetry()
+  } catch (error) {
+    // 遥测属于旁路能力，初始化失败不能阻止播放器启动。
+    console.warn('[telemetry] Main 初始化失败，已降级继续启动', error)
   }
 
-  initializeApp()
-  app.whenReady().then(() => {
-    autoUpdateInit()
-    electronApp.setAppUserModelId(`re.${name}`)
-
-    app.on('browser-window-created', (_, window) => {
-      optimizer.watchWindowShortcuts(window)
-    })
-
-    protocol.handle(MARCHEN_PROTOCOL, async (request) => {
-      const filePath = getFilePathFromProtocolURL(request.url)
-      return handleCustomProtocol(filePath, request)
-    })
-
-    createWindow()
-
-    if (app.dock && isDev) {
-      app.dock.setIcon(getIconPath())
-    }
-
-    app.on('activate', () => {
-      // On macOS it's common to re-create a window in the app when the
-      // dock icon is clicked and there are no other windows open.
-      if (BrowserWindow.getAllWindows().length === 0) createWindow()
-    })
-  })
-
-  // Quit when all windows are closed, except on macOS. There, it's common
-  // for applications and their menu bar to stay active until the user quits
-  // explicitly with Cmd + Q.
-  app.on('window-all-closed', () => {
-    if (process.platform !== 'darwin') {
-      app.quit()
-    }
-  })
+  await import('./bootstrap')
 }
 
-bootstrap()
+void start()

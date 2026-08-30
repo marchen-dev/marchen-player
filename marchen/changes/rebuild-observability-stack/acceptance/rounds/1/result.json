@@ -1,0 +1,93 @@
+{
+  "title": "Sentry + PostHog 可观测性重建验收",
+  "plan": [
+    {
+      "id": "web-telemetry-runtime",
+      "name": "Web 遥测运行与 CSP"
+    },
+    {
+      "id": "cross-runtime-source-map",
+      "name": "四运行时 Source Map"
+    },
+    {
+      "id": "playback-quality-volume",
+      "name": "兼容播放质量与事件量"
+    },
+    {
+      "id": "analytics-release-contract",
+      "name": "产品分析与发布契约"
+    }
+  ],
+  "cases": [
+    {
+      "id": "web-telemetry-runtime",
+      "name": "Web 遥测运行与 CSP",
+      "status": "passed",
+      "observation": "真实 Web 页面在新 CSP 下正常渲染；Sentry envelope、PostHog Feature Flag 与事件 ingestion 均返回 200，开发诊断开关已随进程结束恢复关闭。",
+      "evidence": [
+        {
+          "path": "assets/web-runtime.png",
+          "type": "image",
+          "text": "启用遥测诊断时正常渲染的 Web 播放器入口"
+        },
+        {
+          "path": "assets/observability-evidence.md",
+          "type": "text",
+          "text": "真实 ingestion 与运行态证据"
+        }
+      ]
+    },
+    {
+      "id": "cross-runtime-source-map",
+      "name": "四运行时 Source Map",
+      "status": "passed",
+      "observation": "Web Renderer、Electron Main、Preload 与 Renderer 的受控事件都使用同一 release 和正确 dist，Sentry 已将压缩 frame 还原到原始 TypeScript/TSX 文件。",
+      "evidence": [
+        {
+          "path": "assets/observability-evidence.md",
+          "type": "text",
+          "text": "Sentry issue、event 与原始 frame 对照"
+        }
+      ]
+    },
+    {
+      "id": "playback-quality-volume",
+      "name": "兼容播放质量与事件量",
+      "status": "passed",
+      "observation": "60 秒 HEVC Main10 + EAC-3 样本持续播放；20 秒内产生 20 个 Gateway segment，而稳定播放 10 秒仅发送 2 个 Replay 分块，没有逐 segment 产品事件。",
+      "evidence": [
+        {
+          "path": "assets/observability-evidence.md",
+          "type": "text",
+          "text": "播放时长、主线程、内存、请求量与 Replay 隔离数据"
+        }
+      ]
+    },
+    {
+      "id": "analytics-release-contract",
+      "name": "产品分析与发布契约",
+      "status": "passed",
+      "observation": "运行手册给出 DAU/MAU、留存、启动到首帧漏斗、功能使用率、fallback 与失败率口径；Tag workflow 在全部平台和 Web artifact 上传后才由单一 job finalize、deploy 和发布。",
+      "evidence": [
+        {
+          "path": "assets/observability-evidence.md",
+          "type": "text",
+          "text": "产品口径、Source Map 门禁与协调发布说明"
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "verdict": "passed",
+    "conclusion": "Sentry + PostHog 已完成跨运行时、产品分析、播放器质量和发布诊断的可见取证，等待维护者签核。"
+  },
+  "commit": "working-tree@173e45a69f4b1cd75f08829fe46cf675ac8f46d3",
+  "surfaces": [
+    "Electron Main、Preload 与 Renderer",
+    "Web Renderer 与 HashRouter",
+    "Sentry Issue、Trace、Replay 与 Source Map artifact",
+    "PostHog Event、Feature Flag、Session Replay 与离线 outbox",
+    "player-loading、Player Runtime、Media Gateway 与 FFmpeg generation",
+    "Electron/Web Tag 发布流水线"
+  ]
+}

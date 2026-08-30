@@ -18,7 +18,13 @@ import { vi } from 'vitest'
 /** 创建默认的视频信息 */
 export function createMockVideoInfo(overrides?: Partial<VideoInfo>): VideoInfo {
   return {
-    url: 'marchen://test/video.mkv',
+    source: {
+      kind: 'electron-file',
+      path: '/test/video.mkv',
+      hash: 'abc123hash',
+      size: 1024000,
+      name: 'test-video.mkv',
+    },
     hash: 'abc123hash',
     size: 1024000,
     name: 'test-video.mkv',

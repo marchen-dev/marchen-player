@@ -5,7 +5,9 @@ import type {
   PlaybackMediaSnapshot,
   PlaybackSource,
 } from '@marchen/playback-core'
+import type { HlsPlaybackController, HlsPlaybackControllerFactory } from './hls-playback-controller'
 import { Subject } from 'rxjs'
+import { createHlsPlaybackController } from './hls-playback-controller'
 
 const MEDIA_EVENT_TYPES = [
   'loadstart',
@@ -28,11 +30,16 @@ type SupportedMediaEvent = (typeof MEDIA_EVENT_TYPES)[number]
 export class HtmlVideoMediaAdapter implements MediaPort {
   private readonly eventSubject = new Subject<MediaEvent>()
   private listeners: Array<readonly [SupportedMediaEvent, EventListener]> = []
+  private hlsController?: HlsPlaybackController
+  private transportReady: Promise<void> = Promise.resolve()
   private destroyed = false
 
   readonly events$ = this.eventSubject.asObservable()
 
-  constructor(private readonly video: HTMLVideoElement) {
+  constructor(
+    private readonly video: HTMLVideoElement,
+    private readonly createHlsController: HlsPlaybackControllerFactory = createHlsPlaybackController,
+  ) {
     video.playsInline = true
     video.preload = 'metadata'
   }
@@ -40,17 +47,35 @@ export class HtmlVideoMediaAdapter implements MediaPort {
   setSource(source: PlaybackSource | null, sessionId: number): void {
     if (this.destroyed) return
     this.detachListeners()
+    this.hlsController?.destroy()
+    this.hlsController = undefined
     this.video.pause()
     this.video.removeAttribute('src')
 
     if (!source) {
+      this.transportReady = Promise.resolve()
       this.video.load()
       return
     }
 
     this.attachListeners(sessionId)
-    this.video.src = source.url
-    this.video.load()
+    if (source.mimeType === 'application/vnd.apple.mpegurl') {
+      this.hlsController = this.createHlsController(this.video, (error) => {
+        if (!this.destroyed) this.eventSubject.next({ type: 'error', sessionId, error })
+      })
+      this.transportReady = this.hlsController.load(source.url)
+      // 调用方会在兼容 lease 上等待；这里额外挂一个 rejection handler，避免换源销毁
+      // 恰好发生在等待注册前时形成未处理 Promise。
+      void this.transportReady.catch(() => undefined)
+    } else {
+      this.transportReady = Promise.resolve()
+      this.video.src = source.url
+      this.video.load()
+    }
+  }
+
+  waitForTransportReady(): Promise<void> {
+    return this.transportReady
   }
 
   play(): Promise<void> {
@@ -95,6 +120,8 @@ export class HtmlVideoMediaAdapter implements MediaPort {
     if (this.destroyed) return
     this.destroyed = true
     this.detachListeners()
+    this.hlsController?.destroy()
+    this.hlsController = undefined
     this.video.pause()
     this.video.removeAttribute('src')
     this.video.load()
@@ -176,6 +203,11 @@ export const mapMediaError = (error: MediaError | null): PlaybackError => {
         cause: error,
       }
     default:
-      return { code: 'unknown', message: error?.message || '媒体播放失败', recoverable: true, cause: error }
+      return {
+        code: 'unknown',
+        message: error?.message || '媒体播放失败',
+        recoverable: true,
+        cause: error,
+      }
   }
 }

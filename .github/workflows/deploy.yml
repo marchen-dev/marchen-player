@@ -1,63 +1,54 @@
-name: Deploy
+name: Build verified Web artifact
 
 on:
-  push:
-    tags:
-      - v*.*.*
+  workflow_call:
 
 jobs:
-  build:
-    name: Lint, Typecheck, Build, and Deploy
+  build-web:
     runs-on: ubuntu-latest
-
-    strategy:
-      matrix:
-        node-version: [24.x]
-
     env:
       VITE_API_URL: ${{ secrets.VITE_API_URL }}
       VITE_SENTRY_DSN: ${{ secrets.VITE_SENTRY_DSN }}
-
+      VITE_POSTHOG_KEY: ${{ secrets.VITE_POSTHOG_KEY }}
+      VITE_POSTHOG_HOST: ${{ secrets.VITE_POSTHOG_HOST }}
+      SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+      SENTRY_ORG: ${{ vars.SENTRY_ORG }}
+      SENTRY_PROJECT: ${{ vars.SENTRY_PROJECT }}
+      MARCHEN_COMMIT: ${{ github.sha }}
+      MARCHEN_DIST: web
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
           lfs: true
-
-      - name: Checkout LFS objects
-        run: git lfs checkout
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4.1.0
-
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v4
+      - run: git lfs checkout
+      - uses: pnpm/action-setup@v4.1.0
+      - uses: actions/setup-node@v4
         with:
-          node-version: ${{ matrix.node-version }}
+          node-version: 24.x
           cache: pnpm
 
-      - name: Install dependencies
-        run: pnpm install
-
-      - name: Lint and Typecheck
+      - name: Validate production observability configuration
+        shell: bash
         run: |
-          pnpm run typecheck
-          pnpm run lint
+          required=(VITE_API_URL VITE_SENTRY_DSN VITE_POSTHOG_KEY VITE_POSTHOG_HOST SENTRY_AUTH_TOKEN SENTRY_ORG SENTRY_PROJECT)
+          for name in "${required[@]}"; do
+            if [ -z "${!name:-}" ]; then echo "Missing required Web release variable: $name" >&2; exit 1; fi
+          done
 
-      - name: Build project
-        run: pnpm run build:web
-
-      - name: Archive production artifacts
-        run: tar -cvf build.tar -C ./out/web .
-
-      - name: Deploy to remote server
-        env:
-          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
-          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
-          DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
+      - run: pnpm install --frozen-lockfile
+      - name: Resolve release name
+        shell: bash
+        run: echo "SENTRY_RELEASE=Marchen@$(node -p "require('./package.json').version")+$GITHUB_SHA" >> "$GITHUB_ENV"
+      - name: Lint, typecheck and build Web
         run: |
-          echo "${{ secrets.DEPLOY_KEY }}" > deploy_key
-          chmod 600 deploy_key
-          scp -i deploy_key -o StrictHostKeyChecking=no build.tar $DEPLOY_USER@$DEPLOY_HOST:/opt/1panel/www/sites/marchen-play.suemor.com/index/
-          ssh -i deploy_key -o StrictHostKeyChecking=no $DEPLOY_USER@$DEPLOY_HOST "cd /opt/1panel/www/sites/marchen-play.suemor.com/index/ && tar -xvf build.tar && rm build.tar"
+          pnpm typecheck
+          pnpm lint
+          pnpm build:web
+      - name: Verify Web bundle and Source Map removal
+        run: node scripts/verify-observability-build.mjs --root out/web --target web --expected-release "$SENTRY_RELEASE" --expected-dist web --require-no-maps
+      - uses: actions/upload-artifact@v4
+        with:
+          name: web-dist
+          path: out/web
+          if-no-files-found: error

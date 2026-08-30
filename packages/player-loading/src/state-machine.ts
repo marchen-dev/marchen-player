@@ -100,7 +100,5 @@ export function reduce(state: LoadingState, event: PipelineEvent): LoadingState 
  * 合并弹幕：将所有 selected 的弹幕源合并为一个 CommentModel 数组
  */
 export function mergeDanmakuEntries(entries: DanmakuEntry[]) {
-  return entries
-    .filter((entry) => entry.selected)
-    .flatMap((entry) => entry.content.comments)
+  return entries.filter((entry) => entry.selected).flatMap((entry) => entry.content.comments)
 }

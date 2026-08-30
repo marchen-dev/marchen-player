@@ -9,7 +9,14 @@ describe('web SourceLifecyclePort', () => {
     const revokeObjectURL = vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {})
     const lifecycle = createWebSourceLifecyclePort()
 
-    const handle = await lifecycle.prepare({ kind: 'blob', blob: new Blob(['video']) })
+    const file = new File(['video'], 'video.mp4')
+    const handle = await lifecycle.prepare({
+      kind: 'web-file',
+      file,
+      hash: 'hash',
+      name: file.name,
+      size: file.size,
+    })
     expect(handle.url).toBe('blob:marchen-video')
     expect(createObjectURL).toHaveBeenCalledOnce()
 
@@ -26,9 +33,9 @@ describe('web SourceLifecyclePort', () => {
     const revokeObjectURL = vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {})
     const lifecycle = createWebSourceLifecyclePort()
 
-    await lifecycle.prepare({ kind: 'blob', blob: new Blob(['first']) })
-    await lifecycle.prepare({ kind: 'blob', blob: new Blob(['second']) })
-    await lifecycle.prepare({ kind: 'url', url: 'https://example.com/video.mp4' })
+    await lifecycle.prepareResource({ kind: 'blob', blob: new Blob(['first']) })
+    await lifecycle.prepareResource({ kind: 'blob', blob: new Blob(['second']) })
+    await lifecycle.prepareResource({ kind: 'url', url: 'https://example.com/video.mp4' })
     lifecycle.dispose()
 
     expect(revokeObjectURL.mock.calls).toEqual([['blob:first'], ['blob:second']])

@@ -124,17 +124,70 @@ describe('htmlVideoMediaAdapter', () => {
 })
 
 describe('playerRuntime', () => {
+  const lease = (id: string, release: () => void) => ({
+    id,
+    logicalSourceId: id,
+    mode: 'direct' as const,
+    transport: 'custom-protocol' as const,
+    url: `marchen:///${id}`,
+    timeline: { originalDuration: 0, offset: 0, calibrated: false },
+    release,
+  })
+
   it('换源先释放旧来源并忽略旧事件', () => {
     const order: string[] = []
     const { events, media } = createMediaPort(order)
     const runtime = new PlayerRuntime(media)
-    runtime.load(source('first'), () => order.push('first-source'))
-    runtime.load(source('second'), () => order.push('second-source'))
+    runtime.load(
+      source('first'),
+      lease('first', () => order.push('first-source')),
+    )
+    runtime.load(
+      source('second'),
+      lease('second', () => order.push('second-source')),
+    )
 
     events.next({ type: 'play', sessionId: 1, snapshot: snapshot() })
 
     expect(order).toContain('first-source')
     expect(runtime.state).toMatchObject({ status: 'loading', source: { id: 'second' } })
+  })
+
+  it('兼容 lease seek 后替换 HLS generation 并恢复媒体状态', async () => {
+    const { media } = createMediaPort()
+    const runtime = new PlayerRuntime(media)
+    runtime.load(source('compatible'), {
+      ...lease('compatible', vi.fn()),
+      mode: 'transcode-video',
+      transport: 'hls',
+      generation: 0,
+      sessionId: 'session',
+      seek: async (logicalTime) => ({
+        id: 'compatible:1',
+        logicalSourceId: 'compatible',
+        mode: 'transcode-video',
+        transport: 'hls',
+        url: 'http://127.0.0.1/g/1/index.m3u8',
+        mimeType: 'application/vnd.apple.mpegurl',
+        generation: 1,
+        sessionId: 'session',
+        timeline: { originalDuration: 120, offset: logicalTime, calibrated: true },
+      }),
+    })
+
+    runtime.commands.seek(45)
+    await vi.waitFor(() =>
+      expect(media.setSource).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          url: 'http://127.0.0.1/g/1/index.m3u8',
+          mimeType: 'application/vnd.apple.mpegurl',
+          timeline: { originalDuration: 120, offset: 45, calibrated: true },
+        }),
+        2,
+      ),
+    )
+    expect(media.setVolume).toHaveBeenCalledWith(1)
+    expect(media.setRate).toHaveBeenCalledWith(1)
   })
 
   it('按固定阶段销毁所有资源，单个失败不阻断后续清理', () => {
@@ -149,7 +202,10 @@ describe('playerRuntime', () => {
       throw new Error('dispose failed')
     })
     runtime.registerDisposer('observer', () => order.push('observer'))
-    runtime.load(source('dispose'), () => order.push('source'))
+    runtime.load(
+      source('dispose'),
+      lease('dispose', () => order.push('source')),
+    )
 
     runtime.destroy()
 

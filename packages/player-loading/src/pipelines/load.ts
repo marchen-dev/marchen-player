@@ -15,9 +15,10 @@ import type {
   VideoInfo,
 } from '../types'
 import { concat, defer, EMPTY, from, of } from 'rxjs'
-
 import { filter, map, take } from 'rxjs/operators'
+
 import { mergeDanmakuEntries } from '../state-machine'
+import { getDurableMediaPath } from '../types'
 
 /**
  * 创建主加载 pipeline
@@ -43,9 +44,7 @@ export function createLoadPipeline(
           ? deps.importer.importFromFile(source.file)
           : deps.importer.importFromPath(source.path)
 
-      return from(importPromise).pipe(
-        map((video): PipelineEvent => ({ type: 'hashed', video })),
-      )
+      return from(importPromise).pipe(map((video): PipelineEvent => ({ type: 'hashed', video })))
     }),
 
     // Step 3-5: 匹配 → 可能等待用户 → 加载弹幕 → ready
@@ -70,10 +69,7 @@ function createMatchAndLoadSegment(
  * 执行匹配逻辑
  * 先检查本地历史缓存，再调 API
  */
-export function executeMatch(
-  video: VideoInfo,
-  deps: ServiceDeps,
-): Observable<PipelineEvent> {
+export function executeMatch(video: VideoInfo, deps: ServiceDeps): Observable<PipelineEvent> {
   return defer(async () => {
     // 先查本地历史记录是否已有匹配
     const history = await deps.history.get(video.hash)
@@ -170,9 +166,7 @@ export function executeFetchDanmaku(
  * 等待用户选择（selectMatch 或 skipDanmaku）
  * pipeline 在此处"挂起"，直到收到用户命令
  */
-export function waitForUserSelection(
-  command$: Observable<Command>,
-): Observable<Command> {
+export function waitForUserSelection(command$: Observable<Command>): Observable<Command> {
   return command$.pipe(
     filter((cmd) => cmd.type === 'selectMatch' || cmd.type === 'skipDanmaku'),
     take(1),
@@ -192,7 +186,7 @@ export function executeFinish(
   return defer(async () => {
     await deps.history.save({
       hash: video.hash,
-      path: video.url,
+      path: getDurableMediaPath(video),
       episodeId: match.episodeId,
       animeTitle: match.animeTitle,
       episodeTitle: match.episodeTitle,

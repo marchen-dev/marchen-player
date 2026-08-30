@@ -1,0 +1,94 @@
+{
+  "schemaVersion": 1,
+  "ffmpegRelease": "9.0.1",
+  "source": {
+    "url": "https://ffmpeg.org/releases/ffmpeg-9.0.1.tar.xz",
+    "sha256": "cf38e0e28c7e5605942c4a77755349b0145804a397af37eb1fb4c77cb237f635",
+    "releasePage": "https://ffmpeg.org/download.html#release_9.0.1"
+  },
+  "commonCapabilities": {
+    "decoders": ["aac", "ass", "eac3", "h264", "hevc", "ssa", "subrip"],
+    "encoders": ["aac", "libx264"],
+    "demuxers": ["matroska", "mov"],
+    "muxers": ["hls", "matroska", "mp4"],
+    "filters": ["format", "scale", "setpts", "tonemap", "zscale"],
+    "protocols": ["file", "pipe"]
+  },
+  "targets": {
+    "darwin-x64": {
+      "platform": "darwin",
+      "arch": "x64",
+      "versionOutputPrefix": "ffmpeg version 9.0.1-https://www.martin-riedl.de",
+      "provider": "Martin Riedl FFmpeg Build Server",
+      "providerSource": "https://git.martin-riedl.de/ffmpeg/build-script",
+      "buildConfigurationUrl": "https://ffmpeg.martin-riedl.de/download/macos/amd64/1787081194_9.0.1/versions.txt",
+      "capabilityUrls": {
+        "formats": "https://ffmpeg.martin-riedl.de/download/macos/amd64/1787081194_9.0.1/formats.txt",
+        "codecs": "https://ffmpeg.martin-riedl.de/download/macos/amd64/1787081194_9.0.1/codecs.txt",
+        "protocols": "https://ffmpeg.martin-riedl.de/download/macos/amd64/1787081194_9.0.1/protocols.txt"
+      },
+      "artifacts": [
+        {
+          "name": "ffmpeg",
+          "url": "https://ffmpeg.martin-riedl.de/download/macos/amd64/1787081194_9.0.1/ffmpeg.zip",
+          "sha256": "5bdead62ff504ab9b447cc72b212c4fb481e3f7de5877d427a51bee8136dda40",
+          "executable": "ffmpeg"
+        },
+        {
+          "name": "ffprobe",
+          "url": "https://ffmpeg.martin-riedl.de/download/macos/amd64/1787081194_9.0.1/ffprobe.zip",
+          "sha256": "34511bbcf1988ad2886023bf5ace4f44cf62e6defeb3d194d6f7619e5b061f7f",
+          "executable": "ffprobe"
+        }
+      ],
+      "platformEncoders": ["h264_videotoolbox"]
+    },
+    "darwin-arm64": {
+      "platform": "darwin",
+      "arch": "arm64",
+      "versionOutputPrefix": "ffmpeg version 9.0.1-https://www.martin-riedl.de",
+      "provider": "Martin Riedl FFmpeg Build Server",
+      "providerSource": "https://git.martin-riedl.de/ffmpeg/build-script",
+      "buildConfigurationUrl": "https://ffmpeg.martin-riedl.de/download/macos/arm64/1787073674_9.0.1/versions.txt",
+      "capabilityUrls": {
+        "formats": "https://ffmpeg.martin-riedl.de/download/macos/arm64/1787073674_9.0.1/formats.txt",
+        "codecs": "https://ffmpeg.martin-riedl.de/download/macos/arm64/1787073674_9.0.1/codecs.txt",
+        "protocols": "https://ffmpeg.martin-riedl.de/download/macos/arm64/1787073674_9.0.1/protocols.txt"
+      },
+      "artifacts": [
+        {
+          "name": "ffmpeg",
+          "url": "https://ffmpeg.martin-riedl.de/download/macos/arm64/1787073674_9.0.1/ffmpeg.zip",
+          "sha256": "8287a1b2229e05eb41859f073e18e6c52c60a778f2f5e6881070fe51b79407fe",
+          "executable": "ffmpeg"
+        },
+        {
+          "name": "ffprobe",
+          "url": "https://ffmpeg.martin-riedl.de/download/macos/arm64/1787073674_9.0.1/ffprobe.zip",
+          "sha256": "102a26b8940a053298d9929bfaae71e4b6ef65ba5f19a99a88c433108560741a",
+          "executable": "ffprobe"
+        }
+      ],
+      "platformEncoders": ["h264_videotoolbox"]
+    },
+    "win32-x64": {
+      "platform": "win32",
+      "arch": "x64",
+      "versionOutputPrefix": "ffmpeg version n9.0.1-11-ge47273f4d9",
+      "provider": "BtbN FFmpeg Builds",
+      "providerSource": "https://github.com/BtbN/FFmpeg-Builds/tree/a1b5c41",
+      "ffmpegSourceCommit": "https://github.com/FFmpeg/FFmpeg/commit/e47273f4d9",
+      "buildConfigurationUrl": "https://github.com/BtbN/FFmpeg-Builds/releases/tag/autobuild-2026-08-29-13-12",
+      "capabilityUrls": {},
+      "artifacts": [
+        {
+          "name": "ffmpeg-bundle",
+          "url": "https://github.com/BtbN/FFmpeg-Builds/releases/download/autobuild-2026-08-29-13-12/ffmpeg-n9.0.1-11-ge47273f4d9-win64-gpl-9.0.zip",
+          "sha256": "30bac4e9cd39dbd0873077c15afec858c69a31a195b1b41388a62f4de368f3ea",
+          "executables": ["bin/ffmpeg.exe", "bin/ffprobe.exe"]
+        }
+      ],
+      "platformEncoders": ["h264_amf", "h264_nvenc", "h264_qsv"]
+    }
+  }
+}

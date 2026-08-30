@@ -15,10 +15,7 @@ trustPolicyExclude:
 packages:
   - 'packages/*'
 allowBuilds:
-  '@ffmpeg-installer/darwin-arm64': true
-  '@ffmpeg-installer/linux-x64': true
-  '@ffprobe-installer/darwin-arm64': true
-  '@ffprobe-installer/linux-x64': true
+  '@sentry/cli': true
   '@swc/core': true
   core-js: true
   electron: true

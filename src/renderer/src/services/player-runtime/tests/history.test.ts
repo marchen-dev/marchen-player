@@ -7,9 +7,7 @@ import { PlaybackSnapshotAdapter } from '../history/playback-snapshot-adapter'
 import { subscribeAutomaticNext } from '../history/playlist'
 import { PlayerRuntime } from '../runtime'
 
-const mediaSnapshot = (
-  overrides: Partial<PlaybackMediaSnapshot> = {},
-): PlaybackMediaSnapshot => ({
+const mediaSnapshot = (overrides: Partial<PlaybackMediaSnapshot> = {}): PlaybackMediaSnapshot => ({
   currentTime: 0,
   duration: 100,
   volume: 1,
@@ -59,6 +57,39 @@ const historyRecord = (changes: Partial<DB_History> = {}): DB_History => ({
 })
 
 describe('playbackHistoryAdapter', () => {
+  it('只有媒体 ready 后才更新最近观看，加载失败不会污染', async () => {
+    const { runtime, emit } = createRuntime()
+    const markStarted = vi.fn(async () => {})
+    const repository = {
+      get: vi.fn(async () => ({
+        hash: 'hash',
+        path: '/video.mkv',
+        animeId: 1,
+        episodeId: 2,
+        progress: 0,
+        duration: 0,
+        updatedAt: '',
+      })),
+      update: vi.fn(async () => 1),
+    }
+    const adapter = new PlaybackHistoryAdapter({
+      runtime,
+      hash: 'hash',
+      repository,
+      markStarted,
+      markWatched: vi.fn(async () => {}),
+    })
+    adapter.start()
+    await vi.waitFor(() => expect(repository.get).toHaveBeenCalled())
+    expect(markStarted).not.toHaveBeenCalled()
+
+    emit('metadata', mediaSnapshot({ duration: 120 }))
+    await vi.waitFor(() => expect(markStarted).toHaveBeenCalledWith(1, 2, 'hash'))
+    emit('play', mediaSnapshot({ duration: 120, paused: false }))
+    expect(markStarted).toHaveBeenCalledOnce()
+    adapter.dispose()
+  })
+
   it('恢复未完成进度，并约 2 秒节流保存', async () => {
     const { runtime, media, emit } = createRuntime()
     const update = vi.fn(async () => 1)
@@ -116,7 +147,9 @@ describe('playbackHistoryAdapter', () => {
     adapter.start()
     await Promise.resolve()
     emit('ended', mediaSnapshot({ currentTime: 99, duration: 100, ended: true }))
-    await vi.waitFor(() => expect(update).toHaveBeenCalledWith('hash', expect.objectContaining({ progress: 100 })))
+    await vi.waitFor(() =>
+      expect(update).toHaveBeenCalledWith('hash', expect.objectContaining({ progress: 100 })),
+    )
     adapter.dispose()
   })
 })
@@ -130,10 +163,17 @@ describe('playbackSnapshotAdapter', () => {
       .mockResolvedValueOnce('data:image/jpeg;base64,ok')
     const update = vi.fn(async () => 1)
     const onError = vi.fn()
+    const source = {
+      kind: 'electron-file' as const,
+      path: '/video.mkv',
+      hash: 'hash',
+      name: 'video.mkv',
+      size: 1,
+    }
     const adapter = new PlaybackSnapshotAdapter({
       runtime,
       hash: 'hash',
-      sourceUrl: '/video.mkv',
+      source,
       snapshot: { capture },
       repository: { get: vi.fn(async () => undefined), update },
       onError,
@@ -144,16 +184,18 @@ describe('playbackSnapshotAdapter', () => {
     await vi.waitFor(() => expect(onError).toHaveBeenCalledOnce())
     emit('time-update', mediaSnapshot({ currentTime: 32, duration: 120 }))
     adapter.dispose()
-    await vi.waitFor(() => expect(update).toHaveBeenCalledWith('hash', { thumbnail: 'data:image/jpeg;base64,ok' }))
-    expect(capture).toHaveBeenNthCalledWith(1, { sourceUrl: '/video.mkv', time: 60 })
-    expect(capture).toHaveBeenNthCalledWith(2, { sourceUrl: '/video.mkv', time: 32 })
+    await vi.waitFor(() =>
+      expect(update).toHaveBeenCalledWith('hash', { thumbnail: 'data:image/jpeg;base64,ok' }),
+    )
+    expect(capture).toHaveBeenNthCalledWith(1, { source, time: 60 })
+    expect(capture).toHaveBeenNthCalledWith(2, { source, time: 32 })
   })
 })
 
 describe('自动下一集', () => {
   it('仅在首次进入 ended 时经 PlaylistPort 切换', () => {
     const { runtime, emit } = createRuntime()
-    const next = { id: 'next', name: '下一集', sourceUrl: '/next.mkv' }
+    const next = { id: 'next', name: '下一集', path: '/next.mkv' }
     const play = vi.fn()
     const unsubscribe = subscribeAutomaticNext(runtime, { list: vi.fn(), play }, next)
 

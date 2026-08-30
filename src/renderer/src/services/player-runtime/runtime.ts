@@ -1,14 +1,15 @@
 import type {
   MediaPort,
   PlaybackClock,
+  PlaybackMediaRestoreState,
   PlaybackSource,
   PlaybackState,
 } from '@marchen/playback-core'
+import type { PlaybackSourceLease } from '@marchen/shared/media'
 import { PlaybackSession } from '@marchen/playback-core'
 
 export type PlayerRuntimeDisposePhase = 'ui-frame' | 'danmaku' | 'subtitle' | 'observer'
 export type PlayerRuntimeDisposer = () => void
-export type SourceRelease = () => void
 
 export interface PlayerRuntimeCommands {
   play: () => Promise<void>
@@ -17,6 +18,7 @@ export interface PlayerRuntimeCommands {
   setVolume: (volume: number) => void
   setMuted: (muted: boolean) => void
   setRate: (rate: number) => void
+  restore: (state: PlaybackMediaRestoreState) => void
   cancel: () => void
 }
 
@@ -29,22 +31,27 @@ export class PlayerRuntime {
     subtitle: [],
     observer: [],
   }
-  private sourceRelease: SourceRelease | null = null
+  private sourceLease: PlaybackSourceLease | null = null
+  private generationSeek = 0
   private destroyed = false
 
   readonly clock: PlaybackClock
   readonly commands: PlayerRuntimeCommands
 
-  constructor(media: MediaPort, private readonly onDisposeError: (error: unknown) => void = console.error) {
+  constructor(
+    private readonly media: MediaPort,
+    private readonly onDisposeError: (error: unknown) => void = console.error,
+  ) {
     this.session = new PlaybackSession(media)
     this.clock = this.session.clock
     this.commands = {
       play: () => this.session.play(),
       pause: () => this.session.pause(),
-      seek: (time) => this.session.seek(time),
+      seek: (time) => this.seek(time),
       setVolume: (volume) => this.session.setVolume(volume),
       setMuted: (muted) => this.session.setMuted(muted),
       setRate: (rate) => this.session.setRate(rate),
+      restore: (state) => this.session.restore(state),
       cancel: () => this.cancel(),
     }
   }
@@ -53,21 +60,27 @@ export class PlayerRuntime {
     return this.session.currentState
   }
 
+  get playbackMode(): PlaybackSourceLease['mode'] | undefined {
+    return this.sourceLease?.mode
+  }
+
   subscribe(listener: () => void): () => void {
     const subscription = this.session.state$.subscribe(listener)
     return () => subscription.unsubscribe()
   }
 
-  load(source: PlaybackSource, release?: SourceRelease): void {
+  load(source: PlaybackSource, lease?: PlaybackSourceLease): void {
     if (this.destroyed) return
     this.releaseSource()
-    this.sourceRelease = release ?? null
+    this.sourceLease = lease ?? null
+    this.generationSeek += 1
     this.session.load(source)
   }
 
   cancel(): void {
     if (this.destroyed) return
     this.session.cancel()
+    this.generationSeek += 1
     this.releaseSource()
   }
 
@@ -88,6 +101,7 @@ export class PlayerRuntime {
   destroy(): void {
     if (this.destroyed) return
     this.destroyed = true
+    this.generationSeek += 1
 
     this.disposePhase('ui-frame')
     this.disposePhase('danmaku')
@@ -106,10 +120,38 @@ export class PlayerRuntime {
   }
 
   private releaseSource(): void {
-    if (!this.sourceRelease) return
-    const release = this.sourceRelease
-    this.sourceRelease = null
-    this.safeDispose(release)
+    if (!this.sourceLease) return
+    const lease = this.sourceLease
+    this.sourceLease = null
+    this.safeDispose(lease.release)
+  }
+
+  private seek(time: number): void {
+    const lease = this.sourceLease
+    const state = this.session.currentState
+    if (!lease?.seek || !('source' in state) || !state.source || !Number.isFinite(time)) {
+      this.session.seek(time)
+      return
+    }
+    const source = state.source
+    const restore = this.media.getSnapshot()
+    const request = ++this.generationSeek
+    void lease
+      .seek(Math.max(0, time))
+      .then((descriptor) => {
+        if (this.destroyed || request !== this.generationSeek || lease !== this.sourceLease) return
+        this.session.load({
+          ...source,
+          url: descriptor.url,
+          mimeType: descriptor.mimeType,
+          timeline: descriptor.timeline,
+          autoplay: false,
+        })
+        this.session.restore({ ...restore, currentTime: Math.max(0, time) })
+      })
+      .catch((error) => {
+        if (request === this.generationSeek) this.onDisposeError(error)
+      })
   }
 
   private safeDispose(disposer: PlayerRuntimeDisposer): void {

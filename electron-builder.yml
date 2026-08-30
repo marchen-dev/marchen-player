@@ -3,6 +3,7 @@ productName: Marchen
 directories:
   buildResources: build
 files:
+  - '!out/**/*.map'
   - '!**/.vscode/*'
   - '!src/*'
   - '!packages/*'
@@ -10,10 +11,11 @@ files:
   - '!{.eslintignore,.eslintrc.cjs,.prettierignore,.prettierrc.yaml,dev-app-update.yml,CHANGELOG.md,README.md}'
   - '!{.env,.env.*,.npmrc,pnpm-lock.yaml}'
   - '!{tsconfig.json,tsconfig.node.json,tsconfig.web.json}'
-asarUnpack:
-  - resources/**
 win:
   executableName: Marchen
+  extraResources:
+    - from: resources/ffmpeg/win32-${arch}
+      to: ffmpeg
   fileAssociations:
     - ext: [mp4, mkv]
       name: Video Files
@@ -27,6 +29,9 @@ nsis:
   oneClick: false
 mac:
   minimumSystemVersion: 13.0.0
+  extraResources:
+    - from: resources/ffmpeg/darwin-${arch}
+      to: ffmpeg
   entitlementsInherit: build/entitlements.mac.plist
   extendInfo:
     - NSDocumentsFolderUsageDescription: Application requests access to the user's Documents folder.
@@ -65,8 +70,6 @@ publish:
 # publish:
 #   provider: generic
 #   url: http://localhost:3000
-beforePack: scripts/install-darwin-deps.js
-afterPack: scripts/after-pack.js
 afterSign: scripts/notarize.js
 releaseInfo:
   releaseNotes: |

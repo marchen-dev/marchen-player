@@ -61,12 +61,7 @@ describe('player platform ports', () => {
   })
 
   it('electron 字幕目录使用字幕流相对索引', async () => {
-    expect(
-      toEmbeddedSubtitleTrack(
-        { tags: { title: '中文字幕', language: 'zho' } },
-        0,
-      ),
-    ).toEqual({
+    expect(toEmbeddedSubtitleTrack({ tags: { title: '中文字幕', language: 'zho' } }, 0)).toEqual({
       id: 'embedded:0',
       title: '中文字幕',
       language: 'zho',

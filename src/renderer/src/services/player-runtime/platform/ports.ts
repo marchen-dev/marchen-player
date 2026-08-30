@@ -1,3 +1,8 @@
+import type {
+  DurableMediaSource,
+  OutputProfileKind,
+  PlaybackSourceLease,
+} from '@marchen/shared/media'
 import type { PlayerCapabilities } from './types'
 
 export type PlayerPortDisposer = () => void
@@ -19,16 +24,17 @@ export interface FullscreenPort {
 export interface PlaylistEntry {
   id: string
   name: string
-  sourceUrl: string
+  path: string
+  fileHash?: string
 }
 
 export interface PlaylistPort {
-  list: (currentSourceUrl: string) => Promise<ReadonlyArray<PlaylistEntry>>
+  list: (currentSource: DurableMediaSource) => Promise<ReadonlyArray<PlaylistEntry>>
   play: (entry: PlaylistEntry) => void
 }
 
 export interface SnapshotRequest {
-  sourceUrl: string
+  source: DurableMediaSource
   time: number
 }
 
@@ -50,10 +56,13 @@ export interface ResolvedSubtitleTrack extends SubtitleTrackDescriptor {
 }
 
 export interface SubtitleCatalogPort {
-  list: (sourceUrl: string) => Promise<ReadonlyArray<SubtitleTrackDescriptor>>
+  list: (source: DurableMediaSource) => Promise<ReadonlyArray<SubtitleTrackDescriptor>>
   importExternal: () => Promise<ResolvedSubtitleTrack | null>
   restoreExternal: (path: string, title: string, id?: string) => Promise<ResolvedSubtitleTrack>
-  resolve: (sourceUrl: string, track: SubtitleTrackDescriptor) => Promise<ResolvedSubtitleTrack>
+  resolve: (
+    source: DurableMediaSource,
+    track: SubtitleTrackDescriptor,
+  ) => Promise<ResolvedSubtitleTrack>
 }
 
 export type PlayerSourceRequest =
@@ -69,8 +78,18 @@ export interface PlayerSourceHandle {
 
 /** Source handle 的 owner 必须只释放一次；dispose 负责回收仍存活的 handle。 */
 export interface SourceLifecyclePort {
-  prepare: (request: PlayerSourceRequest) => Promise<PlayerSourceHandle>
-  release: (handle: PlayerSourceHandle) => void
+  prepare: (
+    source: DurableMediaSource,
+    options?: {
+      nativeDecodeFailed?: boolean
+      startTime?: number
+      forceProfile?: Exclude<OutputProfileKind, 'native'>
+      attemptChain?: OutputProfileKind[]
+    },
+  ) => Promise<PlaybackSourceLease>
+  prepareResource: (request: PlayerSourceRequest) => Promise<PlayerSourceHandle>
+  release: (lease: PlaybackSourceLease) => void
+  releaseResource: (handle: PlayerSourceHandle) => void
   dispose: () => void
 }
 

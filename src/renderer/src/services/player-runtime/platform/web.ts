@@ -9,6 +9,7 @@ import type {
   SubtitleTrackDescriptor,
 } from './ports'
 import { webPlayerCapabilities } from './capabilities'
+import { createPlaybackSourceLease } from './playback-lease'
 
 export const createWebPlayerPorts = (): PlayerPorts => {
   const sourceLifecycle = createWebSourceLifecyclePort()
@@ -52,7 +53,24 @@ export const createWebSourceLifecyclePort = (): SourceLifecyclePort => {
   }
 
   return {
-    prepare: async (request: PlayerSourceRequest): Promise<PlayerSourceHandle> => {
+    prepare: async (source) => {
+      if (source.kind !== 'web-file') throw new Error('Web 播放源只接受当前页面持有的 File')
+      const id = createId()
+      const url = URL.createObjectURL(source.file)
+      liveHandles.set(id, url)
+      return createPlaybackSourceLease(
+        {
+          id,
+          logicalSourceId: source.hash,
+          mode: 'direct',
+          transport: 'object-url',
+          url,
+          timeline: { originalDuration: 0, offset: 0, calibrated: false },
+        },
+        () => releaseById(id),
+      )
+    },
+    prepareResource: async (request: PlayerSourceRequest): Promise<PlayerSourceHandle> => {
       const id = createId()
       const objectUrl =
         request.kind === 'url'
@@ -62,7 +80,8 @@ export const createWebSourceLifecyclePort = (): SourceLifecyclePort => {
       liveHandles.set(id, objectUrl)
       return { id, url, release: () => releaseById(id) }
     },
-    release: (handle) => releaseById(handle.id),
+    release: (lease) => lease.release(),
+    releaseResource: (handle) => releaseById(handle.id),
     dispose: () => {
       for (const id of [...liveHandles.keys()]) releaseById(id)
     },
@@ -78,7 +97,7 @@ export const createWebSubtitleCatalogPort = (
   const files = new Map<string, File>()
 
   const createResolvedFileTrack = async (id: string, file: File) => {
-    const source = await sourceLifecycle.prepare({ kind: 'file', file })
+    const source = await sourceLifecycle.prepareResource({ kind: 'file', file })
     const track: ResolvedSubtitleTrack = {
       id,
       title: file.name,
@@ -119,7 +138,7 @@ export const createWebSubtitleCatalogPort = (
       tracks.set(track.id, track)
       return track
     },
-    resolve: async (_sourceUrl: string, track: SubtitleTrackDescriptor) => {
+    resolve: async (_source, track: SubtitleTrackDescriptor) => {
       const resolved = tracks.get(track.id)
       if (resolved) return resolved
       const file = files.get(track.id)

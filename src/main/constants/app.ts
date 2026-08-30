@@ -9,6 +9,7 @@ export const screenshotsPath = () => path.resolve(savePath(), 'screenshots')
 export const subtitlesPath = () => path.resolve(savePath(), 'subtitles')
 export const logPath = () => path.resolve(savePath(), 'log')
 export const dbPath = () => path.resolve(savePath(), 'db')
+export const mediaCachePath = () => path.resolve(savePath(), 'media-cache')
 
 export const createStorageFolder = () => {
   if (!fs.existsSync(screenshotsPath())) {

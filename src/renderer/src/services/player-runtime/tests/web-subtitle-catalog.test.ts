@@ -17,8 +17,16 @@ describe('web subtitle catalog lifecycle', () => {
     expect(imported?.url).toBe('blob:subtitle-1')
     imported?.release?.()
 
-    const descriptor = (await catalog.list('video'))[0]!
-    const selectedAgain = await catalog.resolve('video', descriptor)
+    const video = new File(['video'], 'video.mp4')
+    const source = {
+      kind: 'web-file' as const,
+      file: video,
+      hash: 'hash',
+      name: video.name,
+      size: video.size,
+    }
+    const descriptor = (await catalog.list(source))[0]!
+    const selectedAgain = await catalog.resolve(source, descriptor)
     expect(selectedAgain.url).toBe('blob:subtitle-2')
     selectedAgain.release?.()
 

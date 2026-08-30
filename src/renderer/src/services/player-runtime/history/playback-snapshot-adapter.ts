@@ -1,4 +1,5 @@
 import type { PlaybackState } from '@marchen/playback-core'
+import type { DurableMediaSource } from '@marchen/shared/media'
 import type { SnapshotPort } from '../platform'
 import type { PlayerRuntime } from '../runtime'
 import type { PlaybackHistoryRepository } from './playback-history-adapter'
@@ -6,7 +7,7 @@ import type { PlaybackHistoryRepository } from './playback-history-adapter'
 export interface PlaybackSnapshotAdapterOptions {
   runtime: PlayerRuntime
   hash: string
-  sourceUrl: string
+  source: DurableMediaSource
   snapshot: SnapshotPort
   repository: PlaybackHistoryRepository
   onError?: (error: unknown) => void
@@ -40,14 +41,15 @@ export class PlaybackSnapshotAdapter {
     this.unsubscribe = null
     const state = this.options.runtime.state
     if (!hasDuration(state) || state.duration <= 0 || this.lastStatus === 'idle') return
-    const currentTime = state.status === 'ended' ? Math.max(0, state.duration - 3) : currentTimeOf(state)
+    const currentTime =
+      state.status === 'ended' ? Math.max(0, state.duration - 3) : currentTimeOf(state)
     void this.capture(currentTime)
   }
 
   private async capture(time: number): Promise<void> {
     try {
       const thumbnail = await this.options.snapshot.capture({
-        sourceUrl: this.options.sourceUrl,
+        source: this.options.source,
         time: Math.max(0, time),
       })
       await this.options.repository.update(this.options.hash, { thumbnail })
@@ -57,9 +59,8 @@ export class PlaybackSnapshotAdapter {
   }
 }
 
-const hasDuration = (
-  state: PlaybackState,
-): state is Extract<PlaybackState, { duration: number }> => 'duration' in state
+const hasDuration = (state: PlaybackState): state is Extract<PlaybackState, { duration: number }> =>
+  'duration' in state
 
 const currentTimeOf = (state: Extract<PlaybackState, { duration: number }>) => {
   if (state.status === 'seeking') return state.targetTime

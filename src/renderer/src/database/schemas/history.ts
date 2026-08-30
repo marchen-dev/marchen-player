@@ -2,7 +2,10 @@ import type { CommentsModel } from '@renderer/request/models/comment'
 
 export interface DB_History {
   hash: string
-  path: string
+  path?: string
+  pathStatus?: 'ready' | 'unresolved'
+  originalPath?: string
+  pathMigrationError?: string
   animeId?: number
   episodeId?: number
   animeTitle?: string
