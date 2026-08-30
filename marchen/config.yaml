@@ -2,8 +2,4 @@ schema: full
 providers:
   - claude-code
   - codex
-version: 0.8.3
-search:
-  enabled: false
-models:
-  endpoint: https://hf-mirror.com
+version: 0.8.4

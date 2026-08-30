@@ -63,7 +63,7 @@ argument-hint: <change-name>
 - 卡片框宽 70 字符（含 `│` 边框），便于主流终端整齐显示
 - 每行内容（去掉边框后）≤ 60 字符；超出必须截断/合并/重写，不许折行
 - 禁止粘贴 artifact 原文片段，所有内容必须重新组织、压缩
-- 中文为主，技术名词保留英文（如 `SearchManager`、`SDK`）
+- 中文为主，技术名词保留英文（如 `IdeaManager`、`SDK`）
 - 宁可少写，不要堆。摘不下就合并或截断，在框底加 `更多详情见 marchen/changes/<name>/`
 
 **full schema 段落上限：**
