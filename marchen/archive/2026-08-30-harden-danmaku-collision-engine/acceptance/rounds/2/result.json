@@ -1,0 +1,50 @@
+{
+  "title": "弹幕设置连续更新验收",
+  "plan": [
+    {
+      "id": "duration-setting-continuity",
+      "name": "调整持续时间不清屏"
+    },
+    {
+      "id": "font-size-setting-continuity",
+      "name": "调整字号渐进生效"
+    },
+    {
+      "id": "display-area-setting-continuity",
+      "name": "调整显示区域不清屏"
+    }
+  ],
+  "cases": [
+    {
+      "id": "duration-setting-continuity",
+      "name": "调整持续时间不清屏",
+      "status": "blocked",
+      "observation": "请在播放中连续切换弹幕持续时间，确认已有弹幕停留在当前位置平滑变速，画面没有瞬间清空或跳回右侧，并观察后续弹幕没有追上前一条。",
+      "evidence": []
+    },
+    {
+      "id": "font-size-setting-continuity",
+      "name": "调整字号渐进生效",
+      "status": "blocked",
+      "observation": "请在有多条弹幕可见时切换字号，确认已有弹幕保持原字号自然离屏，新出现弹幕使用新字号，切换瞬间不清屏且新旧字号没有重叠。",
+      "evidence": []
+    },
+    {
+      "id": "display-area-setting-continuity",
+      "name": "调整显示区域不清屏",
+      "status": "blocked",
+      "observation": "请在播放中切换弹幕显示区域，确认已有弹幕保持原位置自然离屏，新出现弹幕进入新区域，切换瞬间不清屏且没有可见重叠。",
+      "evidence": []
+    }
+  ],
+  "summary": {
+    "verdict": "blocked",
+    "conclusion": "持续时间、字号和显示区域已改为连续更新语义；本地验收页无法由自动浏览器截取，因此三个新增可视案例等待维护者在桌面窗口手动确认。"
+  },
+  "commit": "working-tree@173e45a69f4b1cd75f08829fe46cf675ac8f46d3",
+  "surfaces": [
+    "播放器弹幕设置侧栏",
+    "DOM 滚动、顶部与底部弹幕",
+    "持续时间、字号与显示区域切换"
+  ]
+}

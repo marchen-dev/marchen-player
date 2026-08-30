@@ -9,9 +9,14 @@ export { DEFAULT_DANMAKU_CONFIG } from './types'
 export type {
   DanmakuClock,
   DanmakuConfig,
+  DanmakuDiagnostics,
   DanmakuItem,
   DanmakuLayout,
+  DanmakuLifecycleState,
+  DanmakuMeasuredItem,
+  DanmakuMetrics,
   DanmakuMode,
+  DanmakuMotionSnapshot,
   DanmakuPlacement,
   DanmakuRect,
 } from './types'

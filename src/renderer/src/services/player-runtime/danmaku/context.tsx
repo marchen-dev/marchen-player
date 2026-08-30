@@ -22,6 +22,32 @@ export const NativeDanmakuProvider = ({ children }: PropsWithChildren) => {
   const clock = usePlaybackClock()
   const playback = usePlaybackViewModel()
   const settings = usePlayerSettingsValue()
+  const {
+    danmakuDuration,
+    danmakuEndArea,
+    danmakuFontSize,
+    danmakuMaxOnScreen,
+    enableDanmaku,
+    enableDanmakuHoverPause,
+  } = settings
+  const rendererConfig = useMemo(
+    () => ({
+      enabled: enableDanmaku,
+      hoverPause: enableDanmakuHoverPause,
+      duration: Number(danmakuDuration) / 1_000,
+      fontSize: Number(danmakuFontSize),
+      displayArea: Number(danmakuEndArea),
+      maxOnScreen: Number(danmakuMaxOnScreen),
+    }),
+    [
+      danmakuDuration,
+      danmakuEndArea,
+      danmakuFontSize,
+      danmakuMaxOnScreen,
+      enableDanmaku,
+      enableDanmakuHoverPause,
+    ],
+  )
   const comments = usePlayerLoadingSelector((state) =>
     state.step === 'ready' || state.step === 'reloading' ? state.mergedComments : [],
   )
@@ -29,9 +55,9 @@ export const NativeDanmakuProvider = ({ children }: PropsWithChildren) => {
   const rendererRef = useRef<DomDanmakuRenderer | null>(null)
   const unregisterRef = useRef<(() => void) | null>(null)
   const itemsRef = useRef(items)
-  const settingsRef = useRef(settings)
+  const configRef = useRef(rendererConfig)
   itemsRef.current = items
-  settingsRef.current = settings
+  configRef.current = rendererConfig
 
   const surfaceRef = useCallback(
     (node: HTMLDivElement | null) => {
@@ -41,7 +67,7 @@ export const NativeDanmakuProvider = ({ children }: PropsWithChildren) => {
       rendererRef.current = null
       if (!node) return
 
-      const renderer = new DomDanmakuRenderer(node, clock, toRendererConfig(settingsRef.current))
+      const renderer = new DomDanmakuRenderer(node, clock, configRef.current)
       rendererRef.current = renderer
       unregisterRef.current = runtime.registerDisposer('danmaku', () => renderer.dispose())
       renderer.replaceItems(itemsRef.current, clock.now())
@@ -62,8 +88,8 @@ export const NativeDanmakuProvider = ({ children }: PropsWithChildren) => {
   }, [clock, items])
 
   useEffect(() => {
-    rendererRef.current?.updateConfig(toRendererConfig(settings))
-  }, [settings])
+    rendererRef.current?.updateConfig(rendererConfig)
+  }, [rendererConfig])
 
   useEffect(() => {
     const renderer = rendererRef.current
@@ -90,12 +116,3 @@ export const useNativeDanmaku = () => {
   if (!context) throw new Error('useNativeDanmaku 必须在 NativeDanmakuProvider 中使用')
   return context
 }
-
-const toRendererConfig = (settings: ReturnType<typeof usePlayerSettingsValue>) => ({
-  enabled: settings.enableDanmaku,
-  hoverPause: settings.enableDanmakuHoverPause,
-  duration: Number(settings.danmakuDuration) / 1_000,
-  fontSize: Number(settings.danmakuFontSize),
-  displayArea: Number(settings.danmakuEndArea),
-  maxOnScreen: Number(settings.danmakuMaxOnScreen),
-})

@@ -13,6 +13,16 @@ export interface DanmakuClock {
   now: () => number
 }
 
+export interface DanmakuMetrics {
+  width: number
+  height: number
+}
+
+export interface DanmakuMeasuredItem {
+  item: DanmakuItem
+  metrics: DanmakuMetrics | null
+}
+
 export interface DanmakuConfig {
   enabled: boolean
   duration: number
@@ -39,11 +49,34 @@ export interface DanmakuRect {
 export interface DanmakuPlacement {
   item: DanmakuItem
   lane: number
+  laneSpan: number
   y: number
   width: number
+  height: number
   duration: number
   playbackRate: number
   startDelay: number
+}
+
+export type DanmakuLifecycleState = 'pending' | 'running' | 'paused'
+
+export interface DanmakuMotionSnapshot {
+  id: string
+  mode: DanmakuMode
+  state: DanmakuLifecycleState
+  lane: number
+  laneSpan: number
+  elapsed: number
+  left: number
+  right: number
+  top: number
+  bottom: number
+}
+
+export interface DanmakuDiagnostics {
+  active: number
+  peakActive: number
+  dropped: number
 }
 
 export const DEFAULT_DANMAKU_CONFIG: DanmakuConfig = {
