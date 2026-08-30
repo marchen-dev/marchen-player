@@ -1,0 +1,132 @@
+{
+  "title": "自研播放器运行时替换验收",
+  "plan": [
+    {
+      "id": "electron-controller",
+      "name": "Electron 沉浸式控制器"
+    },
+    {
+      "id": "electron-danmaku",
+      "name": "Electron DOM 弹幕"
+    },
+    {
+      "id": "electron-subtitle",
+      "name": "Electron 内嵌 ASS 字幕"
+    },
+    {
+      "id": "web-desktop",
+      "name": "Web 桌面播放与全屏界面"
+    },
+    {
+      "id": "web-subtitle",
+      "name": "Web 外挂 ASS 字幕"
+    },
+    {
+      "id": "mobile-responsive",
+      "name": "移动端 Dock 与设置面板"
+    }
+  ],
+  "cases": [
+    {
+      "id": "electron-controller",
+      "name": "Electron 沉浸式控制器",
+      "status": "passed",
+      "observation": "Electron 窗口进入原生全屏后继续播放，IINA 风格双行控制器保持可见；控制器已从默认位置实际拖动到画面右下方，窗口全屏按钮同步显示退出状态。",
+      "evidence": [
+        {
+          "path": "assets/electron-fullscreen-controller.png",
+          "type": "image",
+          "text": "Electron 全屏播放与拖动后的悬浮控制器"
+        }
+      ]
+    },
+    {
+      "id": "electron-danmaku",
+      "name": "Electron DOM 弹幕",
+      "status": "passed",
+      "observation": "1200 条高密度样本同时覆盖滚动、顶部和底部弹幕，蓝白颜色可见；压力采样峰值为 32 个在屏节点，控制器仍位于弹幕之上。",
+      "evidence": [
+        {
+          "path": "assets/electron-dense-danmaku.png",
+          "type": "image",
+          "text": "Electron 高密度 DOM 弹幕与控制器遮挡层级"
+        }
+      ]
+    },
+    {
+      "id": "electron-subtitle",
+      "name": "Electron 内嵌 ASS 字幕",
+      "status": "passed",
+      "observation": "MKV 内嵌 ASS 已由 FFmpeg 按字幕流相对索引提取，并以可释放 Blob URL 交给 libass；英文 fixture 字幕在视频下方清晰可见。",
+      "evidence": [
+        {
+          "path": "assets/electron-embedded-ass.png",
+          "type": "image",
+          "text": "Electron 播放 MKV 时可见的 libass 内嵌字幕"
+        }
+      ]
+    },
+    {
+      "id": "web-desktop",
+      "name": "Web 桌面播放与全屏界面",
+      "status": "passed",
+      "observation": "Web 导入本地 AV1 样本后使用原生 video 播放，桌面宽度呈现双行悬浮控制器；DOM 全屏和 Escape 状态同步已在同一会话核对。",
+      "evidence": [
+        {
+          "path": "assets/web-desktop-player.png",
+          "type": "image",
+          "text": "Web 桌面原生播放与自研控制器"
+        }
+      ]
+    },
+    {
+      "id": "web-subtitle",
+      "name": "Web 外挂 ASS 字幕",
+      "status": "passed",
+      "observation": "Web 用户选择的 ASS 外挂字幕通过独立 Object URL 加载，libass 字幕文字与播放器控制器同时可见，浮层保留在播放器 Portal 内。",
+      "evidence": [
+        {
+          "path": "assets/web-external-ass.png",
+          "type": "image",
+          "text": "Web 外挂 ASS 字幕播放画面"
+        }
+      ]
+    },
+    {
+      "id": "mobile-responsive",
+      "name": "移动端 Dock 与设置面板",
+      "status": "passed",
+      "observation": "375×812 使用固定底部 Dock，812×375 横屏切换为悬浮控制器；在 375px 实际打开字幕设置面板后，面板仍位于播放器内并保留视频与 Dock 背景。",
+      "evidence": [
+        {
+          "path": "assets/web-mobile-375.png",
+          "type": "image",
+          "text": "375×812 移动端底部 Dock"
+        },
+        {
+          "path": "assets/web-landscape-812.png",
+          "type": "image",
+          "text": "812×375 横屏悬浮控制器"
+        },
+        {
+          "path": "assets/web-mobile-settings.png",
+          "type": "image",
+          "text": "375px 播放器 Portal 内的字幕设置面板"
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "verdict": "passed",
+    "conclusion": "xgplayer/danmu.js 已由 Marchen 自研播放、控制器与 DOM 弹幕运行时替代；Electron、Web 和移动端的核心可见行为均已取证，等待维护者签核。"
+  },
+  "commit": "working-tree@5874b60d5371f757c6765e9529bbea89c1a767d7",
+  "surfaces": [
+    "Electron 窗口态与原生全屏",
+    "Electron 目录播放、内嵌字幕与截图历史",
+    "Electron/Web DOM 弹幕",
+    "Web 本地文件与 DOM Fullscreen",
+    "Web ASS/SSA 外挂字幕",
+    "375px 手机与横屏响应式播放器"
+  ]
+}

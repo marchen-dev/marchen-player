@@ -7,3 +7,4 @@ out
 .env
 *.mas.*
 test-results/
+marchen/**/acceptance/.serve.pid
