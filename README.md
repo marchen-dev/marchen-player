@@ -69,11 +69,19 @@ $ pnpm dev
 - shadcn/ui
 - TanStack Query
 - Framer motion
-- xgplayer
+- HTML5 Video + 自研播放运行时
+- RxJS
+- libass-wasm
 
 ## ❤️ 致谢 & 许可
 
 - [弹弹play](https://www.dandanplay.com)
-- [xgplayer](https://github.com/bytedance/xgplayer)
+- [libass-wasm](https://github.com/jellyfin/libass-wasm)
+
+当前 Electron 与 Web 共用 HTML5 Video 播放内核、自研 DOM 弹幕引擎和 React 控制器。HEVC
+软解、EAC-3 转码等 FFmpeg 兼容播放能力不在本次重构范围内，将由后续独立变更实现。
+
+Web 构建通过同源 `/api/v2` 请求弹弹play代理：本地 `dev:web` / `vite preview` 已内置反代；
+部署 `out/web` 时，静态站点服务也需要把 `/api/v2` 反向代理到 `VITE_API_URL` 对应服务。
 
 [![AGPLv3 License](https://img.shields.io/badge/License-AGPLv3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
