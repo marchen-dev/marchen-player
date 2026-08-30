@@ -5,7 +5,7 @@
  * 包括文件 hash 计算、播放列表获取等。
  */
 
-import type { VideoImporter, VideoInfo } from '@marchen/player-core'
+import type { VideoImporter, VideoInfo } from '@marchen/player-loading'
 import { MARCHEN_PROTOCOL_PREFIX } from '@marchen/shared/constants/protocol'
 import { calculateFileHash } from '@marchen/shared/lib/calc-file-hash'
 import { ipcClient } from '@renderer/lib/client'

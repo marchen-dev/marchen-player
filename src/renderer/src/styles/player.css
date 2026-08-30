@@ -1,6 +1,58 @@
-@import '@suemor/xgplayer/dist/index.min.css';
-@import '@suemor/xgplayer/es/plugins/danmu/index.css';
+[data-player-root] {
+  --player-surface: rgb(43 43 51 / 58%);
+  --player-surface-solid: rgb(25 31 37 / 96%);
+  --player-fg: rgb(245 248 250 / 96%);
+  --player-fg-muted: rgb(220 230 236 / 72%);
+  --player-border: rgb(255 255 255 / 16%);
+  --player-shadow: 0 18px 60px rgb(0 0 0 / 36%), 0 2px 10px rgb(0 0 0 / 24%);
+  --player-focus: #8dd7ff;
+  --player-track: rgb(255 255 255 / 16%);
+  --player-buffered: rgb(255 255 255 / 30%);
+  --player-progress: rgb(238 246 250 / 92%);
+}
 
-.xgplayer {
-  cursor: default;
+@supports not (backdrop-filter: blur(1px)) {
+  [data-player-floating-controller],
+  [data-player-mobile-dock] > div {
+    background: var(--player-surface-solid);
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  [data-player-floating-controller],
+  [data-player-mobile-dock] > div {
+    background: var(--player-surface-solid);
+    backdrop-filter: none;
+  }
+}
+
+/* 播放器 ready 后由 fixed PlayerShell 接管窗口，普通应用框架不再占用画面。 */
+.root-layout:has([data-player-active]) {
+  display: block;
+  background: #000;
+}
+
+.root-layout:has([data-player-active]) > .app-header,
+.root-layout:has([data-player-active]) > .sidebar {
+  display: none;
+}
+
+.root-layout:has([data-player-active]) > main {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+}
+
+[data-player-portal-root] > * {
+  pointer-events: auto;
+}
+
+/* 设置面板位于强制白字的播放器根节点内，显式覆盖 shadcn 的浅色输入底色。 */
+[data-player-setting-sheet] :is(button, [role='combobox'], input, select, textarea).bg-background {
+  color: var(--player-fg);
+  background-color: rgb(255 255 255 / 8%);
+}
+
+[data-player-setting-sheet] .border-input {
+  border-color: rgb(255 255 255 / 14%);
 }

@@ -11,8 +11,13 @@ import { jotaiStore } from './store'
 
 // 设置面板开关状态
 export const playerSettingSheetAtom = atomWithReset(false)
+export type PlayerSettingSection = 'playList' | 'danmaku' | 'subtitle'
+export const playerSettingSectionAtom = atomWithReset<PlayerSettingSection>('danmaku')
 
-export const showPlayerSettingSheet = () => jotaiStore.set(playerSettingSheetAtom, true)
+export const showPlayerSettingSheet = (section: PlayerSettingSection = 'danmaku') => {
+  jotaiStore.set(playerSettingSectionAtom, section)
+  jotaiStore.set(playerSettingSheetAtom, true)
+}
 
 // videoAtom 保留：被 Event.tsx（进度保存）和 DanmakuSource（hash 读取）使用
 export const videoAtom = atomWithReset<{
@@ -35,10 +40,12 @@ export const videoAtom = atomWithReset<{
 export const useClearPlayingVideo = () => {
   const resetVideo = useResetAtom(videoAtom)
   const resetPlayerSettingSheet = useResetAtom(playerSettingSheetAtom)
+  const resetPlayerSettingSection = useResetAtom(playerSettingSectionAtom)
 
   return () => {
     resetVideo()
     resetPlayerSettingSheet()
+    resetPlayerSettingSection()
   }
 }
 

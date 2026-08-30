@@ -187,6 +187,26 @@ export const playerGroup = {
       }
     }),
 
+  readSubtitleText: t.procedure.input<{ path: string }>().action(async ({ input }) => {
+    try {
+      const filePath = getFilePathFromProtocolURL(input.path)
+      const extension = path.extname(filePath).toLowerCase()
+      if (!['.ass', '.ssa'].includes(extension)) {
+        return { ok: 0, message: '字幕文件格式不受支持' }
+      }
+      const stats = fs.statSync(filePath)
+      if (!stats.isFile() || stats.size > 16 * 1024 * 1024) {
+        return { ok: 0, message: '字幕文件无效或过大' }
+      }
+      return { ok: 1, data: fs.readFileSync(filePath, 'utf-8') }
+    } catch (error) {
+      return {
+        ok: 0,
+        message: error instanceof Error ? error.message : '字幕文件读取失败',
+      }
+    }
+  }),
+
   matchSubtitleFile: t.procedure
     .input<{ path: string }>()
     .action(async ({ input }) => {

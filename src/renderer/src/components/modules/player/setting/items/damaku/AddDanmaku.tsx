@@ -54,7 +54,10 @@ export const AddDanmaku = () => {
     // 更新设置面板的 UI 缓存
     queryClient.setQueryData([SettingProviderQueryKey, hash], (oldData: DB_History) => ({
       ...oldData,
-      danmaku: service.currentState.step === 'playing' ? (service.currentState as any).danmaku : oldData?.danmaku,
+      danmaku:
+        service.currentState.step === 'ready'
+          ? service.currentState.danmaku
+          : oldData?.danmaku,
     }))
 
     toast({ title: '导入成功' })

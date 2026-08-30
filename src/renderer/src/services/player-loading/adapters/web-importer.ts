@@ -6,7 +6,7 @@
  * 不支持 importFromPath（Web 无法直接访问文件系统）。
  */
 
-import type { VideoImporter, VideoInfo } from '@marchen/player-core'
+import type { VideoImporter, VideoInfo } from '@marchen/player-loading'
 import { calculateFileHash } from '@marchen/shared/lib/calc-file-hash'
 
 export class WebImporter implements VideoImporter {
@@ -14,15 +14,17 @@ export class WebImporter implements VideoImporter {
    * 从 File 对象导入（浏览器拖拽/点击选择）
    */
   async importFromFile(file: File): Promise<VideoInfo> {
-    const url = URL.createObjectURL(file)
     const hash = await calculateFileHash(file)
+    const initialLease = createObjectUrlLease(file)
 
     return {
-      url,
+      url: initialLease.url,
       hash,
       size: file.size,
       name: file.name,
       playList: [], // Web 环境无播放列表
+      releaseSource: initialLease.release,
+      acquireSource: () => createObjectUrlLease(file),
     }
   }
 
@@ -31,5 +33,18 @@ export class WebImporter implements VideoImporter {
    */
   async importFromPath(_path: string): Promise<VideoInfo> {
     throw new Error('Web 环境不支持从路径导入视频')
+  }
+}
+
+const createObjectUrlLease = (file: File) => {
+  const url = URL.createObjectURL(file)
+  let released = false
+  return {
+    url,
+    release: () => {
+      if (released) return
+      released = true
+      URL.revokeObjectURL(url)
+    },
   }
 }

@@ -1,6 +1,6 @@
 import type { ChangeEvent, DragEvent, FC } from 'react'
-import { Player } from '@renderer/components/modules/player'
 import { VideoProvider } from '@renderer/components/modules/player/loading/PlayerProvider'
+import { NativePlayer } from '@renderer/components/modules/player/NativePlayer'
 import { usePageHeader } from '@renderer/hooks/use-page-header'
 import { usePlayAnimeFailedToast } from '@renderer/hooks/use-toast'
 import { ipcClient } from '@renderer/lib/client'
@@ -18,9 +18,8 @@ export default function VideoPlayer() {
 
   usePageHeader(PLAYER_HEADER)
 
-  // 从 service state 读取当前视频 URL（playing 状态时有值）
-  const url = usePlayerLoadingSelector((s) =>
-    'video' in s && s.video ? s.video.url : '',
+  const preparedVideo = usePlayerLoadingSelector((state) =>
+    state.step === 'ready' || state.step === 'reloading' ? state.video : null,
   )
 
   // 拖拽/点击导入
@@ -53,8 +52,13 @@ export default function VideoPlayer() {
   }, [service])
 
   const content = useMemo(
-    () => (url ? <Player url={url} key={url} /> : <DragTips key={url} onClick={manualImport} />),
-    [url, manualImport],
+    () =>
+      preparedVideo ? (
+        <NativePlayer key={preparedVideo.hash} />
+      ) : (
+        <DragTips key="empty-player" onClick={manualImport} />
+      ),
+    [preparedVideo, manualImport],
   )
 
   return (
@@ -65,7 +69,7 @@ export default function VideoPlayer() {
         className={cn('flex size-full items-center justify-center')}
       >
         <AnimatePresence>{content}</AnimatePresence>
-        {!url && (
+        {!preparedVideo && (
           <input
             type="file"
             accept="video/mp4, video/x-matroska"

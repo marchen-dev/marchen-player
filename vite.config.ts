@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url'
 
 import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
-import { defineConfig } from 'vite'
+import { defineConfig, loadEnv } from 'vite'
 import { viteStaticCopy } from 'vite-plugin-static-copy'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
@@ -12,8 +12,11 @@ const packageJson = JSON.parse(fs.readFileSync(join(__dirname, 'package.json'), 
 
 const ROOT = './src/renderer'
 
-const vite = () =>
-  defineConfig({
+const vite = ({ mode }: { mode: string }) => {
+  const env = loadEnv(mode, __dirname, '')
+  const apiProxyOrigin = new URL(env.VITE_API_URL).origin
+
+  return defineConfig({
     build: {
       outDir: resolve(__dirname, 'out/web'),
       target: 'esnext',
@@ -30,6 +33,7 @@ const vite = () =>
         '@pkg': resolve('./package.json'),
         '@renderer': resolve('src/renderer/src'),
         '@marchen/electron-ipc': resolve('packages/electron-ipc/src'),
+        '@marchen/danmaku-engine': resolve('packages/danmaku-engine/src'),
         '@marchen/shared': resolve('packages/shared/src'),
       },
     },
@@ -37,6 +41,20 @@ const vite = () =>
     server: {
       port: 1106,
       host: true,
+      proxy: {
+        '/api/v2': {
+          target: apiProxyOrigin,
+          changeOrigin: true,
+        },
+      },
+    },
+    preview: {
+      proxy: {
+        '/api/v2': {
+          target: apiProxyOrigin,
+          changeOrigin: true,
+        },
+      },
     },
     plugins: [
       tailwindcss(),
@@ -55,4 +73,5 @@ const vite = () =>
       APP_NAME: JSON.stringify(packageJson.name),
     },
   })
+}
 export default vite

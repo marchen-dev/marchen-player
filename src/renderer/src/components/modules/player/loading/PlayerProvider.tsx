@@ -23,8 +23,8 @@ export const VideoProvider: FC<PropsWithChildren> = ({ children }) => {
 
   // 加载中：显示 stepper
   // waiting_user：显示 stepper + 对话框
-  // playing/idle：显示 children
-  if (step === 'idle' || step === 'playing' || step === 'reloading') {
+  // ready/idle：显示 children；reloading 时保持当前播放器可见
+  if (step === 'idle' || step === 'ready' || step === 'reloading') {
     return children
   }
 

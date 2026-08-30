@@ -4,7 +4,12 @@ import { SettingSelect } from '@renderer/components/modules/shared/setting/Setti
 import { SettingSwitch } from '@renderer/components/modules/shared/setting/SettingSwitch'
 
 import { FieldLayout, FieldsCardLayout } from '../Layout'
-import { danmakuDurationList, danmakuEndAreaList, danmakuFontSizeList } from './list'
+import {
+  danmakuDensityList,
+  danmakuDurationList,
+  danmakuEndAreaList,
+  danmakuFontSizeList,
+} from './list'
 
 interface DanmakuSettingProps extends PropsWithChildren {
   classNames?: { cardLayout?: string }
@@ -18,6 +23,16 @@ export const DanmakuSetting: FC<DanmakuSettingProps> = (props) => {
 
   const content = (
     <>
+      {isPlaying && (
+        <FieldLayout title="显示弹幕">
+          <SettingSwitch
+            value={playerSetting.enableDanmaku}
+            onCheckedChange={(value) =>
+              setPlayerSetting((previous) => ({ ...previous, enableDanmaku: value }))
+            }
+          />
+        </FieldLayout>
+      )}
       {!isPlaying && (
         <FieldLayout title="繁体转简体">
           <SettingSwitch
@@ -59,6 +74,31 @@ export const DanmakuSetting: FC<DanmakuSettingProps> = (props) => {
           }
         />
       </FieldLayout>
+      {isPlaying && (
+        <>
+          <FieldLayout title="悬停暂停弹幕">
+            <SettingSwitch
+              value={playerSetting.enableDanmakuHoverPause}
+              onCheckedChange={(value) =>
+                setPlayerSetting((previous) => ({
+                  ...previous,
+                  enableDanmakuHoverPause: value,
+                }))
+              }
+            />
+          </FieldLayout>
+          <FieldLayout title="在屏密度">
+            <SettingSelect
+              placeholder="弹幕密度"
+              groups={danmakuDensityList}
+              value={playerSetting.danmakuMaxOnScreen}
+              onValueChange={(value) =>
+                setPlayerSetting((previous) => ({ ...previous, danmakuMaxOnScreen: value }))
+              }
+            />
+          </FieldLayout>
+        </>
+      )}
       {children}
     </>
   )

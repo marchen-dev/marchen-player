@@ -6,7 +6,7 @@
  * 同时将作品信息写入 library 表。
  */
 
-import type { HistoryEntry, HistoryStore } from '@marchen/player-core'
+import type { HistoryEntry, HistoryStore } from '@marchen/player-loading'
 import { db } from '@renderer/database/db'
 import { upsertLibraryEntry } from '@renderer/database/lib/library-writer'
 import { apiClient } from '@renderer/request'

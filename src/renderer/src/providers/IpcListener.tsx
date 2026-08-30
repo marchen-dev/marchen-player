@@ -2,7 +2,7 @@ import type { useAppSettingsValue } from '@renderer/atoms/settings/app'
 import { updateProgressAtom } from '@renderer/atoms/progress'
 import { appSettingAtom } from '@renderer/atoms/settings/app'
 import { jotaiStore } from '@renderer/atoms/store'
-import { WindowState, windowStateAtom } from '@renderer/atoms/window'
+import { windowFullscreenAtom, WindowState, windowStateAtom } from '@renderer/atoms/window'
 import { useSettingModal } from '@renderer/components/modules/settings/hooks'
 import { settingTabs } from '@renderer/components/modules/settings/tabs'
 import { toast } from '@renderer/components/ui/toast/use-toast'
@@ -67,6 +67,14 @@ export const IpcListener = () => {
       }),
       handlers?.windowAction.listen((action) => {
         switch (action) {
+          case 'enter-full-screen': {
+            jotaiStore.set(windowFullscreenAtom, true)
+            break
+          }
+          case 'leave-full-screen': {
+            jotaiStore.set(windowFullscreenAtom, false)
+            break
+          }
           case 'maximize': {
             jotaiStore.set(windowStateAtom, WindowState.MAXIMIZED)
             break

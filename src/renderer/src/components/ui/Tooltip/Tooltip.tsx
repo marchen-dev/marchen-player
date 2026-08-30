@@ -14,11 +14,13 @@ const TooltipContent = ({
   ref,
   className,
   sideOffset = 4,
+  container,
   ...props
 }: React.ComponentPropsWithoutRef<typeof TooltipPrimitive.Content> & {
   ref?: React.RefObject<React.ElementRef<typeof TooltipPrimitive.Content> | null>
+  container?: Element | DocumentFragment | null
 }) => (
-  <TooltipPrimitive.Portal>
+  <TooltipPrimitive.Portal container={container}>
     <TooltipPrimitive.Content
       ref={ref}
       sideOffset={sideOffset}

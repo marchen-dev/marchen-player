@@ -1,8 +1,6 @@
-import type { DB_History } from '@renderer/database/schemas/history'
-import type { Checkbox as CheckboxPrimitive} from 'radix-ui';
+import type { Checkbox as CheckboxPrimitive } from 'radix-ui'
 import type { FC, PropsWithChildren } from 'react'
 import { playerSettingSheetAtom, videoAtom } from '@renderer/atoms/player'
-import { usePlayerSettingsValue } from '@renderer/atoms/settings/player'
 import { jotaiStore } from '@renderer/atoms/store'
 import { FieldLayout } from '@renderer/components/modules/settings/views/Layout'
 import { Badge } from '@renderer/components/ui/badge'
@@ -14,9 +12,7 @@ import { db } from '@renderer/database/db'
 import { useConfirmationDialog } from '@renderer/hooks/use-dialog'
 import {
   danmakuPlatformMap,
-  mergeDanmaku,
   mostDanmakuPlatform,
-  parseDanmakuData,
 } from '@renderer/lib/danmaku'
 import queryClient from '@renderer/lib/query-client'
 import { isWeb } from '@renderer/lib/utils'
@@ -26,8 +22,6 @@ import { debounce } from 'lodash-es'
 import { Select as SelectPrimitive } from 'radix-ui'
 import { memo } from 'react'
 
-import { usePlayerInstance } from '../../../Context'
-import { useXgPlayerUtils } from '../../../initialize/hooks'
 import { showMatchAnimeDialog } from '../../../loading/dialog/hooks'
 import { SettingProviderQueryKey, useSettingConfig } from '../../Sheet'
 
@@ -55,52 +49,25 @@ export const DanmakuSource = memo(() => {
 })
 
 const SourceList = memo(() => {
-  const { danmakuDuration } = usePlayerSettingsValue()
   const { danmaku } = useSettingConfig()
   const video = useAtomValue(videoAtom)
-  const player = usePlayerInstance()
-  const { setResponsiveSettingsUpdate } = useXgPlayerUtils()
-  const handleCheckDanmaku = debounce((params: { checked: CheckboxPrimitive.CheckedState; source: string }) => {
-    const { checked, source } = params
-    if (checked === 'indeterminate') {
-      return
-    }
-    queryClient.setQueryData([SettingProviderQueryKey, video.hash], (oldSetting: DB_History) => {
-      const newSetting = oldSetting
-      const { danmaku } = newSetting
-      danmaku?.forEach((item) => {
-        if (item.source === source) {
-          item.selected = checked
-        }
-      })
-      if (!danmaku) {
-        return
-      }
-      const mergedDanmakuData = mergeDanmaku(danmaku)
+  const handleCheckDanmaku = debounce(
+    async (params: { checked: CheckboxPrimitive.CheckedState; source: string }) => {
+      const { checked, source } = params
+      if (checked === 'indeterminate') return
 
-      const parsedDanmaku = parseDanmakuData({
-        danmuData: mergedDanmakuData,
-        duration: +danmakuDuration,
-      })
+      const service = getPlayerLoadingService()
+      await service.setDanmakuSourceSelected(source, checked)
+      const state = service.currentState
+      if (state.step !== 'ready') return
 
-      if (!player) {
-        return
-      }
-      player.danmu?.clear()
-
-      player.danmu?.updateComments(parsedDanmaku, true)
-      setResponsiveSettingsUpdate(player)
-
-      db.history.update(video.hash, {
-        danmaku,
-      })
-
-      return {
-        ...oldSetting,
-        newSetting,
-      }
-    })
-  }, 300)
+      queryClient.setQueryData([SettingProviderQueryKey, video.hash], (oldSetting) => ({
+        ...(oldSetting ?? {}),
+        danmaku: state.danmaku,
+      }))
+    },
+    300,
+  )
   if (!danmaku) {
     return <p>暂无弹幕</p>
   }
@@ -110,7 +77,7 @@ const SourceList = memo(() => {
       <div key={item.source} className="flex items-center space-x-2">
         <Checkbox
           id={item.source}
-          defaultChecked={item.selected}
+          checked={item.selected}
           onCheckedChange={(checked) => handleCheckDanmaku({ checked, source: item.source })}
         />
         <Label htmlFor={item.source}>
@@ -140,12 +107,10 @@ export const PopoverContentLayout: FC<PopoverContentLayoutProps> = ({ children, 
 
 const RematchDanmaku = () => {
   const video = useAtomValue(videoAtom)
-  const player = usePlayerInstance()
   return (
     <Button
       variant="outline"
       onClick={() => {
-        player?.pause()
         jotaiStore.set(playerSettingSheetAtom, false)
         showMatchAnimeDialog(true, video.hash)
       }}

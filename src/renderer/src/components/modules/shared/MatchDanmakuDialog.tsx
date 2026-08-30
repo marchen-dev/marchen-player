@@ -5,7 +5,7 @@
  * 影视库页面：直接更新 history 记录和 library 关联。
  */
 
-import type { MatchedVideo } from '@marchen/player-core'
+import type { MatchedVideo } from '@marchen/player-loading'
 import { db } from '@renderer/database/db'
 import { handleRematchLibraryUpdate } from '@renderer/database/lib/library-writer'
 import { ipcClient } from '@renderer/lib/client'

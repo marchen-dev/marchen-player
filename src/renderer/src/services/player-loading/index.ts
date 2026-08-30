@@ -5,7 +5,7 @@
  * 导出 service 实例供 React hook 和组件使用。
  */
 
-import { PlayerLoadingService } from '@marchen/player-core'
+import { PlayerLoadingService } from '@marchen/player-loading'
 import { videoAtom } from '@renderer/atoms/player'
 import { jotaiStore } from '@renderer/atoms/store'
 import { getStorageNS } from '@renderer/lib/ns'
@@ -63,7 +63,7 @@ export function getPlayerLoadingService(): PlayerLoadingService {
 }
 
 // 导出类型供外部使用
-export type { PlayerLoadingService } from '@marchen/player-core'
+export type { PlayerLoadingService } from '@marchen/player-loading'
 export {
   type CommentModel,
   type DanmakuEntry,
@@ -72,4 +72,4 @@ export {
   type StepName,
   type VideoInfo,
   VISIBLE_STEPS,
-} from '@marchen/player-core'
+} from '@marchen/player-loading'

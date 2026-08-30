@@ -5,9 +5,9 @@
  * 纯 Tailwind 实现，不依赖外部 CSS 组件库。
  */
 
-import type { LoadingState, StepName } from '@marchen/player-core'
+import type { LoadingState, StepName } from '@marchen/player-loading'
 import type { FC } from 'react'
-import { VISIBLE_STEPS } from '@marchen/player-core'
+import { VISIBLE_STEPS } from '@marchen/player-loading'
 import { cn } from '@renderer/lib/utils'
 import { usePlayerLoadingState } from '@renderer/services/player-loading/hooks'
 

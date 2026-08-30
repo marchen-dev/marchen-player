@@ -16,7 +16,11 @@ const createPlayerDefaultSettings = () => {
   return {
     enableTraditionalToSimplified: false,
     enableAutomaticEpisodeSwitching: false,
+    enableDanmaku: true,
+    enableDanmakuHoverPause: true,
+    danmakuMaxOnScreen: '80',
     enableMiniProgress: true,
+    controllerPosition: { xRatio: 0.5, yRatio: 0.72 },
     danmakuFontSize: getSelectedDefaultValue(danmakuFontSizeList) ?? '26',
     danmakuDuration: getSelectedDefaultValue(danmakuDurationList) ?? '15000',
     danmakuEndArea: getSelectedDefaultValue(danmakuEndAreaList)!,

@@ -1,5 +1,5 @@
 import type { DB_History } from '@renderer/database/schemas/history'
-import { playerSettingSheetAtom, videoAtom } from '@renderer/atoms/player'
+import { playerSettingSectionAtom, playerSettingSheetAtom, videoAtom } from '@renderer/atoms/player'
 import {
   Accordion,
   AccordionContent,
@@ -10,6 +10,7 @@ import { ScrollArea } from '@renderer/components/ui/scrollArea'
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@renderer/components/ui/sheet'
 import { useToast } from '@renderer/components/ui/toast'
 import { db } from '@renderer/database/db'
+import { usePlayerPortalContainer } from '@renderer/services/player-runtime'
 import { useQuery } from '@tanstack/react-query'
 import { useAtom, useAtomValue } from 'jotai'
 import { createContext, lazy, use, useEffect } from 'react'
@@ -20,6 +21,8 @@ import { Subtitle } from './items/subtitle/Subtitle'
 
 export const SettingSheet = () => {
   const [show, setShow] = useAtom(playerSettingSheetAtom)
+  const selectedSection = useAtomValue(playerSettingSectionAtom)
+  const portalContainer = usePlayerPortalContainer()
   return (
     <>
       <Sheet
@@ -29,19 +32,21 @@ export const SettingSheet = () => {
         }}
       >
         <SheetContent
-          container={document.querySelector('.xgplayer')}
-          classNames={{ sheetOverlay: 'bg-black/20' }}
-          className="p-0"
+          data-player-setting-sheet
+          container={portalContainer}
+          classNames={{ sheetOverlay: 'bg-black/35 backdrop-blur-[2px]' }}
+          className="border-white/10 bg-[var(--player-surface-solid)] p-0 text-[var(--player-fg)] sm:max-w-md"
           aria-describedby="播放器设置"
         >
           <ScrollArea className="h-full p-5">
             <SheetHeader>
-              <SheetTitle>设置</SheetTitle>
+              <SheetTitle className="text-[var(--player-fg)]">设置</SheetTitle>
               <SettingProvider>
                 <Accordion
+                  key={`${selectedSection}-${show}`}
                   type="multiple"
                   className="w-full"
-                  defaultValue={['danmaku', 'subtitle', 'audio']}
+                  defaultValue={[selectedSection]}
                 >
                   {settingSheetList.map((item) => (
                     <AccordionItem key={item.value} value={item.value}>
