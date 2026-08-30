@@ -1,6 +1,7 @@
 import type { KeyboardEvent, PointerEvent } from 'react'
 import { cn } from '@renderer/lib/utils'
 import { useState } from 'react'
+import { timelineTimeFromPointer } from './timeline-scrubber-math'
 import { formatTime } from './utils'
 
 export interface TimelineScrubberProps {
@@ -18,34 +19,42 @@ export const TimelineScrubber = ({
   onSeek,
   onSeekingChange,
 }: TimelineScrubberProps) => {
-  const [previewTime, setPreviewTime] = useState<number | null>(null)
+  const [dragTime, setDragTime] = useState<number | null>(null)
+  const [hoverTime, setHoverTime] = useState<number | null>(null)
   const disabled = !Number.isFinite(duration) || duration <= 0
-  const visibleTime = previewTime ?? currentTime
+  const visibleTime = dragTime ?? currentTime
   const progress = disabled ? 0 : clamp(visibleTime / duration, 0, 1)
+  const previewTime = dragTime ?? hoverTime
+  const previewProgress =
+    disabled || previewTime === null ? 0 : clamp(previewTime / duration, 0, 1)
 
   const timeFromPointer = (event: PointerEvent<HTMLDivElement>) => {
     const rect = event.currentTarget.getBoundingClientRect()
-    if (rect.width <= 0 || disabled) return 0
-    return clamp((event.clientX - rect.left) / rect.width, 0, 1) * duration
+    return timelineTimeFromPointer(event.clientX, rect.left, rect.width, duration)
   }
 
   const handlePointerDown = (event: PointerEvent<HTMLDivElement>) => {
     if (disabled || event.button !== 0) return
     event.currentTarget.setPointerCapture(event.pointerId)
-    setPreviewTime(timeFromPointer(event))
+    setHoverTime(null)
+    setDragTime(timeFromPointer(event))
     onSeekingChange?.(true)
   }
 
   const handlePointerMove = (event: PointerEvent<HTMLDivElement>) => {
-    if (!event.currentTarget.hasPointerCapture(event.pointerId)) return
-    setPreviewTime(timeFromPointer(event))
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      setDragTime(timeFromPointer(event))
+      return
+    }
+    if (event.pointerType === 'mouse') setHoverTime(timeFromPointer(event))
   }
 
   const handlePointerUp = (event: PointerEvent<HTMLDivElement>) => {
     if (!event.currentTarget.hasPointerCapture(event.pointerId)) return
     const target = timeFromPointer(event)
     event.currentTarget.releasePointerCapture(event.pointerId)
-    setPreviewTime(null)
+    setDragTime(null)
+    if (event.pointerType === 'mouse') setHoverTime(target)
     onSeekingChange?.(false)
     onSeek(target)
   }
@@ -54,8 +63,13 @@ export const TimelineScrubber = ({
     if (event.currentTarget.hasPointerCapture(event.pointerId)) {
       event.currentTarget.releasePointerCapture(event.pointerId)
     }
-    setPreviewTime(null)
+    setDragTime(null)
+    setHoverTime(null)
     onSeekingChange?.(false)
+  }
+
+  const handlePointerLeave = (event: PointerEvent<HTMLDivElement>) => {
+    if (!event.currentTarget.hasPointerCapture(event.pointerId)) setHoverTime(null)
   }
 
   const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
@@ -91,6 +105,7 @@ export const TimelineScrubber = ({
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
       onPointerCancel={handlePointerCancel}
+      onPointerLeave={handlePointerLeave}
       onKeyDown={handleKeyDown}
     >
       <div
@@ -122,7 +137,7 @@ export const TimelineScrubber = ({
       {previewTime !== null && (
         <output
           className="pointer-events-none absolute bottom-full mb-1 -translate-x-1/2 rounded-md bg-black/85 px-2 py-1 text-xs text-white tabular-nums"
-          style={{ left: `${progress * 100}%` }}
+          style={{ left: `${previewProgress * 100}%` }}
         >
           {formatTime(previewTime)}
         </output>

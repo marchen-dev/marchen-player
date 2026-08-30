@@ -19,7 +19,7 @@
 - 以原生 `HTMLVideoElement` 实现当前浏览器可播放格式的完整播放生命周期。
 - 自研 DOM 弹幕引擎，支持现有弹幕设置、播放同步、热更新和高密度保护。
 - 保留 libass-wasm，并把字幕生命周期改为直接依赖 video 元素和字幕 Port。
-- 实现 IINA 风格的沉浸式、响应式、桌面可拖动控制栏。
+- 实现面向 Electron/Web 桌面端的 IINA 风格沉浸式可拖动控制栏，不承担手机、平板触控或移动端响应式适配。
 - 用 capabilities 和 ports 组合 Electron/Web 能力，使共享 UI 不直接依赖 Electron IPC。
 - 保持进度、已看、续播、播放列表、自动下一集、截图和设置持久化行为。
 - 通过单元测试、Electron/Web 构建及真实界面验收证明迁移完成。
@@ -150,7 +150,7 @@ interface PlayerCapabilities {
 
 `createElectronPlayerPorts` 复用现有 IPC 文件导入、目录列表、BrowserWindow 全屏、字幕提取和截图。全屏 adapter 同时消费 main 进程 enter/leave-full-screen 事件，确保用户按 Escape 或系统改变窗口状态时 Renderer 能同步，而不是根据点击按钮乐观猜测。
 
-UI 接收 capabilities 决定操作：Electron 有播放列表时显示上一集/下一集；Web 单文件显示 ±10 秒。缺失能力不生成会误导用户的入口。
+UI 接收 capabilities 决定操作：Electron 有播放列表时显示上一集/下一集；单文件场景显示 ±5 秒。缺失能力不生成会误导用户的入口。
 
 ### 5. 播放页面使用固定覆盖的 `PlayerShell`
 
@@ -173,7 +173,9 @@ Web Fullscreen API 请求整个 PlayerRoot。`PlayerPortalRoot` 位于 PlayerRoo
 
 ### 6. IINA 控制器是播放器自研组件，Radix 只提供 primitives
 
-桌面控制器是双行悬浮面板：第一行左侧音量、中间 transport、右侧弹幕/字幕/播放列表/设置/全屏；第二行是当前时间、时间轴和总时长。倍速、旋转和其他低频功能进入 More/Inspector。控制器隐藏时可按现有设置显示底部迷你进度。
+桌面控制器是目标宽度约 520px 的紧凑双行悬浮面板：第一行左侧音量、中间 transport、右侧弹幕/字幕/播放列表/设置/全屏；第二行是当前时间、时间轴和总时长。面板高度和控件间距随之收紧，音量轨道目标宽度约 64px。倍速、旋转和其他低频功能进入 More/Inspector。控制器隐藏时可按现有设置显示底部迷你进度。
+
+时间轴区分 hover preview 与 drag preview：鼠标悬停只在对应位置展示格式化的目标 seek 时间，不修改已播放进度或滑块；按下并拖动后才更新预览进度与滑块，提交时执行 seek。前后跳转按钮、图标、可访问名称和方向键统一为 5 秒步长。
 
 播放器自己实现 PlayerShell、FloatingController、PlayerIconButton、TimelineScrubber、拖动、自动隐藏和 PlayerInspector 视觉。现有 shadcn/Radix 包装继续承担 Tooltip、Popover、DropdownMenu、Sheet/Drawer、Dialog、Select、Switch、Toggle 等通用交互；普通 Slider 可用于音量，但时间轴必须自研以表达 buffered、扩大命中区、拖动预览和媒体 seek。
 
@@ -183,7 +185,7 @@ Web Fullscreen API 请求整个 PlayerRoot。`PlayerPortalRoot` 位于 PlayerRoo
 
 不增加拖拽依赖，复用现有 `useDragControls`、零弹性、零惯性和 constraints 模式。控制器只有专用 handle 与明确空白区触发 drag，交互控件标记为非拖动区域。
 
-保存值是相对 safe rect 的 `{ xRatio, yRatio }`，而不是 transform 像素。拖动结束后 clamp 并持久化；resize、窗口全屏变化或控制器尺寸变化时重新投影和约束。桌面默认锚点约为画面宽 50%、高 72%；手机布局忽略保存值但不删除它。
+保存值是相对 safe rect 的 `{ xRatio, yRatio }`，而不是 transform 像素。拖动结束后 clamp 并持久化；resize、窗口全屏变化或控制器尺寸变化时重新投影和约束。桌面默认锚点约为画面宽 50%、高 72%。
 
 为满足非拖动替代操作，handle 可聚焦并支持方向键 8px、Shift+方向键 32px、Home 重置；设置中提供上方、默认、下方和重置预设。拖动期间自动隐藏计时暂停，控制器移动后向弹幕引擎更新遮挡矩形。
 
@@ -195,10 +197,10 @@ Web Fullscreen API 请求整个 PlayerRoot。`PlayerPortalRoot` 位于 PlayerRoo
 visible
   └─ playing + idle timeout + 无阻塞条件 → hidden
 hidden
-  └─ pointer/touch/key/focus/pause/error → visible
+  └─ pointer/key/focus/pause/error → visible
 ```
 
-打开设置、Popover 或拖动时获取 visibility lock，关闭后释放并重新计时。Touch 首次点击只唤起控制器，已经可见时才执行画面单击播放暂停，避免移动端误操作。快捷键处理忽略 input、textarea、select、contenteditable 和打开的模态交互。
+打开设置、Popover 或拖动时获取 visibility lock，关闭后释放并重新计时。快捷键处理忽略 input、textarea、select、contenteditable 和打开的模态交互。
 
 ### 9. DOM 弹幕以媒体时钟为真相源
 
@@ -262,7 +264,7 @@ DOM 便于样式、hover 和调试，但节点过多会触发布局与绘制开�
 
 ### 可拖动控制器与控件手势冲突
 
-整面板监听拖动会抢占 Slider 和按钮。只允许 handle/空白区启动 drag，并对交互区明确禁用；拖动必须有键盘与预设位置替代。手机空间不足，固定 Dock 是有意的能力差异。
+整面板监听拖动会抢占 Slider 和按钮。只允许 handle/空白区启动 drag，并对交互区明确禁用；拖动必须有键盘与预设位置替代。不同桌面窗口尺寸下都必须把控制器约束在安全边界内。
 
 ### 透明材质在复杂画面上对比不足
 

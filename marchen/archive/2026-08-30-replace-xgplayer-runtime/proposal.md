@@ -14,7 +14,7 @@
 - 新增无 React 依赖的 `@marchen/danmaku-engine`，以 DOM 实现滚动、顶部、底部弹幕、轨道分配、碰撞检测、节点池、高密度降级以及播放时钟同步。
 - 保留 libass-wasm，并将字幕控制器改为直接绑定 `HTMLVideoElement`；继续支持 Electron 内嵌字幕、同目录字幕与外挂字幕，Web 支持用户选择外挂 ASS/SSA。
 - 重写播放器页面为沉浸式 `PlayerShell`。无视频和加载阶段保留现有 AppShell；开始播放后隐藏 Sidebar 和普通 AppHeader，渲染平台适配的窗口标题层、视频/字幕/弹幕表面和播放器浮层。
-- 实现 IINA 风格双行悬浮控制器。桌面和平板宽屏可拖动并持久化归一化位置，提供键盘移动、预设位置和重置；手机窄屏使用固定底部 Dock。
+- 实现面向 Electron/Web 桌面端的 IINA 风格双行悬浮控制器。控制器可拖动并持久化归一化位置，提供键盘移动、预设位置和重置；本变更不要求手机、平板触控或移动端响应式适配。
 - 采用“自研播放器组件 + shadcn/Radix primitives”的 UI 边界：播放器外壳、时间轴、拖动和自动隐藏自行实现，Tooltip、Popover、Sheet、Dialog、Select、Switch 等复用现有基础设施。
 - 通过 `PlayerCapabilities` 和 Port 适配 Electron/Web 差异，统一处理全屏、文件来源、播放列表、字幕、截图等能力，避免组件内散落 `isWeb`。
 - 恢复并验证现有播放功能：播放暂停、seek、音量、静音、倍速、续播、迷你进度、旋转、上下集、自动下一集、进度保存、已看标记、截图和错误上报。
@@ -25,7 +25,7 @@
 ### 新增能力
 
 - `native-playback-runtime`：基于原生 video 的播放会话、命令、状态和媒体事件。
-- `immersive-player-controls`：IINA 风格沉浸式播放器界面、可拖动控制栏、响应式布局、快捷键和可访问交互。
+- `immersive-player-controls`：IINA 风格沉浸式播放器界面、紧凑的可拖动桌面控制栏、时间轴悬停预览、±5 秒跳转、快捷键和可访问交互。
 - `dom-danmaku-engine`：独立 DOM 弹幕调度、碰撞、节点复用、时钟同步和设置热更新。
 - `subtitle-playback`：围绕原生 video 的 libass 字幕生命周期及 Electron/Web 字幕能力。
 - `platform-playback-adapters`：通过 capabilities 与 ports 提供 Electron/Web 文件、全屏、播放列表、截图和错误降级。
@@ -42,4 +42,4 @@
 - Main/IPC：复用现有文件导入、目录播放列表、窗口全屏、字幕提取和截图接口，必要时补充明确的全屏状态事件契约；不新增 FFmpeg 流媒体接口。
 - 数据：沿用现有 Dexie HISTORY schema；只调整读写适配和设置字段，不进行破坏性迁移。
 - 依赖：删除 xgplayer 与 danmu.js；保留 RxJS、Framer Motion、Radix/shadcn、Mingcute 和 libass-wasm；不新增拖拽库。
-- 文档与验收：更新播放器相关 README/AGENTS 描述，并分别验证 Electron 与 Web 的窗口态、全屏、响应式、字幕、弹幕和播放生命周期。
+- 文档与验收：更新播放器相关 README/AGENTS 描述，并分别验证 Electron 与 Web 桌面窗口的窗口态、全屏、控制器布局、字幕、弹幕和播放生命周期。

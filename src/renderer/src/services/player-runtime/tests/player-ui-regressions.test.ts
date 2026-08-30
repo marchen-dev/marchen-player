@@ -1,5 +1,6 @@
 import type { DanmakuPlacement } from '@marchen/danmaku-engine'
 import { canStartControllerDrag } from '@renderer/components/modules/player/controls/controller-drag'
+import { timelineTimeFromPointer } from '@renderer/components/modules/player/controls/timeline-scrubber-math'
 import { volumeFromPointer } from '@renderer/components/modules/player/controls/volume-slider-math'
 import { describe, expect, it } from 'vitest'
 import {
@@ -39,5 +40,12 @@ describe('播放器 UI 回归', () => {
     expect(volumeFromPointer(50, 100, 100)).toBe(0)
     expect(volumeFromPointer(250, 100, 100)).toBe(1)
     expect(volumeFromPointer(150, 100, 0)).toBe(0)
+  })
+
+  it('时间轴悬停时间按指针位置计算并限制在视频时长内', () => {
+    expect(timelineTimeFromPointer(150, 100, 200, 120)).toBe(30)
+    expect(timelineTimeFromPointer(50, 100, 200, 120)).toBe(0)
+    expect(timelineTimeFromPointer(350, 100, 200, 120)).toBe(120)
+    expect(timelineTimeFromPointer(150, 100, 0, 120)).toBe(0)
   })
 })

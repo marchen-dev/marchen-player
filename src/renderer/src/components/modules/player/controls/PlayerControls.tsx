@@ -13,7 +13,6 @@ import {
 import { useAtomValue } from 'jotai'
 import { useCallback, useMemo, useRef, useState } from 'react'
 import { FloatingController } from './FloatingController'
-import { MobileControllerDock } from './MobileControllerDock'
 import { PlayerIconButton } from './PlayerIconButton'
 import { PlayerInspector } from './PlayerInspector'
 import { TimelineScrubber } from './TimelineScrubber'
@@ -52,8 +51,6 @@ export const PlayerControls = ({
   onRotationChange,
 }: PlayerControlsProps) => {
   const controlsRef = useRef<HTMLDivElement | null>(null)
-  const desktopControllerRectRef = useRef<DOMRect | null>(null)
-  const mobileControllerRectRef = useRef<DOMRect | null>(null)
   const { setExclusionRect } = useNativeDanmaku()
   const state = usePlaybackViewModel()
   const commands = usePlaybackCommands()
@@ -81,15 +78,7 @@ export const PlayerControls = ({
 
   const reportDesktopControllerRect = useCallback(
     (rect: DOMRect | null) => {
-      desktopControllerRectRef.current = rect
-      setExclusionRect(rect ?? mobileControllerRectRef.current)
-    },
-    [setExclusionRect],
-  )
-  const reportMobileControllerRect = useCallback(
-    (rect: DOMRect | null) => {
-      mobileControllerRectRef.current = rect
-      setExclusionRect(rect ?? desktopControllerRectRef.current)
+      setExclusionRect(rect)
     },
     [setExclusionRect],
   )
@@ -192,10 +181,10 @@ export const PlayerControls = ({
                 />
               )}
               <PlayerIconButton
-                label="后退 10 秒"
-                icon="icon-[mingcute--rewind-backward-10-line]"
+                label="后退 5 秒"
+                icon="icon-[mingcute--rewind-backward-5-line]"
                 compact
-                onClick={() => seekBy(-10)}
+                onClick={() => seekBy(-5)}
               />
               <PlayerIconButton
                 label={playing ? '暂停' : '播放'}
@@ -204,10 +193,10 @@ export const PlayerControls = ({
                 onClick={() => (playing ? commands.pause() : void commands.play())}
               />
               <PlayerIconButton
-                label="前进 10 秒"
-                icon="icon-[mingcute--rewind-forward-10-line]"
+                label="前进 5 秒"
+                icon="icon-[mingcute--rewind-forward-5-line]"
                 compact
-                onClick={() => seekBy(10)}
+                onClick={() => seekBy(5)}
               />
               {availability.transport === 'playlist' && (
                 <PlayerIconButton
@@ -259,88 +248,6 @@ export const PlayerControls = ({
               <time className="w-12 text-xs text-[var(--player-fg-muted)] tabular-nums">
                 {formatTime(duration)}
               </time>
-            </>
-          }
-        />
-        <MobileControllerDock
-          visible={visible}
-          onRectChange={reportMobileControllerRect}
-          transport={
-            <>
-              <PlayerIconButton
-                label="后退 10 秒"
-                icon="icon-[mingcute--rewind-backward-10-line]"
-                onClick={() => seekBy(-10)}
-              />
-              <PlayerIconButton
-                label={playing ? '暂停' : '播放'}
-                icon={playing ? 'icon-[mingcute--pause-fill]' : 'icon-[mingcute--play-fill]'}
-                className="size-14 rounded-full bg-white/18 text-white hover:bg-white/25"
-                onClick={() => (playing ? commands.pause() : void commands.play())}
-              />
-              <PlayerIconButton
-                label="前进 10 秒"
-                icon="icon-[mingcute--rewind-forward-10-line]"
-                onClick={() => seekBy(10)}
-              />
-            </>
-          }
-          timeline={
-            <TimelineScrubber
-              currentTime={currentTime}
-              duration={duration}
-              buffered={clock.snapshot().buffered}
-              onSeek={commands.seek}
-              onSeekingChange={setSeeking}
-            />
-          }
-          actions={
-            <>
-              <time className="min-w-20 text-xs text-[var(--player-fg-muted)] tabular-nums">
-                {formatTime(currentTime)} / {formatTime(duration)}
-              </time>
-              <PlayerIconButton
-                label={muted ? '取消静音' : '静音'}
-                icon={
-                  muted || volume === 0
-                    ? 'icon-[mingcute--volume-mute-line]'
-                    : 'icon-[mingcute--volume-line]'
-                }
-                active={muted}
-                onClick={toggleMuted}
-              />
-              <PlayerIconButton
-                label="弹幕"
-                icon="icon-[mingcute--danmaku-line]"
-                disabled={!onDanmaku}
-                onClick={onDanmaku}
-              />
-              {availability.externalSubtitle && (
-                <PlayerIconButton
-                  label="字幕"
-                  icon="icon-[mingcute--subtitle-line]"
-                  disabled={!onSubtitle}
-                  onClick={onSubtitle}
-                />
-              )}
-              <PlayerIconButton
-                label="更多"
-                icon="icon-[mingcute--more-2-fill]"
-                onClick={() => setInspectorOpen(true)}
-              />
-              {availability.fullscreen && (
-                <PlayerIconButton
-                  label={fullscreen ? '退出全屏' : '全屏'}
-                  icon={
-                    fullscreen
-                      ? 'icon-[mingcute--fullscreen-exit-line]'
-                      : 'icon-[mingcute--fullscreen-line]'
-                  }
-                  active={fullscreen}
-                  disabled={!onFullscreen}
-                  onClick={onFullscreen}
-                />
-              )}
             </>
           }
         />

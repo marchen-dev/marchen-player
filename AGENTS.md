@@ -136,8 +136,9 @@ packages/{electron-ipc,shared,player-loading,playback-core,danmaku-engine}
 - **类型安全**：避免 `any`，优先 discriminated union / 泛型约束
 - **错误处理**：外部交互（API、文件、IPC）做降级，参考 player-loading 弹幕获取失败降级为无弹幕
 - **关注点分离**：遵循 Port / Service / Pipeline / Adapter 分层
-- **响应式**：异步流优先用 RxJS operator，避免命令式嵌套回调
+- **异步流**：优先用 RxJS operator，避免命令式嵌套回调
 - **平台兼容**：考虑 Electron 与 Web 双端，Electron 专属逻辑用 `isWeb` 或 `ipcClient?.` 隔离
+- **端形态范围**：当前仅要求 Electron 与 Web 桌面端；无需适配手机、平板触控或移动端响应式布局，除非产品需求后续明确提出
 - **UI 预览**：使用 Chrome DevTools MCP（attach 模式，`.mcp.json` 配 `--browserUrl=http://127.0.0.1:9222`）。`pnpm dev` 启动 Electron 后，`isDev` 下主进程暴露 9222 调试端口。attach 后用 `list_pages` 选主窗口 target。9222 被占用时改端口并同步更新 `src/main/index.ts` 与 `.mcp.json`
 - **指针样式**：交互元素默认保持系统箭头指针，不主动使用 `pointer`、`grab` 或 `grabbing`；确有产品需求时再局部例外
 

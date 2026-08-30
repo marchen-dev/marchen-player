@@ -39,7 +39,7 @@ export const useControllerPosition = () => {
   return context
 }
 
-/** 桌面/平板双行悬浮控制器，空白区域可拖动，交互控件保持原生点击行为。 */
+/** 桌面双行悬浮控制器，空白区域可拖动，交互控件保持原生点击行为。 */
 export const FloatingController = ({
   left,
   transport,
@@ -191,8 +191,8 @@ export const FloatingController = ({
         onPointerDown={startDragFromSurface}
         style={{ x, y }}
         className={cn(
-          'absolute top-0 left-0 z-40 hidden w-[min(580px,calc(100%-32px))] sm:block',
-          'cursor-default rounded-2xl border border-[var(--player-border)] bg-[var(--player-surface)] px-4 py-3',
+          'absolute top-0 left-0 z-40 w-[min(520px,calc(100%-32px))]',
+          'cursor-default rounded-2xl border border-[var(--player-border)] bg-[var(--player-surface)] px-3 py-2',
           'text-[var(--player-fg)] shadow-[var(--player-shadow)] backdrop-blur-2xl backdrop-saturate-150',
           'transition-opacity duration-200 motion-reduce:transition-none',
           visible ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0',
@@ -210,12 +210,12 @@ export const FloatingController = ({
         >
           <span className="h-1 w-9 rounded-full bg-white/20" aria-hidden />
         </button>
-        <div className="grid min-h-10 grid-cols-[1fr_auto_1fr] items-center gap-2">
+        <div className="grid min-h-9 grid-cols-[1fr_auto_1fr] items-center gap-1.5">
           <div className="flex min-w-0 items-center justify-start gap-1">{left}</div>
-          <div className="flex items-center justify-center gap-2">{transport}</div>
+          <div className="flex items-center justify-center gap-1.5">{transport}</div>
           <div className="flex min-w-0 items-center justify-end gap-1">{tools}</div>
         </div>
-        <div className="flex min-h-7 items-center gap-3">{timeline}</div>
+        <div className="flex min-h-6 items-center gap-2">{timeline}</div>
       </m.div>
     </ControllerPositionContext>
   )
