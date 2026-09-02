@@ -68,7 +68,7 @@
     "@tanstack/react-query-devtools": "^5.102.8",
     "@types/fluent-ffmpeg": "^2.1.27",
     "@types/lodash-es": "4.17.12",
-    "@types/node": "^24.13.3",
+    "@types/node": "^26.0.0",
     "@types/opencc-js": "^1.0.3",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.5",
