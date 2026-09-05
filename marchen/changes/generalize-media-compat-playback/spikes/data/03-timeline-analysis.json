@@ -1,0 +1,49 @@
+{
+  "environment": {
+    "platform": "darwin-arm64",
+    "ffprobe": "bundled-runtime",
+    "targetSegmentSeconds": 6
+  },
+  "results": [
+    {
+      "sample": "h264-mp4-vfr-nonzero-start-long-gop",
+      "sourceStartSeconds": 5,
+      "durationSeconds": 29.966667,
+      "durationSource": "video-stream",
+      "packetCount": 400,
+      "keyframeSeconds": [0, 23.333333],
+      "packetTimestampDeltaSeconds": [0.066666, 0.066667, 0.1],
+      "segmentDurationsSeconds": [23.333333, 6.633334]
+    },
+    {
+      "sample": "h264-mkv-vfr-nonzero-start",
+      "sourceStartSeconds": 5,
+      "durationSeconds": 29.966,
+      "durationSource": "last-video-packet",
+      "formatDurationSeconds": 34.966,
+      "packetCount": 400,
+      "keyframeSeconds": [0, 20],
+      "packetTimestampDeltaSeconds": [0.066, 0.067, 0.1],
+      "segmentDurationsSeconds": [20, 9.966]
+    },
+    {
+      "sample": "hevc-main10-sdr-flac-long-gop",
+      "sourceStartSeconds": 0,
+      "durationSeconds": 30,
+      "durationSource": "last-video-packet",
+      "packetCount": 900,
+      "keyframeSeconds": [0, 10, 20],
+      "segmentDurationsSeconds": [10, 10, 10]
+    },
+    {
+      "sample": "hevc-main10-hdr-eac3-long-gop",
+      "sourceStartSeconds": 0,
+      "durationSeconds": 30,
+      "durationSource": "last-video-packet",
+      "formatDurationSeconds": 30.005,
+      "packetCount": 900,
+      "keyframeSeconds": [0, 10, 20],
+      "segmentDurationsSeconds": [10, 10, 10]
+    }
+  ]
+}

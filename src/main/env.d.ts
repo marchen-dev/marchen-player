@@ -8,6 +8,7 @@ declare const __MARCHEN_VERSION__: string
 declare const __MARCHEN_ENVIRONMENT__: 'development' | 'production'
 
 interface ImportMetaEnv {
+  readonly VITE_MEDIA_GATEWAY_V2?: string
   readonly VITE_SENTRY_DSN: string
   readonly VITE_TELEMETRY_DEBUG?: string
 }

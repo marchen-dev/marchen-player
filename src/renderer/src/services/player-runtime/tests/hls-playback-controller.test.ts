@@ -43,6 +43,7 @@ describe('hLS/MSE 客户端适配层', () => {
       maxMaxBufferLength: 60,
       maxBufferSize: 64 * 1024 * 1024,
       backBufferLength: 30,
+      startPosition: 0,
     })
     expect(config.workerPath).toEqual(expect.any(String))
     const xhr = { withCredentials: true } as XMLHttpRequest
@@ -62,6 +63,8 @@ describe('hLS/MSE 客户端适配层', () => {
     emit('network')
     emit('network')
     expect(instance.startLoad).toHaveBeenCalledTimes(2)
+    expect(instance.startLoad).toHaveBeenNthCalledWith(1, 0)
+    expect(instance.startLoad).toHaveBeenNthCalledWith(2, 0)
     expect(errors[0]?.code).toBe('network')
 
     emit('media')
@@ -73,8 +76,8 @@ describe('hLS/MSE 客户端适配层', () => {
 
   it('换源和 destroy 都销毁旧实例；MSE 不支持时明确报错', () => {
     const active = setup()
-    void active.controller.load('first.m3u8')
-    void active.controller.load('second.m3u8')
+    void active.controller.load('first.m3u8').catch(() => undefined)
+    void active.controller.load('second.m3u8').catch(() => undefined)
     active.controller.destroy()
     expect(active.instance.destroy).toHaveBeenCalledTimes(2)
 
@@ -82,6 +85,17 @@ describe('hLS/MSE 客户端适配层', () => {
     void unsupported.controller.load('unsupported.m3u8').catch(() => undefined)
     expect(unsupported.errors[0]).toMatchObject({ code: 'not-supported', recoverable: false })
     expect(unsupported.errors[0]?.cause).toMatchObject({ stage: 'mse', code: 'mse-attach-failed' })
+  })
+
+  it('取消会结束 attach 等待，销毁期间 error 不得重新启动网络请求', async () => {
+    const { controller, instance, listeners } = setup()
+    const loading = controller.load('pending.m3u8')
+    vi.mocked(instance.destroy).mockImplementation(() =>
+      listeners.get('error')?.('error', { fatal: true, type: 'network' }),
+    )
+    controller.destroy()
+    await expect(loading).rejects.toMatchObject({ code: 'cancelled' })
+    expect(instance.startLoad).not.toHaveBeenCalled()
   })
 
   it('manifest 与 SourceBuffer fatal 能区分诊断阶段', () => {

@@ -44,6 +44,7 @@ describe('一次性原生解码回退', () => {
       }),
     ).resolves.toEqual({ status: 'replaced' })
     expect(prepareAndActivate).toHaveBeenCalledOnce()
+    expect(prepareAndActivate).toHaveBeenCalledWith(['direct-play', 'transcode'])
     expect(restore).toHaveBeenCalledWith(state)
   })
 
@@ -84,6 +85,7 @@ describe('一次性原生解码回退', () => {
         }),
       ).resolves.toEqual({ status: 'replaced' })
       expect(prepareAndActivate).toHaveBeenCalledOnce()
+      expect(prepareAndActivate).toHaveBeenCalledWith(['direct-stream', 'transcode'])
     },
   )
 

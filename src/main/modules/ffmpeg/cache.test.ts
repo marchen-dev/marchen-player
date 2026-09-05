@@ -87,4 +87,54 @@ describe('mediaCacheManager', () => {
     await expect(readFile(join(unmarked, 'keep.txt'), 'utf8')).resolves.toBe('keep')
     await expect(readFile(join(invalid, '.marchen-media-session.json'), 'utf8')).resolves.toBe('{}')
   })
+
+  it('启动只清理带当前 marker/version 且目录归属一致的 segment session', async () => {
+    const root = await createRoot()
+    const manager = new MediaCacheManager({
+      root,
+      minimumFreeBytes: 0,
+      freeSpace: async () => 1_000,
+    })
+    const valid = join(root, 'session-valid')
+    await mkdir(valid)
+    await writeFile(
+      join(valid, '.marchen-media-session.json'),
+      JSON.stringify({
+        kind: 'marchen-media-session',
+        schemaVersion: 1,
+        sessionId: 'valid',
+        createdAt: Date.now(),
+      }),
+    )
+    const wrongVersion = join(root, 'session-old')
+    await mkdir(wrongVersion)
+    await writeFile(
+      join(wrongVersion, '.marchen-media-session.json'),
+      JSON.stringify({
+        kind: 'marchen-media-session',
+        schemaVersion: 0,
+        sessionId: 'old',
+        createdAt: 0,
+      }),
+    )
+    const wrongOwner = join(root, 'user-folder')
+    await mkdir(wrongOwner)
+    await writeFile(
+      join(wrongOwner, '.marchen-media-session.json'),
+      JSON.stringify({
+        kind: 'marchen-media-session',
+        schemaVersion: 1,
+        sessionId: 'another',
+        createdAt: 0,
+      }),
+    )
+
+    expect(await manager.sweepOrphaned()).toEqual(['session-valid'])
+    await expect(
+      readFile(join(wrongVersion, '.marchen-media-session.json'), 'utf8'),
+    ).resolves.toBeTruthy()
+    await expect(
+      readFile(join(wrongOwner, '.marchen-media-session.json'), 'utf8'),
+    ).resolves.toBeTruthy()
+  })
 })

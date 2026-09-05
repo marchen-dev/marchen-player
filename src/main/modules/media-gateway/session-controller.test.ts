@@ -1,7 +1,8 @@
 import { mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+import type { CompatibleMediaSession } from './compatible-session-factory'
 import { MediaPipelineError } from './errors'
 import { MediaGatewayRegistry } from './registry'
 import { MediaSessionController, MediaSessionControllerError } from './session-controller'
@@ -14,6 +15,56 @@ afterEach(async () => {
 })
 
 describe('mediaSessionController IPC 生命周期', () => {
+  it('窗口在预检期间关闭时释放迟到会话，不调用 start', async () => {
+    const directory = await mkdtemp(join(tmpdir(), 'marchen-late-session-'))
+    temporaryDirectories.push(directory)
+    const path = join(directory, 'input.mkv')
+    await writeFile(path, 'video')
+    let resolveFactory!: (value: CompatibleMediaSession) => void
+    let entered!: () => void
+    const factoryEntered = new Promise<void>((resolve) => {
+      entered = resolve
+    })
+    const controller = new MediaSessionController(
+      new MediaGatewayRegistry(),
+      () => 'http://127.0.0.1:1',
+      () => {
+        entered()
+        return new Promise((resolve) => {
+          resolveFactory = resolve
+        })
+      },
+    )
+    const creation = controller.create({
+      requestId: 'late',
+      source: { kind: 'electron-file', path, hash: 'hash', name: 'input.mkv', size: 5 },
+      plan: {
+        kind: 'copy-video-aac',
+        videoStreamIndex: 0,
+        video: 'copy',
+        reason: 'container-incompatible',
+        startupDeadlineMs: 8_000,
+      },
+      startTime: 0,
+    })
+    const rejected = expect(creation).rejects.toMatchObject({ detail: { code: 'cancelled' } })
+    await factoryEntered
+    await controller.releaseAll('window-close')
+    const release = vi.fn(async () => undefined)
+    const start = vi.fn()
+    resolveFactory({
+      session: undefined,
+      subscribe: () => () => undefined,
+      start,
+      seek: vi.fn(),
+      acknowledge: vi.fn(),
+      release,
+    })
+    await rejected
+    expect(start).not.toHaveBeenCalled()
+    expect(release).toHaveBeenCalledOnce()
+  })
+
   it('兼容会话支持幂等创建、查询、seek generation 和释放', async () => {
     const directory = await mkdtemp(join(tmpdir(), 'marchen-session-controller-'))
     temporaryDirectories.push(directory)

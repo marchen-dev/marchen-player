@@ -22,7 +22,7 @@ const deferredExecution = () => {
     resolve = resolve_
     reject = reject_
   })
-  const execution: FfmpegExecution = { result, cancel: vi.fn() }
+  const execution: FfmpegExecution = { result, stop: vi.fn(), cancel: vi.fn() }
   return { execution, resolve, reject }
 }
 
@@ -52,11 +52,8 @@ describe('转码会话状态机', () => {
     const pending = deferredExecution()
     const events: string[] = []
     session.subscribe((event) => {
-      events.push(
-        event.type === 'session-changed'
-          ? `session:${event.session.status}`
-          : `generation:${event.generation.status}`,
-      )
+      if (event.type === 'session-changed') events.push(`session:${event.session.status}`)
+      if (event.type === 'generation-changed') events.push(`generation:${event.generation.status}`)
     })
 
     await session.start(({ directory, reportProgress, recordFirstTimestamp, markReady }) => {
@@ -195,6 +192,7 @@ describe('转码会话状态机', () => {
         await ensureCacheBudget()
         return { code: 0, signal: null, stdout: Buffer.alloc(0), stderr: '', durationMs: 1 }
       }),
+      stop: vi.fn(),
       cancel: vi.fn(),
     }))
     await vi.waitFor(() => expect(session.session.status).toBe('failed'))

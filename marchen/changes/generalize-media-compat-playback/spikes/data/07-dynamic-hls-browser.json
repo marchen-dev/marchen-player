@@ -1,0 +1,37 @@
+{
+  "environment": {
+    "electron": "44.0.0",
+    "hlsJs": "1.7.1",
+    "ffmpeg": "bundled-runtime",
+    "manifest": "stable-vod",
+    "jobs": 2,
+    "segmentSeconds": 2
+  },
+  "result": {
+    "ok": true,
+    "durationSeconds": 32.066667,
+    "stableManifestRequests": 1,
+    "initRequests": 1,
+    "retriedSegment": "segment-00011.m4s",
+    "retriedSegmentRequests": 2,
+    "forward": { "currentTime": 22.034454, "decodedFrames": 37 },
+    "backward": { "currentTime": 2.031367, "decodedFrames": 73 },
+    "errors": [{ "type": "networkError", "details": "fragLoadError", "fatal": false, "code": 404 }],
+    "requestedSegments": [
+      "segment-00000.m4s",
+      "segment-00011.m4s",
+      "segment-00011.m4s",
+      "segment-00012.m4s",
+      "segment-00013.m4s",
+      "segment-00014.m4s",
+      "segment-00000.m4s",
+      "segment-00001.m4s",
+      "segment-00002.m4s",
+      "segment-00003.m4s"
+    ],
+    "bufferedRanges": [
+      [0, 5.973333],
+      [19.901333, 27.901333]
+    ]
+  }
+}

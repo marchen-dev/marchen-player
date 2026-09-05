@@ -1,9 +1,20 @@
 import { spawnSync } from 'node:child_process'
-import { copyFileSync, mkdirSync, rmSync, writeFileSync } from 'node:fs'
+import { copyFileSync, existsSync, mkdirSync, rmSync, writeFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 
 const outputDirectory = resolve(process.cwd(), process.argv[2] ?? 'test-results/media-compat')
 mkdirSync(outputDirectory, { recursive: true })
+const runtimeDirectory = resolve(
+  process.cwd(),
+  'resources',
+  'ffmpeg',
+  `${process.platform}-${process.arch}`,
+)
+const executableSuffix = process.platform === 'win32' ? '.exe' : ''
+const bundledFfmpeg = resolve(runtimeDirectory, `ffmpeg${executableSuffix}`)
+const bundledFfprobe = resolve(runtimeDirectory, `ffprobe${executableSuffix}`)
+const ffmpegBinary = existsSync(bundledFfmpeg) ? bundledFfmpeg : 'ffmpeg'
+const ffprobeBinary = existsSync(bundledFfprobe) ? bundledFfprobe : 'ffprobe'
 
 const run = (binary, args, capture = false) => {
   const result = spawnSync(binary, args, {
@@ -18,7 +29,7 @@ const run = (binary, args, capture = false) => {
   return capture ? result.stdout : ''
 }
 
-const ffmpeg = (args) => run('ffmpeg', ['-hide_banner', '-loglevel', 'error', '-y', ...args])
+const ffmpeg = (args) => run(ffmpegBinary, ['-hide_banner', '-loglevel', 'error', '-y', ...args])
 
 const fixture = (name) => resolve(outputDirectory, name)
 const videoSource = 'testsrc2=size=320x180:rate=30'
@@ -29,6 +40,62 @@ const commonH264 = ['-c:v', 'libx264', '-preset', 'ultrafast', '-pix_fmt', 'yuv4
 const commonHevc = ['-c:v', 'libx265', '-preset', 'ultrafast', '-x265-params', 'log-level=error']
 
 const rotatedBasePath = fixture('structure-rotated-multi-audio.base.mp4')
+ffmpeg([
+  '-f',
+  'lavfi',
+  '-i',
+  `testsrc2=size=320x180:rate=24:duration=${unitDuration}`,
+  '-c:v',
+  'libaom-av1',
+  '-cpu-used',
+  '8',
+  '-crf',
+  '40',
+  '-b:v',
+  '0',
+  '-pix_fmt',
+  'yuv420p',
+  fixture('av1-video.mkv'),
+])
+
+ffmpeg([
+  '-f',
+  'lavfi',
+  '-i',
+  `testsrc2=size=320x180:rate=24:duration=${unitDuration}`,
+  '-c:v',
+  'libvpx-vp9',
+  '-deadline',
+  'realtime',
+  '-cpu-used',
+  '8',
+  '-pix_fmt',
+  'yuv420p',
+  fixture('vp9-video.webm'),
+])
+
+ffmpeg([
+  '-f',
+  'lavfi',
+  '-i',
+  `testsrc2=size=320x180:rate=24:duration=${unitDuration}`,
+  '-c:v',
+  'mpeg2video',
+  '-pix_fmt',
+  'yuv420p',
+  fixture('mpeg2-video.mkv'),
+])
+
+ffmpeg([
+  '-f',
+  'lavfi',
+  '-i',
+  `sine=frequency=330:sample_rate=48000:duration=${structureDuration}`,
+  '-c:a',
+  'flac',
+  fixture('structure-flac-mono.mka'),
+])
+
 ffmpeg([
   '-f',
   'lavfi',
@@ -268,6 +335,26 @@ ffmpeg([
   '-f',
   'lavfi',
   '-i',
+  `testsrc2=size=320x180:rate=30:duration=${structureDuration}`,
+  '-vf',
+  "select='if(lt(t,10),not(mod(n,3)),not(mod(n,2)))',setpts=PTS+5/TB",
+  '-fps_mode',
+  'vfr',
+  '-copyts',
+  ...commonH264,
+  '-g',
+  '300',
+  '-keyint_min',
+  '300',
+  '-sc_threshold',
+  '0',
+  fixture('structure-h264-vfr-nonzero-start-long-gop.mp4'),
+])
+
+ffmpeg([
+  '-f',
+  'lavfi',
+  '-i',
   'testsrc2=size=320x180:rate=30:duration=3',
   '-vf',
   "select='if(lt(t,1),not(mod(n,3)),not(mod(n,2)))',setpts=PTS+5/TB",
@@ -411,6 +498,14 @@ mkdirSync(specialDirectory, { recursive: true })
 copyFileSync(fixture('native-h264-aac.mp4'), resolve(specialDirectory, '路径 样本.mp4'))
 
 const fixtureDefinitions = [
+  { name: 'av1-video.mkv', tier: 'unit', traits: ['av1', 'video-only'] },
+  { name: 'vp9-video.webm', tier: 'unit', traits: ['vp9', 'video-only'] },
+  { name: 'mpeg2-video.mkv', tier: 'unit', traits: ['mpeg2video', 'video-only'] },
+  {
+    name: 'structure-flac-mono.mka',
+    tier: 'structure',
+    traits: ['flac', 'mono'],
+  },
   { name: 'native-h264-aac.mp4', tier: 'unit', traits: ['h264', 'aac', 'native'] },
   { name: 'hevc-main8-aac.mp4', tier: 'unit', traits: ['hevc-main8', 'aac'] },
   { name: 'hevc-main10-aac.mkv', tier: 'unit', traits: ['hevc-main10', 'sdr'] },
@@ -440,6 +535,11 @@ const fixtureDefinitions = [
     traits: ['vfr', 'nonzero-start'],
   },
   {
+    name: 'structure-h264-vfr-nonzero-start-long-gop.mp4',
+    tier: 'structure',
+    traits: ['h264', 'mp4', 'long-gop', 'vfr', 'nonzero-start'],
+  },
+  {
     name: 'structure-hlg-long-gop.mkv',
     tier: 'structure',
     traits: ['hevc-main10', 'hlg', 'long-gop'],
@@ -452,13 +552,13 @@ const fixtureDefinitions = [
 ]
 
 const generatedBy = JSON.parse(
-  run('ffprobe', ['-v', 'quiet', '-show_versions', '-of', 'json'], true),
+  run(ffprobeBinary, ['-v', 'quiet', '-show_versions', '-of', 'json'], true),
 )
 const fixtures = fixtureDefinitions.map((definition) => ({
   ...definition,
   probe: JSON.parse(
     run(
-      'ffprobe',
+      ffprobeBinary,
       ['-v', 'error', '-show_format', '-show_streams', '-of', 'json', fixture(definition.name)],
       true,
     ),

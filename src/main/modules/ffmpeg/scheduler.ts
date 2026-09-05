@@ -1,4 +1,5 @@
-export type FfmpegTaskKind = 'playback' | 'probe' | 'screenshot' | 'subtitle' | 'thumbnail'
+export type FfmpegTaskKind =
+  'playback' | 'probe' | 'screenshot' | 'subtitle' | 'thumbnail' | 'keyframe'
 
 export type FfmpegTaskWeight = 'heavy' | 'light'
 
@@ -31,6 +32,7 @@ const TASK_PRIORITY: Record<FfmpegTaskKind, number> = {
   screenshot: 2,
   subtitle: 2,
   thumbnail: 3,
+  keyframe: 3,
 }
 
 const DEFAULT_WEIGHT: Record<FfmpegTaskKind, FfmpegTaskWeight> = {
@@ -39,6 +41,7 @@ const DEFAULT_WEIGHT: Record<FfmpegTaskKind, FfmpegTaskWeight> = {
   screenshot: 'light',
   subtitle: 'light',
   thumbnail: 'light',
+  keyframe: 'light',
 }
 
 export interface FfmpegTaskSchedulerOptions {

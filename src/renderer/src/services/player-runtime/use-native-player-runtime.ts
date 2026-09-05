@@ -13,11 +13,15 @@ import { PlaybackTelemetryObserver } from '@renderer/services/telemetry/playback
 import { getPlayerOperationId } from '@renderer/services/telemetry/player-loading-observer'
 import { useEffect, useRef, useState } from 'react'
 import { HtmlVideoMediaAdapter } from './adapters'
-import {
-  BrowserPlaybackReadinessError,
-  waitForBrowserFirstFrame,
-} from './browser-playback-readiness'
+import { waitForBrowserFirstFrame } from './browser-playback-readiness'
+import { isCompatibilityFallbackEligible } from './fallback-classification'
 import { PlaybackFallbackController } from './fallback-controller'
+import type { PlaybackFallbackStatePort } from './fallback-state'
+import {
+  DEFAULT_PREPARATION_DEADLINES_MS,
+  withPlaybackStageDeadline,
+} from './preparation-deadlines'
+import { PlaybackPerformanceRecorder } from './playback-performance'
 import { PlayerRuntime } from './runtime'
 import { PlaybackSourceGenerationGuard } from './source-generation'
 
@@ -36,6 +40,7 @@ const browserMediaError = (error: unknown, lease: PlaybackSourceLease): MediaCom
     cause: error instanceof Error && error.cause instanceof Error ? error.cause.message : undefined,
     profile: lease.profile,
     attemptChain: lease.attemptChain,
+    deadlineStage: candidate?.deadlineStage,
   }
 }
 
@@ -64,6 +69,7 @@ export const createPlaybackSource = (
 export const useNativePlayerRuntime = (
   video: HTMLVideoElement | null,
   sourceLifecycle: SourceLifecyclePort,
+  fallbackState?: PlaybackFallbackStatePort,
 ): PlayerRuntime | null => {
   const loadingState = usePlayerLoadingState()
   const active = loadingState.step === 'ready' || loadingState.step === 'reloading'
@@ -101,8 +107,15 @@ export const useNativePlayerRuntime = (
     const nextRuntime = new PlayerRuntime(adapter)
     mediaAdapterRef.current = { runtime: nextRuntime, adapter }
     setRuntime(nextRuntime)
+    const retryBlockedAutoplay = () => {
+      if (!document.hidden) nextRuntime.retryBlockedAutoplay()
+    }
+    window.addEventListener('focus', retryBlockedAutoplay)
+    document.addEventListener('visibilitychange', retryBlockedAutoplay)
 
     return () => {
+      window.removeEventListener('focus', retryBlockedAutoplay)
+      document.removeEventListener('visibilitychange', retryBlockedAutoplay)
       disposeTelemetry(active ? 'user_exit' : 'cancelled')
       nextRuntime.destroy()
       if (mediaAdapterRef.current?.runtime === nextRuntime) mediaAdapterRef.current = null
@@ -124,6 +137,7 @@ export const useNativePlayerRuntime = (
     const playbackTelemetry = new PlaybackTelemetryObserver(operationId)
     const attemptId = playbackTelemetry.beginPrepare(generation)
     const readinessAbort = new AbortController()
+    const performanceRecorder = new PlaybackPerformanceRecorder()
     const unsubscribe = runtime.subscribe(() => playbackTelemetry.observe(runtime.state))
     const onWaiting = () => playbackTelemetry.onWaiting()
     const onPlaying = () => playbackTelemetry.onPlaying()
@@ -143,14 +157,17 @@ export const useNativePlayerRuntime = (
       lease: Awaited<ReturnType<SourceLifecyclePort['prepare']>>,
       currentAttemptId: string,
     ) => {
-      if (!playbackTelemetry.completePrepare(currentAttemptId, lease)) {
+      const telemetryAccepted = playbackTelemetry.completePrepare(currentAttemptId, lease)
+      if (!telemetryAccepted) {
         lease.release()
         return
       }
       const source = createPlaybackSource(loadingState, lease.url, lease.timeline, lease.mimeType)
       runtime.load(source, lease)
       loadedSourceRef.current = { runtime, id: logicalId }
-      if (source.autoplay) void runtime.commands.play()
+      const deferAutoplayUntilTransportReady =
+        source.autoplay && lease.transport === 'hls' && Boolean(lease.profile)
+      if (source.autoplay && !deferAutoplayUntilTransportReady) void runtime.commands.play()
 
       if (!lease.profile || lease.profile === 'native') return
       const adapter =
@@ -158,61 +175,82 @@ export const useNativePlayerRuntime = (
       void (async () => {
         if (!adapter) throw new Error('HLS 媒体适配器已经释放')
         // BUFFER_CREATED 是 SourceBuffer 已建立的证据；此前不能把 Main 会话推进到 attaching。
-        await adapter.waitForTransportReady()
+        const finishMse = performanceRecorder.beginStage('mse')
+        try {
+          await withPlaybackStageDeadline('mse', adapter.waitForTransportReady(), {
+            signal: readinessAbort.signal,
+          })
+        } finally {
+          finishMse()
+        }
         await lease.markAttaching?.()
-        await waitForBrowserFirstFrame(video!, {
-          deadlineMs: lease.profile === 'copy-video-aac' ? 8_000 : 60_000,
-          signal: readinessAbort.signal,
-        })
+        const finishFirstFrame = performanceRecorder.beginStage('first-frame')
+        try {
+          await waitForBrowserFirstFrame(video!, {
+            deadlineMs: DEFAULT_PREPARATION_DEADLINES_MS['first-frame'],
+            signal: readinessAbort.signal,
+          })
+        } finally {
+          finishFirstFrame()
+        }
         await lease.markPlayable?.()
+        if (deferAutoplayUntilTransportReady) {
+          // v1 EVENT 在 FFmpeg 生产期间被 HLS.js 当成直播，首帧就绪时可能已停在
+          // live edge。先回到当前 generation 的局部起点，再重申 autoplay；不调用
+          // lease.seek，避免初始播放又创建一个 generation。
+          if (lease.hlsSessionMode !== 'stable-vod') adapter.seek(0)
+          await runtime.commands.play()
+        }
       })().catch(async (error) => {
+        const detail = browserMediaError(error, lease)
         if (!readinessAbort.signal.aborted) {
-          const detail = browserMediaError(error, lease)
           await lease
             .markFailed?.(detail)
             .catch((cause) => reportOperationalError('player', 'mark_failed', cause))
         }
         if (
-          !(error instanceof BrowserPlaybackReadinessError) ||
-          error.code !== 'startup-deadline-exceeded' ||
+          !isCompatibilityFallbackEligible(detail) ||
           readinessAbort.signal.aborted ||
           !sourceGeneration.isCurrent(generation) ||
-          lease.profile !== 'copy-video-aac'
+          lease.mode === 'transcode-video'
         ) {
           if (!readinessAbort.signal.aborted) {
             reportOperationalError('player', 'browser_playable', error)
           }
           return
         }
-        const upgradeAttemptId = playbackTelemetry.beginPrepare(generation + 1)
-        try {
-          const safeLease = await sourceLifecycle.prepare(loadingState.video.source, {
-            startTime: runtime.clock.now(),
-            forceProfile: 'safe-h264-aac-sdr',
-            attemptChain: ['copy-video-aac', 'safe-h264-aac-sdr'],
-          })
-          if (!sourceGeneration.isCurrent(generation)) {
-            safeLease.release()
-            return
-          }
-          activateLease(safeLease, upgradeAttemptId)
-        } catch (cause) {
-          const upgradeError = Object.assign(
-            new Error('音频优化档位未在期限内解码首帧，安全档位也准备失败', { cause }),
-            {
-              code: 'startup-deadline-exceeded',
-              stage: 'decode',
-              attemptChain: ['copy-video-aac', 'safe-h264-aac-sdr'],
+        const fallbackAttemptId = playbackTelemetry.beginFallback(lease.mode, 'transcode-video')
+        await fallbackControllerRef.current
+          .replace({
+            logicalSourceId: logicalId,
+            mode: lease.mode,
+            error: detail,
+            capture: () => fallbackState?.capture(runtime) ?? defaultFallbackState(runtime),
+            prepareAndActivate: async (attemptMethods) => {
+              const safeLease = await sourceLifecycle.prepare(loadingState.video.source, {
+                nativeDecodeFailed: true,
+                signal: readinessAbort.signal,
+                startTime: runtime.clock.now(),
+                attemptMethods,
+              })
+              if (!sourceGeneration.isCurrent(generation)) {
+                safeLease.release()
+                throw new Error('兼容回退已过期')
+              }
+              activateLease(safeLease, fallbackAttemptId)
             },
-          )
-          playbackTelemetry.fail('profile-upgrade-failed')
-          reportOperationalError('player', 'profile_upgrade', upgradeError)
-        }
+            restore: (state) =>
+              fallbackState?.restore(runtime, state) ?? runtime.commands.restore(state.media),
+          })
+          .catch((cause) => {
+            playbackTelemetry.fail('fallback-failed')
+            reportOperationalError('player', 'fallback', cause)
+          })
       })
     }
 
     void sourceLifecycle
-      .prepare(loadingState.video.source)
+      .prepare(loadingState.video.source, { signal: readinessAbort.signal })
       .then((lease) => {
         const acceptedLease = sourceGeneration.accept(generation, lease)
         if (!acceptedLease) return
@@ -220,6 +258,7 @@ export const useNativePlayerRuntime = (
       })
       .catch((error) => {
         if (sourceGeneration.isCurrent(generation)) {
+          if (import.meta.env.DEV) console.error('[media] prepare source failed', error)
           playbackTelemetry.fail('prepare-failed')
           reportOperationalError('player', 'prepare_source', error)
         }
@@ -229,11 +268,12 @@ export const useNativePlayerRuntime = (
       readinessAbort.abort()
       sourceGeneration.invalidate(generation)
     }
-  }, [active, loadingState, runtime, sourceLifecycle, video])
+  }, [active, fallbackState, loadingState, runtime, sourceLifecycle, video])
 
   useEffect(() => {
     if (!runtime || !active) return
     let cancelled = false
+    const fallbackAbort = new AbortController()
     let handledError = false
     const logicalSourceId = `${loadingState.video.hash}:${loadingState.video.source.kind}`
     const unsubscribe = runtime.subscribe(() => {
@@ -246,31 +286,24 @@ export const useNativePlayerRuntime = (
       handledError = true
       const playbackTelemetry = telemetryRef.current?.observer
       const currentMode = runtime.playbackMode
-      if (currentMode !== 'direct') {
+      if (!currentMode || currentMode === 'transcode-video') {
         playbackTelemetry?.fail(state.error.code)
         reportOperationalError('player', 'playback', state.error)
         return
       }
-      const fallbackAttemptId = playbackTelemetry?.beginFallback('direct', 'transcode-video')
+      const fallbackAttemptId = playbackTelemetry?.beginFallback(currentMode, 'transcode-video')
       void fallbackControllerRef.current
         .replace({
           logicalSourceId,
-          mode: 'direct',
+          mode: currentMode,
           error: state.error,
-          capture: () => {
-            const media = runtime.clock.snapshot()
-            return {
-              media,
-              // 视觉状态由同一个 NativePlayer/Provider 持有，换 transport 不会重建。
-              rotation: 0,
-              subtitle: { selectedId: '', timeOffset: 0 },
-              danmaku: { enabled: true },
-            }
-          },
-          prepareAndActivate: async () => {
+          capture: () => fallbackState?.capture(runtime) ?? defaultFallbackState(runtime),
+          prepareAndActivate: async (attemptMethods) => {
             const lease = await sourceLifecycle.prepare(loadingState.video.source, {
               nativeDecodeFailed: true,
+              signal: fallbackAbort.signal,
               startTime: runtime.clock.now(),
+              attemptMethods,
             })
             if (cancelled) {
               lease.release()
@@ -287,10 +320,12 @@ export const useNativePlayerRuntime = (
               lease,
             )
           },
-          restore: (fallbackState) => runtime.commands.restore(fallbackState.media),
+          restore: (state) =>
+            fallbackState?.restore(runtime, state) ?? runtime.commands.restore(state.media),
         })
         .catch((error) => {
           if (!cancelled) {
+            if (import.meta.env.DEV) console.error('[media] compatibility fallback failed', error)
             playbackTelemetry?.fail('fallback-failed')
             reportOperationalError('player', 'fallback', error)
           }
@@ -298,9 +333,17 @@ export const useNativePlayerRuntime = (
     })
     return () => {
       cancelled = true
+      fallbackAbort.abort()
       unsubscribe()
     }
-  }, [active, loadingState, runtime, sourceLifecycle])
+  }, [active, fallbackState, loadingState, runtime, sourceLifecycle])
 
   return runtime
 }
+
+const defaultFallbackState = (runtime: PlayerRuntime) => ({
+  media: runtime.clock.snapshot(),
+  rotation: 0 as const,
+  subtitle: { selectedId: 'off', timeOffset: 0 },
+  danmaku: { enabled: true },
+})

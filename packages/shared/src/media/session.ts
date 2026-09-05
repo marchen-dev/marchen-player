@@ -23,10 +23,14 @@ export interface MediaSessionSnapshot {
   mode: PlaybackMode
   profile?: import('./plan').OutputProfileKind
   attemptChain?: import('./plan').OutputProfileKind[]
+  decision?: import('./decision').PlaybackDecision
+  attemptMethods?: import('./decision').PlaybackMethod[]
   status: MediaSessionStatus
   phase?: MediaSessionPhase
   activeGeneration?: number
   lease?: PlaybackSourceLeaseDescriptor
+  job?: import('./dynamic-hls').PlaybackJobSnapshot
+  segmentStore?: import('./dynamic-hls').SegmentStoreSnapshot
   error?: import('./errors').MediaCompatError
 }
 
@@ -41,8 +45,12 @@ export interface MediaGenerationSnapshot {
   bytesWritten?: number
   segmentCount?: number
   encoderClass?: 'copy' | 'hardware' | 'software'
+  runtime?: import('./pipeline').PipelineRuntimeChoice
+  audioOutput?: { channels: number; sampleRate: number; bitRate: number }
 }
 
 export type MediaSessionEvent =
   | { type: 'session-changed'; session: MediaSessionSnapshot }
   | { type: 'generation-changed'; generation: MediaGenerationSnapshot }
+  | { type: 'job-changed'; job: import('./dynamic-hls').PlaybackJobSnapshot }
+  | { type: 'segment-store-changed'; store: import('./dynamic-hls').SegmentStoreSnapshot }

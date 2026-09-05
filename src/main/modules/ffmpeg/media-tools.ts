@@ -7,6 +7,8 @@ import { mkdir, readFile, rm } from 'node:fs/promises'
 import { join } from 'node:path'
 import { FfmpegProcessExecutor } from './executor'
 import { normalizeFfprobeOutput } from './probe'
+import { MediaProbeCache } from './probe-cache'
+import { createMediaSourceFingerprint } from './source-fingerprint'
 import { FfmpegTaskScheduler } from './scheduler'
 import { selectPrimaryMediaStreams } from './stream-selection'
 
@@ -40,6 +42,7 @@ export class FfmpegMediaTools {
     private readonly directories: FfmpegMediaToolsDirectories,
     private readonly executor: FfmpegCommandExecutor = new FfmpegProcessExecutor(),
     private readonly scheduler: FfmpegTaskScheduler = new FfmpegTaskScheduler(),
+    private readonly probeCache: MediaProbeCache = new MediaProbeCache(),
   ) {}
 
   async probeStreams(inputPath: string, signal?: AbortSignal): Promise<FfprobeStream[]> {
@@ -52,9 +55,13 @@ export class FfmpegMediaTools {
     sourceId: string,
     signal?: AbortSignal,
   ): Promise<MediaProbeResult> {
-    return selectPrimaryMediaStreams(
-      normalizeFfprobeOutput(sourceId, await this.probeRaw(inputPath, signal)),
-    )
+    const sourceFingerprint = await createMediaSourceFingerprint(inputPath, sourceId)
+    const load = async () =>
+      selectPrimaryMediaStreams(
+        normalizeFfprobeOutput(sourceFingerprint, await this.probeRaw(inputPath, signal)),
+      )
+    // 可取消请求不共享尚在执行的 probe，避免一个切集取消另一个会话的查询。
+    return signal ? load() : this.probeCache.getOrCreate(sourceFingerprint, load)
   }
 
   private async probeRaw(inputPath: string, signal?: AbortSignal): Promise<FfprobeOutput> {

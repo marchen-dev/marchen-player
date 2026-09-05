@@ -4,7 +4,10 @@ import type {
   MediaVideoStream,
 } from '@marchen/shared/media'
 import { describe, expect, it } from 'vitest'
-import { resolveForcedOutputProfile } from '../platform/development-overrides'
+import {
+  resolveDevelopmentPlaybackOverride,
+  resolveForcedOutputProfile,
+} from '../platform/development-overrides'
 import { createNativeDecodeFallbackPlan, createPlaybackPlan } from '../playback-plan'
 
 const playbackPlan = (...arguments_: Parameters<typeof createPlaybackPlan>) => {
@@ -28,6 +31,14 @@ const fixture = (
     channels?: number
   } = {},
 ): MediaProbeResult => ({
+  schemaVersion: 1,
+  sourceFingerprint: {
+    schemaVersion: 1,
+    sourceId: name,
+    pathKey: `test-${name}`,
+    size: 1,
+    mtimeMs: 1,
+  },
   sourceId: name,
   formatNames: options.formatNames ?? ['mov', 'mp4'],
   startTime: 0,
@@ -280,9 +291,9 @@ describe('hEVC 原生优先策略', () => {
   })
 
   it('明确不支持时选择视频转码', () => {
-    expect(
-      playbackPlan(hevcProbe(), hevcCapability(false, 'unknown', 'unknown')).kind,
-    ).toBe('safe-h264-aac-sdr')
+    expect(playbackPlan(hevcProbe(), hevcCapability(false, 'unknown', 'unknown')).kind).toBe(
+      'safe-h264-aac-sdr',
+    )
   })
 
   it('supported 为 true 时即使 smooth 为 false 也保持 native', () => {
@@ -317,11 +328,7 @@ describe('开发态强制固定档位', () => {
 
   it.each([
     ['开发态未开启', { DEV: true, VITE_FORCE_VIDEO_TRANSCODE: '0' }, undefined],
-    [
-      '生产构建忽略新变量',
-      { DEV: false, VITE_FORCE_TRANSCODE_PROFILE: 'audio' },
-      undefined,
-    ],
+    ['生产构建忽略新变量', { DEV: false, VITE_FORCE_TRANSCODE_PROFILE: 'audio' }, undefined],
     [
       '开发构建强制音频档位',
       { DEV: true, VITE_FORCE_TRANSCODE_PROFILE: 'audio' },
@@ -337,11 +344,7 @@ describe('开发态强制固定档位', () => {
       { DEV: true, VITE_FORCE_TRANSCODE_PROFILE: 'hdr-sdr' },
       'hdr-to-sdr-h264-aac',
     ],
-    [
-      '旧变量映射安全档位',
-      { DEV: true, VITE_FORCE_VIDEO_TRANSCODE: '1' },
-      'safe-h264-aac-sdr',
-    ],
+    ['旧变量映射安全档位', { DEV: true, VITE_FORCE_VIDEO_TRANSCODE: '1' }, 'safe-h264-aac-sdr'],
   ] as const)('%s', (_label, environment, expected) => {
     expect(resolveForcedOutputProfile(environment)).toBe(expected)
   })
@@ -365,6 +368,51 @@ describe('开发态强制固定档位', () => {
       ok: false,
       error: { code: 'unsupported-video', profile: 'hdr-to-sdr-h264-aac' },
     })
+  })
+
+  it('结构化 override 仅 Electron 开发态生效', () => {
+    const environment = {
+      DEV: true,
+      VITE_MEDIA_FORCE_METHOD: 'transcode',
+      VITE_MEDIA_FORCE_VIDEO_DECODER: 'software',
+      VITE_MEDIA_FORCE_VIDEO_ENCODER: 'hardware',
+      VITE_MEDIA_FORCE_AUDIO_ENCODER: 'system',
+    }
+    expect(resolveDevelopmentPlaybackOverride(environment, 'electron')).toEqual({
+      source: 'development-environment',
+      method: 'transcode',
+      videoDecoderMode: 'software',
+      videoEncoderMode: 'hardware',
+      audioEncoderMode: 'system',
+    })
+    expect(resolveDevelopmentPlaybackOverride(environment, 'web')).toBeUndefined()
+    expect(
+      resolveDevelopmentPlaybackOverride({ ...environment, DEV: false }, 'electron'),
+    ).toBeUndefined()
+  })
+
+  it('旧环境变量只在 Electron dev 映射到新 method override', () => {
+    expect(
+      resolveDevelopmentPlaybackOverride(
+        { DEV: true, VITE_FORCE_TRANSCODE_PROFILE: 'audio' },
+        'electron',
+      ),
+    ).toMatchObject({ method: 'direct-stream' })
+    expect(
+      resolveDevelopmentPlaybackOverride(
+        { DEV: true, VITE_FORCE_VIDEO_TRANSCODE: '1' },
+        'electron',
+      ),
+    ).toMatchObject({ method: 'transcode' })
+    expect(
+      resolveDevelopmentPlaybackOverride(
+        { DEV: false, VITE_FORCE_VIDEO_TRANSCODE: '1' },
+        'electron',
+      ),
+    ).toBeUndefined()
+    expect(
+      resolveDevelopmentPlaybackOverride({ DEV: true, VITE_FORCE_VIDEO_TRANSCODE: '1' }, 'web'),
+    ).toBeUndefined()
   })
 })
 

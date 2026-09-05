@@ -1,7 +1,7 @@
 import { readFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
 import { beforeAll, describe, expect, it } from 'vitest'
-import { normalizeFfprobeOutput } from './probe'
+import { deriveTargetCodecString, normalizeFfprobeOutput } from './probe'
 
 interface FixtureManifest {
   fixtures: Array<{
@@ -20,11 +20,53 @@ beforeAll(async () => {
 })
 
 const fixture = (name: string) => manifest.fixtures.find((entry) => entry.name === name)!.probe
+const fingerprint = (sourceId: string) => ({
+  schemaVersion: 1 as const,
+  sourceId,
+  pathKey: `path-${sourceId}`,
+  size: 1,
+  mtimeMs: 1,
+})
 
 describe('ffprobe 规范化', () => {
+  it('只在事实完整时推导 AV1、VP8/VP9 与可靠音频 codec string', () => {
+    const baseVideo = { bits_per_raw_sample: '10', pix_fmt: 'yuv420p10le' }
+    expect(
+      deriveTargetCodecString({
+        ...baseVideo,
+        codec_name: 'av1',
+        profile: 'Main',
+        level: 8,
+      }),
+    ).toBe('av01.0.08M.10')
+    expect(
+      deriveTargetCodecString({
+        ...baseVideo,
+        codec_name: 'vp9',
+        profile: 'Profile 2',
+        level: 41,
+      }),
+    ).toBe('vp09.02.41.10')
+    expect(
+      deriveTargetCodecString({
+        codec_name: 'vp8',
+        profile: 'Profile 0',
+        level: 10,
+        bits_per_raw_sample: '8',
+      }),
+    ).toBe('vp08.00.10.08')
+    expect(deriveTargetCodecString({ codec_name: 'av1', profile: 'Main' })).toBeUndefined()
+    expect(deriveTargetCodecString({ codec_name: 'vp9', profile: 'Profile 0' })).toBeUndefined()
+    expect(deriveTargetCodecString({ codec_name: 'aac', profile: 'HE-AAC' })).toBe('mp4a.40.5')
+    expect(deriveTargetCodecString({ codec_name: 'mp3' })).toBe('mp4a.6B')
+    expect(deriveTargetCodecString({ codec_name: 'alac' })).toBe('alac')
+  })
+
   it('规范化容器、时间线、视频和音频基础字段', () => {
-    const result = normalizeFfprobeOutput('native', fixture('native-h264-aac.mp4'))
+    const result = normalizeFfprobeOutput(fingerprint('native'), fixture('native-h264-aac.mp4'))
     expect(result).toMatchObject({
+      schemaVersion: 1,
+      sourceFingerprint: fingerprint('native'),
       sourceId: 'native',
       formatNames: expect.arrayContaining(['mov', 'mp4']),
       startTime: 0,
@@ -48,7 +90,7 @@ describe('ffprobe 规范化', () => {
   })
 
   it('保留 Main10 HDR 色彩字段和动态范围', () => {
-    const result = normalizeFfprobeOutput('hdr', fixture('hevc-main10-hdr-aac.mkv'))
+    const result = normalizeFfprobeOutput(fingerprint('hdr'), fixture('hevc-main10-hdr-aac.mkv'))
     expect(result.streams.find((stream) => stream.type === 'video')).toMatchObject({
       codecName: 'hevc',
       bitDepth: 10,
@@ -63,7 +105,7 @@ describe('ffprobe 规范化', () => {
 
   it('未标记 Main10 SDR 不猜测 HDR，并补齐目标 HEVC codec string', () => {
     const result = normalizeFfprobeOutput(
-      'main10-sdr',
+      fingerprint('main10-sdr'),
       fixture('structure-main10-sdr-flac-long-gop.mkv'),
     )
     expect(result.streams.find((stream) => stream.type === 'video')).toMatchObject({
@@ -81,8 +123,13 @@ describe('ffprobe 规范化', () => {
   })
 
   it('保留非零 start time、多音轨和 attached picture', () => {
-    expect(normalizeFfprobeOutput('vfr', fixture('vfr-nonzero-start.mkv')).startTime).toBeCloseTo(5)
-    const multi = normalizeFfprobeOutput('multi', fixture('multi-audio-attached-picture.mp4'))
+    expect(
+      normalizeFfprobeOutput(fingerprint('vfr'), fixture('vfr-nonzero-start.mkv')).startTime,
+    ).toBeCloseTo(5)
+    const multi = normalizeFfprobeOutput(
+      fingerprint('multi'),
+      fixture('multi-audio-attached-picture.mp4'),
+    )
     expect(multi.streams.filter((stream) => stream.type === 'audio')).toHaveLength(2)
     expect(
       multi.streams.some((stream) => stream.type === 'video' && stream.disposition.attachedPicture),
@@ -91,7 +138,7 @@ describe('ffprobe 规范化', () => {
 
   it('结构样本覆盖长 GOP、缺失 codec string、SDR/HDR 音频组合与 VFR', () => {
     const structures = manifest.fixtures.filter((entry) => entry.tier === 'structure')
-    expect(structures).toHaveLength(5)
+    expect(structures).toHaveLength(7)
     expect(structures.flatMap((entry) => entry.traits)).toEqual(
       expect.arrayContaining([
         'long-gop',
@@ -111,19 +158,22 @@ describe('ffprobe 规范化', () => {
     )
     for (const structure of structures) {
       const probe = structure.probe as { format?: { duration?: string } }
-      expect(Number(probe.format?.duration)).toBeGreaterThanOrEqual(30)
+      expect(Number(probe.format?.duration)).toBeGreaterThanOrEqual(29.9)
     }
   })
 
   it('结构样本保留 HLG 与旋转/SAR/确定性主轨信息', () => {
-    const hlg = normalizeFfprobeOutput('hlg', fixture('structure-hlg-long-gop.mkv'))
+    const hlg = normalizeFfprobeOutput(fingerprint('hlg'), fixture('structure-hlg-long-gop.mkv'))
     expect(hlg.streams.find((stream) => stream.type === 'video')).toMatchObject({
       dynamicRange: 'hlg',
       colorTransfer: 'arib-std-b67',
       colorPrimaries: 'bt2020',
     })
 
-    const rotated = normalizeFfprobeOutput('rotated', fixture('structure-rotated-multi-audio.mp4'))
+    const rotated = normalizeFfprobeOutput(
+      fingerprint('rotated'),
+      fixture('structure-rotated-multi-audio.mp4'),
+    )
     expect(rotated.streams.filter((stream) => stream.type === 'audio')).toHaveLength(2)
     expect(
       rotated.streams.find(

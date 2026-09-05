@@ -1,6 +1,8 @@
 import type {
   MediaGenerationSnapshot,
   MediaProbeResult,
+  PlaybackDecision,
+  PlaybackJobSnapshot,
   PlaybackPlan,
   PlaybackSourceLeaseDescriptor,
 } from '@marchen/shared/media'
@@ -9,6 +11,8 @@ import { describe, expect, it } from 'vitest'
 
 import {
   mapGenerationToTelemetry,
+  mapPlaybackDecisionToTelemetry,
+  mapPlaybackJobToTelemetry,
   mapPlaybackLeaseToTelemetry,
   mapPlaybackPlanToTelemetry,
   TELEMETRY_MEDIA_ERROR_CODES,
@@ -18,6 +22,14 @@ import {
 
 const disposition = { default: true, forced: false, attachedPicture: false }
 const probe: MediaProbeResult = {
+  schemaVersion: 1,
+  sourceFingerprint: {
+    schemaVersion: 1,
+    sourceId: 'private-source-id',
+    pathKey: 'private-path-key',
+    size: 1,
+    mtimeMs: 1,
+  },
   sourceId: 'private-source-id',
   formatNames: ['Matroska', 'webm'],
   startTime: 0,
@@ -124,6 +136,74 @@ describe('player telemetry contract', () => {
       actual_first_timestamp: 60.04,
       produced_duration: 30,
       bytes_written: 2048,
+    })
+  })
+
+  it('maps generalized decisions and jobs without pipeline identity or runtime names', () => {
+    const decision: PlaybackDecision = {
+      method: 'direct-stream',
+      trial: false,
+      container: { action: 'remux', target: 'fmp4-hls' },
+      video: { action: 'copy', streamIndex: 0, sourceCodec: 'HEVC' },
+      audio: {
+        action: 'transcode',
+        streamIndex: 2,
+        sourceCodec: 'EAC3',
+        targetCodec: 'aac',
+        profile: 'aac-low-complexity',
+        sampleRate: 48_000,
+        channels: 2,
+      },
+      subtitle: { action: 'external-render' },
+      reasons: [
+        {
+          code: 'audio-codec-not-supported',
+          domain: 'audio',
+          source: 'client-profile',
+          streamIndex: 2,
+        },
+      ],
+    }
+    const job: PlaybackJobSnapshot = {
+      id: 'private-job',
+      sessionId: 'private-session',
+      phase: 'producing',
+      pipeline: { schemaVersion: 1, algorithm: 'sha256', value: 'private-fingerprint' },
+      runtime: {
+        videoEncoder: { name: 'copy', class: 'copy' },
+        audioEncoder: { name: 'aac_at', class: 'system' },
+      },
+      coverage: { startSegment: 3 },
+      requestedStartTime: 6,
+      productionPosition: 30,
+      consumptionPosition: 10,
+      aheadDuration: 20,
+      processingSpeed: 120,
+      activeRequestCount: 1,
+      waiterCount: 2,
+    }
+
+    expect(mapPlaybackDecisionToTelemetry(decision)).toEqual({
+      method: 'direct-stream',
+      container_action: 'remux',
+      video_action: 'copy',
+      audio_action: 'transcode',
+      video_codec: 'hevc',
+      audio_codec: 'eac3',
+      reason_codes: ['audio-codec-not-supported'],
+      trial: false,
+    })
+    expect(mapPlaybackJobToTelemetry(job)).toEqual({
+      phase: 'producing',
+      decoder_class: undefined,
+      video_encoder_class: 'copy',
+      audio_encoder_class: 'system',
+      production_position: 30,
+      consumption_position: 10,
+      ahead_duration: 20,
+      processing_speed: 120,
+      active_request_count: 1,
+      waiter_count: 2,
     })
   })
 })

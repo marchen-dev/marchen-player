@@ -8,6 +8,7 @@ interface ProbeStream {
   codec_type: 'video' | 'audio' | string
   codec_name?: string
   pix_fmt?: string
+  color_transfer?: string
   start_time?: string
 }
 
@@ -31,6 +32,7 @@ export interface ProducerValidationInput {
   firstSegmentPath: string
   profile: Exclude<OutputProfile, { kind: 'native' }>
   sourceVideo?: MediaVideoStream
+  expectedAudioCodec?: string
   signal?: AbortSignal
 }
 
@@ -82,7 +84,7 @@ export const validateHlsProducerOutput = async (input: ProducerValidationInput):
         '-show_streams',
         '-show_packets',
         '-show_entries',
-        'stream=index,codec_type,codec_name,pix_fmt,start_time:packet=stream_index,pts_time,dts_time,flags',
+        'stream=index,codec_type,codec_name,pix_fmt,start_time,color_transfer:packet=stream_index,pts_time,dts_time,flags',
         '-of',
         'json',
         input.manifestPath,
@@ -114,6 +116,8 @@ export const validateHlsProducerOutput = async (input: ProducerValidationInput):
         `HLS 音频 codec 不符合档位：期望 aac，实际 ${audio?.codec_name ?? 'missing'}`,
       )
     }
+    if (input.expectedAudioCodec && audio?.codec_name !== input.expectedAudioCodec) throw new ProducerValidationError('HLS 音频轨道不符合独立 copy/transcode 决策')
+    if (input.profile.kind === 'hdr-to-sdr-h264-aac' && video.color_transfer !== 'bt709') throw new ProducerValidationError('HDR tone-map 输出未标记为 BT.709')
 
     const packets = output.packets ?? []
     const firstVideoPacket = packets.find((packet) => packet.stream_index === video.index)

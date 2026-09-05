@@ -1,7 +1,7 @@
 import type { FfmpegExecutionOptions, FfmpegExecutionResult } from './executor'
 import type { FfmpegCommandExecutor } from './media-tools'
 import { existsSync } from 'node:fs'
-import { mkdtemp, readdir, rm, writeFile } from 'node:fs/promises'
+import { mkdtemp, readdir, rm, utimes, writeFile } from 'node:fs/promises'
 
 import { tmpdir } from 'node:os'
 
@@ -32,6 +32,53 @@ const success = (stdout = Buffer.alloc(0)): FfmpegExecutionResult => ({
 })
 
 describe('ffmpegMediaTools', () => {
+  it('按当前文件 size/mtime 复用 probe，文件变化后重新探测', async () => {
+    const directories = await createDirectories()
+    const input = join(resolve(directories.screenshots, '..'), 'input.mkv')
+    await writeFile(input, 'first')
+    const calls: FfmpegExecutionOptions[] = []
+    const executor: FfmpegCommandExecutor = {
+      run: async (options) => {
+        calls.push(options)
+        return success(
+          Buffer.from(
+            JSON.stringify({
+              streams: [
+                {
+                  index: 0,
+                  codec_type: 'video',
+                  codec_name: 'h264',
+                  width: 320,
+                  height: 180,
+                  disposition: {},
+                },
+              ],
+              format: { format_name: 'matroska', duration: '10' },
+            }),
+          ),
+        )
+      },
+    }
+    const tools = new FfmpegMediaTools(
+      { ffmpeg: '/runtime/ffmpeg', ffprobe: '/runtime/ffprobe' },
+      directories,
+      executor,
+    )
+
+    const first = await tools.probe(input, 'hash')
+    const cached = await tools.probe(input, 'hash')
+    expect(cached).toBe(first)
+    expect(calls).toHaveLength(1)
+
+    await writeFile(input, 'second-version')
+    const nextTime = new Date(first.sourceFingerprint.mtimeMs + 2_000)
+    await utimes(input, nextTime, nextTime)
+    const changed = await tools.probe(input, 'hash')
+    expect(changed).not.toBe(first)
+    expect(calls).toHaveLength(2)
+    expect(changed.sourceFingerprint.size).not.toBe(first.sourceFingerprint.size)
+  })
+
   it('特殊字符路径始终作为单独参数传递，截图临时文件读取后释放', async () => {
     const directories = await createDirectories()
     const calls: FfmpegExecutionOptions[] = []

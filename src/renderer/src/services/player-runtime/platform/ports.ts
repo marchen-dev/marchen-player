@@ -1,6 +1,7 @@
 import type {
   DurableMediaSource,
   OutputProfileKind,
+  PlaybackMethod,
   PlaybackSourceLease,
 } from '@marchen/shared/media'
 import type { PlayerCapabilities } from './types'
@@ -85,6 +86,8 @@ export interface SourceLifecyclePort {
       startTime?: number
       forceProfile?: Exclude<OutputProfileKind, 'native'>
       attemptChain?: OutputProfileKind[]
+      attemptMethods?: PlaybackMethod[]
+      signal?: AbortSignal
     },
   ) => Promise<PlaybackSourceLease>
   prepareResource: (request: PlayerSourceRequest) => Promise<PlayerSourceHandle>

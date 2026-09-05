@@ -11,6 +11,7 @@ import {
   PlayerRuntimeProvider,
   useNativePlayerRuntime,
   usePlaybackSessionObservers,
+  PlaybackVisualStateBridge,
 } from '@renderer/services/player-runtime'
 import { captureFeatureUsed } from '@renderer/services/telemetry/features'
 import { useEffect, useMemo, useRef, useState } from 'react'
@@ -32,7 +33,9 @@ export const NativePlayer = () => {
   const [video, setVideo] = useState<HTMLVideoElement | null>(null)
   const [rotation, setRotation] = useState<PlayerRotation>(0)
   const [fullscreen, setFullscreen] = useState(ports.fullscreen.getSnapshot().active)
-  const runtime = useNativePlayerRuntime(video, ports.sourceLifecycle)
+  const fallbackState = useMemo(() => new PlaybackVisualStateBridge(), [])
+  fallbackState.bindRotation(rotation, setRotation)
+  const runtime = useNativePlayerRuntime(video, ports.sourceLifecycle, fallbackState)
   const preparedVideo = usePlayerLoadingSelector((state) =>
     state.step === 'ready' || state.step === 'reloading' ? state.video : null,
   )
@@ -94,13 +97,14 @@ export const NativePlayer = () => {
 
   return (
     <PlayerRuntimeProvider runtime={runtime}>
-      <NativeDanmakuProvider>
+      <NativeDanmakuProvider fallbackState={fallbackState}>
         <NativeSubtitleProvider
           video={video}
           runtime={runtime}
           catalog={ports.subtitles}
           source={preparedVideo.source}
           hash={preparedVideo.hash}
+          fallbackState={fallbackState}
         >
           {shell}
         </NativeSubtitleProvider>

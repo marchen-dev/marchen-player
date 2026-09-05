@@ -78,6 +78,37 @@ export class HtmlVideoMediaAdapter implements MediaPort {
     return this.transportReady
   }
 
+  waitForPlayableData(timeoutMs = 8_000): Promise<void> {
+    // HAVE_CURRENT_DATA=2；使用数值避免 Node 单测环境需要 DOM 全局量。
+    if (this.video.readyState >= 2) return Promise.resolve()
+    return new Promise<void>((resolve, reject) => {
+      const cleanup = () => {
+        clearTimeout(timer)
+        this.video.removeEventListener('loadeddata', onReady)
+        this.video.removeEventListener('canplay', onReady)
+        this.video.removeEventListener('error', onError)
+      }
+      const onReady = () => {
+        cleanup()
+        resolve()
+      }
+      const onError = () => {
+        cleanup()
+        reject(new Error('新 HLS generation 媒体数据加载失败'))
+      }
+      const timer = setTimeout(
+        () => {
+          cleanup()
+          reject(new Error(`等待新 HLS generation 可播数据超过 ${timeoutMs}ms`))
+        },
+        Math.max(1, timeoutMs),
+      )
+      this.video.addEventListener('loadeddata', onReady, { once: true })
+      this.video.addEventListener('canplay', onReady, { once: true })
+      this.video.addEventListener('error', onError, { once: true })
+    })
+  }
+
   play(): Promise<void> {
     return this.video.play()
   }

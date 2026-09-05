@@ -5,16 +5,17 @@ import { access, lstat, mkdir, open, readdir, readFile, rm, statfs } from 'node:
 
 import { basename, join, relative, resolve, sep } from 'node:path'
 
-const MARKER_FILENAME = '.marchen-media-session.json'
-const MARKER_KIND = 'marchen-media-session'
+export const MEDIA_SESSION_MARKER_FILENAME = '.marchen-media-session.json'
+export const MEDIA_SESSION_MARKER_KIND = 'marchen-media-session'
+export const MEDIA_SESSION_MARKER_SCHEMA_VERSION = 1 as const
 
 export const DEFAULT_MEDIA_CACHE_BUDGET_BYTES = 8 * 1024 * 1024 * 1024
 export const DEFAULT_MEDIA_CACHE_MIN_FREE_BYTES = 2 * 1024 * 1024 * 1024
 export const DEFAULT_MEDIA_CACHE_TTL_MS = 24 * 60 * 60 * 1000
 
 interface MediaCacheMarker {
-  kind: typeof MARKER_KIND
-  schemaVersion: 1
+  kind: typeof MEDIA_SESSION_MARKER_KIND
+  schemaVersion: typeof MEDIA_SESSION_MARKER_SCHEMA_VERSION
   sessionId: string
   createdAt: number
 }
@@ -68,11 +69,11 @@ const directorySize = async (directory: string): Promise<number> => {
 const readMarker = async (directory: string): Promise<MediaCacheMarker | undefined> => {
   try {
     const value = JSON.parse(
-      await readFile(join(directory, MARKER_FILENAME), 'utf8'),
+      await readFile(join(directory, MEDIA_SESSION_MARKER_FILENAME), 'utf8'),
     ) as Partial<MediaCacheMarker>
     if (
-      value.kind !== MARKER_KIND ||
-      value.schemaVersion !== 1 ||
+      value.kind !== MEDIA_SESSION_MARKER_KIND ||
+      value.schemaVersion !== MEDIA_SESSION_MARKER_SCHEMA_VERSION ||
       typeof value.sessionId !== 'string' ||
       typeof value.createdAt !== 'number'
     ) {
@@ -109,13 +110,13 @@ export class MediaCacheManager {
     const directory = join(this.#root, `session-${sessionId}`)
     await mkdir(directory, { recursive: false })
     const marker: MediaCacheMarker = {
-      kind: MARKER_KIND,
-      schemaVersion: 1,
+      kind: MEDIA_SESSION_MARKER_KIND,
+      schemaVersion: MEDIA_SESSION_MARKER_SCHEMA_VERSION,
       sessionId,
       createdAt: this.#now(),
     }
     const markerFile = await open(
-      join(directory, MARKER_FILENAME),
+      join(directory, MEDIA_SESSION_MARKER_FILENAME),
       constants.O_CREAT | constants.O_EXCL | constants.O_WRONLY,
     )
     try {
@@ -153,6 +154,15 @@ export class MediaCacheManager {
   }
 
   async sweepExpired(): Promise<string[]> {
+    return this.#sweep((marker) => this.#now() - marker.createdAt >= this.#ttlMs)
+  }
+
+  /** segment session 不跨启动复用；只删除 marker/version/目录名三者一致的孤立资源。 */
+  async sweepOrphaned(): Promise<string[]> {
+    return this.#sweep(() => true)
+  }
+
+  async #sweep(shouldRemove: (marker: MediaCacheMarker) => boolean): Promise<string[]> {
     await mkdir(this.#root, { recursive: true })
     const removed: string[] = []
     for (const entry of await readdir(this.#root, { withFileTypes: true })) {
@@ -160,7 +170,7 @@ export class MediaCacheManager {
       const directory = join(this.#root, entry.name)
       const marker = await readMarker(directory)
       if (!marker || this.#activeSessions.has(marker.sessionId)) continue
-      if (this.#now() - marker.createdAt < this.#ttlMs) continue
+      if (entry.name !== `session-${marker.sessionId}` || !shouldRemove(marker)) continue
       await rm(directory, { recursive: true, force: true })
       removed.push(entry.name)
     }

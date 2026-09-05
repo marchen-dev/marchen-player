@@ -1,4 +1,4 @@
-import type { MediaCompatError } from '@marchen/shared/media'
+import type { MediaCompatError, PlaybackDecision } from '@marchen/shared/media'
 import type {
   FullscreenPort,
   PlayerPorts,
@@ -15,15 +15,71 @@ import { windowFullscreenAtom } from '@renderer/atoms/window'
 import { handlers, ipcClient } from '@renderer/lib/client'
 import { getPlayerLoadingService } from '@renderer/services/player-loading/index'
 import { queryBrowserMediaCapabilities } from '../media-capabilities'
+import { ClientPlaybackProfileCache } from '../client-playback-profile'
+import { negotiateMediaCompatibility } from '../compatibility-negotiator'
+import { decisionOutputProfile } from '../decision-output-profile'
+import { dynamicHlsFallbackRequest } from '../dynamic-hls-fallback'
+import { mediaPlaybackAbRecorder } from '../media-playback-ab'
+import { comparePlannerResults, resolvePlannerMigrationMode } from '../planner-migration'
 import { createNativeDecodeFallbackPlan, createPlaybackPlan } from '../playback-plan'
 import { electronPlayerCapabilities } from './capabilities'
-import { resolveForcedOutputProfile } from './development-overrides'
+import {
+  resolveDevelopmentPlaybackOverride,
+  resolveForcedOutputProfile,
+} from './development-overrides'
 import { prepareElectronDirectLease } from './electron-direct-lease'
 import { toEmbeddedSubtitleTrack } from './embedded-subtitle'
 import { createPlaybackSourceLease } from './playback-lease'
+import {
+  DEFAULT_PREPARATION_DEADLINES_MS,
+  PlaybackStageDeadlineError,
+  withPlaybackStageDeadline,
+} from '../preparation-deadlines'
+
+const preparationRequest = async <T>(
+  requestId: string,
+  operation: () => Promise<T>,
+  stage: 'probe' | 'job',
+  signal?: AbortSignal,
+): Promise<T> => {
+  signal?.throwIfAborted()
+  const pending = operation()
+  try {
+    // Main 对 probe/keyframe/preflight/job/segment 分别计时；35s 仅兜底失联 IPC。
+    return await withPlaybackStageDeadline(stage, pending, {
+      signal,
+      deadlineMs: stage === 'probe' ? 8_000 : 35_000,
+    })
+  } catch (error) {
+    void ipcClient?.media.cancelPreparation({ requestId })
+    // 取消与 Main 登记准备任务发生竞争时，迟到的成功结果也必须释放。
+    void pending.then(
+      () => ipcClient?.media.cancelPreparation({ requestId }),
+      () => undefined,
+    )
+    throw error
+  }
+}
 
 const asMediaCompatError = (detail: MediaCompatError): Error & MediaCompatError =>
   Object.assign(new Error(detail.message), detail)
+
+const generalizedProfileCache = new ClientPlaybackProfileCache()
+
+const rendererRuntimeIdentity = () => {
+  // 应用会重写 userAgent，运行时版本以 preload 暴露的只读事实为准。
+  const versions = window.electron?.process.versions
+  const electronVersion =
+    versions?.electron ?? navigator.userAgent.match(/Electron\/([^\s]+)/)?.[1] ?? 'unknown'
+  const chromiumVersion =
+    versions?.chrome ?? navigator.userAgent.match(/Chrome\/([^\s]+)/)?.[1] ?? 'unknown'
+  return {
+    environment: 'electron' as const,
+    platform: navigator.platform,
+    electronVersion,
+    chromiumVersion,
+  }
+}
 
 export const createElectronPlayerPorts = (): PlayerPorts => ({
   capabilities: electronPlayerCapabilities,
@@ -79,9 +135,11 @@ export const createElectronFullscreenPort = (): FullscreenPort => {
   }
 }
 
-const waitForCompatibleLease = async (sessionId: string) => {
-  const deadline = Date.now() + 60_000
-  while (Date.now() < deadline) {
+const waitForCompatibleLease = async (sessionId: string, signal?: AbortSignal) => {
+  let deadlineStage: 'profile' | 'preflight' | 'job' | 'segment' = 'job'
+  let stageStartedAt = Date.now()
+  while (true) {
+    signal?.throwIfAborted()
     const response = await ipcClient?.media.get({ sessionId })
     if (!response) throw new Error('媒体会话 IPC 不可用')
     if (!response.ok) throw asMediaCompatError(response.error)
@@ -92,15 +150,32 @@ const waitForCompatibleLease = async (sessionId: string) => {
         : new Error('兼容播放会话生成失败')
     }
     if (response.data.status === 'released') throw new Error('兼容播放会话已经释放')
+    const nextStage = (() => {
+      if (response.data.phase === 'planning') return 'profile' as const
+      if (response.data.phase === 'encoder-check') return 'preflight' as const
+      if (response.data.phase === 'producing') return 'segment' as const
+      return 'job' as const
+    })()
+    if (nextStage !== deadlineStage) {
+      deadlineStage = nextStage
+      stageStartedAt = Date.now()
+    }
+    const deadlineMs = DEFAULT_PREPARATION_DEADLINES_MS[deadlineStage]
+    if (Date.now() - stageStartedAt >= deadlineMs) {
+      throw new PlaybackStageDeadlineError(deadlineStage, deadlineMs)
+    }
     await new Promise((resolve) => setTimeout(resolve, 150))
   }
-  throw new Error('等待兼容播放首批分片超时')
 }
 
 export const createElectronSourceLifecyclePort = (): SourceLifecyclePort => ({
   prepare: async (source, options) => {
     if (source.kind !== 'electron-file') throw new Error('Electron 播放源只接受本地文件路径')
-    const runtimeResponse = await ipcClient?.media.capabilities()
+    const runtimeResponse = await withPlaybackStageDeadline(
+      'profile',
+      Promise.resolve(ipcClient?.media.capabilities()),
+      { signal: options?.signal },
+    )
     const runtimeCapabilities = runtimeResponse?.ok ? runtimeResponse.data : undefined
     electronPlayerCapabilities.ffmpegPlayback = runtimeCapabilities?.available === true
     electronPlayerCapabilities.ffmpegPlaybackStatus = runtimeCapabilities?.available
@@ -113,27 +188,144 @@ export const createElectronSourceLifecyclePort = (): SourceLifecyclePort => ({
       return prepareDirect(source)
     }
 
-    const probeResponse = await ipcClient?.media.probe({ source })
+    const probeRequestId = createId()
+    const probeResponse = await preparationRequest(
+      probeRequestId,
+      () => Promise.resolve(ipcClient?.media.probe({ source, requestId: probeRequestId })),
+      'probe',
+      options?.signal,
+    )
     if (!probeResponse) throw new Error('媒体探测 IPC 不可用')
     if (!probeResponse.ok) throw asMediaCompatError(probeResponse.error)
-    const browserCapabilities = await queryBrowserMediaCapabilities(probeResponse.data)
+    const browserCapabilities = await withPlaybackStageDeadline(
+      'profile',
+      queryBrowserMediaCapabilities(probeResponse.data),
+      { signal: options?.signal },
+    )
     const plannerCapabilities = {
       toneMapToSdr: runtimeCapabilities.toneMapToSdr,
       forceProfile: options?.forceProfile ?? resolveForcedOutputProfile(import.meta.env),
     }
-    const planning = options?.nativeDecodeFailed
+    let planning = options?.nativeDecodeFailed
       ? createNativeDecodeFallbackPlan(probeResponse.data, browserCapabilities, plannerCapabilities)
       : createPlaybackPlan(probeResponse.data, browserCapabilities, plannerCapabilities)
+    const migrationMode = resolvePlannerMigrationMode(import.meta.env)
+    let decision: PlaybackDecision | undefined
+    const executeGeneralized =
+      migrationMode === 'generalized' &&
+      import.meta.env.VITE_MEDIA_GATEWAY_V2 === '1' &&
+      !options?.nativeDecodeFailed
+    if ((migrationMode === 'shadow' || executeGeneralized) && runtimeCapabilities.negotiation) {
+      const profileOptions = {
+        runtime: rendererRuntimeIdentity(),
+        localCompatibilityAvailable: runtimeCapabilities.available,
+      }
+      let profile = await withPlaybackStageDeadline(
+        'profile',
+        generalizedProfileCache.getOrCreate(probeResponse.data, profileOptions),
+        { signal: options?.signal },
+      )
+      if (
+        profile.fmp4Hls.mediaSourceSupported !== true &&
+        runtimeCapabilities.negotiation.aacOutput &&
+        probeResponse.data.primaryAudioStreamIndex !== undefined
+      ) {
+        // 输入 EAC-3 的组合 MSE 查询不能否定 HEVC + AAC 输出。这里只查询候选输出，
+        // direct 仍保留输入事实，AAC 条件也不会被误记为 EAC-3 可 copy。
+        const candidate = await withPlaybackStageDeadline(
+          'profile',
+          generalizedProfileCache.getOrCreate(
+            {
+              ...probeResponse.data,
+              streams: probeResponse.data.streams.map((stream) =>
+                stream.type === 'audio' &&
+                stream.index === probeResponse.data.primaryAudioStreamIndex
+                  ? {
+                      ...stream,
+                      codecName: 'aac',
+                      codecString: 'mp4a.40.2',
+                      profile: 'LC',
+                      channels: 2,
+                      sampleRate: 48_000,
+                      bitRate: 192_000,
+                    }
+                  : stream,
+              ),
+            },
+            profileOptions,
+          ),
+          { signal: options?.signal },
+        )
+        if (candidate.fmp4Hls.mediaSourceSupported === true)
+          profile = { ...profile, fmp4Hls: candidate.fmp4Hls }
+      }
+      const generalized = negotiateMediaCompatibility({
+        facts: probeResponse.data,
+        client: profile,
+        ffmpeg: runtimeCapabilities.negotiation,
+        override: resolveDevelopmentPlaybackOverride(import.meta.env, 'electron'),
+      })
+      mediaPlaybackAbRecorder.recordPlanner(comparePlannerResults(planning, generalized))
+      if (executeGeneralized) {
+        if (!generalized.ok) throw asMediaCompatError(generalized.error)
+        decision = generalized.decision
+        planning = { ok: true, plan: decisionOutputProfile(decision) }
+      }
+    }
+    console.info('[media-planner]', {
+      configuredPlanner: migrationMode,
+      executedPlanner: decision ? 'generalized' : 'legacy',
+      fallbackReason:
+        migrationMode === 'generalized' && !decision
+          ? options?.nativeDecodeFailed
+            ? 'native-decode-recovery-pending-v2'
+            : 'v2-or-negotiation-unavailable'
+          : undefined,
+    })
     if (!planning.ok) throw asMediaCompatError(planning.error)
     if (planning.plan.kind === 'native') return prepareDirect(source)
+    const attemptMethods =
+      options?.attemptMethods ??
+      (decision ? [decision.method] : undefined) ??
+      (options?.nativeDecodeFailed
+        ? (['direct-play', 'transcode'] as const)
+        : planning.plan.kind === 'copy-video-aac'
+          ? (['direct-stream'] as const)
+          : (['transcode'] as const))
 
-    const prepared = await ipcClient?.media.prepare({
+    const request = {
       requestId: createId(),
       source,
       plan: planning.plan,
+      decision,
       startTime: Math.max(0, options?.startTime ?? 0),
       attemptChain: options?.attemptChain ?? [planning.plan.kind],
-    })
+      attemptMethods: [...attemptMethods],
+    }
+    let fallbackReason: string | undefined
+    let prepared = await preparationRequest(
+      request.requestId,
+      () => Promise.resolve(ipcClient?.media.prepare(request)),
+      'job',
+      options?.signal,
+    )
+    if (prepared && !prepared.ok) {
+      const fallback = dynamicHlsFallbackRequest(request, prepared.error, createId())
+      if (fallback) {
+        fallbackReason = fallback.legacyTransportReason
+        console.info('[media-transport-fallback]', {
+          reason: fallbackReason,
+          from: 'v2-stable-vod',
+          to: 'v1-generation',
+        })
+        prepared = await preparationRequest(
+          fallback.requestId,
+          () => Promise.resolve(ipcClient?.media.prepare(fallback)),
+          'job',
+          options?.signal,
+        )
+      }
+    }
     if (!prepared) throw new Error('兼容播放会话 IPC 不可用')
     if (!prepared.ok) throw asMediaCompatError(prepared.error)
     const sessionId = prepared.data.id
@@ -141,16 +333,28 @@ export const createElectronSourceLifecyclePort = (): SourceLifecyclePort => ({
       const descriptor =
         prepared.data.status === 'ready' && prepared.data.lease
           ? prepared.data.lease
-          : await waitForCompatibleLease(sessionId)
+          : await waitForCompatibleLease(sessionId, options?.signal)
+      console.info('[media-transport]', {
+        configuredPlanner: migrationMode,
+        executedPlanner: decision ? 'generalized' : 'legacy',
+        transport: descriptor.hlsSessionMode === 'stable-vod' ? 'v2-stable-vod' : 'v1-generation',
+        fallbackReason,
+      })
       return createPlaybackSourceLease(
         descriptor,
         () => {
           void ipcClient?.media.release({ sessionId })
         },
         async (logicalTime, expectedGeneration) => {
+          // 上一次 seek 可能已在 Main 创建新 generation，随后才因生产失败返回。
+          // lease 只在成功时更新，因此重试必须从会话快照取得实际版本。
+          const current = await ipcClient?.media.get({ sessionId })
+          if (!current) throw new Error('媒体会话 IPC 不可用')
+          if (!current.ok) throw asMediaCompatError(current.error)
+          if (current.data.status === 'released') throw new Error('播放会话已释放，请重新加载视频')
           const seeked = await ipcClient?.media.seek({
             sessionId,
-            expectedGeneration,
+            expectedGeneration: current.data.activeGeneration ?? expectedGeneration,
             logicalTime,
           })
           if (!seeked) throw new Error('seek generation IPC 不可用')
@@ -166,6 +370,9 @@ export const createElectronSourceLifecyclePort = (): SourceLifecyclePort => ({
           const acknowledged = await ipcClient?.media.acknowledge(request)
           if (!acknowledged) throw new Error('媒体会话阶段确认 IPC 不可用')
           if (!acknowledged.ok) throw asMediaCompatError(acknowledged.error)
+        },
+        (position) => {
+          void ipcClient?.media.reportPlayback({ sessionId, position }).catch(console.warn)
         },
       )
     } catch (error) {

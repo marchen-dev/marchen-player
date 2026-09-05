@@ -16,7 +16,7 @@ afterEach(async () => {
 })
 
 describe('generation 时间线校准', () => {
-  it('把请求 seek 与实际首 PTS 合成 calibrated offset，并保留原始 start time', () => {
+  it('使用实际源时间首 PTS 作为 calibrated offset，不重复累加 seek', () => {
     expect(
       calibrateGenerationTimeline({
         originalDuration: 120,
@@ -28,8 +28,19 @@ describe('generation 时间线校准', () => {
       originalStartTime: 5,
       requestedStartTime: 30,
       actualFirstOutputTimestamp: 0.041,
-      timeline: { originalDuration: 120, offset: 30.041, calibrated: true },
+      timeline: { originalDuration: 120, offset: 0.041, calibrated: true },
     })
+  })
+
+  it('长 GOP seek 使用目标前关键帧时不会将 requestedStartTime 加两次', () => {
+    expect(
+      calibrateGenerationTimeline({
+        originalDuration: 2_431.136,
+        originalStartTime: 0,
+        requestedStartTime: 60,
+        actualFirstOutputTimestamp: 57.292,
+      }).timeline,
+    ).toEqual({ originalDuration: 2_431.136, offset: 57.292, calibrated: true })
   })
 
   it('首 PTS 未知时明确保持未校准，不伪造精确结论', () => {

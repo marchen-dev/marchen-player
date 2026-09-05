@@ -1,6 +1,9 @@
 import type {
   MediaCompatErrorCode,
   MediaGenerationSnapshot,
+  MediaProcessorClass,
+  PlaybackDecision,
+  PlaybackJobSnapshot,
   MediaProbeResult,
   OutputProfileKind,
   PlaybackMode,
@@ -58,6 +61,30 @@ export interface PlayerGenerationTelemetryFields {
   bytes_written?: number
 }
 
+export interface PlayerDecisionTelemetryFields {
+  method: PlaybackDecision['method']
+  container_action: PlaybackDecision['container']['action']
+  video_action: PlaybackDecision['video']['action']
+  audio_action?: NonNullable<PlaybackDecision['audio']>['action']
+  video_codec: string
+  audio_codec?: string
+  reason_codes: Array<PlaybackDecision['reasons'][number]['code']>
+  trial: boolean
+}
+
+export interface PlayerJobTelemetryFields {
+  phase: PlaybackJobSnapshot['phase']
+  decoder_class?: MediaProcessorClass
+  video_encoder_class: MediaProcessorClass
+  audio_encoder_class?: MediaProcessorClass
+  production_position?: number
+  consumption_position?: number
+  ahead_duration?: number
+  processing_speed?: number
+  active_request_count: number
+  waiter_count: number
+}
+
 const codecFor = (probe: MediaProbeResult, streamIndex: number | undefined) =>
   streamIndex === undefined
     ? undefined
@@ -106,4 +133,30 @@ export const mapGenerationToTelemetry = (
   actual_first_timestamp: snapshot.actualFirstTimestamp,
   produced_duration: snapshot.producedDuration,
   bytes_written: snapshot.bytesWritten,
+})
+
+export const mapPlaybackDecisionToTelemetry = (
+  decision: PlaybackDecision,
+): PlayerDecisionTelemetryFields => ({
+  method: decision.method,
+  container_action: decision.container.action,
+  video_action: decision.video.action,
+  audio_action: decision.audio?.action,
+  video_codec: decision.video.sourceCodec.toLowerCase(),
+  audio_codec: decision.audio?.sourceCodec.toLowerCase(),
+  reason_codes: decision.reasons.map((reason) => reason.code),
+  trial: decision.trial,
+})
+
+export const mapPlaybackJobToTelemetry = (job: PlaybackJobSnapshot): PlayerJobTelemetryFields => ({
+  phase: job.phase,
+  decoder_class: job.runtime.videoDecoder?.class,
+  video_encoder_class: job.runtime.videoEncoder.class,
+  audio_encoder_class: job.runtime.audioEncoder?.class,
+  production_position: job.productionPosition,
+  consumption_position: job.consumptionPosition,
+  ahead_duration: job.aheadDuration,
+  processing_speed: job.processingSpeed,
+  active_request_count: job.activeRequestCount,
+  waiter_count: job.waiterCount,
 })

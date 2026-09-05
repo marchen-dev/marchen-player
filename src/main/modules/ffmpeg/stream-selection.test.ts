@@ -23,6 +23,14 @@ const stream = (
   }) as MediaStream
 
 const probe = (streams: MediaStream[]): MediaProbeResult => ({
+  schemaVersion: 1,
+  sourceFingerprint: {
+    schemaVersion: 1,
+    sourceId: 'source',
+    pathKey: 'test-path',
+    size: 1,
+    mtimeMs: 1,
+  },
   sourceId: 'source',
   formatNames: ['matroska'],
   startTime: 0,

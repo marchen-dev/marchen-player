@@ -15,6 +15,12 @@ interface ImportMetaEnv {
   readonly VITE_TELEMETRY_DEBUG?: string
   readonly VITE_FORCE_TRANSCODE_PROFILE?: 'audio' | 'safe' | 'hdr-sdr'
   readonly VITE_FORCE_VIDEO_TRANSCODE?: string
+  readonly VITE_MEDIA_COMPAT_PLANNER?: 'legacy' | 'shadow' | 'generalized'
+  readonly VITE_MEDIA_FORCE_METHOD?: 'direct-stream' | 'transcode'
+  readonly VITE_MEDIA_FORCE_VIDEO_DECODER?: 'auto' | 'hardware' | 'software'
+  readonly VITE_MEDIA_FORCE_VIDEO_ENCODER?: 'auto' | 'hardware' | 'software'
+  readonly VITE_MEDIA_FORCE_AUDIO_ENCODER?: 'auto' | 'system' | 'software'
+  readonly VITE_MEDIA_GATEWAY_V2?: '0' | '1'
 }
 
 interface ImportMeta {

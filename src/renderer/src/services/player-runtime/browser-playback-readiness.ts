@@ -1,10 +1,11 @@
-import type { MediaCompatErrorStage } from '@marchen/shared/media'
+import type { MediaCompatErrorStage, MediaPreparationStage } from '@marchen/shared/media'
 
 export class BrowserPlaybackReadinessError extends Error {
   constructor(
     readonly code: 'metadata-invalid' | 'startup-deadline-exceeded' | 'cancelled',
     readonly stage: MediaCompatErrorStage,
     message: string,
+    readonly deadlineStage?: MediaPreparationStage,
   ) {
     super(message)
     this.name = 'BrowserPlaybackReadinessError'
@@ -74,6 +75,7 @@ export const waitForBrowserFirstFrame = (
             'startup-deadline-exceeded',
             'decode',
             `浏览器未在 ${options.deadlineMs}ms 内解码首帧`,
+            'first-frame',
           ),
         ),
       Math.max(1, options.deadlineMs),

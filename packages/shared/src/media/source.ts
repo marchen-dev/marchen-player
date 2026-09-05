@@ -42,16 +42,25 @@ export interface PlaybackSourceLeaseDescriptor {
   /** 固定输出档位；mode 在迁移完成前只保留给旧 transport/telemetry 调用方。 */
   profile?: import('./plan').OutputProfileKind
   attemptChain?: import('./plan').OutputProfileKind[]
+  /** 新通用协商结果；迁移期与 profile 并存，默认切换后替代 profile。 */
+  decision?: import('./decision').PlaybackDecision
+  attemptMethods?: import('./decision').PlaybackMethod[]
   transport: PlaybackTransport
   url: string
   mimeType?: string
   sessionId?: string
   generation?: number
+  /** generation=v1 由 Renderer 换源 seek；stable-vod=v2 由 HLS.js 请求逻辑 segment。 */
+  hlsSessionMode?: 'generation' | 'stable-vod'
   timeline: PlaybackTimelineDescriptor
+  hlsTimeline?: import('./dynamic-hls').HlsTimeline
+  job?: import('./dynamic-hls').PlaybackJobSnapshot
+  segmentStore?: import('./dynamic-hls').SegmentStoreSnapshot
 }
 
 /** Renderer Runtime 唯一持有的播放源租约。 */
 export interface PlaybackSourceLease extends PlaybackSourceLeaseDescriptor {
+  reportPlayback?: (position: number) => void
   release: () => void
   markAttaching?: () => Promise<void>
   markPlayable?: () => Promise<void>

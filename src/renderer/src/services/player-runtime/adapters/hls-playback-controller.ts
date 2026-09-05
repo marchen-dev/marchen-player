@@ -13,7 +13,7 @@ export interface HlsLike {
   on: (event: string, listener: (_event: string, data: unknown) => void) => void
   attachMedia: (video: HTMLVideoElement) => void
   loadSource: (url: string) => void
-  startLoad: () => void
+  startLoad: (startPosition?: number) => void
   recoverMediaError: () => void
   destroy: () => void
 }
@@ -45,7 +45,7 @@ interface HlsErrorData {
 
 export class HlsPlaybackControllerError extends Error {
   constructor(
-    readonly code: 'mse-attach-failed' | 'manifest-invalid' | 'decode-failed',
+    readonly code: 'mse-attach-failed' | 'manifest-invalid' | 'decode-failed' | 'cancelled',
     readonly stage: MediaCompatErrorStage,
     message: string,
     cause?: unknown,
@@ -99,6 +99,9 @@ export class ManagedHlsPlaybackController implements HlsPlaybackController {
       maxMaxBufferLength: 60,
       maxBufferSize: 64 * 1024 * 1024,
       backBufferLength: 30,
+      // v1 EVENT 在 FFmpeg 持续生产时会被 HLS.js 当成直播；必须锁定逻辑起点，
+      // 否则冷启动会跳到 live edge，等价于偷偷 seek 到已产出窗口末端。
+      startPosition: 0,
       manifestLoadingMaxRetry: 3,
       fragLoadingMaxRetry: 3,
       xhrSetup: (xhr: XMLHttpRequest) => {
@@ -122,16 +125,19 @@ export class ManagedHlsPlaybackController implements HlsPlaybackController {
   }
 
   destroy(): void {
-    this.#instance?.destroy()
+    const instance = this.#instance
     this.#instance = undefined
+    this.#rejectAttachment?.(new HlsPlaybackControllerError('cancelled', 'mse', 'HLS 加载已取消'))
     this.#rejectAttachment = undefined
+    // abort 的重入 error 回调不能再恢复已经销毁的实例。
+    instance?.destroy()
   }
 
   #handleError(data: HlsErrorData): void {
     if (!data.fatal || !this.#instance) return
     if (data.type === this.factory.errorTypes.network && this.#networkRecoveries < 2) {
       this.#networkRecoveries += 1
-      this.#instance.startLoad()
+      this.#instance.startLoad(0)
       return
     }
     if (data.type === this.factory.errorTypes.media && this.#mediaRecoveries < 1) {

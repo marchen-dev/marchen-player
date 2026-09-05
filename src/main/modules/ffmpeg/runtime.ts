@@ -32,6 +32,10 @@ export interface FfmpegRuntimePaths {
 export interface FfmpegRuntimeCapabilities {
   decoders: ReadonlySet<string>
   encoders: ReadonlySet<string>
+  demuxers: ReadonlySet<string>
+  muxers: ReadonlySet<string>
+  hwaccels: ReadonlySet<string>
+  /** @deprecated 迁移期兼容集合；等于 demuxers 与 muxers 的并集。 */
   formats: ReadonlySet<string>
   filters: ReadonlySet<string>
   protocols: ReadonlySet<string>
@@ -171,8 +175,64 @@ const containsCapability = (output: string, name: string): boolean => {
   return new RegExp(`(?:^|[\\s,])${escaped}(?:[\\s,]|$)`, 'm').test(output)
 }
 
-const collectCapabilities = (output: string, names: readonly string[]): ReadonlySet<string> =>
-  new Set(names.filter((name) => containsCapability(output, name)))
+const collectFlagTableNames = (output: string, pattern: RegExp): ReadonlySet<string> => {
+  const names = new Set<string>()
+  for (const line of output.split(/\r?\n/)) {
+    const name = line.match(pattern)?.[1]
+    if (name) names.add(name)
+  }
+  return names
+}
+
+export const parseCodecCapabilities = (output: string): ReadonlySet<string> =>
+  collectFlagTableNames(output, /^\s*[VASD.][F.SXBD.]{5}\s+([^\s=]+)/)
+
+export const parseFilterCapabilities = (output: string): ReadonlySet<string> =>
+  collectFlagTableNames(output, /^\s*[TSC.]{2,3}\s+([^\s=]+)/)
+
+export const parseFormatCapabilities = (
+  output: string,
+): { demuxers: ReadonlySet<string>; muxers: ReadonlySet<string> } => {
+  const demuxers = new Set<string>()
+  const muxers = new Set<string>()
+  for (const line of output.split(/\r?\n/)) {
+    const match = line.match(/^\s*([D ])([E ])(?:[d ])?\s+([^\s]+)/)
+    if (!match) continue
+    for (const name of match[3]!.split(',').filter(Boolean)) {
+      if (match[1] === 'D') demuxers.add(name)
+      if (match[2] === 'E') muxers.add(name)
+    }
+  }
+  return { demuxers, muxers }
+}
+
+export const parseProtocolCapabilities = (output: string): ReadonlySet<string> => {
+  const protocols = new Set<string>()
+  let insideList = false
+  for (const rawLine of output.split(/\r?\n/)) {
+    const line = rawLine.trim()
+    if (line === 'Input:' || line === 'Output:') {
+      insideList = true
+      continue
+    }
+    if (insideList && /^[a-z][\w+.-]*$/i.test(line)) protocols.add(line)
+  }
+  return protocols
+}
+
+export const parseHwaccelCapabilities = (output: string): ReadonlySet<string> => {
+  const accelerators = new Set<string>()
+  let afterHeading = false
+  for (const rawLine of output.split(/\r?\n/)) {
+    const line = rawLine.trim()
+    if (line === 'Hardware acceleration methods:') {
+      afterHeading = true
+      continue
+    }
+    if (afterHeading && /^[a-z][\w-]*$/i.test(line)) accelerators.add(line)
+  }
+  return accelerators
+}
 
 const missingCapabilities = (
   metadata: FfmpegRuntimeMetadata,
@@ -205,16 +265,25 @@ export const resolveFfmpegRuntime = async (
       return unavailable(`FFmpeg 运行时目标不匹配：期望 ${paths.target}，实际 ${metadata.target}`)
     }
 
-    const [ffmpegVersion, ffprobeVersion, decoders, encoders, filters, formats, protocols] =
-      await Promise.all([
-        runner.run(paths.ffmpeg, ['-hide_banner', '-version']),
-        runner.run(paths.ffprobe, ['-hide_banner', '-version']),
-        runner.run(paths.ffmpeg, ['-hide_banner', '-decoders']),
-        runner.run(paths.ffmpeg, ['-hide_banner', '-encoders']),
-        runner.run(paths.ffmpeg, ['-hide_banner', '-filters']),
-        runner.run(paths.ffmpeg, ['-hide_banner', '-formats']),
-        runner.run(paths.ffmpeg, ['-hide_banner', '-protocols']),
-      ])
+    const [
+      ffmpegVersion,
+      ffprobeVersion,
+      decoders,
+      encoders,
+      filters,
+      formats,
+      protocols,
+      hwaccels,
+    ] = await Promise.all([
+      runner.run(paths.ffmpeg, ['-hide_banner', '-version']),
+      runner.run(paths.ffprobe, ['-hide_banner', '-version']),
+      runner.run(paths.ffmpeg, ['-hide_banner', '-decoders']),
+      runner.run(paths.ffmpeg, ['-hide_banner', '-encoders']),
+      runner.run(paths.ffmpeg, ['-hide_banner', '-filters']),
+      runner.run(paths.ffmpeg, ['-hide_banner', '-formats']),
+      runner.run(paths.ffmpeg, ['-hide_banner', '-protocols']),
+      runner.run(paths.ffmpeg, ['-hide_banner', '-hwaccels']),
+    ])
     if (!ffmpegVersion.stdout.startsWith(metadata.versionOutputPrefix)) {
       return unavailable('FFmpeg 版本与固定运行时清单不一致')
     }
@@ -232,24 +301,26 @@ export const resolveFfmpegRuntime = async (
     const missing = missingCapabilities(metadata, outputs)
     if (missing.length > 0) return capabilityMissing([...new Set(missing)])
 
-    const declaredFormats = [
-      ...metadata.commonCapabilities.demuxers,
-      ...metadata.commonCapabilities.muxers,
-    ]
+    const parsedFormats = parseFormatCapabilities(outputs.formats)
+    const parsedDecoders = parseCodecCapabilities(outputs.decoders)
+    const parsedEncoders = parseCodecCapabilities(outputs.encoders)
+    const parsedFilters = parseFilterCapabilities(outputs.filters)
+    const parsedProtocols = parseProtocolCapabilities(outputs.protocols)
+    const parsedHwaccels = parseHwaccelCapabilities(hwaccels.stdout)
     return {
       ok: true,
       runtime: {
         paths,
         metadata,
         capabilities: {
-          decoders: collectCapabilities(outputs.decoders, metadata.commonCapabilities.decoders),
-          encoders: collectCapabilities(outputs.encoders, [
-            ...metadata.commonCapabilities.encoders,
-            ...metadata.platformEncoders,
-          ]),
-          formats: collectCapabilities(outputs.formats, declaredFormats),
-          filters: collectCapabilities(outputs.filters, metadata.commonCapabilities.filters),
-          protocols: collectCapabilities(outputs.protocols, metadata.commonCapabilities.protocols),
+          decoders: parsedDecoders,
+          encoders: parsedEncoders,
+          demuxers: parsedFormats.demuxers,
+          muxers: parsedFormats.muxers,
+          hwaccels: parsedHwaccels,
+          formats: new Set([...parsedFormats.demuxers, ...parsedFormats.muxers]),
+          filters: parsedFilters,
+          protocols: parsedProtocols,
         },
       },
     }

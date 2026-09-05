@@ -3,6 +3,7 @@ import type {
   MediaEvent,
   MediaPort,
   PlaybackClock,
+  PlaybackError,
   PlaybackMediaRestoreState,
   PlaybackMediaSnapshot,
   PlaybackSource,
@@ -23,6 +24,8 @@ export class PlaybackSession {
   private source: PlaybackSource | null = null
   private pendingSeekResume = false
   private activeSessionId = 0
+  private blockedAutoplay = false
+  private explicitPauseRequested = false
   private destroyed = false
 
   readonly state$ = this.stateSubject.asObservable()
@@ -46,12 +49,18 @@ export class PlaybackSession {
     return this.stateSubject.value
   }
 
+  get shouldRetryAutoplay(): boolean {
+    return this.blockedAutoplay
+  }
+
   load(source: PlaybackSource): void {
     if (this.destroyed) return
     const sessionId = ++this.activeSessionId
     if (this.source) this.media.setSource(null, sessionId)
     this.source = source
     this.pendingSeekResume = false
+    this.blockedAutoplay = false
+    this.explicitPauseRequested = false
     this.stateSubject.next({ status: 'loading', source })
     this.media.setSource(source, sessionId)
   }
@@ -62,12 +71,15 @@ export class PlaybackSession {
     const sessionId = ++this.activeSessionId
     this.source = null
     this.pendingSeekResume = false
+    this.blockedAutoplay = false
+    this.explicitPauseRequested = false
     this.media.setSource(null, sessionId)
     this.stateSubject.next({ status: 'idle' })
   }
 
   async play(): Promise<void> {
     if (this.destroyed || !this.source) return
+    this.explicitPauseRequested = false
     const sessionId = this.activeSessionId
     const source = this.source
     try {
@@ -77,6 +89,7 @@ export class PlaybackSession {
 
       const snapshot = this.media.getSnapshot()
       if (source.autoplay && isAutoplayBlocked(cause)) {
+        this.blockedAutoplay = true
         this.stateSubject.next(this.createTimedState('paused', snapshot))
         return
       }
@@ -91,26 +104,30 @@ export class PlaybackSession {
 
   pause(): void {
     if (this.destroyed || !this.source) return
+    this.blockedAutoplay = false
+    this.explicitPauseRequested = true
     this.media.pause()
   }
 
   seek(time: number): void {
     if (this.destroyed || !this.source || !Number.isFinite(time)) return
-
-    const mediaSnapshot = this.media.getSnapshot()
-    const snapshot = this.toLogicalSnapshot(mediaSnapshot)
-    const duration = Number.isFinite(snapshot.duration) ? Math.max(snapshot.duration, 0) : 0
-    const targetTime = duration > 0 ? clamp(time, 0, duration) : Math.max(time, 0)
-    this.pendingSeekResume = this.currentState.status === 'playing'
-    this.stateSubject.next({
-      status: 'seeking',
-      source: this.source,
-      duration,
-      targetTime,
-      resumeAfterSeek: this.pendingSeekResume,
-      rate: mediaSnapshot.rate,
-    })
+    const { mediaSnapshot, targetTime } = this.beginSeek(time)
     this.media.seek(this.toElementTime(targetTime, mediaSnapshot.duration))
+  }
+
+  /** generation/transport 替换型 seek：先锁定逻辑目标，不在即将释放的旧媒体上 seek。 */
+  beginSourceSeek(time: number): void {
+    if (this.destroyed || !this.source || !Number.isFinite(time)) return
+    this.beginSeek(time)
+  }
+
+  /** 换源失败后旧 producer 可能已经释放，清掉旧媒体并拒绝其迟到事件。 */
+  failSourceSeek(error: PlaybackError): void {
+    if (this.destroyed || !this.source) return
+    this.pendingSeekResume = false
+    this.blockedAutoplay = false
+    this.media.setSource(null, ++this.activeSessionId)
+    this.stateSubject.next({ status: 'error', source: this.source, error })
   }
 
   setVolume(volume: number): void {
@@ -189,15 +206,28 @@ export class PlaybackSession {
         )
         break
       case 'play':
+        this.blockedAutoplay = false
         this.pendingSeekResume = false
         this.stateSubject.next(this.createTimedState('playing', event.snapshot))
         break
       case 'pause':
+        if (
+          !this.explicitPauseRequested &&
+          this.source.autoplay &&
+          event.snapshot.currentTime <= 0.1 &&
+          !event.snapshot.ended
+        ) {
+          this.blockedAutoplay = true
+        }
+        this.explicitPauseRequested = false
         if (this.currentState.status !== 'seeking') {
           this.stateSubject.next(this.createTimedState('paused', event.snapshot))
         }
         break
       case 'time-update':
+        if (event.snapshot.currentTime > 0.1) this.blockedAutoplay = false
+        this.updateTimedState(event.snapshot)
+        break
       case 'rate-change':
         this.updateTimedState(event.snapshot)
         break
@@ -255,6 +285,26 @@ export class PlaybackSession {
       currentTime: logical.currentTime,
       rate: logical.rate,
     }
+  }
+
+  private beginSeek(time: number): {
+    mediaSnapshot: PlaybackMediaSnapshot
+    targetTime: number
+  } {
+    const mediaSnapshot = this.media.getSnapshot()
+    const snapshot = this.toLogicalSnapshot(mediaSnapshot)
+    const duration = Number.isFinite(snapshot.duration) ? Math.max(snapshot.duration, 0) : 0
+    const targetTime = duration > 0 ? clamp(time, 0, duration) : Math.max(time, 0)
+    this.pendingSeekResume = this.currentState.status === 'playing'
+    this.stateSubject.next({
+      status: 'seeking',
+      source: this.source!,
+      duration,
+      targetTime,
+      resumeAfterSeek: this.pendingSeekResume,
+      rate: mediaSnapshot.rate,
+    })
+    return { mediaSnapshot, targetTime }
   }
 
   private updateTimedState(snapshot: PlaybackMediaSnapshot): void {

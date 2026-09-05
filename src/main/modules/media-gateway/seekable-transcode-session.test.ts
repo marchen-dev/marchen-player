@@ -96,6 +96,7 @@ describe('seek generation 协调器', () => {
           stderr: '',
           durationMs: 0,
         }),
+        stop: () => {},
         cancel: () => {},
       }),
     })
@@ -127,6 +128,7 @@ describe('seek generation 协调器', () => {
       },
       createProducer: () => () => ({
         result: new Promise(() => {}),
+        stop: () => {},
         cancel: () => {},
       }),
     })

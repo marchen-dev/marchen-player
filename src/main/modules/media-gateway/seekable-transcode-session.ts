@@ -108,7 +108,9 @@ export class SeekableTranscodeSession {
       const eventGeneration =
         event.type === 'generation-changed'
           ? event.generation.generation
-          : event.session.activeGeneration
+          : event.type === 'session-changed'
+            ? event.session.activeGeneration
+            : this.#current?.generation.generation
       if (eventGeneration !== this.#current?.generation.generation) return
       for (const listener of this.#listeners) listener(event)
     })

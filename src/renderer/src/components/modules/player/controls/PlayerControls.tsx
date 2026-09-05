@@ -9,6 +9,7 @@ import {
   usePlaybackClock,
   usePlaybackCommands,
   usePlaybackViewModel,
+  usePlayerRuntime,
 } from '@renderer/services/player-runtime'
 import { captureFeatureUsed } from '@renderer/services/telemetry/features'
 import { useAtomValue } from 'jotai'
@@ -48,6 +49,7 @@ export const PlayerControls = ({
   const state = usePlaybackViewModel()
   const commands = usePlaybackCommands()
   const clock = usePlaybackClock()
+  const runtime = usePlayerRuntime()
   const initialSnapshot = clock.snapshot()
   const availability = resolvePlayerControlAvailability(capabilities)
   const [volume, setVolume] = useState(initialSnapshot.volume)
@@ -245,6 +247,7 @@ export const PlayerControls = ({
         />
         <PlayerSettingsPanel
           capabilities={capabilities}
+          playbackInfo={runtime.playbackInfo}
           rate={rate}
           rotation={rotation}
           onRateChange={(nextRate) => {

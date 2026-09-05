@@ -27,6 +27,8 @@ export interface FfmpegExecutionOptions {
   signal?: AbortSignal
   timeoutMs?: number
   gracefulShutdownMs?: number
+  /** 长时间播放 Job 允许通过 stdin 的 q 命令先优雅退出。 */
+  gracefulStdin?: boolean
   stdoutLimitBytes?: number
   stderrLimitBytes?: number
   progress?: boolean
@@ -39,6 +41,7 @@ export const DEFAULT_STDOUT_LIMIT_BYTES = 8 * 1024 * 1024
 export interface FfmpegExecution {
   pid?: number
   result: Promise<FfmpegExecutionResult>
+  stop: () => void
   cancel: () => void
 }
 
@@ -188,6 +191,7 @@ export class FfmpegProcessExecutor {
     } catch (error) {
       return {
         result: Promise.reject(error),
+        stop: () => undefined,
         cancel: () => undefined,
       }
     }
@@ -200,15 +204,21 @@ export class FfmpegProcessExecutor {
             durationMs: 0,
           }),
         ),
+        stop: () => undefined,
         cancel: () => undefined,
       }
     }
 
-    // shell 必须保持 false，媒体路径只作为独立参数传递。stdin 由 stdio 直接关闭；
-    // 需要进度的 FFmpeg preset 显式传入 `-progress pipe:3`，执行器只负责消费 fd 3。
+    // shell 必须保持 false，媒体路径只作为独立参数传递。短任务仍直接关闭 stdin；
+    // 只有长时间播放 Job 显式开启 gracefulStdin，用 q 请求 FFmpeg 完成当前输出后退出。
     const child = spawn(options.executable, [...options.arguments], {
       shell: false,
-      stdio: ['ignore', 'pipe', 'pipe', options.progress ? 'pipe' : 'ignore'],
+      stdio: [
+        options.gracefulStdin ? 'pipe' : 'ignore',
+        'pipe',
+        'pipe',
+        options.progress ? 'pipe' : 'ignore',
+      ],
       windowsHide: true,
     })
 
@@ -220,7 +230,8 @@ export class FfmpegProcessExecutor {
 
     const requestTermination = () => {
       if (child.exitCode !== null || child.signalCode !== null) return
-      child.kill('SIGTERM')
+      if (options.gracefulStdin && child.stdin?.writable) child.stdin.end('q\n')
+      else child.kill('SIGTERM')
       forceKillTimer ??= setTimeout(() => {
         if (child.exitCode === null && child.signalCode === null) child.kill('SIGKILL')
       }, gracefulShutdownMs)
@@ -342,6 +353,7 @@ export class FfmpegProcessExecutor {
     return {
       pid: child.pid,
       result,
+      stop: requestTermination,
       cancel: requestCancellation,
     }
   }

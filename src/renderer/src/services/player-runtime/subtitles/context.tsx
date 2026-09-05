@@ -4,6 +4,7 @@ import type {
   ResolvedSubtitleTrack,
   SubtitleCatalogPort,
   SubtitleTrackDescriptor,
+  PlaybackVisualStateBridge,
 } from '@renderer/services/player-runtime'
 import type { PropsWithChildren } from 'react'
 import { db } from '@renderer/database/db'
@@ -35,6 +36,7 @@ interface NativeSubtitleProviderProps extends PropsWithChildren {
   catalog: SubtitleCatalogPort
   source: DurableMediaSource
   hash: string
+  fallbackState?: PlaybackVisualStateBridge
 }
 
 export const NativeSubtitleProvider = ({
@@ -43,6 +45,7 @@ export const NativeSubtitleProvider = ({
   catalog,
   source,
   hash,
+  fallbackState,
   children,
 }: NativeSubtitleProviderProps) => {
   const adapterRef = useRef<LibassSubtitleAdapter | null>(null)
@@ -245,6 +248,13 @@ export const NativeSubtitleProvider = ({
     }),
     [error, importTrack, loading, selectTrack, selectedId, timeOffset, tracks, updateTimeOffset],
   )
+
+  fallbackState?.bindSubtitle({
+    selectedId,
+    timeOffset,
+    selectSubtitle: selectTrack,
+    setSubtitleTimeOffset: updateTimeOffset,
+  })
 
   return <NativeSubtitleContext value={value}>{children}</NativeSubtitleContext>
 }

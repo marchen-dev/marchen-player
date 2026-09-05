@@ -1,14 +1,20 @@
 import type { IncomingMessage, ServerResponse } from 'node:http'
 import type { MediaGatewayRegistry } from './registry'
+import type { DynamicHlsRequestCoordinator } from './dynamic-hls-coordinator'
 import { createReadStream } from 'node:fs'
 import { lstat } from 'node:fs/promises'
+import { SegmentWaitTimeoutError } from './segment-store'
 
 const ROUTE = /^\/v1\/media\/([\w-]{43})\/g\/(\d+)\/([A-Za-z0-9][\w.-]{0,127})$/
 const SOURCE_ROUTE = /^\/v1\/media\/([\w-]{43})\/source$/
+const V2_ROUTE = /^\/v2\/media\/([\w-]{43})\/(index\.m3u8|init\.mp4|segments\/(\d+)\.m4s)$/
 const LOOPBACK_ADDRESSES = new Set(['127.0.0.1', '::1', '::ffff:127.0.0.1'])
 
 export interface MediaGatewayRouterOptions {
   isOriginAllowed: (origin: string) => boolean
+  dynamicHlsV2Enabled?: boolean
+  dynamicHlsCoordinator?: DynamicHlsRequestCoordinator
+  dynamicHlsRequestTimeoutMs?: number
 }
 
 export class MediaGatewayRouter {
@@ -48,6 +54,42 @@ export class MediaGatewayRouter {
       await this.serveResource(request, response, source, true)
       return
     }
+    const v2Match = this.options.dynamicHlsV2Enabled ? rawPath.match(V2_ROUTE) : undefined
+    if (v2Match) {
+      const resourceName = v2Match[3] ? `segment-${v2Match[3]}.m4s` : v2Match[2]!
+      if (this.options.dynamicHlsCoordinator && v2Match[2] !== 'index.m3u8') {
+        const controller = new AbortController()
+        const abort = () => controller.abort(new Error('client closed'))
+        request.once('aborted', abort)
+        response.once('close', () => {
+          if (!response.writableFinished) abort()
+        })
+        let acquired
+        try {
+          const requestOptions = {
+            signal: controller.signal,
+            timeoutMs: this.options.dynamicHlsRequestTimeoutMs,
+          }
+          acquired = v2Match[3]
+            ? await this.options.dynamicHlsCoordinator.requestSegment(
+                v2Match[1]!,
+                Number(v2Match[3]),
+                requestOptions,
+              )
+            : await this.options.dynamicHlsCoordinator.requestInit(v2Match[1]!, requestOptions)
+        } catch (error) {
+          if (error instanceof SegmentWaitTimeoutError) return this.respond(response, 504)
+          throw error
+        }
+        if (!acquired) return this.respond(response, 404)
+        await this.serveResource(request, response, acquired.resource, false, acquired.release)
+        return
+      }
+      const resource = this.registry.resolveStable(v2Match[1]!, resourceName)
+      if (!resource?.complete) return this.respond(response, 404)
+      await this.serveResource(request, response, resource, false)
+      return
+    }
     const match = rawPath.match(ROUTE)
     if (!match) return this.respond(response, 404)
     const generation = Number(match[2])
@@ -62,14 +104,19 @@ export class MediaGatewayRouter {
     response: ServerResponse,
     resource: { path: string; mimeType: string; cacheControl: string },
     allowRange: boolean,
+    release: () => void = () => undefined,
   ): Promise<void> {
     let statistics
     try {
       statistics = await lstat(resource.path)
     } catch {
+      release()
       return this.respond(response, 404)
     }
-    if (!statistics.isFile() || statistics.isSymbolicLink()) return this.respond(response, 404)
+    if (!statistics.isFile() || statistics.isSymbolicLink()) {
+      release()
+      return this.respond(response, 404)
+    }
 
     let start = 0
     let end = Math.max(0, statistics.size - 1)
@@ -77,6 +124,7 @@ export class MediaGatewayRouter {
     const range = allowRange ? parseRange(request.headers.range, statistics.size) : undefined
     if (range === null) {
       response.setHeader('Content-Range', `bytes */${statistics.size}`)
+      release()
       return this.respond(response, 416)
     }
     if (range) {
@@ -92,6 +140,7 @@ export class MediaGatewayRouter {
     response.setHeader('Content-Length', statistics.size === 0 ? 0 : end - start + 1)
     if (request.method === 'HEAD') {
       response.end()
+      release()
       return
     }
 
@@ -104,6 +153,15 @@ export class MediaGatewayRouter {
       if (!response.writableFinished) stream.destroy()
     })
     stream.once('error', () => response.destroy())
+    let released = false
+    const releaseOnce = () => {
+      if (released) return
+      released = true
+      release()
+    }
+    response.once('finish', releaseOnce)
+    response.once('close', releaseOnce)
+    stream.once('error', releaseOnce)
     stream.pipe(response)
   }
 

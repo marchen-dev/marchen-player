@@ -1,19 +1,22 @@
 import type {
   BrowserMediaCapabilities,
+  CapabilityEvidence,
+  CapabilityVerdict,
   DecodeCapabilityFact,
   MediaAudioStream,
   MediaProbeResult,
   MediaVideoStream,
 } from '@marchen/shared/media'
 
-interface MediaCapabilitiesProbeDependencies {
+export interface MediaCapabilitiesProbeDependencies {
   decodingInfo?: (
     configuration: MediaDecodingConfiguration,
   ) => Promise<MediaCapabilitiesDecodingInfo>
   canPlayType?: (type: string) => CanPlayTypeResult
+  mediaSourceIsTypeSupported?: (type: string) => boolean
 }
 
-const containerMimeType = (probe: MediaProbeResult) => {
+export const resolveContainerMimeType = (probe: MediaProbeResult) => {
   if (probe.formatNames.some((name) => ['mp4', 'mov', 'm4a', '3gp', '3g2', 'mj2'].includes(name))) {
     return 'video/mp4'
   }
@@ -29,7 +32,7 @@ const containerMimeType = (probe: MediaProbeResult) => {
   return undefined
 }
 
-const contentType = (mimeType: string, codecString: string) =>
+export const mediaContentType = (mimeType: string, codecString: string) =>
   `${mimeType}; codecs="${codecString}"`
 
 const canPlayFact = (
@@ -56,7 +59,14 @@ const canPlayFact = (
   }
 }
 
-const unknownCodecFact = (): DecodeCapabilityFact => ({
+export const unknownCodecFact = (): DecodeCapabilityFact => ({
+  supported: 'unknown',
+  smooth: 'unknown',
+  powerEfficient: 'unknown',
+  source: 'unknown',
+})
+
+export const unknownCapabilityEvidence = (): CapabilityEvidence => ({
   supported: 'unknown',
   smooth: 'unknown',
   powerEfficient: 'unknown',
@@ -68,10 +78,19 @@ const queryFact = async (
   contentTypeValue: string,
   configuration: Omit<MediaDecodingConfiguration, 'type'>,
   dependencies: MediaCapabilitiesProbeDependencies,
+  transport: MediaDecodingType = 'file',
 ): Promise<DecodeCapabilityFact> => {
+  if (transport === 'media-source') {
+    // 文件解码能力不证明可 append；MSE 明确拒绝时优先保留该结果。
+    try {
+      if (dependencies.mediaSourceIsTypeSupported?.(contentTypeValue) === false) {
+        return { ...unknownCodecFact(), codecString, supported: false, source: 'media-source' }
+      }
+    } catch {}
+  }
   if (dependencies.decodingInfo) {
     try {
-      const result = await dependencies.decodingInfo({ type: 'file', ...configuration })
+      const result = await dependencies.decodingInfo({ type: transport, ...configuration })
       return {
         codecString,
         supported: result.supported,
@@ -81,28 +100,36 @@ const queryFact = async (
       }
     } catch {}
   }
+  if (transport === 'media-source') {
+    try {
+      const supported = dependencies.mediaSourceIsTypeSupported?.(contentTypeValue)
+      if (supported !== undefined) {
+        return { ...unknownCodecFact(), codecString, supported, source: 'media-source' }
+      }
+    } catch {}
+    return { ...unknownCodecFact(), codecString }
+  }
   return canPlayFact(codecString, contentTypeValue, dependencies.canPlayType)
 }
 
-const primaryVideo = (probe: MediaProbeResult) =>
+export const primaryVideo = (probe: MediaProbeResult) =>
   probe.streams.find(
     (stream): stream is MediaVideoStream =>
       stream.type === 'video' && stream.index === probe.primaryVideoStreamIndex,
   )
 
-const primaryAudio = (probe: MediaProbeResult) =>
+export const primaryAudio = (probe: MediaProbeResult) =>
   probe.streams.find(
     (stream): stream is MediaAudioStream =>
       stream.type === 'audio' && stream.index === probe.primaryAudioStreamIndex,
   )
 
-export const queryBrowserMediaCapabilities = async (
-  probe: MediaProbeResult,
+const verdictForCanPlayType = (result: CanPlayTypeResult | undefined): CapabilityVerdict =>
+  result === undefined ? 'unknown' : result === 'probably' || result === 'maybe'
+
+export const resolveMediaCapabilitiesProbeDependencies = (
   dependencies: MediaCapabilitiesProbeDependencies = {},
-): Promise<BrowserMediaCapabilities> => {
-  const mimeType = containerMimeType(probe)
-  const video = primaryVideo(probe)
-  const audio = primaryAudio(probe)
+): MediaCapabilitiesProbeDependencies => {
   const decodingInfo =
     dependencies.decodingInfo ??
     (typeof navigator === 'undefined'
@@ -113,82 +140,158 @@ export const queryBrowserMediaCapabilities = async (
       ? undefined
       : document.createElement('video')
   const canPlayType = dependencies.canPlayType ?? videoElement?.canPlayType.bind(videoElement)
-  const resolvedDependencies = { decodingInfo, canPlayType }
-  if (!mimeType) {
-    return {
-      containerSupported: 'unknown',
-      targetContainer: 'video/mp4',
-      targetContainerSupported: 'unknown',
-      ...(video ? { video: unknownCodecFact() } : {}),
-      ...(audio ? { audio: unknownCodecFact() } : {}),
-    }
-  }
+  const mediaSourceIsTypeSupported =
+    dependencies.mediaSourceIsTypeSupported ??
+    (typeof MediaSource === 'undefined' ? undefined : MediaSource.isTypeSupported.bind(MediaSource))
+  return { decodingInfo, canPlayType, mediaSourceIsTypeSupported }
+}
 
+const combinedCodecType = (
+  probe: MediaProbeResult,
+  mimeType: string,
+): { complete: boolean; type: string } => {
+  const video = primaryVideo(probe)
+  const audio = primaryAudio(probe)
   const codecStrings = [video?.codecString, audio?.codecString].filter((value): value is string =>
     Boolean(value),
   )
-  const combinedType =
-    codecStrings.length > 0 ? contentType(mimeType, codecStrings.join(',')) : mimeType
-  const containerResult = canPlayType?.(combinedType)
   const hasCompleteSourceCodecFacts = (!video || video.codecString) && (!audio || audio.codecString)
-  const targetCodecType =
-    codecStrings.length > 0 ? contentType('video/mp4', codecStrings.join(',')) : 'video/mp4'
-  const targetContainerResult = hasCompleteSourceCodecFacts
-    ? canPlayType?.(targetCodecType)
-    : undefined
+  return {
+    complete: Boolean(hasCompleteSourceCodecFacts),
+    type: codecStrings.length > 0 ? mediaContentType(mimeType, codecStrings.join(',')) : mimeType,
+  }
+}
+
+export const probeContainerCapability = (
+  probe: MediaProbeResult,
+  dependencies: MediaCapabilitiesProbeDependencies,
+): CapabilityVerdict => probeContainerCapabilityEvidence(probe, dependencies).supported
+
+export const probeContainerCapabilityEvidence = (
+  probe: MediaProbeResult,
+  dependencies: MediaCapabilitiesProbeDependencies,
+): CapabilityEvidence => {
+  const mimeType = resolveContainerMimeType(probe)
+  if (!mimeType) return unknownCapabilityEvidence()
+  const combined = combinedCodecType(probe, mimeType)
+  if (!combined.complete) return unknownCapabilityEvidence()
+  const result = dependencies.canPlayType?.(combined.type)
+  return result === undefined
+    ? unknownCapabilityEvidence()
+    : {
+        supported: verdictForCanPlayType(result),
+        smooth: 'unknown',
+        powerEfficient: 'unknown',
+        source: 'can-play-type',
+      }
+}
+
+export const probeFmp4HlsCapability = (
+  probe: MediaProbeResult,
+  dependencies: MediaCapabilitiesProbeDependencies,
+): CapabilityVerdict => probeFmp4HlsCapabilityEvidence(probe, dependencies).supported
+
+export const probeFmp4HlsCapabilityEvidence = (
+  probe: MediaProbeResult,
+  dependencies: MediaCapabilitiesProbeDependencies,
+): CapabilityEvidence => {
+  const videoCodecString = primaryVideo(probe)?.codecString
+  if (!videoCodecString) return unknownCapabilityEvidence()
+  // fMP4/MSE 容器门禁只验证候选复制的视频轨。音频能力在独立轨道
+  // probe 中决定 copy/transcode；若把 EAC-3 拼进组合 MIME，会把“HEVC copy + AAC”
+  // 误判为整个 fMP4 不支持，导致不必要的全视频转码。
+  const videoType = mediaContentType('video/mp4', videoCodecString)
+  const mse = dependencies.mediaSourceIsTypeSupported?.(videoType)
+  if (mse !== undefined) {
+    return {
+      supported: mse,
+      smooth: 'unknown',
+      powerEfficient: 'unknown',
+      source: 'media-source',
+    }
+  }
+  return unknownCapabilityEvidence()
+}
+
+/** Producer 的实际目标事实用于最终组合门禁，不能拿输入 EAC-3 代替输出 AAC。 */
+export const probeFmp4OutputCapability = (
+  output: MediaProbeResult,
+  dependencies: MediaCapabilitiesProbeDependencies,
+): CapabilityEvidence => {
+  const combined = combinedCodecType(output, 'video/mp4')
+  if (!combined.complete) return unknownCapabilityEvidence()
+  try {
+    const supported = dependencies.mediaSourceIsTypeSupported?.(combined.type)
+    return supported === undefined
+      ? unknownCapabilityEvidence()
+      : { ...unknownCapabilityEvidence(), supported, source: 'media-source' }
+  } catch {
+    return unknownCapabilityEvidence()
+  }
+}
+
+export const probeVideoCapability = async (
+  probe: MediaProbeResult,
+  video: MediaVideoStream,
+  dependencies: MediaCapabilitiesProbeDependencies,
+  transport: MediaDecodingType = 'file',
+): Promise<DecodeCapabilityFact> => {
+  if (!video.codecString) return unknownCodecFact()
+  const type = mediaContentType('video/mp4', video.codecString)
+  return queryFact(
+    video.codecString,
+    type,
+    {
+      video: {
+        contentType: type,
+        width: video.width,
+        height: video.height,
+        bitrate: Math.max(1, probe.bitRate ?? 5_000_000),
+        framerate: video.averageFrameRate ?? video.frameRate ?? 30,
+      },
+    },
+    dependencies,
+    transport,
+  )
+}
+
+export const probeVideoAudioCapability = async (
+  audio: MediaAudioStream,
+  dependencies: MediaCapabilitiesProbeDependencies,
+  transport: MediaDecodingType = 'file',
+): Promise<DecodeCapabilityFact> => {
+  if (!audio.codecString) return unknownCodecFact()
+  const type = mediaContentType('audio/mp4', audio.codecString)
+  return queryFact(
+    audio.codecString,
+    type,
+    {
+      audio: {
+        contentType: type,
+        channels: String(audio.channels ?? 2),
+        bitrate: Math.max(1, audio.bitRate ?? 192_000),
+        samplerate: audio.sampleRate ?? 48_000,
+      },
+    },
+    dependencies,
+    transport,
+  )
+}
+
+export const queryBrowserMediaCapabilities = async (
+  probe: MediaProbeResult,
+  dependencies: MediaCapabilitiesProbeDependencies = {},
+): Promise<BrowserMediaCapabilities> => {
+  const video = primaryVideo(probe)
+  const audio = primaryAudio(probe)
+  const resolvedDependencies = resolveMediaCapabilitiesProbeDependencies(dependencies)
   const result: BrowserMediaCapabilities = {
-    containerSupported:
-      containerResult === undefined || !hasCompleteSourceCodecFacts
-        ? 'unknown'
-        : containerResult === 'probably' || containerResult === 'maybe',
+    containerSupported: probeContainerCapability(probe, resolvedDependencies),
     targetContainer: 'video/mp4',
-    targetContainerSupported:
-      targetContainerResult === undefined
-        ? 'unknown'
-        : targetContainerResult === 'probably' || targetContainerResult === 'maybe',
+    targetContainerSupported: probeFmp4HlsCapability(probe, resolvedDependencies),
   }
 
-  // 容器能力与轨道解码能力必须分开判断。兼容输出固定使用 fMP4，
-  // 因此轨道能力始终针对 video/mp4/audio/mp4，而不是输入 MKV/WebM 容器。
-  const elementaryMimeType = 'video/mp4'
-
-  if (video?.codecString) {
-    const type = contentType(elementaryMimeType, video.codecString)
-    result.video = await queryFact(
-      video.codecString,
-      type,
-      {
-        video: {
-          contentType: type,
-          width: video.width,
-          height: video.height,
-          bitrate: Math.max(1, probe.bitRate ?? 5_000_000),
-          framerate: video.averageFrameRate ?? video.frameRate ?? 30,
-        },
-      },
-      resolvedDependencies,
-    )
-  } else if (video) {
-    result.video = unknownCodecFact()
-  }
-  if (audio?.codecString) {
-    const audioMimeType = elementaryMimeType.replace(/^video\//, 'audio/')
-    const type = contentType(audioMimeType, audio.codecString)
-    result.audio = await queryFact(
-      audio.codecString,
-      type,
-      {
-        audio: {
-          contentType: type,
-          channels: String(audio.channels ?? 2),
-          bitrate: Math.max(1, audio.bitRate ?? 192_000),
-          samplerate: audio.sampleRate ?? 48_000,
-        },
-      },
-      resolvedDependencies,
-    )
-  } else if (audio) {
-    result.audio = unknownCodecFact()
-  }
+  if (video) result.video = await probeVideoCapability(probe, video, resolvedDependencies)
+  if (audio) result.audio = await probeVideoAudioCapability(audio, resolvedDependencies)
   return result
 }

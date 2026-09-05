@@ -2,6 +2,7 @@ import type {
   MediaDisposition,
   MediaDynamicRange,
   MediaProbeResult,
+  MediaSourceFingerprint,
   MediaStream,
   MediaStreamBase,
 } from '@marchen/shared/media'
@@ -97,6 +98,26 @@ const h264ProfileIdc = (profile: string | undefined): number | undefined => {
   return undefined
 }
 
+const numericCodecProfile = (
+  profile: string | undefined,
+  namedProfiles: Readonly<Record<string, number>> = {},
+): number | undefined => {
+  if (!profile) return undefined
+  const normalized = profile.toLowerCase().trim()
+  if (normalized in namedProfiles) return namedProfiles[normalized]
+  const number = normalized.match(/\d+/)?.[0]
+  return number === undefined ? undefined : Number(number)
+}
+
+const twoDigits = (value: number): string => value.toString().padStart(2, '0')
+
+const aacObjectType = (profile: string | undefined): number => {
+  const normalized = profile?.toLowerCase() ?? ''
+  if (normalized.includes('he-aacv2') || normalized.includes('he-aac v2')) return 29
+  if (normalized.includes('he-aac') || normalized === 'he') return 5
+  return 2
+}
+
 /**
  * ffprobe 9 仍不会为多数 HEVC 流输出 mime_codec_string。这里仅推导项目目标 MP4/MSE
  * 所需的稳定子集；无法可靠表达的 codec 保持 unknown，交给目标 init segment 再探测。
@@ -109,7 +130,7 @@ export const deriveTargetCodecString = (stream: FfprobeObject): string | undefin
     case 'h264': {
       const profileIdc = h264ProfileIdc(profile)
       if (profileIdc === undefined || level === undefined) return undefined
-      const constraints = profile?.toLowerCase().includes('constrained') ? 0xC0 : 0
+      const constraints = profile?.toLowerCase().includes('constrained') ? 0xc0 : 0
       return `avc1.${profileIdc.toString(16).padStart(2, '0')}${constraints
         .toString(16)
         .padStart(2, '0')}${level.toString(16).padStart(2, '0')}`
@@ -119,8 +140,25 @@ export const deriveTargetCodecString = (stream: FfprobeObject): string | undefin
       if (profile?.toLowerCase() === 'main') return `hvc1.1.6.L${level}.B0`
       if (profile?.toLowerCase() === 'main 10') return `hvc1.2.4.L${level}.B0`
       return undefined
+    case 'av1': {
+      const profileNumber = numericCodecProfile(profile, { main: 0, high: 1, professional: 2 })
+      const depth = bitDepth(stream)
+      if (profileNumber === undefined || level === undefined || level < 0 || depth === undefined)
+        return undefined
+      const tier = optionalString(stream.tier)?.toLowerCase() === 'high' ? 'H' : 'M'
+      return `av01.${profileNumber}.${twoDigits(level)}${tier}.${twoDigits(depth)}`
+    }
+    case 'vp9':
+    case 'vp8': {
+      const profileNumber = numericCodecProfile(profile)
+      const depth = bitDepth(stream)
+      if (profileNumber === undefined || level === undefined || level < 0 || depth === undefined)
+        return undefined
+      const prefix = codec === 'vp9' ? 'vp09' : 'vp08'
+      return `${prefix}.${twoDigits(profileNumber)}.${twoDigits(level)}.${twoDigits(depth)}`
+    }
     case 'aac':
-      return 'mp4a.40.2'
+      return `mp4a.40.${aacObjectType(profile)}`
     case 'eac3':
       return 'ec-3'
     case 'ac3':
@@ -129,6 +167,12 @@ export const deriveTargetCodecString = (stream: FfprobeObject): string | undefin
       return 'fLaC'
     case 'opus':
       return 'opus'
+    case 'mp3':
+      return 'mp4a.6B'
+    case 'alac':
+      return 'alac'
+    case 'vorbis':
+      return 'vorbis'
     default:
       return undefined
   }
@@ -182,6 +226,7 @@ const normalizeStream = (value: unknown): MediaStream => {
       return {
         ...base,
         type: 'audio',
+        bitDepth: bitDepth(stream),
         sampleRate: integer(stream.sample_rate),
         channels: integer(stream.channels),
         channelLayout: optionalString(stream.channel_layout),
@@ -194,12 +239,17 @@ const normalizeStream = (value: unknown): MediaStream => {
   }
 }
 
-export const normalizeFfprobeOutput = (sourceId: string, value: unknown): MediaProbeResult => {
+export const normalizeFfprobeOutput = (
+  sourceFingerprint: MediaSourceFingerprint,
+  value: unknown,
+): MediaProbeResult => {
   const root = objectValue(value)
   const format = objectValue(root.format)
   const streams = Array.isArray(root.streams) ? root.streams.map(normalizeStream) : []
   return {
-    sourceId,
+    schemaVersion: sourceFingerprint.schemaVersion,
+    sourceFingerprint,
+    sourceId: sourceFingerprint.sourceId,
     formatNames: optionalString(format.format_name)?.split(',').filter(Boolean) ?? [],
     formatLongName: optionalString(format.format_long_name),
     startTime: finiteNumber(format.start_time) ?? 0,

@@ -1,5 +1,6 @@
 import type { PlayerSettingsSection } from '@renderer/atoms/player-settings-state'
 import type { PlayerCapabilities } from '@renderer/services/player-runtime'
+import type { PlaybackSourceLeaseDescriptor } from '@marchen/shared/media'
 import { playerSettingsPanelAtom } from '@renderer/atoms/player'
 import {
   getAvailablePlayerSettingsSections,
@@ -13,6 +14,7 @@ import { Switch } from '@renderer/components/ui/switch'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@renderer/components/ui/tabs'
 import { cn } from '@renderer/lib/utils'
 import { usePlayerPortalContainer } from '@renderer/services/player-runtime'
+import { createPlaybackInfoRows } from '@renderer/services/player-runtime/playback-info'
 import { useAtom } from 'jotai'
 import { lazy, useEffect } from 'react'
 
@@ -29,6 +31,7 @@ export type PlayerRotation = (typeof ROTATIONS)[number]
 
 interface PlayerSettingsPanelProps {
   capabilities: PlayerCapabilities
+  playbackInfo?: PlaybackSourceLeaseDescriptor
   rate: number
   rotation: PlayerRotation
   onRateChange: (rate: number) => void
@@ -44,6 +47,7 @@ const sectionMetadata: Record<PlayerSettingsSection, { label: string; icon: stri
 
 export const PlayerSettingsPanel = ({
   capabilities,
+  playbackInfo,
   rate,
   rotation,
   onRateChange,
@@ -115,6 +119,7 @@ export const PlayerSettingsPanel = ({
                 <TabsContent value="playback" className="mt-0 focus-visible:ring-0">
                   <PlaybackSettings
                     capabilities={capabilities}
+                    playbackInfo={playbackInfo}
                     rate={rate}
                     rotation={rotation}
                     onRateChange={onRateChange}
@@ -149,12 +154,14 @@ export const PlayerSettingsPanel = ({
 
 const PlaybackSettings = ({
   capabilities,
+  playbackInfo,
   rate,
   rotation,
   onRateChange,
   onRotationChange,
 }: PlayerSettingsPanelProps) => {
   const [settings, setSettings] = usePlayerSettings()
+  const playbackInfoRows = createPlaybackInfoRows(playbackInfo)
   const positionPresets = [
     { label: '上方', xRatio: 0.5, yRatio: 0.18 },
     { label: '默认', xRatio: 0.5, yRatio: 0.72 },
@@ -177,6 +184,17 @@ const PlaybackSettings = ({
                     : '不可用，已回退直放'}
             </span>
           </div>
+          {playbackInfoRows.map((row) => (
+            <div
+              key={row.label}
+              className="flex min-h-11 items-start justify-between gap-4 px-4 py-3 text-sm"
+            >
+              <span className="shrink-0">{row.label}</span>
+              <span className="min-w-0 text-right break-words text-[var(--player-settings-muted)]">
+                {row.value}
+              </span>
+            </div>
+          ))}
         </PanelCard>
       </PanelSection>
 

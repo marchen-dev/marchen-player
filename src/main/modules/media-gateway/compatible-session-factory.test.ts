@@ -6,7 +6,7 @@ import { join, resolve } from 'node:path'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { MediaCacheManager } from '../ffmpeg/cache'
-import { FfmpegExecutionError, FfmpegProcessExecutor  } from '../ffmpeg/executor'
+import { FfmpegExecutionError, FfmpegProcessExecutor } from '../ffmpeg/executor'
 import { FfmpegMediaTools } from '../ffmpeg/media-tools'
 import { FfmpegTaskScheduler } from '../ffmpeg/scheduler'
 import { createCompatibleSessionFactory } from './compatible-session-factory'
@@ -57,7 +57,11 @@ const fakeProbe = {
 const fakeBackend = (run: ReturnType<typeof vi.fn>) => ({
   runtime: {
     paths: { ffmpeg: '/runtime/ffmpeg', ffprobe: '/runtime/ffprobe' },
-    capabilities: { encoders: new Set(['libx264']) },
+    capabilities: {
+      decoders: new Set(['hevc']),
+      encoders: new Set(['libx264', 'aac']),
+      hwaccels: new Set<string>(),
+    },
   },
   executor: { run },
   scheduler: {
@@ -68,14 +72,17 @@ const fakeBackend = (run: ReturnType<typeof vi.fn>) => ({
 
 describe('兼容会话工厂分阶段预检错误', () => {
   it('编码器合成帧自检失败保留 encoder-check 与 stderr', async () => {
-    const run = vi.fn().mockRejectedValue(
-      new FfmpegExecutionError('encoder init failed', {
-        failure: 'exit',
-        code: 1,
-        stderr: 'VideoToolbox unavailable',
-        durationMs: 1,
-      }),
-    )
+    const run = vi
+      .fn()
+      .mockResolvedValueOnce({ stdout: Buffer.alloc(0) })
+      .mockRejectedValueOnce(
+        new FfmpegExecutionError('encoder init failed', {
+          failure: 'exit',
+          code: 1,
+          stderr: 'VideoToolbox unavailable',
+          durationMs: 1,
+        }),
+      )
     const registry = new MediaGatewayRegistry()
     const registration = registry.createSession('fixture-hash')
     const factory = createCompatibleSessionFactory(registry, {
@@ -100,6 +107,7 @@ describe('兼容会话工厂分阶段预检错误', () => {
     const registration = registry.createSession('fixture-hash')
     const run = vi
       .fn()
+      .mockResolvedValueOnce({ stdout: Buffer.alloc(0) })
       .mockResolvedValueOnce({ stdout: Buffer.alloc(0) })
       .mockRejectedValueOnce(
         new FfmpegExecutionError('stream map failed', {
@@ -198,8 +206,11 @@ describe.runIf(existsSync(ffmpeg) && existsSync(ffprobe) && existsSync(fixture))
             },
             metadata: {} as never,
             capabilities: {
-              decoders: new Set(),
-              encoders: new Set(['libx264']),
+              decoders: new Set(['hevc', 'h264']),
+              encoders: new Set(['libx264', 'aac']),
+              demuxers: new Set(),
+              muxers: new Set(),
+              hwaccels: new Set(),
               formats: new Set(),
               filters: new Set(),
               protocols: new Set(),
@@ -250,6 +261,7 @@ describe.runIf(existsSync(ffmpeg) && existsSync(ffprobe) && existsSync(fixture))
       expect(compatible.session?.lease).toMatchObject({
         logicalSourceId: 'fixture-hash',
         profile: 'copy-video-aac',
+        hlsSessionMode: 'generation',
         attemptChain: ['copy-video-aac'],
         transport: 'hls',
         mimeType: 'application/vnd.apple.mpegurl',

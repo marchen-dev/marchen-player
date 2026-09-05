@@ -79,14 +79,14 @@ export default function createWindow() {
 export const getMainWindow = () => windows.mainWindow
 
 const initializeListeningEvent = (mainWindow: BrowserWindow) => {
-  const cleanupMedia = () => {
-    void shutdownMediaSessions().catch((error) =>
+  const cleanupMedia = (event: 'window-close' | 'renderer-crash') => {
+    void shutdownMediaSessions(event).catch((error) =>
       console.error('[media-session] Renderer 清理失败', error),
     )
   }
 
-  mainWindow.on('closed', cleanupMedia)
-  mainWindow.webContents.on('render-process-gone', cleanupMedia)
+  mainWindow.on('closed', () => cleanupMedia('window-close'))
+  mainWindow.webContents.on('render-process-gone', () => cleanupMedia('renderer-crash'))
 
   mainWindow.on('ready-to-show', () => {
     isDev ? mainWindow.showInactive() : mainWindow.show()

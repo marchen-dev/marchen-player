@@ -1,6 +1,7 @@
 import type { PropsWithChildren } from 'react'
 import { convertDandanplayComments } from '@marchen/danmaku-engine'
-import { usePlayerSettingsValue } from '@renderer/atoms/settings/player'
+import { usePlayerSettings } from '@renderer/atoms/settings/player'
+import type { PlaybackVisualStateBridge } from '../fallback-state'
 import { usePlayerLoadingSelector } from '@renderer/services/player-loading/hooks'
 import {
   usePlaybackClock,
@@ -17,11 +18,14 @@ interface NativeDanmakuContextValue {
 
 const NativeDanmakuContext = createContext<NativeDanmakuContextValue | null>(null)
 
-export const NativeDanmakuProvider = ({ children }: PropsWithChildren) => {
+export const NativeDanmakuProvider = ({
+  children,
+  fallbackState,
+}: PropsWithChildren<{ fallbackState?: PlaybackVisualStateBridge }>) => {
   const runtime = usePlayerRuntime()
   const clock = usePlaybackClock()
   const playback = usePlaybackViewModel()
-  const settings = usePlayerSettingsValue()
+  const [settings, setSettings] = usePlayerSettings()
   const {
     danmakuDuration,
     danmakuEndArea,
@@ -30,6 +34,9 @@ export const NativeDanmakuProvider = ({ children }: PropsWithChildren) => {
     enableDanmaku,
     enableDanmakuHoverPause,
   } = settings
+  fallbackState?.bindDanmaku(enableDanmaku, (enabled) =>
+    setSettings((current) => ({ ...current, enableDanmaku: enabled })),
+  )
   const rendererConfig = useMemo(
     () => ({
       enabled: enableDanmaku,

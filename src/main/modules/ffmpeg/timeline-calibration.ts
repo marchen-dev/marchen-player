@@ -19,8 +19,10 @@ export interface GenerationTimelineCalibration {
 }
 
 /**
- * HLS preset 用 copyts + start_at_zero 将 seek 点移到零附近；首包仍可能因关键帧、B 帧或
- * VFR 偏离零点，因此 generation offset 必须加入实际首 PTS，不能只复用请求 seek。
+ * HLS preset 使用 copyts + start_at_zero，ffprobe 读到的首 PTS 是相对原媒体逻辑
+ * 起点的绝对时间，不是相对 requestedStartTime 的局部偏移。视频 copy 在
+ * 长 GOP seek 时会从目标之前的关键帧开始；若再加一次 requestedStartTime，
+ * 60s seek + 57.292s 首 PTS 会被误映射为 117.292s。
  */
 export const calibrateGenerationTimeline = (
   input: GenerationTimelineCalibrationInput,
@@ -34,7 +36,7 @@ export const calibrateGenerationTimeline = (
     actualFirstOutputTimestamp: calibrated ? first : undefined,
     timeline: {
       originalDuration: Math.max(0, input.originalDuration),
-      offset: Math.max(0, requestedStartTime + (calibrated ? first : 0)),
+      offset: Math.max(0, calibrated ? first : requestedStartTime),
       calibrated,
     },
   }

@@ -46,13 +46,25 @@ const stagingDirectory = join(temporaryRoot, 'staging')
 mkdirSync(stagingDirectory, { recursive: true })
 
 const download = async (url, destination) => {
-  const response = await fetch(url, { redirect: 'follow' })
-  if (!response.ok || !response.body) {
-    throw new Error(`下载失败 ${response.status} ${response.statusText}：${url}`)
+  const failures = []
+  for (let attempt = 1; attempt <= 3; attempt += 1) {
+    rmSync(destination, { force: true })
+    try {
+      const response = await fetch(url, { redirect: 'follow' })
+      if (!response.ok || !response.body) {
+        throw new Error(`下载失败 ${response.status} ${response.statusText}：${url}`)
+      }
+      mkdirSync(dirname(destination), { recursive: true })
+      const output = createWriteStream(destination, { flags: 'wx' })
+      await finished(Readable.fromWeb(response.body).pipe(output))
+      return
+    } catch (error) {
+      failures.push(error)
+      rmSync(destination, { force: true })
+      if (attempt < 3) await new Promise((resolve_) => setTimeout(resolve_, attempt * 1_000))
+    }
   }
-  mkdirSync(dirname(destination), { recursive: true })
-  const output = createWriteStream(destination, { flags: 'wx' })
-  await finished(Readable.fromWeb(response.body).pipe(output))
+  throw new AggregateError(failures, `连续 3 次下载失败：${url}`)
 }
 
 const sha256 = async (path) => {

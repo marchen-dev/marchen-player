@@ -100,6 +100,43 @@ describe('ffmpegProcessExecutor', () => {
     await expect(execution.result).rejects.toMatchObject({ failure: 'cancelled' })
   })
 
+  it('长时间 Job 先通过 stdin q 优雅停止', async () => {
+    const root = await mkdtemp(join(tmpdir(), 'marchen-stop-ready-'))
+    temporaryDirectories.push(root)
+    const readyPath = join(root, 'ready')
+    const execution = executor.start({
+      executable: execPath,
+      arguments: [
+        '-e',
+        `process.stdin.setEncoding('utf8'); process.stdin.on('data', value => { if (value.includes('q')) process.exit(0) }); require('node:fs').writeFileSync(${JSON.stringify(readyPath)}, 'ready'); setInterval(() => {}, 1000)`,
+      ],
+      gracefulStdin: true,
+      gracefulShutdownMs: 100,
+    })
+    // 等接收 q 的 handler 安装完成，不把繁忙机器上 Node 启动耗时算进退出期限。
+    const deadline = Date.now() + 3_000
+    while (!existsSync(readyPath)) {
+      if (Date.now() >= deadline) {
+        execution.cancel()
+        throw new Error('子进程未就绪')
+      }
+      await new Promise((resolve) => setTimeout(resolve, 10))
+    }
+    execution.stop()
+    await expect(execution.result).resolves.toMatchObject({ code: 0 })
+  })
+
+  it('优雅 stdin 退出超时后强制回收进程', async () => {
+    const execution = executor.start({
+      executable: execPath,
+      arguments: ['-e', 'setInterval(() => {}, 1000)'],
+      gracefulStdin: true,
+      gracefulShutdownMs: 50,
+    })
+    execution.stop()
+    await expect(execution.result).rejects.toMatchObject({ failure: 'exit', signal: 'SIGKILL' })
+  })
+
   it('超时后先终止再强制清理忽略 SIGTERM 的进程', async () => {
     const startedAt = Date.now()
     const result = executor.run({
@@ -130,7 +167,7 @@ describe.runIf(existsSync(preparedFfprobe))('真实 ffprobe 损坏媒体边界',
     const directory = await mkdtemp(join(tmpdir(), 'marchen-corrupt-media-'))
     temporaryDirectories.push(directory)
     const input = join(directory, '损坏 视频.mkv')
-    await writeFile(input, Buffer.alloc(128 * 1024, 0xFF))
+    await writeFile(input, Buffer.alloc(128 * 1024, 0xff))
     if (process.platform !== 'win32') await chmod(preparedFfprobe, 0o755)
 
     const startedAt = Date.now()

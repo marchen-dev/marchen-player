@@ -5,8 +5,20 @@ const getErrorName = (value: unknown): string | undefined => {
   return typeof value.name === 'string' ? value.name : undefined
 }
 
+const getErrorMessage = (value: unknown): string =>
+  value instanceof Error
+    ? value.message
+    : typeof value === 'object' &&
+        value !== null &&
+        'message' in value &&
+        typeof value.message === 'string'
+      ? value.message
+      : ''
+
 export const isAutoplayBlocked = (cause: unknown): boolean =>
-  getErrorName(cause) === 'NotAllowedError'
+  getErrorName(cause) === 'NotAllowedError' ||
+  (getErrorName(cause) === 'AbortError' &&
+    getErrorMessage(cause).includes('background media was paused to save power'))
 
 export const normalizePlayError = (cause: unknown): PlaybackError => {
   const name = getErrorName(cause)

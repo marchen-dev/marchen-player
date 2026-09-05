@@ -1,11 +1,22 @@
 export type CapabilityVerdict = true | false | 'unknown'
 
-export interface DecodeCapabilityFact {
-  codecString?: string
+export type CapabilityEvidenceSource =
+  | 'media-capabilities'
+  | 'can-play-type'
+  | 'media-source'
+  | 'runtime-error'
+  | 'platform-rule'
+  | 'unknown'
+
+export interface CapabilityEvidence {
   supported: CapabilityVerdict
   smooth: CapabilityVerdict
   powerEfficient: CapabilityVerdict
-  source: 'media-capabilities' | 'can-play-type' | 'runtime-error' | 'unknown'
+  source: CapabilityEvidenceSource
+}
+
+export interface DecodeCapabilityFact extends CapabilityEvidence {
+  codecString?: string
 }
 
 /** Renderer 在当前 Chromium/设备上探测到的事实，不代表 FFmpeg 能力。 */
@@ -30,4 +41,15 @@ export interface FfmpegPlaybackCapabilities {
   toneMapToSdr: boolean
   target?: string
   release?: string
+  negotiation?: FfmpegNegotiationCapabilities
+}
+
+/** Main 从完整 runtime catalog 投影给纯 planner 的可序列化能力。 */
+export interface FfmpegNegotiationCapabilities {
+  available: boolean
+  decodableCodecs: readonly string[]
+  h264Output: boolean
+  aacOutput: boolean
+  fmp4HlsOutput: boolean
+  toneMapToSdr: boolean
 }

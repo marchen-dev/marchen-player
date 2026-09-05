@@ -32,11 +32,15 @@ export interface TranscodeSessionOptions {
   mode: Exclude<PlaybackMode, 'direct'>
   profile?: import('@marchen/shared/media').OutputProfileKind
   attemptChain?: import('@marchen/shared/media').OutputProfileKind[]
+  attemptMethods?: import('@marchen/shared/media').PlaybackMethod[]
+  decision?: import('@marchen/shared/media').PlaybackDecision
   generation?: number
   originalStartTime: number
   requestedStartTime: number
   cacheManager: MediaCacheManager
   encoderClass?: MediaGenerationSnapshot['encoderClass']
+  runtime?: MediaGenerationSnapshot['runtime']
+  audioOutput?: MediaGenerationSnapshot['audioOutput']
 }
 
 const progressNumber = (record: Readonly<FfmpegProgressRecord>, keys: string[]) => {
@@ -79,6 +83,8 @@ export class TranscodeSession {
       mode: options.mode,
       profile: options.profile,
       attemptChain: options.attemptChain,
+      attemptMethods: options.attemptMethods,
+      decision: options.decision,
       status: 'preparing',
       phase: 'planning',
       activeGeneration: this.#generationNumber,
@@ -90,6 +96,8 @@ export class TranscodeSession {
       originalStartTime: options.originalStartTime,
       requestedStartTime: options.requestedStartTime,
       encoderClass: options.encoderClass,
+      ...(options.runtime ? { runtime: options.runtime } : {}),
+      ...(options.audioOutput ? { audioOutput: options.audioOutput } : {}),
     }
   }
 

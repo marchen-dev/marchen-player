@@ -47,6 +47,7 @@ export interface MediaVideoStream extends MediaStreamBase {
 
 export interface MediaAudioStream extends MediaStreamBase {
   type: 'audio'
+  bitDepth?: number
   sampleRate?: number
   channels?: number
   channelLayout?: string
@@ -64,8 +65,25 @@ export interface MediaUnknownStream extends MediaStreamBase {
 export type MediaStream =
   MediaVideoStream | MediaAudioStream | MediaSubtitleStream | MediaUnknownStream
 
+export const INPUT_MEDIA_FACTS_SCHEMA_VERSION = 1 as const
+
+/**
+ * Main 基于规范路径与当前文件状态生成的不可逆源指纹。pathKey 只用于缓存失效，
+ * 不暴露用户本地路径；size/mtime 变化会使 probe、关键帧和 preflight 缓存失效。
+ */
+export interface MediaSourceFingerprint {
+  schemaVersion: typeof INPUT_MEDIA_FACTS_SCHEMA_VERSION
+  sourceId: string
+  pathKey: string
+  size: number
+  mtimeMs: number
+}
+
 /** Main 将 ffprobe 原始 JSON 规范化后的客观输入事实，不包含浏览器或 FFmpeg 能力推断。 */
-export interface InputFacts {
+export interface InputMediaFacts {
+  schemaVersion: typeof INPUT_MEDIA_FACTS_SCHEMA_VERSION
+  sourceFingerprint: MediaSourceFingerprint
+  /** @deprecated 迁移期便捷字段；新缓存和会话身份使用 sourceFingerprint。 */
   sourceId: string
   formatNames: string[]
   formatLongName?: string
@@ -77,5 +95,8 @@ export interface InputFacts {
   primaryAudioStreamIndex?: number
 }
 
+/** @deprecated 迁移期兼容名；新代码应使用 InputMediaFacts。 */
+export type InputFacts = InputMediaFacts
+
 /** @deprecated 迁移期兼容名；新代码应使用 InputFacts。 */
-export type MediaProbeResult = InputFacts
+export type MediaProbeResult = InputMediaFacts

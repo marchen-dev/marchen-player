@@ -4,8 +4,10 @@ import type {
   TranscodeAudioPlaybackPlan,
   TranscodeVideoPlaybackPlan,
 } from '@marchen/shared/media'
+import type { AacEncoder } from './audio-encoder'
 
 import { join } from 'node:path'
+import { aacEncoderArguments } from './audio-encoder'
 
 export interface HlsOutputLayout {
   directory: string
@@ -27,6 +29,7 @@ export interface RemuxHlsPresetOptions {
   sourceVideo?: MediaVideoStream
   startTime?: number
   segmentDuration?: number
+  startNumber?: number
 }
 
 export interface TranscodeAudioHlsPresetOptions {
@@ -36,6 +39,8 @@ export interface TranscodeAudioHlsPresetOptions {
   sourceVideo?: MediaVideoStream
   startTime?: number
   segmentDuration?: number
+  audioEncoder?: AacEncoder
+  startNumber?: number
 }
 
 export type H264Encoder = 'h264_videotoolbox' | 'h264_amf' | 'h264_nvenc' | 'h264_qsv' | 'libx264'
@@ -49,6 +54,9 @@ export interface TranscodeVideoHlsPresetOptions {
   segmentDuration?: number
   sourceVideo?: MediaVideoStream
   videoFilter?: string
+  decoderInputArguments?: readonly string[]
+  audioEncoder?: AacEncoder
+  startNumber?: number
 }
 
 export const createHlsOutputLayout = (directory: string): HlsOutputLayout => ({
@@ -58,7 +66,11 @@ export const createHlsOutputLayout = (directory: string): HlsOutputLayout => ({
   segmentPattern: join(directory, 'segment-%05d.m4s'),
 })
 
-const hlsOutputArguments = (output: HlsOutputLayout, segmentDuration: number): string[] => [
+const hlsOutputArguments = (
+  output: HlsOutputLayout,
+  segmentDuration: number,
+  startNumber = 0,
+): string[] => [
   '-sn',
   '-dn',
   '-f',
@@ -71,6 +83,8 @@ const hlsOutputArguments = (output: HlsOutputLayout, segmentDuration: number): s
   'event',
   '-hls_segment_type',
   'fmp4',
+  '-start_number',
+  String(Math.max(0, Math.floor(startNumber))),
   // FFmpeg 先写 .tmp 再在同目录 rename；Gateway 只会登记 rename 后的完整文件。
   '-hls_flags',
   'independent_segments+temp_file',
@@ -136,7 +150,7 @@ export const createRemuxHlsPreset = (options: RemuxHlsPresetOptions): FfmpegHlsP
     'copy',
     ...copiedVideoCodecTagArguments(options.sourceVideo),
     ...(options.plan.audioStreamIndex === undefined ? [] : ['-c:a', 'copy']),
-    ...hlsOutputArguments(output, segmentDuration),
+    ...hlsOutputArguments(output, segmentDuration, options.startNumber),
   ]
   return { arguments: arguments_, inputs: [options.inputPath], output }
 }
@@ -158,17 +172,14 @@ export const createTranscodeAudioHlsPreset = (
       '-c:v',
       'copy',
       ...copiedVideoCodecTagArguments(options.sourceVideo),
-      '-c:a',
-      options.plan.audio.codec,
-      '-profile:a',
-      options.plan.audio.profile,
+      ...aacEncoderArguments(options.audioEncoder ?? 'aac'),
       '-ar',
       String(options.plan.audio.sampleRate),
       '-ac',
       String(options.plan.audio.channels),
       '-b:a',
       '192k',
-      ...hlsOutputArguments(output, segmentDuration),
+      ...hlsOutputArguments(output, segmentDuration, options.startNumber),
     ],
     inputs: [options.inputPath],
     output,
@@ -190,14 +201,14 @@ const videoEncoderArguments = (encoder: H264Encoder): string[] => {
   }
 }
 
-const compatibleAudioArguments = (plan: TranscodeVideoPlaybackPlan): string[] =>
+const compatibleAudioArguments = (
+  plan: TranscodeVideoPlaybackPlan,
+  audioEncoder: AacEncoder = 'aac',
+): string[] =>
   plan.audio === 'copy'
     ? ['-c:a', 'copy']
     : [
-        '-c:a',
-        plan.audio.codec,
-        '-profile:a',
-        plan.audio.profile,
+        ...aacEncoderArguments(audioEncoder),
         '-ar',
         String(plan.audio.sampleRate),
         '-ac',
@@ -273,7 +284,10 @@ export const createTranscodeVideoHlsPreset = (
   return {
     arguments: [
       // 转码时将 display matrix 烘焙进像素，并把输出旋转标记归零，避免播放器二次旋转。
-      ...inputArguments(options.inputPath, startTime, ['-autorotate']),
+      ...inputArguments(options.inputPath, startTime, [
+        ...(options.decoderInputArguments ?? []),
+        '-autorotate',
+      ]),
       '-map',
       `0:${options.plan.videoStreamIndex}`,
       ...(options.plan.audioStreamIndex === undefined
@@ -289,6 +303,7 @@ export const createTranscodeVideoHlsPreset = (
       '+cgop',
       ...(options.encoder === 'libx264' ? ['-sc_threshold', '0'] : []),
       '-force_key_frames',
+      // t 相对本次编码首帧；即使 copyts 保留逻辑 PTS，也不能再加 seek 起点。
       `expr:gte(t,n_forced*${segmentDuration})`,
       '-metadata:s:v:0',
       'rotate=0',
@@ -296,8 +311,8 @@ export const createTranscodeVideoHlsPreset = (
       '0',
       ...(options.plan.audioStreamIndex === undefined
         ? []
-        : compatibleAudioArguments(options.plan)),
-      ...hlsOutputArguments(output, segmentDuration),
+        : compatibleAudioArguments(options.plan, options.audioEncoder)),
+      ...hlsOutputArguments(output, segmentDuration, options.startNumber),
     ],
     inputs: [options.inputPath],
     output,
@@ -314,11 +329,17 @@ export const selectInitializedH264Encoder = async (
   platform: NodeJS.Platform,
   availableEncoders: ReadonlySet<string>,
   initialize: (encoder: H264Encoder) => Promise<void>,
+  mode: import('@marchen/shared/media').VideoEncoderMode = 'auto',
 ): Promise<H264Encoder> => {
-  const candidates = [
+  const available = [
     ...(HARDWARE_ENCODERS[platform] ?? []).filter((encoder) => availableEncoders.has(encoder)),
     'libx264' as const,
   ]
+  const candidates = available.filter((encoder) => {
+    if (mode === 'software') return encoder === 'libx264'
+    if (mode === 'hardware') return encoder !== 'libx264'
+    return true
+  })
   const failures: unknown[] = []
   for (const encoder of candidates) {
     if (!availableEncoders.has(encoder)) continue
@@ -361,13 +382,15 @@ export const createH264PipelinePreflightArguments = (options: {
   encoder: H264Encoder
   sourceVideo?: MediaVideoStream
   startTime?: number
+  decoderInputArguments?: readonly string[]
+  audioEncoder?: AacEncoder
 }): string[] => {
   const videoFilter = createVideoCompatibilityFilter(options.plan, options.sourceVideo)
   return [
     ...inputArguments(
       options.inputPath,
       Math.max(0, options.startTime ?? 0),
-      ['-autorotate'],
+      [...(options.decoderInputArguments ?? []), '-autorotate'],
       false,
     ),
     '-map',
@@ -382,7 +405,9 @@ export const createH264PipelinePreflightArguments = (options: {
     ...colorMetadataArguments(options.plan, options.sourceVideo),
     '-frames:v',
     '1',
-    ...(options.plan.audioStreamIndex === undefined ? [] : compatibleAudioArguments(options.plan)),
+    ...(options.plan.audioStreamIndex === undefined
+      ? []
+      : compatibleAudioArguments(options.plan, options.audioEncoder)),
     '-t',
     '0.25',
     '-f',

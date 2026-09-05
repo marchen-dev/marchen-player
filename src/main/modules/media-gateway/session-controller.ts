@@ -9,11 +9,13 @@ import type {
 } from '@marchen/shared/media'
 import type { CompatibleMediaSession, CompatibleSessionFactory } from './compatible-session-factory'
 import type { MediaGatewayRegistry } from './registry'
+import type { DynamicHlsLifecycleEvent } from './dynamic-hls-session-lifecycle'
 import { constants } from 'node:fs'
 import { access } from 'node:fs/promises'
 import { MediaGenerationTelemetryObserver } from '@main/telemetry/media-generation'
 import { playbackModeForOutputProfile, toMediaSessionIpcSnapshot } from '@marchen/shared/media'
 import { toMediaCompatError } from './errors'
+import { cancelledPreparation } from './preparation'
 
 interface InternalMediaSession {
   snapshot: MediaSessionSnapshot
@@ -22,6 +24,8 @@ interface InternalMediaSession {
   sourcePath: string
   compatible?: CompatibleMediaSession
   unsubscribe?: () => void
+  releasePromise?: Promise<void>
+  released?: boolean
 }
 
 export class MediaSessionControllerError extends Error {
@@ -37,6 +41,27 @@ const sessionError = (code: MediaCompatError['code'], message: string) =>
 export class MediaSessionController {
   readonly #sessions = new Map<string, InternalMediaSession>()
   readonly #requests = new Map<string, string>()
+  #cleanupEpoch = 0
+  readonly #preparations = new Map<string, AbortController>()
+
+  async preparation<T>(
+    requestId: string,
+    operation: (signal: AbortSignal) => Promise<T>,
+  ): Promise<T> {
+    const controller = new AbortController()
+    this.#preparations.set(requestId, controller)
+    try {
+      return await operation(controller.signal)
+    } finally {
+      if (this.#preparations.get(requestId) === controller) this.#preparations.delete(requestId)
+    }
+  }
+
+  async cancelPreparation(requestId: string): Promise<void> {
+    this.#preparations.get(requestId)?.abort(cancelledPreparation())
+    const sessionId = this.#requests.get(requestId)
+    if (sessionId) await this.release(sessionId)
+  }
 
   constructor(
     private readonly registry: MediaGatewayRegistry,
@@ -46,6 +71,14 @@ export class MediaSessionController {
   ) {}
 
   async create(request: PrepareMediaSessionRequest): Promise<MediaSessionSnapshot> {
+    return this.preparation(request.requestId, (signal) => this.#create(request, signal))
+  }
+
+  async #create(
+    request: PrepareMediaSessionRequest,
+    signal: AbortSignal,
+  ): Promise<MediaSessionSnapshot> {
+    const cleanupEpoch = this.#cleanupEpoch
     if (request.plan.kind === 'native') {
       throw sessionError('unknown', 'native 播放不创建兼容会话')
     }
@@ -68,6 +101,9 @@ export class MediaSessionController {
       })
     }
 
+    if (cleanupEpoch !== this.#cleanupEpoch)
+      throw sessionError('cancelled', '媒体会话准备期间已清理')
+    signal.throwIfAborted()
     const registration = this.registry.createSession(request.source.hash)
     const snapshot: MediaSessionSnapshot = {
       id: registration.id,
@@ -75,6 +111,7 @@ export class MediaSessionController {
       mode,
       profile: request.plan.kind,
       attemptChain: request.attemptChain ?? [request.plan.kind],
+      attemptMethods: request.attemptMethods,
       status: 'preparing',
       phase: request.plan.kind === 'copy-video-aac' ? 'planning' : 'encoder-check',
       activeGeneration: 0,
@@ -90,7 +127,17 @@ export class MediaSessionController {
     if (!this.createCompatibleSession) return toMediaSessionIpcSnapshot(snapshot)
 
     try {
-      const compatible = await this.createCompatibleSession({ registration, request, gatewayUrl })
+      const compatible = await this.createCompatibleSession({
+        registration,
+        request,
+        gatewayUrl,
+        signal,
+      })
+      // factory 的预检可能跨过窗口关闭/切源；迟到会话不得再启动 FFmpeg。
+      if (internal.released) {
+        await compatible.release()
+        throw sessionError('cancelled', '媒体会话准备期间已释放')
+      }
       internal.compatible = compatible
       const generationTelemetry = this.generationSpanSink
         ? new MediaGenerationTelemetryObserver(mode, this.generationSpanSink)
@@ -104,8 +151,10 @@ export class MediaSessionController {
         generationTelemetry?.dispose()
       }
       internal.snapshot = await compatible.start()
+      if (internal.released) throw sessionError('cancelled', '媒体会话启动期间已释放')
       return toMediaSessionIpcSnapshot(internal.snapshot)
     } catch (cause) {
+      await internal.compatible?.release()
       internal.unsubscribe?.()
       this.registry.releaseSession(registration.id)
       this.#sessions.delete(registration.id)
@@ -123,6 +172,7 @@ export class MediaSessionController {
   }
 
   async createDirect(request: PrepareDirectMediaSessionRequest): Promise<MediaSessionSnapshot> {
+    const cleanupEpoch = this.#cleanupEpoch
     const existingId = this.#requests.get(request.requestId)
     if (existingId) return this.get(existingId)
     const baseUrl = this.gatewayUrl()
@@ -137,6 +187,8 @@ export class MediaSessionController {
         cause: cause instanceof Error ? cause.message : String(cause),
       })
     }
+    if (cleanupEpoch !== this.#cleanupEpoch)
+      throw sessionError('cancelled', '直放会话准备期间已清理')
     const registration = this.registry.createSession(request.source.hash)
     this.registry.registerSource(registration.id, {
       path: request.source.path,
@@ -169,6 +221,12 @@ export class MediaSessionController {
     })
     this.#requests.set(request.requestId, registration.id)
     return toMediaSessionIpcSnapshot(snapshot)
+  }
+
+  reportPlayback(sessionId: string, position: number): void {
+    const session = this.#sessions.get(sessionId)
+    if (!session || session.released) return
+    session.compatible?.reportPlayback?.(position)
   }
 
   get(sessionId: string): MediaSessionSnapshot {
@@ -238,24 +296,38 @@ export class MediaSessionController {
     return toMediaSessionIpcSnapshot(session.snapshot)
   }
 
-  async release(sessionId: string): Promise<MediaSessionSnapshot> {
+  async release(
+    sessionId: string,
+    event: DynamicHlsLifecycleEvent = 'release',
+  ): Promise<MediaSessionSnapshot> {
     const session = this.#sessions.get(sessionId)
     if (!session) throw sessionError('session-not-found', '媒体会话不存在')
-    if (session.snapshot.status !== 'released') {
-      if (session.compatible) await session.compatible.release()
+    session.released = true
+    session.releasePromise ??= (async () => {
+      if (session.compatible?.handleLifecycle) await session.compatible.handleLifecycle(event)
+      else if (session.compatible) await session.compatible.release()
       session.unsubscribe?.()
       session.unsubscribe = undefined
       this.registry.releaseSession(sessionId)
       this.#requests.delete(session.requestId)
       session.snapshot = { ...session.snapshot, status: 'released', lease: undefined }
-    }
+    })()
+    await session.releasePromise
     return toMediaSessionIpcSnapshot(session.snapshot)
   }
 
-  async releaseAll(): Promise<void> {
-    const releases = [...this.#sessions.keys()].map((sessionId) => this.release(sessionId))
+  async releaseAll(event: DynamicHlsLifecycleEvent = 'release'): Promise<void> {
+    this.#cleanupEpoch += 1
+    for (const controller of this.#preparations.values()) controller.abort(cancelledPreparation())
+    const releases = [...this.#sessions.keys()].map((sessionId) => this.release(sessionId, event))
     this.#sessions.clear()
     this.#requests.clear()
-    await Promise.allSettled(releases)
+    const results = await Promise.allSettled(releases)
+    const failures = results.filter((result) => result.status === 'rejected')
+    if (failures.length)
+      throw new AggregateError(
+        failures.map((result) => result.reason),
+        '媒体会话清理失败',
+      )
   }
 }

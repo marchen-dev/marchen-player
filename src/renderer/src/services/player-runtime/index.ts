@@ -59,6 +59,8 @@ export type {
 } from './platform'
 export { PlayerPortalRoot, usePlayerPortalContainer } from './portal'
 export { PlayerRuntime } from './runtime'
+export { PlaybackVisualStateBridge } from './fallback-state'
+export type { PlaybackFallbackStatePort } from './fallback-state'
 export type {
   PlayerRuntimeCommands,
   PlayerRuntimeDisposePhase,

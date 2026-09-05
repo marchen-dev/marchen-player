@@ -92,6 +92,62 @@ describe('playbackSession', () => {
     expect(session.currentState.status).toBe('paused')
   })
 
+  it('后台省电中断 autoplay 时标记待聚焦重试，用户主动暂停则清除', async () => {
+    const { events, media } = createMedia()
+    const backgroundError = Object.assign(
+      new Error(
+        'The play() request was interrupted because video-only background media was paused to save power.',
+      ),
+      { name: 'AbortError' },
+    )
+    vi.mocked(media.play).mockRejectedValueOnce(backgroundError).mockResolvedValue(undefined)
+    const session = new PlaybackSession(media)
+    session.load(source('background-autoplay', true))
+
+    await session.play()
+    expect(session.currentState.status).toBe('paused')
+    expect(session.shouldRetryAutoplay).toBe(true)
+    await session.play()
+    events.next({ type: 'play', sessionId: 1, snapshot: snapshot({ paused: false }) })
+    expect(session.shouldRetryAutoplay).toBe(false)
+
+    vi.mocked(media.play).mockRejectedValueOnce(backgroundError)
+    await session.play()
+    expect(session.shouldRetryAutoplay).toBe(true)
+    session.pause()
+    expect(session.shouldRetryAutoplay).toBe(false)
+  })
+
+  it('play 先成功、后异步 pause 的后台省电路径也可重试', async () => {
+    const { events, media } = createMedia()
+    const session = new PlaybackSession(media)
+    session.load(source('async-background-pause', true))
+    await session.play()
+    events.next({ type: 'play', sessionId: 1, snapshot: snapshot({ paused: false }) })
+    events.next({
+      type: 'pause',
+      sessionId: 1,
+      snapshot: snapshot({ paused: true, currentTime: 0 }),
+    })
+    expect(session.shouldRetryAutoplay).toBe(true)
+
+    await session.play()
+    events.next({
+      type: 'time-update',
+      sessionId: 1,
+      snapshot: snapshot({ paused: false, currentTime: 1 }),
+    })
+    expect(session.shouldRetryAutoplay).toBe(false)
+
+    session.pause()
+    events.next({
+      type: 'pause',
+      sessionId: 1,
+      snapshot: snapshot({ paused: true, currentTime: 0 }),
+    })
+    expect(session.shouldRetryAutoplay).toBe(false)
+  })
+
   it('媒体错误进入结构化 error 状态', () => {
     const { events, media } = createMedia()
     const session = new PlaybackSession(media)
@@ -153,6 +209,17 @@ describe('playbackSession', () => {
 
     expect(session.currentState.status).toBe('playing')
     expect(media.play).toHaveBeenCalled()
+  })
+
+  it('source 替换 seek 只锁定逻辑目标，不操作旧媒体', () => {
+    const { media } = createMedia()
+    const session = new PlaybackSession(media)
+    session.load(source('generation-seek'))
+
+    session.beginSourceSeek(45)
+
+    expect(session.currentState).toMatchObject({ status: 'seeking', targetTime: 45 })
+    expect(media.seek).not.toHaveBeenCalled()
   })
 
   it('ended 公开完成状态', () => {

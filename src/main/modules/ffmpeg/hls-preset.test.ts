@@ -89,9 +89,112 @@ describe('音频兼容 fMP4 HLS 预设', () => {
       ]),
     )
   })
+
+  it('aac_at 使用 encoder-specific 参数，不携带 aac_low', async () => {
+    const outputDirectory = await createDirectory()
+    const preset = createTranscodeAudioHlsPreset({
+      inputPath: '/media/eac3-5.1.mkv',
+      outputDirectory,
+      audioEncoder: 'aac_at',
+      plan: {
+        kind: 'transcode-audio',
+        reason: 'audio-incompatible',
+        videoStreamIndex: 2,
+        audioStreamIndex: 5,
+        video: 'copy',
+        audio: { codec: 'aac', profile: 'aac_low', sampleRate: 48_000, channels: 2 },
+      },
+    })
+    expect(preset.arguments).toEqual(expect.arrayContaining(['-c:a', 'aac_at', '-ar', '48000']))
+    expect(preset.arguments).not.toContain('aac_low')
+  })
 })
 
 describe('视频兼容 fMP4 HLS 预设', () => {
+  it('closed GOP、force keyframe 与 HLS 使用同一个 segment duration', async () => {
+    const outputDirectory = await createDirectory()
+    const preset = createTranscodeVideoHlsPreset({
+      inputPath: '/video/av1.mkv',
+      outputDirectory,
+      segmentDuration: 6,
+      encoder: 'libx264',
+      plan: {
+        kind: 'transcode-video',
+        reason: 'video-incompatible',
+        videoStreamIndex: 0,
+        video: { codec: 'h264', toneMapToSdr: false },
+        audio: 'copy',
+      },
+    })
+    expect(preset.arguments).toEqual(
+      expect.arrayContaining([
+        '-flags',
+        '+cgop',
+        '-force_key_frames',
+        'expr:gte(t,n_forced*6)',
+        '-hls_time',
+        '6',
+      ]),
+    )
+  })
+
+  it('相同 decoder/audio encoder 参数进入真实 preflight 与长 HLS Job', async () => {
+    const outputDirectory = await createDirectory()
+    const plan = {
+      kind: 'transcode-video' as const,
+      reason: 'video-incompatible' as const,
+      videoStreamIndex: 0,
+      audioStreamIndex: 1,
+      video: { codec: 'h264' as const, toneMapToSdr: false },
+      audio: {
+        codec: 'aac' as const,
+        profile: 'aac_low' as const,
+        sampleRate: 48_000 as const,
+        channels: 2 as const,
+      },
+    }
+    const decoderInputArguments = ['-hwaccel', 'none', '-c:v', 'hevc']
+    const preflight = createH264PipelinePreflightArguments({
+      inputPath: '/video/hevc-eac3.mkv',
+      plan,
+      encoder: 'libx264',
+      decoderInputArguments,
+      audioEncoder: 'aac_at',
+    })
+    const preset = createTranscodeVideoHlsPreset({
+      inputPath: '/video/hevc-eac3.mkv',
+      outputDirectory,
+      plan,
+      encoder: 'libx264',
+      decoderInputArguments,
+      audioEncoder: 'aac_at',
+    })
+
+    for (const arguments_ of [preflight, preset.arguments]) {
+      expect(arguments_).toEqual(
+        expect.arrayContaining([
+          '-hwaccel',
+          'none',
+          '-c:v',
+          'hevc',
+          '-map',
+          '0:0',
+          '-map',
+          '0:1',
+          '-c:a',
+          'aac_at',
+        ]),
+      )
+      expect(arguments_).not.toContain('aac_low')
+    }
+    expect(preflight).toEqual(
+      expect.arrayContaining(['-t', '0.25', '-f', 'mp4', '-movflags', 'frag_keyframe+empty_moov']),
+    )
+    expect(preset.arguments).toEqual(
+      expect.arrayContaining(['-f', 'hls', '-hls_segment_type', 'fmp4']),
+    )
+  })
+
   it('真实初始化硬件编码器，失败后回退 libx264', async () => {
     const attempts: string[] = []
     await expect(
@@ -105,6 +208,25 @@ describe('视频兼容 fMP4 HLS 预设', () => {
       ),
     ).resolves.toBe('libx264')
     expect(attempts).toEqual(['h264_nvenc', 'h264_qsv', 'libx264'])
+  })
+
+  it('强制 software/hardware encoder 时限制候选集', async () => {
+    await expect(
+      selectInitializedH264Encoder(
+        'win32',
+        new Set(['h264_nvenc', 'libx264']),
+        async () => undefined,
+        'software',
+      ),
+    ).resolves.toBe('libx264')
+    await expect(
+      selectInitializedH264Encoder(
+        'win32',
+        new Set(['h264_nvenc', 'libx264']),
+        async () => undefined,
+        'hardware',
+      ),
+    ).resolves.toBe('h264_nvenc')
   })
 
   it('hDR 走 BT.709 SDR tone-map，90 度旋转时反转 SAR/DAR', () => {
