@@ -3,7 +3,7 @@
   "type": "module",
   "version": "0.1.0",
   "private": true,
-  "packageManager": "pnpm@11.24.0",
+  "packageManager": "pnpm@12.3.4",
   "description": "Marchen player",
   "author": "Suemor",
   "license": "AGPL-3.0",
@@ -15,7 +15,7 @@
   "main": "./out/main/index.js",
   "engines": {
     "node": "24.x",
-    "pnpm": "11.x"
+    "pnpm": "12.x"
   },
   "scripts": {
     "build": "pnpm typecheck && electron-vite build",
