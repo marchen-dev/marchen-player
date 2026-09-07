@@ -25,6 +25,10 @@ export class DanmakuTimeline {
   }
 
   collect(currentTime: number, lookAhead: number): DanmakuItem[] {
+    // 历史恢复或后台停顿后跳过过期弹幕，不能把几分钟前的积压一次灌进画面。
+    // 保留 250ms 容差，容纳正常帧调度抖动。
+    if (this.items[this.index] && this.items[this.index]!.time < currentTime - 0.25)
+      this.index = lowerBoundByTime(this.items, currentTime - 0.25)
     const result: DanmakuItem[] = []
     const endTime = Math.max(0, currentTime) + Math.max(0, lookAhead)
     while (this.index < this.items.length && this.items[this.index]!.time <= endTime) {

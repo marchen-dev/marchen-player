@@ -130,7 +130,8 @@ export class DanmakuEngineCore {
         this.dropped += 1
         continue
       }
-      const allocation = this.allocator.allocate(item, metrics, item.time)
+      // 迟到帧从此刻开始显示，轨道占用也必须从此刻算，不能沿用已过去的起点。
+      const allocation = this.allocator.allocate(item, metrics, Math.max(now, item.time))
       if (!allocation) {
         this.dropped += 1
         continue

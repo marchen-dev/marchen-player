@@ -18,8 +18,7 @@ describe('danmaku adapter and timeline', () => {
 
   it('兼容本地 B 站弹幕转换生成的十六进制颜色', () => {
     expect(
-      convertDandanplayComments([{ cid: 4, m: '本地弹幕', p: '1,1,#66CCFF,user' }])[0]
-        ?.color,
+      convertDandanplayComments([{ cid: 4, m: '本地弹幕', p: '1,1,#66CCFF,user' }])[0]?.color,
     ).toBe('#66ccff')
   })
 
@@ -32,4 +31,18 @@ describe('danmaku adapter and timeline', () => {
     timeline.seek(5.01)
     expect(timeline.collect(5.01, 1)).toEqual([])
   })
+})
+
+it('历史时钟直接前跳时跳过积压，只保留当前附近弹幕', () => {
+  const timeline = new DanmakuTimeline()
+  const items = convertDandanplayComments(
+    Array.from({ length: 401 }, (_, time) => ({
+      cid: time,
+      m: String(time),
+      p: `${time},1,16777215,user`,
+    })),
+  )
+  timeline.replace(items, 0)
+  expect(timeline.collect(400, 0.08).map((item) => item.time)).toEqual([400])
+  expect(timeline.collect(400.1, 0.08)).toEqual([])
 })

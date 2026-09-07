@@ -200,7 +200,9 @@ describe('danmaku engine commands', () => {
     engine.play()
 
     const bottom = { ...item('old', 0), mode: 'bottom' as const }
-    expect(engine.placeCandidates([{ item: bottom, metrics: { width: 50, height: 27 } }])[0]).toMatchObject({
+    expect(
+      engine.placeCandidates([{ item: bottom, metrics: { width: 50, height: 27 } }])[0],
+    ).toMatchObject({
       lane: 3,
       y: 81,
     })
@@ -216,4 +218,13 @@ describe('danmaku engine commands', () => {
     expect(next).toMatchObject({ lane: 0, laneSpan: 2, y: 0 })
     expect(engine.revision).toBe(revision)
   })
+})
+
+it('迟到弹幕的轨道起点与此刻启动的视觉动画一致', () => {
+  const engine = new DanmakuEngineCore({ now: () => 1.2 }, () => ({ width: 80, height: 27 }))
+  engine.resize(500, 200)
+  engine.replaceItems([{ id: 'late', time: 1, text: '迟到', mode: 'scroll', color: '#fff' }], 1)
+  engine.play()
+  expect(engine.tick()).toHaveLength(1)
+  expect(engine.getMotionSnapshot('late', 1.2)).toMatchObject({ elapsed: 0, left: 500 })
 })
