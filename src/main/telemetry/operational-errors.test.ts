@@ -1,21 +1,20 @@
 import { describe, expect, it } from 'vitest'
 
-import { FfmpegExecutionError } from '../modules/ffmpeg/executor'
 import { getMainErrorDiagnosticContext } from './diagnostics'
 
 describe('main operational error diagnostics', () => {
   it('keeps path, command and bounded stderr in Sentry-only context', () => {
-    const error = new FfmpegExecutionError('failed', {
+    const error = Object.assign(new Error('failed'), {
       failure: 'exit',
       durationMs: 123,
-      executable: '/private/ffmpeg',
-      arguments: ['-i', '/private/anime.mkv', '-f', 'hls'],
+      executable: '/private/helper',
+      arguments: ['--input', '/private/anime.mkv'],
       inputs: ['/private/anime.mkv'],
       stderr: 'x'.repeat(40_000),
     })
 
     expect(getMainErrorDiagnosticContext(error)).toMatchObject({
-      command: '/private/ffmpeg -i /private/anime.mkv -f hls',
+      command: '/private/helper --input /private/anime.mkv',
       input_paths: ['/private/anime.mkv'],
       duration_ms: 123,
     })

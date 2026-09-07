@@ -86,32 +86,18 @@ export const DanmakuSetting: FC<DanmakuSettingProps> = (props) => {
         />
       </FieldLayout>
       {isPlaying && (
-        <>
-          <FieldLayout title="悬停暂停弹幕">
-            <SettingSwitch
-              playerMaterial
-              value={playerSetting.enableDanmakuHoverPause}
-              onCheckedChange={(value) =>
-                setPlayerSetting((previous) => ({
-                  ...previous,
-                  enableDanmakuHoverPause: value,
-                }))
-              }
-            />
-          </FieldLayout>
-          <FieldLayout title="在屏密度">
-            <SettingSelect
-              container={portalContainer}
-              playerMaterial
-              placeholder="弹幕密度"
-              groups={danmakuDensityList}
-              value={playerSetting.danmakuMaxOnScreen}
-              onValueChange={(value) =>
-                setPlayerSetting((previous) => ({ ...previous, danmakuMaxOnScreen: value }))
-              }
-            />
-          </FieldLayout>
-        </>
+        <FieldLayout title="在屏密度">
+          <SettingSelect
+            container={portalContainer}
+            playerMaterial
+            placeholder="弹幕密度"
+            groups={danmakuDensityList}
+            value={playerSetting.danmakuMaxOnScreen}
+            onValueChange={(value) =>
+              setPlayerSetting((previous) => ({ ...previous, danmakuMaxOnScreen: value }))
+            }
+          />
+        </FieldLayout>
       )}
       {children}
     </>

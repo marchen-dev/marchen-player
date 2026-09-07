@@ -2,10 +2,9 @@ import { join } from 'node:path'
 
 import { is } from '@electron-toolkit/utils'
 import { quickLaunchViaVideo } from '@main/lib/utils'
-import { app, BrowserWindow, shell } from 'electron'
+import { app, BrowserWindow, nativeTheme, shell } from 'electron'
 
 import { getIconPath } from '../lib/icon'
-import { shutdownMediaSessions } from '../modules/media-gateway/session-service'
 import { getRendererHandlers } from './setting'
 
 const { platform } = process
@@ -25,6 +24,7 @@ export default function createWindow() {
     minWidth: 800, // 设置最小宽度
     minHeight: 650, // 设置最小高度
     show: false,
+    backgroundColor: nativeTheme.shouldUseDarkColors ? '#121212' : '#fafafa',
     autoHideMenuBar: true,
     webPreferences: {
       preload: join(__dirname, '../preload/index.mjs'),
@@ -32,6 +32,8 @@ export default function createWindow() {
       contextIsolation: true,
       nodeIntegration: false,
       webSecurity: true,
+      // 切换桌面仍持续播放；Canvas 的音频排程不能被后台计时器节流。
+      backgroundThrottling: false,
     },
   }
   switch (platform) {
@@ -71,7 +73,7 @@ export default function createWindow() {
   if (is.dev && process.env.ELECTRON_RENDERER_URL) {
     mainWindow.loadURL(process.env.ELECTRON_RENDERER_URL)
   } else {
-    mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
+    mainWindow.loadURL('marchen://app/index.html')
   }
   return mainWindow
 }
@@ -79,15 +81,6 @@ export default function createWindow() {
 export const getMainWindow = () => windows.mainWindow
 
 const initializeListeningEvent = (mainWindow: BrowserWindow) => {
-  const cleanupMedia = (event: 'window-close' | 'renderer-crash') => {
-    void shutdownMediaSessions(event).catch((error) =>
-      console.error('[media-session] Renderer 清理失败', error),
-    )
-  }
-
-  mainWindow.on('closed', () => cleanupMedia('window-close'))
-  mainWindow.webContents.on('render-process-gone', () => cleanupMedia('renderer-crash'))
-
   mainWindow.on('ready-to-show', () => {
     isDev ? mainWindow.showInactive() : mainWindow.show()
 

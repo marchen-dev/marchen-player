@@ -16,7 +16,7 @@ export interface PlaybackSessionObserversOptions {
   source?: DurableMediaSource
 }
 
-/** 组合历史、截图和 Electron 连播观察者，UI 只拿到可执行的上一集/下一集。 */
+/** 组合历史、截图和双端连播观察者，UI 只拿到可执行的上一集/下一集。 */
 export const usePlaybackSessionObservers = ({
   runtime,
   ports,
@@ -52,6 +52,8 @@ export const usePlaybackSessionObservers = ({
       runtime,
       hash,
       repository: db.history,
+      // 内核协调器已在初始 source 中恢复进度，观察者不能再发一次异步 seek 覆盖用户操作。
+      restoreProgress: false,
       markStarted: markEpisodeStarted,
       markWatched: markEpisodeWatched,
       onError: (error) => console.error('同步播放历史失败', error),
@@ -80,6 +82,8 @@ export const usePlaybackSessionObservers = ({
   }, [enableAutomaticEpisodeSwitching, next, ports, runtime])
 
   return {
+    playlist,
+    onSelectPlaylist: ports.playlist?.play,
     onPrevious: previous && ports.playlist ? () => ports.playlist?.play(previous) : undefined,
     onNext: next && ports.playlist ? () => ports.playlist?.play(next) : undefined,
   }

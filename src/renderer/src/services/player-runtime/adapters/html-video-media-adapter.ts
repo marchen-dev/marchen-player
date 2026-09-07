@@ -1,13 +1,13 @@
 import type {
   MediaEvent,
   MediaPort,
+  MediaPresentation,
   PlaybackError,
   PlaybackMediaSnapshot,
   PlaybackSource,
 } from '@marchen/playback-core'
-import type { HlsPlaybackController, HlsPlaybackControllerFactory } from './hls-playback-controller'
 import { Subject } from 'rxjs'
-import { createHlsPlaybackController } from './hls-playback-controller'
+import { DecodeRate } from '../../media/decode-rate'
 
 const MEDIA_EVENT_TYPES = [
   'loadstart',
@@ -30,25 +30,29 @@ type SupportedMediaEvent = (typeof MEDIA_EVENT_TYPES)[number]
 export class HtmlVideoMediaAdapter implements MediaPort {
   private readonly eventSubject = new Subject<MediaEvent>()
   private listeners: Array<readonly [SupportedMediaEvent, EventListener]> = []
-  private hlsController?: HlsPlaybackController
   private transportReady: Promise<void> = Promise.resolve()
+  private sourceController = new AbortController()
   private destroyed = false
+  private firstFrame = false
+  private frameCallback?: number
+  private readonly decodeRate = new DecodeRate()
 
   readonly events$ = this.eventSubject.asObservable()
 
-  constructor(
-    private readonly video: HTMLVideoElement,
-    private readonly createHlsController: HlsPlaybackControllerFactory = createHlsPlaybackController,
-  ) {
+  constructor(private readonly video: HTMLVideoElement) {
     video.playsInline = true
     video.preload = 'metadata'
   }
 
   setSource(source: PlaybackSource | null, sessionId: number): void {
     if (this.destroyed) return
+    this.sourceController.abort()
+    this.sourceController = new AbortController()
+    this.firstFrame = false
+    this.decodeRate.reset()
+    if (this.frameCallback !== undefined) this.video.cancelVideoFrameCallback?.(this.frameCallback)
+    this.frameCallback = undefined
     this.detachListeners()
-    this.hlsController?.destroy()
-    this.hlsController = undefined
     this.video.pause()
     this.video.removeAttribute('src')
 
@@ -58,19 +62,35 @@ export class HtmlVideoMediaAdapter implements MediaPort {
       return
     }
 
-    this.attachListeners(sessionId)
-    if (source.mimeType === 'application/vnd.apple.mpegurl') {
-      this.hlsController = this.createHlsController(this.video, (error) => {
-        if (!this.destroyed) this.eventSubject.next({ type: 'error', sessionId, error })
+    if (source.engine === 'canvas') throw new Error('原生内核不能加载 Canvas 来源')
+    if (this.video.requestVideoFrameCallback)
+      this.frameCallback = this.video.requestVideoFrameCallback(() => {
+        this.firstFrame = true
+        this.frameCallback = undefined
       })
-      this.transportReady = this.hlsController.load(source.url)
-      // 调用方会在兼容 lease 上等待；这里额外挂一个 rejection handler，避免换源销毁
-      // 恰好发生在等待注册前时形成未处理 Promise。
-      void this.transportReady.catch(() => undefined)
-    } else {
-      this.transportReady = Promise.resolve()
-      this.video.src = source.url
-      this.video.load()
+    this.attachListeners(sessionId)
+    this.transportReady = Promise.resolve()
+    this.video.src = source.url
+    this.video.load()
+  }
+
+  getPresentation(): MediaPresentation {
+    const quality = this.video.getVideoPlaybackQuality?.()
+    // Chromium 的解码计数与 totalVideoFrames（含显示前丢帧）口径不同，不能互相替代。
+    const decoded = (this.video as HTMLVideoElement & { webkitDecodedFrameCount?: number })
+      .webkitDecodedFrameCount
+    return {
+      decodeFps: this.decodeRate.sample(decoded ?? Number.NaN),
+      engine: 'native',
+      backend: 'native',
+      renderedFrames: quality
+        ? Math.max(0, quality.totalVideoFrames - quality.droppedVideoFrames)
+        : undefined,
+      droppedFrames: quality?.droppedVideoFrames,
+      firstFrame: this.firstFrame,
+      buffering: !this.video.paused && this.video.readyState < 3,
+      width: this.video.videoWidth,
+      height: this.video.videoHeight,
     }
   }
 
@@ -81,12 +101,14 @@ export class HtmlVideoMediaAdapter implements MediaPort {
   waitForPlayableData(timeoutMs = 8_000): Promise<void> {
     // HAVE_CURRENT_DATA=2；使用数值避免 Node 单测环境需要 DOM 全局量。
     if (this.video.readyState >= 2) return Promise.resolve()
+    const signal = this.sourceController.signal
     return new Promise<void>((resolve, reject) => {
       const cleanup = () => {
         clearTimeout(timer)
         this.video.removeEventListener('loadeddata', onReady)
         this.video.removeEventListener('canplay', onReady)
         this.video.removeEventListener('error', onError)
+        signal.removeEventListener('abort', onAbort)
       }
       const onReady = () => {
         cleanup()
@@ -94,18 +116,24 @@ export class HtmlVideoMediaAdapter implements MediaPort {
       }
       const onError = () => {
         cleanup()
-        reject(new Error('新 HLS generation 媒体数据加载失败'))
+        reject(new Error('媒体数据加载失败'))
+      }
+      const onAbort = () => {
+        cleanup()
+        reject(new DOMException('媒体来源已关闭', 'AbortError'))
       }
       const timer = setTimeout(
         () => {
           cleanup()
-          reject(new Error(`等待新 HLS generation 可播数据超过 ${timeoutMs}ms`))
+          reject(new Error(`等待媒体可播数据超过 ${timeoutMs}ms`))
         },
         Math.max(1, timeoutMs),
       )
       this.video.addEventListener('loadeddata', onReady, { once: true })
       this.video.addEventListener('canplay', onReady, { once: true })
       this.video.addEventListener('error', onError, { once: true })
+      signal.addEventListener('abort', onAbort, { once: true })
+      if (signal.aborted) onAbort()
     })
   }
 
@@ -150,9 +178,10 @@ export class HtmlVideoMediaAdapter implements MediaPort {
   destroy(): void {
     if (this.destroyed) return
     this.destroyed = true
+    this.sourceController.abort()
+    if (this.frameCallback !== undefined) this.video.cancelVideoFrameCallback?.(this.frameCallback)
+    this.frameCallback = undefined
     this.detachListeners()
-    this.hlsController?.destroy()
-    this.hlsController = undefined
     this.video.pause()
     this.video.removeAttribute('src')
     this.video.load()

@@ -1,6 +1,6 @@
+import type { MediaPresentation } from '@marchen/playback-core'
 import type { PlayerSettingsSection } from '@renderer/atoms/player-settings-state'
-import type { PlayerCapabilities } from '@renderer/services/player-runtime'
-import type { PlaybackSourceLeaseDescriptor } from '@marchen/shared/media'
+import type { PlayerCapabilities, PlaylistEntry } from '@renderer/services/player-runtime'
 import { playerSettingsPanelAtom } from '@renderer/atoms/player'
 import {
   getAvailablePlayerSettingsSections,
@@ -8,6 +8,7 @@ import {
 } from '@renderer/atoms/player-settings-state'
 import { usePlayerSettings } from '@renderer/atoms/settings/player'
 import { MatchDanmakuDialog } from '@renderer/components/modules/shared/MatchDanmakuDialog'
+import { PlayerEngineSetting } from '@renderer/components/modules/shared/setting/PlayerEngineSetting'
 import { ScrollArea } from '@renderer/components/ui/scrollArea'
 import { Sheet, SheetContent, SheetTitle } from '@renderer/components/ui/sheet'
 import { Switch } from '@renderer/components/ui/switch'
@@ -16,9 +17,10 @@ import { cn } from '@renderer/lib/utils'
 import { usePlayerPortalContainer } from '@renderer/services/player-runtime'
 import { createPlaybackInfoRows } from '@renderer/services/player-runtime/playback-info'
 import { useAtom } from 'jotai'
-import { lazy, useEffect } from 'react'
-
+import { lazy, useEffect, useState } from 'react'
 import { withControllerPosition } from '../controls/controller-position'
+
+import { AudioTrackSetting } from './items/AudioTrackSetting'
 import { Danmaku } from './items/damaku/Danmaku'
 import { Subtitle } from './items/subtitle/Subtitle'
 
@@ -31,7 +33,10 @@ export type PlayerRotation = (typeof ROTATIONS)[number]
 
 interface PlayerSettingsPanelProps {
   capabilities: PlayerCapabilities
-  playbackInfo?: PlaybackSourceLeaseDescriptor
+  playlist?: readonly PlaylistEntry[]
+  onSelectPlaylist?: (entry: PlaylistEntry) => void
+  playbackInfo?: MediaPresentation
+  readPlaybackInfo?: () => MediaPresentation | undefined
   rate: number
   rotation: PlayerRotation
   onRateChange: (rate: number) => void
@@ -47,7 +52,10 @@ const sectionMetadata: Record<PlayerSettingsSection, { label: string; icon: stri
 
 export const PlayerSettingsPanel = ({
   capabilities,
+  playlist,
+  onSelectPlaylist,
   playbackInfo,
+  readPlaybackInfo,
   rate,
   rotation,
   onRateChange,
@@ -56,6 +64,16 @@ export const PlayerSettingsPanel = ({
   const [panel, setPanel] = useAtom(playerSettingsPanelAtom)
   const portalContainer = usePlayerPortalContainer()
   const sections = getAvailablePlayerSettingsSections(capabilities)
+  const [livePlaybackInfo, setLivePlaybackInfo] = useState(playbackInfo)
+
+  useEffect(() => {
+    if (!panel.open || !readPlaybackInfo) return
+    // 只在设置面板打开时刷新，暂停播放后也能看到解码速率归零。
+    const refresh = () => setLivePlaybackInfo(readPlaybackInfo())
+    refresh()
+    const timer = setInterval(refresh, 500)
+    return () => clearInterval(timer)
+  }, [panel.open, readPlaybackInfo])
 
   useEffect(() => {
     const normalized = normalizePlayerSettingsSection(panel.section, capabilities)
@@ -119,7 +137,7 @@ export const PlayerSettingsPanel = ({
                 <TabsContent value="playback" className="mt-0 focus-visible:ring-0">
                   <PlaybackSettings
                     capabilities={capabilities}
-                    playbackInfo={playbackInfo}
+                    playbackInfo={readPlaybackInfo ? livePlaybackInfo : playbackInfo}
                     rate={rate}
                     rotation={rotation}
                     onRateChange={onRateChange}
@@ -139,7 +157,7 @@ export const PlayerSettingsPanel = ({
                     value="playlist"
                     className="mt-0 max-w-full min-w-0 overflow-hidden focus-visible:ring-0"
                   >
-                    <PlayList />
+                    <PlayList entries={playlist ?? []} onSelect={onSelectPlaylist} />
                   </TabsContent>
                 )}
               </div>
@@ -161,6 +179,7 @@ const PlaybackSettings = ({
   onRotationChange,
 }: PlayerSettingsPanelProps) => {
   const [settings, setSettings] = usePlayerSettings()
+  const portalContainer = usePlayerPortalContainer()
   const playbackInfoRows = createPlaybackInfoRows(playbackInfo)
   const positionPresets = [
     { label: '上方', xRatio: 0.5, yRatio: 0.18 },
@@ -172,18 +191,10 @@ const PlaybackSettings = ({
     <div className="space-y-7">
       <PanelSection title="媒体兼容">
         <PanelCard>
-          <div className="flex min-h-11 items-center justify-between gap-4 px-4 py-3 text-sm">
-            <span>FFmpeg 兼容播放</span>
-            <span className="text-[var(--player-settings-muted)]">
-              {capabilities.ffmpegPlaybackStatus === 'available'
-                ? '可用'
-                : capabilities.ffmpegPlaybackStatus === 'checking'
-                  ? '检查中'
-                  : capabilities.ffmpegPlaybackStatus === 'native-only'
-                    ? '仅原生播放'
-                    : '不可用，已回退直放'}
-            </span>
+          <div className="px-4 py-3">
+            <PlayerEngineSetting playerMaterial container={portalContainer} />
           </div>
+          <AudioTrackSetting />
           {playbackInfoRows.map((row) => (
             <div
               key={row.label}
@@ -224,7 +235,7 @@ const PlaybackSettings = ({
 
       <PanelSection title="连续播放">
         <PanelCard>
-          {capabilities.directoryPlaylist && (
+          {capabilities.playlist && (
             <PanelSwitchRow
               label="自动续播下一集"
               checked={settings.enableAutomaticEpisodeSwitching}

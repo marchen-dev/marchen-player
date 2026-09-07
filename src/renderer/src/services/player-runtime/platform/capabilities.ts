@@ -3,11 +3,9 @@ import type { PlayerCapabilities } from './types'
 export const webPlayerCapabilities: PlayerCapabilities = {
   platform: 'web',
   directoryPlaylist: false,
-  embeddedSubtitle: false,
+  playlist: true,
+  embeddedSubtitle: true,
   externalSubtitle: true,
-  snapshot: false,
-  ffmpegPlayback: false,
-  ffmpegPlaybackStatus: 'native-only',
   windowFullscreen: false,
   domFullscreen: true,
 }
@@ -15,11 +13,9 @@ export const webPlayerCapabilities: PlayerCapabilities = {
 export const electronPlayerCapabilities: PlayerCapabilities = {
   platform: 'electron',
   directoryPlaylist: true,
+  playlist: true,
   embeddedSubtitle: true,
   externalSubtitle: true,
-  snapshot: true,
-  ffmpegPlayback: false,
-  ffmpegPlaybackStatus: 'checking',
   windowFullscreen: true,
   domFullscreen: false,
 }

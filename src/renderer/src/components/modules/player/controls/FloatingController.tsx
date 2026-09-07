@@ -15,6 +15,7 @@ export interface FloatingControllerProps {
   className?: string
   visible?: boolean
   onDraggingChange?: (dragging: boolean) => void
+  onHoverChange?: (hovered: boolean) => void
   onRectChange?: (rect: DOMRect | null) => void
 }
 
@@ -48,6 +49,7 @@ export const FloatingController = ({
   className,
   visible = true,
   onDraggingChange,
+  onHoverChange,
   onRectChange,
 }: FloatingControllerProps) => {
   const controllerRef = useRef<HTMLDivElement | null>(null)
@@ -189,6 +191,8 @@ export const FloatingController = ({
         onDrag={reportRect}
         onDragEnd={persistPosition}
         onPointerDown={startDragFromSurface}
+        onPointerEnter={() => onHoverChange?.(true)}
+        onPointerLeave={() => onHoverChange?.(false)}
         style={{ x, y }}
         className={cn(
           'absolute top-0 left-0 z-40 w-[min(520px,calc(100%-32px))]',

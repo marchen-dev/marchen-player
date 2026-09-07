@@ -1,4 +1,5 @@
 import type { SelectOption } from '@renderer/components/modules/shared/setting/SettingSelect'
+import type { EnginePreference } from '@renderer/services/player-runtime/engine-policy'
 import {
   danmakuDurationList,
   danmakuEndAreaList,
@@ -14,10 +15,10 @@ const getSelectedDefaultValue = (list: SelectOption[]) => {
 
 const createPlayerDefaultSettings = () => {
   return {
+    enginePreference: 'auto' as EnginePreference,
     enableTraditionalToSimplified: false,
     enableAutomaticEpisodeSwitching: false,
     enableDanmaku: true,
-    enableDanmakuHoverPause: true,
     danmakuMaxOnScreen: '80',
     enableMiniProgress: true,
     controllerPosition: { xRatio: 0.5, yRatio: 0.72 },

@@ -1,6 +1,5 @@
 export type TelemetryRuntime = 'main' | 'preload' | 'renderer'
 export type TelemetryTarget = 'electron' | 'web'
-export type PlaybackMode = 'direct' | 'remux' | 'transcode-audio' | 'transcode-video'
 
 export interface CommonTelemetryProperties {
   release: string
@@ -42,27 +41,38 @@ export interface TelemetryEventMap {
   media_prepare_completed: {
     operation_id: string
     attempt_id: string
-    mode: PlaybackMode
     reason: string
     duration_ms: number
-    generation?: number
+    engine?: 'native' | 'canvas'
+    backend?: string
     container?: string
     video_codec?: string
     audio_codec?: string
   }
-  compat_fallback_triggered: {
+  playback_engine_changed: {
     operation_id: string
-    attempt_id: string
-    from: PlaybackMode
-    to: PlaybackMode
-    reason: string
+    attempt_id?: string
+    from?: 'native' | 'canvas'
+    to: 'native' | 'canvas'
+    trigger: 'settings' | 'automatic' | 'retry' | 'restore' | 'audio-track'
+    result: 'success' | 'failed' | 'cancelled'
+    requested_preference?: 'auto' | 'native' | 'canvas'
+    committed_preference: 'auto' | 'native' | 'canvas'
+  }
+  playback_seek_completed: {
+    operation_id: string
+    attempt_id?: string
+    engine?: 'native' | 'canvas'
+    target_time: number
+    duration_ms: number
+    result: 'success' | 'failed' | 'cancelled'
   }
   playback_started: {
     operation_id: string
     attempt_id: string
-    mode: PlaybackMode
+    engine?: 'native' | 'canvas'
+    backend?: string
     time_to_first_frame_ms: number
-    generation?: number
   }
   playback_stalled: {
     operation_id: string
@@ -76,12 +86,17 @@ export interface TelemetryEventMap {
     watched_ms: number
     stall_count: number
     stall_duration_ms: number
+    rendered_frames?: number
+    dropped_frames?: number
+    linear_memory_peak_bytes?: number
+    video_queue_peak?: number
+    audio_ahead_peak_s?: number
   }
   playback_failed: {
     operation_id: string
+    attempt_id?: string
+    engine?: 'native' | 'canvas'
     error_code: string
-    mode?: PlaybackMode
-    generation?: number
   }
 }
 

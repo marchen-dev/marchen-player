@@ -30,18 +30,23 @@ export const MatchDanmakuDialog = () => {
     queryKey: [apiClient.match.Matchkeys.postVideoEpisodeId, hash],
     queryFn: async () => {
       const historyData = await db.history.get({ hash })
-      if (!historyData?.path) {
-        return
+      const source = historyData?.source
+      if (!source) return
+      let fileHash = hash
+      let fileSize = source.size
+      let fileName = source.name
+      if (source.kind === 'electron-file') {
+        const detail = await ipcClient?.player.getAnimeDetailByPath({ path: source.path })
+        if (!detail || detail.ok !== 1 || !detail.fileHash || !detail.fileSize || !detail.fileName)
+          return
+        fileHash = detail.fileHash
+        fileSize = detail.fileSize
+        fileName = detail.fileName
       }
-      const animeDetail = await ipcClient?.player.getAnimeDetailByPath({ path: historyData.path })
-      if (!animeDetail || animeDetail.ok !== 1) {
-        return
-      }
-      const { fileHash, fileSize, fileName } = animeDetail
-      if (!fileHash || !fileSize || !fileName) {
-        return
-      }
-      return apiClient.match.postVideoEpisodeId({ fileSize, fileHash, fileName })
+      if (!fileHash || !fileSize || !fileName) return
+      const response = await apiClient.match.postVideoEpisodeId({ fileSize, fileHash, fileName })
+      if (response.success === false) throw new Error(response.errorMessage || '弹幕匹配失败')
+      return response
     },
     enabled: !!hash && isLibraryPage,
   })

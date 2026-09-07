@@ -1,11 +1,9 @@
-import type { MediaCompatErrorStage, MediaPreparationStage } from '@marchen/shared/media'
-
 export class BrowserPlaybackReadinessError extends Error {
   constructor(
     readonly code: 'metadata-invalid' | 'startup-deadline-exceeded' | 'cancelled',
-    readonly stage: MediaCompatErrorStage,
+    readonly stage: 'metadata' | 'decode' | 'cleanup',
     message: string,
-    readonly deadlineStage?: MediaPreparationStage,
+    readonly deadlineStage?: 'first-frame',
   ) {
     super(message)
     this.name = 'BrowserPlaybackReadinessError'
@@ -37,9 +35,13 @@ export const waitForBrowserFirstFrame = (
       }
       error ? reject(error) : resolve()
     }
-    const onFrame = () => finish()
+    const onFrame = () => {
+      if (video.videoWidth > 0 && video.videoHeight > 0) finish()
+      else requestFrame()
+    }
     const requestFrame = () => {
       if ('requestVideoFrameCallback' in video && video.requestVideoFrameCallback) {
+        if (frameCallbackId !== undefined) video.cancelVideoFrameCallback?.(frameCallbackId)
         frameCallbackId = video.requestVideoFrameCallback(onFrame)
       }
     }
@@ -61,7 +63,9 @@ export const waitForBrowserFirstFrame = (
       if (
         !video.requestVideoFrameCallback &&
         Number.isFinite(video.duration) &&
-        video.duration > 0
+        video.duration > 0 &&
+        video.videoWidth > 0 &&
+        video.videoHeight > 0
       ) {
         finish()
       }

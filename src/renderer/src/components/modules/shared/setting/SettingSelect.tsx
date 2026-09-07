@@ -13,6 +13,7 @@ export interface SelectOption {
   label: string
   value: string
   default?: boolean
+  disabled?: boolean
 }
 
 interface SettingSelectProps {
@@ -47,6 +48,7 @@ export const SettingSelect: FC<SettingSelectProps> = (props) => {
             <SelectItem
               key={group.label}
               value={group.value}
+              disabled={group.disabled}
               className={cn(playerMaterial && 'focus:bg-white/14 focus:text-white')}
             >
               {group.label}

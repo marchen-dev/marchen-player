@@ -5,8 +5,16 @@ out
 *.log*
 .eslintcache
 .env
+.env.*
+!.env.example
 *.mas.*
 test-results/
 *.tsbuildinfo
 resources/ffmpeg/
 marchen/**/acceptance/.serve.pid
+.cache/libav-build/
+src/renderer/public/wasm/libav/
+
+.cache/player-color-reference/
+
+src/renderer/public/audio/soundtouch/

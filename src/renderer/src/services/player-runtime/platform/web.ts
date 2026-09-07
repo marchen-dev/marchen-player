@@ -1,15 +1,17 @@
 import type {
   FullscreenPort,
   PlayerPorts,
-  PlayerSourceHandle,
-  PlayerSourceRequest,
   ResolvedSubtitleTrack,
   SourceLifecyclePort,
   SubtitleCatalogPort,
   SubtitleTrackDescriptor,
 } from './ports'
+import { mediaFrameQueue } from '../../media/frame-queue'
+import { parseTextSubtitles, textSubtitlesToAss } from '../../media/subtitles/text'
+import { getWebPlaylist } from '../../player-loading/file-playlist'
 import { webPlayerCapabilities } from './capabilities'
-import { createPlaybackSourceLease } from './playback-lease'
+import { listEmbeddedSubtitles, resolveEmbeddedTrack } from './embedded-catalog'
+import { createResourceLifecyclePort } from './resource-lifecycle'
 
 export const createWebPlayerPorts = (): PlayerPorts => {
   const sourceLifecycle = createWebSourceLifecyclePort()
@@ -17,6 +19,19 @@ export const createWebPlayerPorts = (): PlayerPorts => {
     capabilities: webPlayerCapabilities,
     fullscreen: createBrowserFullscreenPort(),
     sourceLifecycle,
+    playlist: {
+      list: async () => getWebPlaylist(),
+      play: (entry) => {
+        if (entry.file)
+          void import('../../player-loading').then(({ getPlayerLoadingService }) =>
+            getPlayerLoadingService().loadFromFile(entry.file!),
+          )
+      },
+    },
+    snapshot: {
+      capture: (request) =>
+        mediaFrameQueue.request(`history:${request.source.hash}`, { ...request, maxWidth: 640 }, 0),
+    },
     subtitles: createWebSubtitleCatalogPort(sourceLifecycle),
   }
 }
@@ -42,51 +57,7 @@ export const createBrowserFullscreenPort = (): FullscreenPort => ({
   },
 })
 
-export const createWebSourceLifecyclePort = (): SourceLifecyclePort => {
-  const liveHandles = new Map<string, string | null>()
-
-  const releaseById = (id: string) => {
-    if (!liveHandles.has(id)) return
-    const objectUrl = liveHandles.get(id)
-    liveHandles.delete(id)
-    if (objectUrl) URL.revokeObjectURL(objectUrl)
-  }
-
-  return {
-    prepare: async (source) => {
-      if (source.kind !== 'web-file') throw new Error('Web 播放源只接受当前页面持有的 File')
-      const id = createId()
-      const url = URL.createObjectURL(source.file)
-      liveHandles.set(id, url)
-      return createPlaybackSourceLease(
-        {
-          id,
-          logicalSourceId: source.hash,
-          mode: 'direct',
-          transport: 'object-url',
-          url,
-          timeline: { originalDuration: 0, offset: 0, calibrated: false },
-        },
-        () => releaseById(id),
-      )
-    },
-    prepareResource: async (request: PlayerSourceRequest): Promise<PlayerSourceHandle> => {
-      const id = createId()
-      const objectUrl =
-        request.kind === 'url'
-          ? null
-          : URL.createObjectURL(request.kind === 'file' ? request.file : request.blob)
-      const url = request.kind === 'url' ? request.url : objectUrl!
-      liveHandles.set(id, objectUrl)
-      return { id, url, release: () => releaseById(id) }
-    },
-    release: (lease) => lease.release(),
-    releaseResource: (handle) => releaseById(handle.id),
-    dispose: () => {
-      for (const id of [...liveHandles.keys()]) releaseById(id)
-    },
-  }
-}
+export const createWebSourceLifecyclePort = createResourceLifecyclePort
 
 export const createWebSubtitleCatalogPort = (
   sourceLifecycle: SourceLifecyclePort,
@@ -95,14 +66,29 @@ export const createWebSubtitleCatalogPort = (
   const descriptors = new Map<string, SubtitleTrackDescriptor>()
   const tracks = new Map<string, ResolvedSubtitleTrack>()
   const files = new Map<string, File>()
+  let mediaHash: string | undefined
 
   const createResolvedFileTrack = async (id: string, file: File) => {
-    const source = await sourceLifecycle.prepareResource({ kind: 'file', file })
+    const format = file.name.toLowerCase().split('.').pop()
+    if (file.size > 8 * 1024 * 1024) throw new Error('外挂字幕超过 8 MiB')
+    const content = await file.text()
+    const converted =
+      format === 'srt' || format === 'vtt' ? parseTextSubtitles(content, format) : undefined
+    const source = await sourceLifecycle.prepareResource(
+      converted
+        ? {
+            kind: 'blob',
+            blob: new Blob([textSubtitlesToAss(converted.cues)], { type: 'text/plain' }),
+          }
+        : { kind: 'file', file },
+    )
     const track: ResolvedSubtitleTrack = {
       id,
       title: file.name,
       origin: 'external',
       url: source.url,
+      persistenceContent: content,
+      warning: converted?.warnings.join('；') || undefined,
       release: () => {
         source.release()
         tracks.delete(id)
@@ -113,7 +99,16 @@ export const createWebSubtitleCatalogPort = (
   }
 
   return {
-    list: async () => [...descriptors.values()],
+    list: async (source, signal) => {
+      if (mediaHash && mediaHash !== source.hash) {
+        for (const track of [...tracks.values()]) track.release?.()
+        tracks.clear()
+        files.clear()
+        descriptors.clear()
+      }
+      mediaHash = source.hash
+      return [...(await listEmbeddedSubtitles(source, signal)), ...descriptors.values()]
+    },
     importExternal: async () => {
       const file = await selectFile()
       if (!file) return null
@@ -127,18 +122,18 @@ export const createWebSubtitleCatalogPort = (
       files.set(id, file)
       return createResolvedFileTrack(id, file)
     },
-    restoreExternal: async (path, title, id = createId()) => {
-      const track: ResolvedSubtitleTrack = {
-        id,
-        title,
-        origin: 'external',
-        url: path,
-      }
-      descriptors.set(track.id, track)
-      tracks.set(track.id, track)
-      return track
+    restoreExternal: async (_path, title, id = createId(), content) => {
+      if (content === undefined) throw new Error(`请重新导入外挂字幕：${title}`)
+      const file = new File([content], title, { type: 'text/plain' })
+      if (file.size > 8 * 1024 * 1024) throw new Error('保存的字幕超过 8 MiB')
+      descriptors.set(id, { id, title, origin: 'external' })
+      files.set(id, file)
+      return createResolvedFileTrack(id, file)
     },
-    resolve: async (_source, track: SubtitleTrackDescriptor) => {
+    resolve: async (source, track: SubtitleTrackDescriptor, signal) => {
+      if (track.origin === 'embedded') {
+        return resolveEmbeddedTrack(source, track, signal)
+      }
       const resolved = tracks.get(track.id)
       if (resolved) return resolved
       const file = files.get(track.id)
@@ -152,7 +147,7 @@ const selectSubtitleFile = () =>
   new Promise<File | null>((resolve) => {
     const input = document.createElement('input')
     input.type = 'file'
-    input.accept = '.ass,.ssa'
+    input.accept = '.ass,.ssa,.srt,.vtt'
     input.addEventListener('change', () => resolve(input.files?.[0] ?? null), { once: true })
     input.addEventListener('cancel', () => resolve(null), { once: true })
     input.click()

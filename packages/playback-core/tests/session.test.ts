@@ -279,6 +279,34 @@ describe('playbackSession', () => {
     expect(states).toHaveBeenCalledTimes(emissionCount)
   })
 
+  it('连续 seek 保留播放意图，跳转中显式暂停取消恢复', () => {
+    const { events, media } = createMedia()
+    const session = new PlaybackSession(media)
+    session.load(source('seeks'))
+    events.next({ type: 'play', sessionId: 1, snapshot: snapshot({ paused: false }) })
+    session.seek(10)
+    session.seek(20)
+    expect(session.currentState).toMatchObject({ status: 'seeking', resumeAfterSeek: true })
+    session.pause()
+    events.next({
+      type: 'seeked',
+      sessionId: 1,
+      snapshot: snapshot({ currentTime: 20, paused: true }),
+    })
+    expect(session.currentState.status).toBe('paused')
+    expect(media.play).not.toHaveBeenCalled()
+  })
+
+  it('原文件 startTime 是打开位置，不重复加成逻辑偏移', () => {
+    const { media, setSnapshot } = createMedia()
+    const session = new PlaybackSession(media)
+    session.load({ id: 'canvas', engine: 'canvas', resourceId: 'file', startTime: 40 })
+    setSnapshot({ currentTime: 40, duration: 120 })
+    expect(session.clock.now()).toBe(40)
+    session.seek(50)
+    expect(media.seek).toHaveBeenCalledWith(50)
+  })
+
   it('把 generation 局部时间映射为原视频逻辑时间', () => {
     const { events, media, setSnapshot } = createMedia()
     const session = new PlaybackSession(media)

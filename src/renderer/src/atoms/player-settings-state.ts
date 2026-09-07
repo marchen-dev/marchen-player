@@ -20,7 +20,7 @@ export function getAvailablePlayerSettingsSections(
   return playerSettingsSections.filter((section) => {
     if (section === 'subtitle')
       return capabilities.embeddedSubtitle || capabilities.externalSubtitle
-    if (section === 'playlist') return capabilities.directoryPlaylist
+    if (section === 'playlist') return capabilities.playlist
     return true
   })
 }

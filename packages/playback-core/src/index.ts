@@ -7,8 +7,10 @@
 export { isAutoplayBlocked, normalizePlayError } from './errors'
 export { PlaybackSession } from './session'
 export type {
+  MediaAudioTrack,
   MediaEvent,
   MediaPort,
+  MediaPresentation,
   PlaybackClock,
   PlaybackError,
   PlaybackErrorCode,

@@ -14,15 +14,27 @@ importers:
       '@ai-sdk/openai':
         specifier: ^4.0.51
         version: 4.0.51(zod@4.4.3)
+      '@mediabunny/ac3':
+        specifier: 1.55.7
+        version: 1.55.7(mediabunny@1.55.7)
+      '@mediabunny/dts':
+        specifier: 1.55.7
+        version: 1.55.7(mediabunny@1.55.7)
       '@sentry/electron':
         specifier: 7.17.0
         version: 7.17.0(@opentelemetry/core@2.10.0(@opentelemetry/api@1.9.1))(supports-color@7.2.0)
+      '@soundtouchjs/audio-worklet':
+        specifier: 2.1.1
+        version: 2.1.1
+      '@suemor/libav-hevc':
+        specifier: 0.1.1
+        version: 0.1.1
       ai:
         specifier: ^7.0.84
         version: 7.0.84(zod@4.4.3)
-      hls.js:
-        specifier: 1.7.1
-        version: 1.7.1
+      mediabunny:
+        specifier: 1.55.7
+        version: 1.55.7
       nanoid:
         specifier: ^6.0.1
         version: 6.0.1
@@ -189,6 +201,9 @@ importers:
       opencc-js:
         specifier: ^1.4.2
         version: 1.4.2
+      playwright-core:
+        specifier: 1.58.2
+        version: 1.58.2
       prettier:
         specifier: ^3.9.6
         version: 3.9.6
@@ -1109,6 +1124,16 @@ packages:
   '@malept/flatpak-bundler@0.4.0':
     resolution: {integrity: sha512-9QOtNffcOF/c1seMCDnjckb3R9WHcG34tky+FHpNKKCW0wc/scYLwMtO+ptyGUfMW0/b/n4qRiALlaFHc9Oj7Q==}
     engines: {node: '>= 10.0.0'}
+
+  '@mediabunny/ac3@1.55.7':
+    resolution: {integrity: sha512-HZDafm+IJxxP6Fk2yuK8a99CA3nUjHuqiOz0vKat7h/snsEqs8Y13yVmX5+4orlyA3ICbYitG3owiNxEzzoevA==}
+    peerDependencies:
+      mediabunny: ^1.0.0
+
+  '@mediabunny/dts@1.55.7':
+    resolution: {integrity: sha512-xCgMc1SN4eBSpL32jfAIAjPeNglDSA6RgPFcvvPkpN53fII/X18NJL3CycpTfdJPICNHYPsUkV2f70hUvuCEVw==}
+    peerDependencies:
+      mediabunny: ^1.0.0
 
   '@noble/hashes@1.4.0':
     resolution: {integrity: sha512-V1JJ1WTRUqHHrOSh597hURcMqVKVGL/ea3kv0gSnEdsEZ0/+VyPghM1lMNGc00z7CIQorSvbKpuJkxvuHbvdbg==}
@@ -2503,6 +2528,18 @@ packages:
     resolution: {integrity: sha512-t09vSN3MdfsyCHoFcTRCH/iUtG7OJ0CsjzB8cjAmKc/va/kIgeDI/TxsigdncE/4be734m0cvIYwNaV4i2XqAw==}
     engines: {node: '>=10'}
 
+  '@soundtouchjs/audio-worklet@2.1.1':
+    resolution: {integrity: sha512-itxSW62gbtDKoFo6eEr4PXzVz3oF+wCVREupFi5JiUR31tWWwCizr+2XezYD1SnkrSDfdmZvvviTtoyejYeD0Q==}
+
+  '@soundtouchjs/core@2.1.1':
+    resolution: {integrity: sha512-ccBiG9/zHdM1Sx1RUkXWBgRYFI1HCiUHHwRK8gAvVNgmcafBgUzRP6Czn7pUPcHgSQus+i3Eu3DlfBR24wqspA==}
+
+  '@soundtouchjs/interpolation-strategy-lanczos@2.1.1':
+    resolution: {integrity: sha512-EX4qVLnOJ9pKfL7iSPJSJDKDAoZ4d7JO7KTKMPVo2XIhlmT/2hTZC5dWL/R9Jv3XC7kyQeteeGcogWP6DPi47A==}
+
+  '@soundtouchjs/worklet-base@2.1.1':
+    resolution: {integrity: sha512-H/QMyW8yB91WX1CVSVCeOXNPdv1m71Zi0KQlvcX3f+159GNUo8kckmXV0cHpni9SCqVhCHMS/lapbBKl4tc6nQ==}
+
   '@standard-schema/spec@1.1.0':
     resolution: {integrity: sha512-l2aFy5jALhniG5HgqrD6jXLi/rUWrKvqN/qJx6yoJsgKhblVd+iqqU4RCXavm/jPityDo5TCvKMnpjKnOriy0w==}
 
@@ -2511,6 +2548,9 @@ packages:
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
     peerDependencies:
       eslint: ^9.0.0 || ^10.0.0
+
+  '@suemor/libav-hevc@0.1.1':
+    resolution: {integrity: sha512-fHTIKsVFCwUVFRNgKxRag2dk/id/Oa+PeN9TUwehrXxdtOv+X+3Z65GcstJnqjTboT2fU95xQ4I0bWgJKnthdw==}
 
   '@szmarczak/http-timer@4.0.6':
     resolution: {integrity: sha512-4BAffykYOgO+5nzBWYwE3W90sBgLJoUPRWWcL8wlyiM8IB8ipJz3UMJ9KXQd1RKQXpKp8Tutn80HZtWsu2u76w==}
@@ -2638,6 +2678,12 @@ packages:
 
   '@types/deep-eql@4.0.2':
     resolution: {integrity: sha512-c9h9dVVMigMPc4bwTvC5dxqtqJZwQPePsWjPlpSOnojbor6pGqdk541lfA7AqFQr5pB1BRdq0juY9db81BwyFw==}
+
+  '@types/dom-mediacapture-transform@0.1.12':
+    resolution: {integrity: sha512-d7/QsLRwF864A5mgIM/YrfiglHoYn7zgCcAoJgW404r+2DwnNr7EBbLnCWpmOMgH8y0te73L1AV6H1bmauaWFw==}
+
+  '@types/dom-webcodecs@0.1.13':
+    resolution: {integrity: sha512-O5hkiFIcjjszPIYyUSyvScyvrBoV3NOEEZx/pMlsu44TKzWNkLVBBxnxJz42in5n3QIolYOcBYFCPZZ0h8SkwQ==}
 
   '@types/esrecurse@4.3.1':
     resolution: {integrity: sha512-xJBAbDifo5hpffDBuHl0Y8ywswbiAp/Wi7Y/GtAgSlZyIABppyurxVueOPE8LUQOxdlgi6Zqce7uoEpqNTeiUw==}
@@ -4281,9 +4327,6 @@ packages:
   hermes-parser@0.25.1:
     resolution: {integrity: sha512-6pEjquH3rqaI6cYAXYPcz9MS4rY6R4ngRgrgfDshRptUZIc3lw0MCIJIGDj9++mfySOuPTHB4nrSW99BCvOPIA==}
 
-  hls.js@1.7.1:
-    resolution: {integrity: sha512-DlzIkeBAS9IIQ432k3BUf3HlwbsR0+trB1i2lDdN2gUkNkrehFurh0/48M5c1/EjlDkdGng1gwZIpwyPxvdZ/g==}
-
   hosted-git-info@4.1.0:
     resolution: {integrity: sha512-kyCuEOWjJqZuDbRHzL8V93NzQhwIB71oFWSyzVo+KPZI+pnQPPxucdkrOZvkLRnrf5URsQM+IJ09Dw29cRALIA==}
     engines: {node: '>=10'}
@@ -4800,6 +4843,9 @@ packages:
   mdn-data@2.29.0:
     resolution: {integrity: sha512-pVxQFCcaYUEAH853+v7yoI/qzhxXSq1bTb9obMYGYAN1c3Hen+XDCEvr296XhstrwlSTNgOR7mCSD4JPjbJe5A==}
 
+  mediabunny@1.55.7:
+    resolution: {integrity: sha512-Sb/vI8frRiDPbPUwl3hz0n69NSe9yt4Nydcv5yxi8Rdgk0BgnujEGjZqE+uCTehFbafcqIu6gDAok8ln98dcqg==}
+
   meow@13.2.0:
     resolution: {integrity: sha512-pxQJQzB6djGPXh08dacEloMFopsOqGVRKFPYvPOt9XDZ1HasbgDZA74CJGreSU4G3Ak7EFJGoiH2auq+yXISgA==}
     engines: {node: '>=18'}
@@ -5190,6 +5236,11 @@ packages:
   pkijs@3.4.0:
     resolution: {integrity: sha512-emEcLuomt2j03vxD54giVB4SxTjnsqkU692xZOZXHDVoYyypEm+b3jpiTcc+Cf+myooc+/Ly0z01jqeNHVgJGw==}
     engines: {node: '>=16.0.0'}
+
+  playwright-core@1.58.2:
+    resolution: {integrity: sha512-yZkEtftgwS8CsfYo7nm0KE8jsvm6i/PTgVtB8DL726wNf6H2IMsDuxCpJj59KDaxCtSnrWan2AeDqM7JBaultg==}
+    engines: {node: '>=18'}
+    hasBin: true
 
   plist@3.1.0:
     resolution: {integrity: sha512-uysumyrvkUX0rX/dEVqt8gC3sTBzd4zoWfLeS29nb53imdaXVvLINYXTI2GNqzaMuvacNx4uJQ8+b3zXR0pkgQ==}
@@ -7018,6 +7069,14 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
+  '@mediabunny/ac3@1.55.7(mediabunny@1.55.7)':
+    dependencies:
+      mediabunny: 1.55.7
+
+  '@mediabunny/dts@1.55.7(mediabunny@1.55.7)':
+    dependencies:
+      mediabunny: 1.55.7
+
   '@noble/hashes@1.4.0': {}
 
   '@noble/hashes@2.4.0': {}
@@ -8338,6 +8397,22 @@ snapshots:
 
   '@sindresorhus/is@4.6.0': {}
 
+  '@soundtouchjs/audio-worklet@2.1.1':
+    dependencies:
+      '@soundtouchjs/core': 2.1.1
+      '@soundtouchjs/interpolation-strategy-lanczos': 2.1.1
+      '@soundtouchjs/worklet-base': 2.1.1
+
+  '@soundtouchjs/core@2.1.1':
+    dependencies:
+      '@soundtouchjs/interpolation-strategy-lanczos': 2.1.1
+
+  '@soundtouchjs/interpolation-strategy-lanczos@2.1.1': {}
+
+  '@soundtouchjs/worklet-base@2.1.1':
+    dependencies:
+      '@soundtouchjs/core': 2.1.1
+
   '@standard-schema/spec@1.1.0': {}
 
   '@stylistic/eslint-plugin@5.10.0(eslint@10.9.1(jiti@2.7.0)(supports-color@7.2.0))':
@@ -8349,6 +8424,8 @@ snapshots:
       espree: 10.4.0
       estraverse: 5.3.0
       picomatch: 4.0.7
+
+  '@suemor/libav-hevc@0.1.1': {}
 
   '@szmarczak/http-timer@4.0.6':
     dependencies:
@@ -8454,6 +8531,12 @@ snapshots:
       '@types/ms': 2.1.0
 
   '@types/deep-eql@4.0.2': {}
+
+  '@types/dom-mediacapture-transform@0.1.12':
+    dependencies:
+      '@types/dom-webcodecs': 0.1.13
+
+  '@types/dom-webcodecs@0.1.13': {}
 
   '@types/esrecurse@4.3.1': {}
 
@@ -10347,8 +10430,6 @@ snapshots:
     dependencies:
       hermes-estree: 0.25.1
 
-  hls.js@1.7.1: {}
-
   hosted-git-info@4.1.0:
     dependencies:
       lru-cache: 6.0.0
@@ -10851,6 +10932,11 @@ snapshots:
 
   mdn-data@2.29.0: {}
 
+  mediabunny@1.55.7:
+    dependencies:
+      '@types/dom-mediacapture-transform': 0.1.12
+      '@types/dom-webcodecs': 0.1.13
+
   meow@13.2.0: {}
 
   meriyah@6.1.4: {}
@@ -11330,6 +11416,8 @@ snapshots:
       pvtsutils: 1.3.6
       pvutils: 1.2.0
       tslib: 2.8.1
+
+  playwright-core@1.58.2: {}
 
   plist@3.1.0:
     dependencies:

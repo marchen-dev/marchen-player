@@ -1,3 +1,4 @@
+import type { VideoImporter, VideoInfo } from '@marchen/player-loading'
 /**
  * VideoImporter adapter (Web)：浏览器环境的视频导入
  *
@@ -5,8 +6,8 @@
  * 不支持 importFromPath（Web 无法直接访问文件系统）。
  */
 
-import type { VideoImporter, VideoInfo } from '@marchen/player-loading'
 import { calculateFileHash } from '@marchen/shared/lib/calc-file-hash'
+import { rememberWebFile } from '../file-playlist'
 
 export class WebImporter implements VideoImporter {
   /**
@@ -14,13 +15,14 @@ export class WebImporter implements VideoImporter {
    */
   async importFromFile(file: File): Promise<VideoInfo> {
     const hash = await calculateFileHash(file)
+    rememberWebFile(file, hash)
 
     return {
       source: { kind: 'web-file', file, hash, size: file.size, name: file.name },
       hash,
       size: file.size,
       name: file.name,
-      playList: [], // Web 环境无播放列表
+      playList: [], // 文件列表由 renderer 的页面授权集合持有
     }
   }
 

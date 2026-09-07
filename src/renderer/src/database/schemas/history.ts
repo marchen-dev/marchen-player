@@ -1,11 +1,18 @@
+import type { MediaAudioTrack } from '@marchen/playback-core'
 import type { CommentsModel } from '@renderer/request/models/comment'
 
 export interface DB_History {
+  audioTrack?: MediaAudioTrack
   hash: string
-  path?: string
-  pathStatus?: 'ready' | 'unresolved'
-  originalPath?: string
-  pathMigrationError?: string
+  source?:
+    | {
+        kind: 'web-file'
+        name: string
+        size: number
+        lastModified?: number
+        handle?: FileSystemFileHandle
+      }
+    | { kind: 'electron-file'; path: string; name: string; size: number }
   animeId?: number
   episodeId?: number
   animeTitle?: string
@@ -26,8 +33,10 @@ interface DB_Subtitles {
 
   tags: Array<{
     id: number
-    path: string
-    index?: number
+    path?: string
+    content?: string
+    origin?: 'embedded' | 'external'
+    embedded?: { number: number; uid: string; codec: string }
     title: string
     language?: string
   }>

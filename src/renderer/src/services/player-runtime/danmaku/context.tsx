@@ -1,7 +1,7 @@
 import type { PropsWithChildren } from 'react'
+import type { PlaybackVisualStateBridge } from '../fallback-state'
 import { convertDandanplayComments } from '@marchen/danmaku-engine'
 import { usePlayerSettings } from '@renderer/atoms/settings/player'
-import type { PlaybackVisualStateBridge } from '../fallback-state'
 import { usePlayerLoadingSelector } from '@renderer/services/player-loading/hooks'
 import {
   usePlaybackClock,
@@ -26,34 +26,22 @@ export const NativeDanmakuProvider = ({
   const clock = usePlaybackClock()
   const playback = usePlaybackViewModel()
   const [settings, setSettings] = usePlayerSettings()
-  const {
-    danmakuDuration,
-    danmakuEndArea,
-    danmakuFontSize,
-    danmakuMaxOnScreen,
-    enableDanmaku,
-    enableDanmakuHoverPause,
-  } = settings
+  const { danmakuDuration, danmakuEndArea, danmakuFontSize, danmakuMaxOnScreen, enableDanmaku } =
+    settings
   fallbackState?.bindDanmaku(enableDanmaku, (enabled) =>
     setSettings((current) => ({ ...current, enableDanmaku: enabled })),
   )
   const rendererConfig = useMemo(
     () => ({
       enabled: enableDanmaku,
-      hoverPause: enableDanmakuHoverPause,
+      // 悬停暂停固定开启，不读取历史设置中的关闭值。
+      hoverPause: true,
       duration: Number(danmakuDuration) / 1_000,
       fontSize: Number(danmakuFontSize),
       displayArea: Number(danmakuEndArea),
       maxOnScreen: Number(danmakuMaxOnScreen),
     }),
-    [
-      danmakuDuration,
-      danmakuEndArea,
-      danmakuFontSize,
-      danmakuMaxOnScreen,
-      enableDanmaku,
-      enableDanmakuHoverPause,
-    ],
+    [danmakuDuration, danmakuEndArea, danmakuFontSize, danmakuMaxOnScreen, enableDanmaku],
   )
   const comments = usePlayerLoadingSelector((state) =>
     state.step === 'ready' || state.step === 'reloading' ? state.mergedComments : [],

@@ -22,4 +22,6 @@ const start = async () => {
   await import('./bootstrap')
 }
 
-void start()
+// ESM preload 必须等 bridge 暴露后才结束执行；否则 renderer 的平台判断可能抢先缓存为 Web。
+// eslint-disable-next-line antfu/no-top-level-await -- Electron 需要等待此模块初始化完成后启动页面
+await start()

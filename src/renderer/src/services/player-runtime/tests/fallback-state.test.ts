@@ -1,4 +1,4 @@
-import type { PlaybackFallbackState } from '../fallback-controller'
+import type { PlaybackFallbackState } from '../fallback-state'
 import { describe, expect, it, vi } from 'vitest'
 import {
   capturePlaybackFallbackState,
@@ -51,7 +51,7 @@ describe('兼容换源状态恢复', () => {
     expect(visual.setDanmakuEnabled).toHaveBeenCalledWith(true)
   })
 
-  it('Provider bridge 保留真实视觉状态并调用各自恢复端口', async () => {
+  it('provider bridge 保留真实视觉状态并调用各自恢复端口', async () => {
     const bridge = new PlaybackVisualStateBridge()
     const setRotation = vi.fn()
     const selectSubtitle = vi.fn()

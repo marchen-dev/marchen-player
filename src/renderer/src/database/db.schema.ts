@@ -1,17 +1,7 @@
 import { TABLES } from './constants'
 
-export const dbSchemaV1 = {
+export const dbSchema = {
   [TABLES.HISTORY]:
-    '&hash,animeId, episodeId, path, animeTitle, episodeTitle, progress, duration, cover,thumbnail, danmaku, updatedAt',
-}
-
-export const dbSchemaV2 = {
-  [TABLES.HISTORY]:
-    '&hash,animeId, episodeId, path, animeTitle, episodeTitle, progress, duration, cover,thumbnail, danmaku, newBangumi, updatedAt',
-}
-
-export const dbSchemaV3 = {
-  [TABLES.HISTORY]:
-    '&hash,animeId, episodeId, path, animeTitle, episodeTitle, progress, duration, cover,thumbnail, danmaku, newBangumi, updatedAt',
+    '&hash,animeId, episodeId, animeTitle, episodeTitle, progress, duration, cover,thumbnail, danmaku, newBangumi, updatedAt',
   [TABLES.LIBRARY]: '&animeId, lastWatchedAt, addedAt, rating, isOnAir',
 }

@@ -42,6 +42,9 @@ export class DomDanmakuRenderer {
   private lastWidth = -1
   private lastHeight = -1
   private styleRevision = 0
+  private copyButton?: HTMLButtonElement
+  private copyTarget?: string
+  private copyTimer?: ReturnType<typeof setTimeout>
   private playing = false
   private destroyed = false
 
@@ -261,6 +264,7 @@ export class DomDanmakuRenderer {
   private releaseNode(id: string, completed = false): void {
     const active = this.animations.get(id)
     if (!active) return
+    if (this.copyTarget === id) this.hideCopyAction()
     this.animations.delete(id)
     this.hoverPaused.delete(id)
     if (completed) this.engine.completeItem(id)
@@ -271,28 +275,85 @@ export class DomDanmakuRenderer {
   }
 
   private bindHoverBehavior(id: string, active: ActiveAnimation): void {
-    active.node.onmouseenter = null
-    active.node.onmouseleave = null
-    if (!this.config.hoverPause) {
-      if (this.hoverPaused.delete(id)) {
-        this.engine.resumeItem(id)
-        if (this.playing) active.animation.play()
-      }
-      active.node.style.pointerEvents = 'none'
-      return
-    }
-
+    active.node.style.setProperty('-webkit-app-region', 'no-drag')
     active.node.style.pointerEvents = 'auto'
-    active.node.onmouseenter = () => {
-      // 先冻结调度时钟，再冻结视觉动画，保证碰撞预测与画面状态同序。
-      this.engine.pauseItem(id)
-      this.hoverPaused.add(id)
-      active.animation.pause()
-    }
-    active.node.onmouseleave = () => {
+    if (!this.config.hoverPause && this.hoverPaused.delete(id)) {
       this.engine.resumeItem(id)
-      this.hoverPaused.delete(id)
       if (this.playing) active.animation.play()
+    }
+    active.node.onmouseenter = () => {
+      this.hideCopyAction()
+      this.copyTarget = id
+      if (this.config.hoverPause) {
+        this.engine.pauseItem(id)
+        this.hoverPaused.add(id)
+        active.animation.pause()
+      }
+      const text = active.node.textContent ?? ''
+      const rect = active.node.getBoundingClientRect()
+      const button = document.createElement('button')
+      this.copyButton = button
+      button.type = 'button'
+      const icon = document.createElement('i')
+      icon.className = 'icon-[mingcute--copy-2-line] size-4'
+      icon.setAttribute('aria-hidden', 'true')
+      button.append(icon)
+      button.title = '复制弹幕'
+      button.setAttribute('aria-label', '复制弹幕')
+      button.dataset.danmakuCopy = ''
+      button.className =
+        'no-drag-region pointer-events-auto fixed z-50 grid size-8 place-items-center rounded-lg border border-white/15 bg-zinc-900 text-white shadow-lg hover:bg-zinc-700 focus-visible:outline-2 focus-visible:outline-white'
+      button.style.setProperty('-webkit-app-region', 'no-drag')
+      button.style.left = `${Math.max(8, Math.min(rect.left, window.innerWidth - 40))}px`
+      button.style.top = `${Math.max(8, Math.min(rect.bottom + 4, window.innerHeight - 42))}px`
+      button.onmouseenter = () => clearTimeout(this.copyTimer)
+      button.onmouseleave = () => this.scheduleHideCopyAction()
+      button.onfocus = () => clearTimeout(this.copyTimer)
+      button.onblur = () => this.scheduleHideCopyAction()
+      button.ondblclick = (event) => event.stopPropagation()
+      button.onclick = (event) => {
+        event.stopPropagation()
+        void (
+          navigator.clipboard?.writeText(text) ?? Promise.reject(new Error('剪贴板不可用'))
+        ).then(
+          () => {
+            if (this.copyButton === button) {
+              icon.className = 'icon-[mingcute--check-line] size-4 text-emerald-300'
+              button.setAttribute('aria-label', '已复制')
+              button.title = '已复制'
+            }
+          },
+          () => {
+            if (this.copyButton === button) {
+              icon.className = 'icon-[mingcute--close-line] size-4 text-red-300'
+              button.setAttribute('aria-label', '复制失败')
+              button.title = '复制失败'
+            }
+          },
+        )
+      }
+      // 独立于弹幕层的裁剪和透明度，同时留在全屏根节点内。
+      const host = this.container.closest('[data-player-root]') ?? this.container
+      host.append(button)
+    }
+    active.node.onmouseleave = () => this.scheduleHideCopyAction()
+  }
+
+  private scheduleHideCopyAction() {
+    clearTimeout(this.copyTimer)
+    // 给鼠标从文字移入按钮留出间隙，按钮停留期间继续保留该条悬停状态。
+    this.copyTimer = setTimeout(() => this.hideCopyAction(), 180)
+  }
+
+  private hideCopyAction() {
+    clearTimeout(this.copyTimer)
+    this.copyButton?.remove()
+    this.copyButton = undefined
+    const id = this.copyTarget
+    this.copyTarget = undefined
+    if (id && this.hoverPaused.delete(id)) {
+      this.engine.resumeItem(id)
+      if (this.playing) this.animations.get(id)?.animation.play()
     }
   }
 
@@ -302,6 +363,7 @@ export class DomDanmakuRenderer {
   }
 
   private clearNodes(): void {
+    this.hideCopyAction()
     for (const id of [...this.animations.keys()]) this.releaseNode(id)
     this.pool.releaseAll()
   }
@@ -370,6 +432,7 @@ const createMeasurementLayer = () => {
 const createDanmakuNode = () => document.createElement('span')
 
 const applyTextStyle = (node: HTMLSpanElement, item: DanmakuItem, defaultFontSize: number) => {
+  node.setAttribute('aria-hidden', 'true')
   node.textContent = item.text
   node.className = 'absolute top-0 left-0 whitespace-nowrap font-semibold will-change-transform'
   node.style.color = item.color

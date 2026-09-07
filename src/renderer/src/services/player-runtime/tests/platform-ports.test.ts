@@ -2,7 +2,6 @@ import type { FullscreenSnapshot } from '../platform/ports'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { electronPlayerCapabilities, webPlayerCapabilities } from '../platform/capabilities'
 import { resolvePlayerControlAvailability } from '../platform/control-availability'
-import { toEmbeddedSubtitleTrack } from '../platform/embedded-subtitle'
 import { createBrowserFullscreenPort } from '../platform/web'
 
 describe('player platform ports', () => {
@@ -10,11 +9,10 @@ describe('player platform ports', () => {
 
   it('按 Web 与 Electron 能力生成不同的控制器分支', () => {
     expect(resolvePlayerControlAvailability(webPlayerCapabilities)).toEqual({
-      transport: 'time-skip',
-      playlist: false,
-      embeddedSubtitle: false,
+      transport: 'playlist',
+      playlist: true,
+      embeddedSubtitle: true,
       externalSubtitle: true,
-      snapshot: false,
       fullscreen: true,
     })
     expect(resolvePlayerControlAvailability(electronPlayerCapabilities)).toEqual({
@@ -22,7 +20,6 @@ describe('player platform ports', () => {
       playlist: true,
       embeddedSubtitle: true,
       externalSubtitle: true,
-      snapshot: true,
       fullscreen: true,
     })
   })
@@ -58,14 +55,5 @@ describe('player platform ports', () => {
       { active: false, mode: 'dom' },
     ])
     expect(port.getSnapshot()).toEqual({ active: false, mode: 'dom' })
-  })
-
-  it('electron 字幕目录使用字幕流相对索引', async () => {
-    expect(toEmbeddedSubtitleTrack({ tags: { title: '中文字幕', language: 'zho' } }, 0)).toEqual({
-      id: 'embedded:0',
-      title: '中文字幕',
-      language: 'zho',
-      origin: 'embedded',
-    })
   })
 })

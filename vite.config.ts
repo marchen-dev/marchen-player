@@ -37,6 +37,9 @@ const vite = ({ mode }: { mode: string }) => {
     },
     root: ROOT,
     envDir: resolve(__dirname, '.'),
+    optimizeDeps: {
+      include: ['mediabunny', '@mediabunny/ac3', '@mediabunny/dts', '@soundtouchjs/audio-worklet'],
+    },
     resolve: {
       alias: {
         '@pkg': resolve('./package.json'),
@@ -48,6 +51,10 @@ const vite = ({ mode }: { mode: string }) => {
     },
     base: '/',
     server: {
+      headers: {
+        'Cross-Origin-Opener-Policy': 'same-origin',
+        'Cross-Origin-Embedder-Policy': 'credentialless',
+      },
       port: 1106,
       host: true,
       proxy: {
@@ -58,6 +65,10 @@ const vite = ({ mode }: { mode: string }) => {
       },
     },
     preview: {
+      headers: {
+        'Cross-Origin-Opener-Policy': 'same-origin',
+        'Cross-Origin-Embedder-Policy': 'credentialless',
+      },
       proxy: {
         '/api/v2': {
           target: apiProxyOrigin,
@@ -73,6 +84,7 @@ const vite = ({ mode }: { mode: string }) => {
           {
             src: '../../node_modules/@jellyfin/libass-wasm/dist/js/subtitles-octopus-worker.wasm',
             dest: 'assets',
+            rename: { stripBase: true },
           },
         ],
       }),

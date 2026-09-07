@@ -5,7 +5,6 @@ export interface PlayerControlAvailability {
   playlist: boolean
   embeddedSubtitle: boolean
   externalSubtitle: boolean
-  snapshot: boolean
   fullscreen: boolean
 }
 
@@ -13,10 +12,9 @@ export interface PlayerControlAvailability {
 export const resolvePlayerControlAvailability = (
   capabilities: PlayerCapabilities,
 ): PlayerControlAvailability => ({
-  transport: capabilities.directoryPlaylist ? 'playlist' : 'time-skip',
-  playlist: capabilities.directoryPlaylist,
+  transport: capabilities.playlist ? 'playlist' : 'time-skip',
+  playlist: capabilities.playlist,
   embeddedSubtitle: capabilities.embeddedSubtitle,
   externalSubtitle: capabilities.externalSubtitle,
-  snapshot: capabilities.snapshot,
   fullscreen: capabilities.domFullscreen || capabilities.windowFullscreen,
 })

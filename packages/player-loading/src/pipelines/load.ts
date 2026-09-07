@@ -18,7 +18,7 @@ import { concat, defer, EMPTY, from, of } from 'rxjs'
 import { filter, map, take } from 'rxjs/operators'
 
 import { mergeDanmakuEntries } from '../state-machine'
-import { getDurableMediaPath } from '../types'
+import { getPersistentMediaSource } from '../types'
 
 /**
  * 创建主加载 pipeline
@@ -186,7 +186,7 @@ export function executeFinish(
   return defer(async () => {
     await deps.history.save({
       hash: video.hash,
-      path: getDurableMediaPath(video),
+      source: getPersistentMediaSource(video),
       episodeId: match.episodeId,
       animeTitle: match.animeTitle,
       episodeTitle: match.episodeTitle,

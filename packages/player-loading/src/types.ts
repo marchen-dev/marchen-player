@@ -1,4 +1,4 @@
-import type { DurableMediaSource } from '@marchen/shared/media'
+import type { DurableMediaSource, PersistentMediaSource } from '@marchen/shared/media'
 
 /**
  * @marchen/player-loading 类型定义
@@ -64,7 +64,7 @@ export interface MatchedVideo {
 /** 历史记录条目 */
 export interface HistoryEntry {
   hash: string
-  path?: string
+  source?: PersistentMediaSource
   episodeId?: number
   animeId?: number
   animeTitle?: string
@@ -74,9 +74,16 @@ export interface HistoryEntry {
   [key: string]: unknown
 }
 
-/** Web File 不可跨页面恢复，因此只有 Electron source 能提供持久化路径。 */
-export const getDurableMediaPath = (video: VideoInfo): string | undefined =>
-  video.source.kind === 'electron-file' ? video.source.path : undefined
+/** 媒体来源在加载时写入一次，后续弹幕更新不重写来源。 */
+export const getPersistentMediaSource = (video: VideoInfo): PersistentMediaSource =>
+  video.source.kind === 'web-file'
+    ? {
+        kind: 'web-file',
+        name: video.name,
+        size: video.size,
+        lastModified: video.source.file.lastModified,
+      }
+    : { kind: 'electron-file', path: video.source.path, name: video.name, size: video.size }
 
 // ============================================================
 // 状态机：LoadingState（discriminated union）

@@ -1,9 +1,8 @@
 import fs from 'node:fs'
 import path from 'node:path'
-
 import { parseBilibiliDanmaku } from '@main/lib/danmaku'
-import FFmpeg from '@main/lib/ffmpeg'
-import { coverSubtitleToAss } from '@main/lib/utils'
+
+import { createMediaLease, releaseMediaLease } from '@main/lib/media-protocol'
 import { showFileSelectionDialog } from '@main/modules/showDialog'
 import { tipc } from '@marchen/electron-ipc/main'
 import { calculateFileHashByBuffer } from '@marchen/shared/lib/calc-file-hash'
@@ -15,6 +14,12 @@ const t = tipc.create()
 let isDialogOpen = false
 
 export const playerGroup = {
+  createMediaLease: t.procedure
+    .input<{ path: string }>()
+    .action(({ input, context }) => createMediaLease(input.path, context.sender)),
+  releaseMediaLease: t.procedure
+    .input<{ id: string }>()
+    .action(async ({ input, context }) => releaseMediaLease(input.id, context.sender.id)),
   showWarningDialog: t.procedure
     .input<{ title: string; content: string }>()
     .action(async ({ input }) =>
@@ -60,12 +65,6 @@ export const playerGroup = {
     }
   }),
 
-  grabFrame: t.procedure.input<{ path: string; time: string }>().action(async ({ input }) => {
-    const ffmpeg = new FFmpeg(input.path)
-    const base64Image = (await ffmpeg.grabFrame(input.time)) as string
-    return base64Image
-  }),
-
   importAnime: t.procedure.action(async () => {
     if (isDialogOpen) {
       return
@@ -75,7 +74,7 @@ export const playerGroup = {
 
     try {
       const result = await dialog.showOpenDialog({
-        properties: ['openFile'],
+        properties: ['openFile', 'multiSelections'],
         filters: [{ name: '视频文件', extensions: ['mp4', 'mkv'] }],
       })
 
@@ -83,14 +82,9 @@ export const playerGroup = {
         return
       }
 
-      const selectedFilePath = result.filePaths[0]
-      const selectedFileExtname = path.extname(selectedFilePath)
-
-      if (selectedFileExtname !== '.mp4' && selectedFileExtname !== '.mkv') {
-        return
-      }
-
-      return selectedFilePath
+      return result.filePaths.filter((file) =>
+        ['.mp4', '.mkv'].includes(path.extname(file).toLowerCase()),
+      )
     } finally {
       isDialogOpen = false
     }
@@ -140,42 +134,18 @@ export const playerGroup = {
     if (!filePath) {
       return
     }
-    return coverSubtitleToAss(filePath)
+    return { fileName: path.basename(filePath), filePath }
   }),
-
-  getSubtitlesIntroFromAnime: t.procedure.input<{ path: string }>().action(async ({ input }) => {
-    const ffmpeg = new FFmpeg(input.path)
-    const subtitles = await ffmpeg.getSubtitlesIntroFromAnime()
-    return subtitles
-  }),
-
-  getSubtitlesBody: t.procedure
-    .input<{ path: string; index: number }>()
-    .action(async ({ input }) => {
-      try {
-        const ffmpeg = new FFmpeg(input.path)
-        const data = await ffmpeg.extractSubtitles(input.index)
-        return {
-          ok: 1,
-          data,
-        }
-      } catch (error: any) {
-        return {
-          ok: 0,
-          message: error?.message || '',
-        }
-      }
-    }),
 
   readSubtitleText: t.procedure.input<{ path: string }>().action(async ({ input }) => {
     try {
       const filePath = input.path
       const extension = path.extname(filePath).toLowerCase()
-      if (!['.ass', '.ssa'].includes(extension)) {
+      if (!['.ass', '.ssa', '.srt', '.vtt'].includes(extension)) {
         return { ok: 0, message: '字幕文件格式不受支持' }
       }
       const stats = fs.statSync(filePath)
-      if (!stats.isFile() || stats.size > 16 * 1024 * 1024) {
+      if (!stats.isFile() || stats.size > 8 * 1024 * 1024) {
         return { ok: 0, message: '字幕文件无效或过大' }
       }
       return { ok: 1, data: fs.readFileSync(filePath, 'utf-8') }
@@ -197,7 +167,11 @@ export const playerGroup = {
 
     const matchedFiles = fs
       .readdirSync(path.dirname(filePath))
-      .filter((file) => file.startsWith(filePrefix) && file !== path.basename(filePath))
+      .filter(
+        (file) =>
+          file.startsWith(filePrefix) &&
+          ['.ass', '.ssa', '.srt', '.vtt'].includes(path.extname(file).toLowerCase()),
+      )
       .map((file) => ({
         fileName: file,
         filePath: path.join(directoryPath, file),

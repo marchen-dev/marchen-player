@@ -1,6 +1,3 @@
-import fs from 'node:fs'
-
-import { subtitlesPath } from '@main/constants/app'
 import { resetTelemetryInstallId } from '@main/telemetry/identity'
 import { resetMainTelemetryIdentity } from '@main/telemetry/sentry'
 import { getMainWindow } from '@main/windows/main'
@@ -30,9 +27,6 @@ export const clearAllData = async () => {
     })
     resetMainTelemetryIdentity()
     await resetTelemetryInstallId()
-    if (fs.existsSync(subtitlesPath())) {
-      fs.rmSync(subtitlesPath(), { recursive: true })
-    }
     win.reload()
   } catch (error: any) {
     console.error('Failed to clear data:', error)

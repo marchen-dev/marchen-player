@@ -17,7 +17,10 @@ export const sanitizeTelemetryString = (
   value: string,
   maxLength = 8_192,
 ): SanitizedTelemetryValue => {
-  const withoutGatewayToken = value.replace(GATEWAY_TOKEN, '$1[Filtered]')
+  const withoutGatewayToken = value
+    .replace(GATEWAY_TOKEN, '$1[Filtered]')
+    .replace(/marchen:\/\/media\/[^\s"'<>?#]+/gi, 'marchen://media/[Filtered]')
+    .replace(/blob:[^\s"'<>]+/gi, 'blob:[Filtered]')
   if (withoutGatewayToken.length <= maxLength) {
     return { value: withoutGatewayToken, truncated: false }
   }
@@ -80,10 +83,9 @@ export const sanitizeTelemetryValue = (
     const entries = Object.entries(value)
     if (entries.length > maxObjectKeys) truncated = true
     return Object.fromEntries(
-      entries.slice(0, maxObjectKeys).map(([key, item]) => [
-        key,
-        SECRET_KEY.test(key) ? '[Filtered]' : visit(item, depth + 1),
-      ]),
+      entries
+        .slice(0, maxObjectKeys)
+        .map(([key, item]) => [key, SECRET_KEY.test(key) ? '[Filtered]' : visit(item, depth + 1)]),
     )
   }
 

@@ -1,9 +1,4 @@
-import type {
-  DurableMediaSource,
-  OutputProfileKind,
-  PlaybackMethod,
-  PlaybackSourceLease,
-} from '@marchen/shared/media'
+import type { DurableMediaSource } from '@marchen/shared/media'
 import type { PlayerCapabilities } from './types'
 
 export type PlayerPortDisposer = () => void
@@ -22,12 +17,9 @@ export interface FullscreenPort {
   subscribe: (listener: (snapshot: FullscreenSnapshot) => void) => PlayerPortDisposer
 }
 
-export interface PlaylistEntry {
-  id: string
-  name: string
-  path: string
-  fileHash?: string
-}
+export type PlaylistEntry = { id: string; name: string; fileHash?: string } & (
+  { path: string; file?: never } | { file: File; path?: never }
+)
 
 export interface PlaylistPort {
   list: (currentSource: DurableMediaSource) => Promise<ReadonlyArray<PlaylistEntry>>
@@ -37,6 +29,8 @@ export interface PlaylistPort {
 export interface SnapshotRequest {
   source: DurableMediaSource
   time: number
+  rotation?: 0 | 90 | 180 | 270
+  signal?: AbortSignal
 }
 
 export interface SnapshotPort {
@@ -48,21 +42,35 @@ export interface SubtitleTrackDescriptor {
   title: string
   language?: string
   origin: 'embedded' | 'external'
+  embedded?: { number: number; uid: string; codec: string }
+  supported?: boolean
 }
 
 export interface ResolvedSubtitleTrack extends SubtitleTrackDescriptor {
+  fonts?: readonly string[]
+  warning?: string
   url: string
   persistencePath?: string
+  persistenceContent?: string
   release?: PlayerPortDisposer
 }
 
 export interface SubtitleCatalogPort {
-  list: (source: DurableMediaSource) => Promise<ReadonlyArray<SubtitleTrackDescriptor>>
+  list: (
+    source: DurableMediaSource,
+    signal?: AbortSignal,
+  ) => Promise<ReadonlyArray<SubtitleTrackDescriptor>>
   importExternal: () => Promise<ResolvedSubtitleTrack | null>
-  restoreExternal: (path: string, title: string, id?: string) => Promise<ResolvedSubtitleTrack>
+  restoreExternal: (
+    path: string | undefined,
+    title: string,
+    id?: string,
+    content?: string,
+  ) => Promise<ResolvedSubtitleTrack>
   resolve: (
     source: DurableMediaSource,
     track: SubtitleTrackDescriptor,
+    signal?: AbortSignal,
   ) => Promise<ResolvedSubtitleTrack>
 }
 
@@ -79,19 +87,7 @@ export interface PlayerSourceHandle {
 
 /** Source handle 的 owner 必须只释放一次；dispose 负责回收仍存活的 handle。 */
 export interface SourceLifecyclePort {
-  prepare: (
-    source: DurableMediaSource,
-    options?: {
-      nativeDecodeFailed?: boolean
-      startTime?: number
-      forceProfile?: Exclude<OutputProfileKind, 'native'>
-      attemptChain?: OutputProfileKind[]
-      attemptMethods?: PlaybackMethod[]
-      signal?: AbortSignal
-    },
-  ) => Promise<PlaybackSourceLease>
   prepareResource: (request: PlayerSourceRequest) => Promise<PlayerSourceHandle>
-  release: (lease: PlaybackSourceLease) => void
   releaseResource: (handle: PlayerSourceHandle) => void
   dispose: () => void
 }

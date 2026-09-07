@@ -13,12 +13,12 @@ export interface PlaybackSnapshotAdapterOptions {
   onError?: (error: unknown) => void
 }
 
-/** Electron 截图观察者；失败只记录，不改变播放状态。 */
+/** 双端历史缩略图观察者；退出时取消后台读取，不再另起解码。 */
 export class PlaybackSnapshotAdapter {
   private unsubscribe: (() => void) | null = null
   private metadataCaptured = false
   private disposed = false
-  private lastStatus: PlaybackState['status'] = 'idle'
+  private readonly controller = new AbortController()
 
   constructor(private readonly options: PlaybackSnapshotAdapterOptions) {}
 
@@ -30,7 +30,6 @@ export class PlaybackSnapshotAdapter {
         this.metadataCaptured = true
         void this.capture(state.duration / 2)
       }
-      this.lastStatus = state.status
     })
   }
 
@@ -39,11 +38,7 @@ export class PlaybackSnapshotAdapter {
     this.disposed = true
     this.unsubscribe?.()
     this.unsubscribe = null
-    const state = this.options.runtime.state
-    if (!hasDuration(state) || state.duration <= 0 || this.lastStatus === 'idle') return
-    const currentTime =
-      state.status === 'ended' ? Math.max(0, state.duration - 3) : currentTimeOf(state)
-    void this.capture(currentTime)
+    this.controller.abort()
   }
 
   private async capture(time: number): Promise<void> {
@@ -51,9 +46,16 @@ export class PlaybackSnapshotAdapter {
       const thumbnail = await this.options.snapshot.capture({
         source: this.options.source,
         time: Math.max(0, time),
+        signal: this.controller.signal,
       })
+      if (this.disposed) return
       await this.options.repository.update(this.options.hash, { thumbnail })
     } catch (error) {
+      if (
+        this.controller.signal.aborted ||
+        (error instanceof DOMException && error.name === 'AbortError')
+      )
+        return
       ;(this.options.onError ?? console.error)(error)
     }
   }
@@ -61,9 +63,3 @@ export class PlaybackSnapshotAdapter {
 
 const hasDuration = (state: PlaybackState): state is Extract<PlaybackState, { duration: number }> =>
   'duration' in state
-
-const currentTimeOf = (state: Extract<PlaybackState, { duration: number }>) => {
-  if (state.status === 'seeking') return state.targetTime
-  if (state.status === 'ended') return state.duration
-  return state.currentTime
-}

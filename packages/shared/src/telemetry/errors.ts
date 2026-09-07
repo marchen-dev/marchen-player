@@ -1,4 +1,4 @@
-export type OperationalArea = 'ffmpeg' | 'gateway' | 'ipc' | 'player'
+export type OperationalArea = 'ipc' | 'player'
 
 export interface NormalizedOperationalError {
   area: OperationalArea

@@ -3,9 +3,16 @@ productName: Marchen
 directories:
   buildResources: build
 files:
+  # 明确发布边界，避免把本地样片、旧 libav 构建缓存和规划资料打入应用。
+  - 'out/main/**'
+  - 'out/preload/**'
+  - 'out/renderer/**'
+  - 'resources/**'
+  - package.json
   - '!out/**/*.map'
   - '!**/.vscode/*'
   - '!src/*'
+  - '!resources/ffmpeg/**'
   - '!packages/*'
   - '!electron.vite.config.{js,ts,mjs,cjs}'
   - '!{.eslintignore,.eslintrc.cjs,.prettierignore,.prettierrc.yaml,dev-app-update.yml,CHANGELOG.md,README.md}'
@@ -13,9 +20,6 @@ files:
   - '!{tsconfig.json,tsconfig.node.json,tsconfig.web.json}'
 win:
   executableName: Marchen
-  extraResources:
-    - from: resources/ffmpeg/win32-${arch}
-      to: ffmpeg
   fileAssociations:
     - ext: [mp4, mkv]
       name: Video Files
@@ -29,9 +33,6 @@ nsis:
   oneClick: false
 mac:
   minimumSystemVersion: 13.0.0
-  extraResources:
-    - from: resources/ffmpeg/darwin-${arch}
-      to: ffmpeg
   entitlementsInherit: build/entitlements.mac.plist
   extendInfo:
     - NSDocumentsFolderUsageDescription: Application requests access to the user's Documents folder.

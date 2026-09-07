@@ -13,7 +13,7 @@ export const resolvePlaylistNeighbors = (
   playlist: ReadonlyArray<PlaylistEntry>,
   source?: DurableMediaSource,
 ): PlaylistNeighbors => {
-  const currentIndex = playlist.findIndex((entry) => sameSource(entry, source))
+  const currentIndex = playlist.findIndex((entry) => samePlaylistSource(entry, source))
   return {
     currentIndex,
     previous: currentIndex > 0 ? playlist[currentIndex - 1] : undefined,
@@ -38,19 +38,16 @@ export const subscribeAutomaticNext = (
   })
 }
 
-const sameSource = (entry: PlaylistEntry, source?: DurableMediaSource) => {
-  if (!source || source.kind !== 'electron-file') return false
+export const samePlaylistSource = (entry: PlaylistEntry, source?: DurableMediaSource) => {
+  if (!source) return false
+  if (source.kind === 'web-file') return entry.file === source.file
+  if (!entry.path) return false
   if (entry.fileHash && entry.fileHash === source.hash) return true
   return normalizePath(entry.path) === normalizePath(source.path)
 }
 
 const normalizePath = (value: string) => {
-  let decoded = value
-  try {
-    decoded = decodeURI(value)
-  } catch {}
-  const withoutProtocol = decoded.replace(/^marchen:\/\//, '')
-  const normalized = withoutProtocol.replaceAll('\\', '/').replace(/\/+$/, '')
+  const normalized = value.replaceAll('\\', '/').replace(/\/+$/, '')
   return /^[a-z]:\//i.test(normalized) || normalized.startsWith('//')
     ? normalized.toLowerCase()
     : normalized

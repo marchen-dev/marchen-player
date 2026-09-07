@@ -1,19 +1,25 @@
+import type { PlaylistEntry } from '@renderer/services/player-runtime'
 import { hidePlayerSettingsPanel } from '@renderer/atoms/player'
 import { cn } from '@renderer/lib/utils'
 import { usePlayerLoadingSelector } from '@renderer/services/player-loading/hooks'
-import { getPlayerLoadingService } from '@renderer/services/player-loading/index'
+import { samePlaylistSource } from '@renderer/services/player-runtime/history/playlist'
 
-const PlayList = () => {
+const PlayList = ({
+  entries,
+  onSelect,
+}: {
+  entries: readonly PlaylistEntry[]
+  onSelect?: (entry: PlaylistEntry) => void
+}) => {
   // 从 service state 读取匹配信息和视频信息
   const match = usePlayerLoadingSelector((s) => ('match' in s ? s.match : null))
   const video = usePlayerLoadingSelector((s) => ('video' in s ? s.video : null))
 
   return (
     <ul className="max-w-full min-w-0 space-y-3 overflow-hidden">
-      {video?.playList?.map(({ name, path, fileHash }) => {
-        const playingVideo =
-          (fileHash && fileHash === video.hash) ||
-          (video.source?.kind === 'electron-file' && path === video.source.path)
+      {entries.map((entry) => {
+        const { name, id } = entry
+        const playingVideo = samePlaylistSource(entry, video?.source)
         const getTitle = () => {
           if (playingVideo && match?.animeTitle && match?.episodeTitle) {
             return `${match.animeTitle}-${match.episodeTitle}`
@@ -21,7 +27,7 @@ const PlayList = () => {
           return name
         }
         return (
-          <li key={fileHash ?? path} className="max-w-full min-w-0 overflow-hidden">
+          <li key={id} className="max-w-full min-w-0 overflow-hidden">
             <button
               type="button"
               aria-current={playingVideo ? 'true' : undefined}
@@ -38,7 +44,7 @@ const PlayList = () => {
                 }
                 hidePlayerSettingsPanel()
                 // 通过 service 加载下一集
-                getPlayerLoadingService().loadFromPath(path)
+                onSelect?.(entry)
               }}
             >
               <i

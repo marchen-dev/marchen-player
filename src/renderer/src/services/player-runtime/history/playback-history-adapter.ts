@@ -15,6 +15,7 @@ export interface PlaybackHistoryAdapterOptions {
   markStarted?: (animeId: number, episodeId: number, fileHash: string) => Promise<void>
   now?: () => number
   saveIntervalMs?: number
+  restoreProgress?: boolean
   onError?: (error: unknown) => void
 }
 
@@ -63,7 +64,8 @@ export class PlaybackHistoryAdapter {
       const progress = finitePositive(record?.progress)
       const duration = finitePositive(record?.duration)
       const completed = isCompleted(progress, duration)
-      if (!completed && progress > 0) this.options.runtime.commands.seek(progress)
+      if (this.options.restoreProgress !== false && !completed && progress > 0)
+        this.options.runtime.restoreCommands(() => this.options.runtime.commands.seek(progress))
       this.restored = true
       if (completed) void this.markAsWatched()
       this.markStartedForState(this.options.runtime.state)

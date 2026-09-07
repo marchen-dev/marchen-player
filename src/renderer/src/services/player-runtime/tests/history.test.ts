@@ -49,7 +49,7 @@ const createRuntime = () => {
 
 const historyRecord = (changes: Partial<DB_History> = {}): DB_History => ({
   hash: 'hash',
-  path: '/video.mkv',
+  source: { kind: 'electron-file' as const, path: '/video.mkv', name: 'video.mkv', size: 1 },
   progress: 0,
   duration: 100,
   updatedAt: '2026-01-01T00:00:00.000Z',
@@ -63,7 +63,7 @@ describe('playbackHistoryAdapter', () => {
     const repository = {
       get: vi.fn(async () => ({
         hash: 'hash',
-        path: '/video.mkv',
+        source: { kind: 'electron-file' as const, path: '/video.mkv', name: 'video.mkv', size: 1 },
         animeId: 1,
         episodeId: 2,
         progress: 0,
@@ -155,11 +155,11 @@ describe('playbackHistoryAdapter', () => {
 })
 
 describe('playbackSnapshotAdapter', () => {
-  it('metadata 与退出时截图，失败不会改变播放流程', async () => {
+  it('metadata 截图失败不影响播放，退出取消后台任务而不另起读取', async () => {
     const { runtime, emit } = createRuntime()
     const capture = vi
       .fn()
-      .mockRejectedValueOnce(new Error('ffmpeg unavailable'))
+      .mockRejectedValueOnce(new Error('decoder unavailable'))
       .mockResolvedValueOnce('data:image/jpeg;base64,ok')
     const update = vi.fn(async () => 1)
     const onError = vi.fn()
@@ -184,11 +184,11 @@ describe('playbackSnapshotAdapter', () => {
     await vi.waitFor(() => expect(onError).toHaveBeenCalledOnce())
     emit('time-update', mediaSnapshot({ currentTime: 32, duration: 120 }))
     adapter.dispose()
-    await vi.waitFor(() =>
-      expect(update).toHaveBeenCalledWith('hash', { thumbnail: 'data:image/jpeg;base64,ok' }),
-    )
-    expect(capture).toHaveBeenNthCalledWith(1, { source, time: 60 })
-    expect(capture).toHaveBeenNthCalledWith(2, { source, time: 32 })
+    expect(update).not.toHaveBeenCalled()
+    expect(capture).toHaveBeenCalledOnce()
+    expect(capture).toHaveBeenCalledWith(expect.objectContaining({ source, time: 60 }))
+    expect(capture.mock.calls[0][0].signal.aborted).toBe(true)
+    expect(runtime.state.status).not.toBe('error')
   })
 })
 
@@ -206,4 +206,21 @@ describe('自动下一集', () => {
     expect(play).toHaveBeenCalledWith(next)
     unsubscribe()
   })
+})
+
+it('协调器接管初始位置后，历史观察者不重复 seek', async () => {
+  const { runtime, media } = createRuntime()
+  const adapter = new PlaybackHistoryAdapter({
+    runtime,
+    hash: 'hash',
+    restoreProgress: false,
+    repository: { get: async () => historyRecord({ progress: 40 }), update: vi.fn(async () => 1) },
+    markWatched: vi.fn(),
+  })
+  adapter.start()
+  runtime.commands.seek(70)
+  await new Promise((resolve) => setTimeout(resolve, 0))
+  expect(media.seek).toHaveBeenCalledExactlyOnceWith(70)
+  adapter.dispose()
+  runtime.destroy()
 })

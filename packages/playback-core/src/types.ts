@@ -1,9 +1,8 @@
 import type { Observable } from 'rxjs'
 
 /** 播放核心可消费的媒体来源，不携带平台释放逻辑。 */
-export interface PlaybackSource {
+export interface PlaybackSourceOptions {
   id: string
-  url: string
   title?: string
   mimeType?: string
   startTime?: number
@@ -13,6 +12,44 @@ export interface PlaybackSource {
     calibrated: boolean
   }
   autoplay?: boolean
+}
+
+/** Canvas 通过会话内资源标识解析来源，不伪造 video URL。 */
+export type PlaybackSource = PlaybackSourceOptions &
+  ({ engine?: 'native'; url: string } | { engine: 'canvas'; resourceId: string })
+
+export interface MediaAudioTrack {
+  id: number
+  label: string
+  language: string
+  codec: string | null
+  channels: number
+  default: boolean
+}
+
+export interface MediaPresentation {
+  engine: 'native' | 'canvas'
+  firstFrame: boolean
+  buffering: boolean
+  width: number
+  height: number
+  /** 视频帧时间戳采样估算值，不是实时渲染 FPS。 */
+  videoFrameRate?: number
+  /** 最近约一秒实际解码输出速率；undefined 表示尚未采集或平台不支持。 */
+  decodeFps?: number
+  backend: 'native' | 'webcodecs' | 'hevc-wasm' | 'unknown'
+  colorOutput?: 'sdr' | 'hdr-to-sdr'
+  videoCodec?: string
+  fallbackReason?: string
+  linearMemoryBytes?: number
+  peakLinearMemoryBytes?: number
+  decoderWorkerCount?: number
+  renderedFrames?: number
+  droppedFrames?: number
+  videoQueuePeak?: number
+  audioAheadPeak?: number
+  decodeThreads?: number
+  audioOutputChannels?: number
 }
 
 export type PlaybackErrorCode =
@@ -103,6 +140,9 @@ export type MediaEvent = { sessionId: number } & (
  */
 export interface MediaPort {
   readonly events$: Observable<MediaEvent>
+  getPresentation?: () => MediaPresentation
+  getAudioTracks?: () => { tracks: readonly MediaAudioTrack[]; selectedId?: number }
+  selectAudioTrack?: (id: number) => Promise<void>
   setSource: (source: PlaybackSource | null, sessionId: number) => void
   play: () => Promise<void>
   pause: () => void

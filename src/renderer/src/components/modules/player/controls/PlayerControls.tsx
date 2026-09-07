@@ -1,4 +1,4 @@
-import type { PlayerCapabilities } from '@renderer/services/player-runtime'
+import type { PlayerCapabilities, PlaylistEntry } from '@renderer/services/player-runtime'
 import type { PlayerRotation } from '../setting/PlayerSettingsPanel'
 import { playerSettingsPanelAtom, showPlayerSettingsPanel } from '@renderer/atoms/player'
 import { usePlayerSettingsValue } from '@renderer/atoms/settings/player'
@@ -25,6 +25,9 @@ import { VolumeSlider } from './VolumeSlider'
 
 export interface PlayerControlsProps {
   capabilities: PlayerCapabilities
+  playlist?: readonly PlaylistEntry[]
+  onSelectPlaylist?: (entry: PlaylistEntry) => void
+  onPreview?: (time: number, signal: AbortSignal) => Promise<string>
   onPrevious?: () => void
   onNext?: () => void
   onFullscreen?: () => void
@@ -36,6 +39,9 @@ export interface PlayerControlsProps {
 
 export const PlayerControls = ({
   capabilities,
+  playlist,
+  onSelectPlaylist,
+  onPreview,
   onPrevious,
   onNext,
   onFullscreen,
@@ -50,12 +56,14 @@ export const PlayerControls = ({
   const commands = usePlaybackCommands()
   const clock = usePlaybackClock()
   const runtime = usePlayerRuntime()
+  const readPlaybackInfo = useCallback(() => runtime.playbackInfo, [runtime])
   const initialSnapshot = clock.snapshot()
   const availability = resolvePlayerControlAvailability(capabilities)
   const [volume, setVolume] = useState(initialSnapshot.volume)
   const [muted, setMuted] = useState(initialSnapshot.muted)
   const [dragging, setDragging] = useState(false)
   const [seeking, setSeeking] = useState(false)
+  const [hovered, setHovered] = useState(false)
   const [focused, setFocused] = useState(false)
   const settingsPanelOpen = useAtomValue(playerSettingsPanelAtom).open
   const { enableMiniProgress } = usePlayerSettingsValue()
@@ -64,7 +72,7 @@ export const PlayerControls = ({
   const currentTime = getCurrentTime(state)
   const duration = 'duration' in state ? state.duration : initialSnapshot.duration
   const rate = 'rate' in state ? state.rate : initialSnapshot.rate
-  const controllerLocked = dragging || seeking || focused || settingsPanelOpen
+  const controllerLocked = dragging || seeking || focused || hovered || settingsPanelOpen
   const { visible, markActivity } = useControllerVisibility({
     playing,
     locked: controllerLocked,
@@ -126,8 +134,10 @@ export const PlayerControls = ({
         ref={controlsRef}
         data-player-controls
         className="pointer-events-none absolute inset-0 z-40"
-        onFocusCapture={() => {
-          setFocused(true)
+        onPointerDownCapture={() => setFocused(false)}
+        onFocusCapture={(event) => {
+          // 鼠标点击留下的焦点不能永久锁住控制器；键盘导航才保持可见。
+          setFocused(event.target.matches(':focus-visible'))
           markActivity()
         }}
         onBlurCapture={(event) => {
@@ -137,6 +147,7 @@ export const PlayerControls = ({
         <FloatingController
           visible={visible}
           onDraggingChange={setDragging}
+          onHoverChange={setHovered}
           onRectChange={reportDesktopControllerRect}
           left={
             <>
@@ -233,6 +244,7 @@ export const PlayerControls = ({
                 {formatTime(currentTime)}
               </time>
               <TimelineScrubber
+                onPreview={state.status === 'seeking' ? undefined : onPreview}
                 currentTime={currentTime}
                 duration={duration}
                 buffered={clock.snapshot().buffered}
@@ -247,7 +259,10 @@ export const PlayerControls = ({
         />
         <PlayerSettingsPanel
           capabilities={capabilities}
+          playlist={playlist}
+          onSelectPlaylist={onSelectPlaylist}
           playbackInfo={runtime.playbackInfo}
+          readPlaybackInfo={readPlaybackInfo}
           rate={rate}
           rotation={rotation}
           onRateChange={(nextRate) => {

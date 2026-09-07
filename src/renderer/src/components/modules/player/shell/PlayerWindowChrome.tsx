@@ -14,7 +14,8 @@ export const PlayerWindowChrome = ({ onClose }: { onClose: () => void }) => {
       data-player-window-chrome
       style={{ right: settingsPanelOpen ? 'var(--player-settings-width)' : 0 }}
       className={cn(
-        'drag-region pointer-events-none absolute top-0 left-0 z-40 h-20',
+        'pointer-events-none absolute top-0 left-0 z-40 h-20',
+        !isWeb && !fullscreen && 'drag-region',
         'bg-gradient-to-b from-black/60 via-black/20 to-transparent px-4 text-white/70',
       )}
     >

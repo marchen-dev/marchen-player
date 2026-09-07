@@ -35,6 +35,9 @@ export default defineConfig({
     build: { sourcemap: 'hidden' },
     plugins: [sentryPlugin('main')],
     define: telemetryDefine,
+    optimizeDeps: {
+      include: ['mediabunny', '@mediabunny/ac3', '@mediabunny/dts', '@soundtouchjs/audio-worklet'],
+    },
     resolve: {
       alias: {
         '@main': resolve('src/main'),
@@ -51,6 +54,9 @@ export default defineConfig({
     define: telemetryDefine,
   },
   renderer: {
+    optimizeDeps: {
+      include: ['mediabunny', '@mediabunny/ac3', '@mediabunny/dts', '@soundtouchjs/audio-worklet'],
+    },
     resolve: {
       alias: {
         '@renderer': resolve('src/renderer/src'),
@@ -68,6 +74,7 @@ export default defineConfig({
           {
             src: '../../node_modules/@jellyfin/libass-wasm/dist/js/subtitles-octopus-worker.wasm',
             dest: 'assets',
+            rename: { stripBase: true },
           },
         ],
       }),
@@ -79,6 +86,10 @@ export default defineConfig({
       ...telemetryDefine,
     },
     server: {
+      headers: {
+        'Cross-Origin-Opener-Policy': 'same-origin',
+        'Cross-Origin-Embedder-Policy': 'credentialless',
+      },
       host: '0.0.0.0',
     },
   },

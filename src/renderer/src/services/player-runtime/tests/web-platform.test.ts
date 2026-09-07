@@ -10,18 +10,12 @@ describe('web SourceLifecyclePort', () => {
     const lifecycle = createWebSourceLifecyclePort()
 
     const file = new File(['video'], 'video.mp4')
-    const handle = await lifecycle.prepare({
-      kind: 'web-file',
-      file,
-      hash: 'hash',
-      name: file.name,
-      size: file.size,
-    })
+    const handle = await lifecycle.prepareResource({ kind: 'file', file })
     expect(handle.url).toBe('blob:marchen-video')
     expect(createObjectURL).toHaveBeenCalledOnce()
 
     handle.release()
-    lifecycle.release(handle)
+    lifecycle.releaseResource(handle)
     expect(revokeObjectURL).toHaveBeenCalledOnce()
     expect(revokeObjectURL).toHaveBeenCalledWith('blob:marchen-video')
   })

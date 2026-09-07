@@ -1,11 +1,13 @@
 import type { ChangeEvent, FC } from 'react'
 import { VideoProvider } from '@renderer/components/modules/player/loading/PlayerProvider'
 import { NativePlayer } from '@renderer/components/modules/player/NativePlayer'
+import { PlaybackFailure } from '@renderer/components/modules/player/shell/PlaybackFailure'
 import { VideoDropZone } from '@renderer/components/modules/shared/VideoDropZone'
 import { usePageHeader } from '@renderer/hooks/use-page-header'
 import { usePlayAnimeFailedToast } from '@renderer/hooks/use-toast'
 import { ipcClient } from '@renderer/lib/client'
 import { checkIsVideoType, cn, isWeb } from '@renderer/lib/utils'
+import { selectFileBatch, selectPathBatch } from '@renderer/services/player-loading/file-playlist'
 import {
   usePlayerLoadingSelector,
   usePlayerLoadingService,
@@ -27,6 +29,10 @@ export default function VideoPlayer() {
     state.step === 'ready' || state.step === 'reloading' ? state.video : null,
   )
 
+  const loadError = usePlayerLoadingSelector((state) =>
+    state.step === 'error' ? state.error.message : null,
+  )
+
   // 拖拽与 Web input 共用同一格式校验和加载入口。
   const importFile = useCallback(
     (file: File | undefined, source: 'click' | 'drop') => {
@@ -40,7 +46,8 @@ export default function VideoPlayer() {
   )
 
   const handleInputChange = useCallback(
-    (event: ChangeEvent<HTMLInputElement>) => importFile(event.target.files?.[0], 'click'),
+    (event: ChangeEvent<HTMLInputElement>) =>
+      importFile(selectFileBatch(Array.from(event.target.files ?? []))[0], 'click'),
     [importFile],
   )
 
@@ -49,7 +56,8 @@ export default function VideoPlayer() {
     if (isWeb) {
       return fileInputRef.current?.click()
     }
-    const path = await ipcClient?.player.importAnime()
+    const selected = await ipcClient?.player.importAnime()
+    const path = selected && selectPathBatch(selected)[0]
     if (path) {
       markNextPlayerImportSource('click')
       service.loadFromPath(path)
@@ -58,25 +66,32 @@ export default function VideoPlayer() {
 
   const content = useMemo(
     () =>
-      preparedVideo ? (
+      loadError ? (
+        <PlaybackFailure
+          key="load-error"
+          description="视频打开失败，请检查文件是否可访问，或重新选择视频。"
+          detail={loadError}
+          onExit={() => service.cancel()}
+        />
+      ) : preparedVideo ? (
         <NativePlayer key={preparedVideo.hash} />
       ) : (
         <DragTips key="empty-player" onClick={manualImport} />
       ),
-    [preparedVideo, manualImport],
+    [preparedVideo, manualImport, loadError, service],
   )
 
   return (
     <VideoProvider>
       <VideoDropZone
-        active={!preparedVideo}
-        onFileDrop={(file) => importFile(file, 'drop')}
+        onFileDrop={(_file, files) => importFile(selectFileBatch(files)[0], 'drop')}
         className={cn('flex size-full items-center justify-center')}
       >
         <AnimatePresence>{content}</AnimatePresence>
         {!preparedVideo && (
           <input
             type="file"
+            multiple
             accept="video/mp4, video/x-matroska"
             ref={fileInputRef}
             onChange={handleInputChange}

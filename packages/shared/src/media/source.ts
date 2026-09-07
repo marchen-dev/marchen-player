@@ -20,51 +20,7 @@ export interface WebDurableMediaSource extends DurableMediaIdentity {
 export type DurableMediaSource = ElectronDurableMediaSource | WebDurableMediaSource
 export type SerializableDurableMediaSource = ElectronDurableMediaSource
 
-export type PlaybackMode = 'direct' | 'remux' | 'transcode-audio' | 'transcode-video'
-
-export type PlaybackTransport =
-  'custom-protocol' | 'http-range' | 'hls' | 'object-url' | 'external-url'
-
-export interface PlaybackTimelineDescriptor {
-  /** ffprobe 得到的原视频完整时长。 */
-  originalDuration: number
-  /** 当前 generation 的媒体元素时间零点对应的原视频逻辑时间。 */
-  offset: number
-  /** 实际首个输出 PTS 校准完成前为 false。 */
-  calibrated: boolean
-}
-
-/** 可通过 IPC 返回的租约数据，不包含 Renderer 本地释放函数。 */
-export interface PlaybackSourceLeaseDescriptor {
-  id: string
-  logicalSourceId: string
-  mode: PlaybackMode
-  /** 固定输出档位；mode 在迁移完成前只保留给旧 transport/telemetry 调用方。 */
-  profile?: import('./plan').OutputProfileKind
-  attemptChain?: import('./plan').OutputProfileKind[]
-  /** 新通用协商结果；迁移期与 profile 并存，默认切换后替代 profile。 */
-  decision?: import('./decision').PlaybackDecision
-  attemptMethods?: import('./decision').PlaybackMethod[]
-  transport: PlaybackTransport
-  url: string
-  mimeType?: string
-  sessionId?: string
-  generation?: number
-  /** generation=v1 由 Renderer 换源 seek；stable-vod=v2 由 HLS.js 请求逻辑 segment。 */
-  hlsSessionMode?: 'generation' | 'stable-vod'
-  timeline: PlaybackTimelineDescriptor
-  hlsTimeline?: import('./dynamic-hls').HlsTimeline
-  job?: import('./dynamic-hls').PlaybackJobSnapshot
-  segmentStore?: import('./dynamic-hls').SegmentStoreSnapshot
-}
-
-/** Renderer Runtime 唯一持有的播放源租约。 */
-export interface PlaybackSourceLease extends PlaybackSourceLeaseDescriptor {
-  reportPlayback?: (position: number) => void
-  release: () => void
-  markAttaching?: () => Promise<void>
-  markPlayable?: () => Promise<void>
-  markFailed?: (error: import('./errors').MediaCompatError) => Promise<void>
-  /** 兼容播放可替换 generation；direct lease 不提供。 */
-  seek?: (logicalTime: number) => Promise<PlaybackSourceLeaseDescriptor>
-}
+/** HISTORY 中只保存来源元信息；File 与临时播放 URL 不进入持久化层。 */
+export type PersistentMediaSource =
+  | { kind: 'electron-file'; path: string; name: string; size: number }
+  | { kind: 'web-file'; name: string; size: number; lastModified?: number }

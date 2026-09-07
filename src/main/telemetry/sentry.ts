@@ -18,6 +18,9 @@ export const initializeMainTelemetry = async (): Promise<void> => {
   if (!SENTRY_DSN || !isTelemetryEnabled) return
 
   Sentry.init({
+    // 默认 Both 会重新注册 Sentry 协议并覆盖 marchen 的 secure 声明。
+    // 已有 Preload bridge 承接 SDK 通信，固定 Electron IPC 保留应用协议权限。
+    ipcMode: Sentry.IPCMode.Classic,
     dsn: SENTRY_DSN,
     release: __MARCHEN_RELEASE__,
     dist: __MARCHEN_DIST__,

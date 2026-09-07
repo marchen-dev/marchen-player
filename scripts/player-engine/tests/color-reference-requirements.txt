@@ -1,0 +1,2 @@
+colour-science==0.4.7
+numpy==2.5.2

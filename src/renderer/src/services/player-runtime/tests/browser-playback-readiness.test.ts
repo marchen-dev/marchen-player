@@ -4,6 +4,8 @@ import { waitForBrowserFirstFrame } from '../browser-playback-readiness'
 class FakeVideo extends EventTarget {
   duration = Number.NaN
   readyState = 0
+  videoWidth = 1920
+  videoHeight = 1080
   frameCallback?: () => void
   requestVideoFrameCallback = vi.fn((callback: () => void) => {
     this.frameCallback = callback
@@ -52,4 +54,19 @@ describe('浏览器首帧确认', () => {
     video.dispatchEvent(new Event('loadedmetadata'))
     await expect(ready).rejects.toMatchObject({ code: 'metadata-invalid', stage: 'metadata' })
   })
+})
+
+it('仅有音频数据而没有视频尺寸时不能确认首帧', async () => {
+  vi.useFakeTimers()
+  const video = new FakeVideo()
+  video.videoWidth = 0
+  video.videoHeight = 0
+  video.duration = 120
+  video.readyState = 2
+  const ready = waitForBrowserFirstFrame(video as unknown as HTMLVideoElement, { deadlineMs: 50 })
+  const rejected = expect(ready).rejects.toMatchObject({ code: 'startup-deadline-exceeded' })
+  video.dispatchEvent(new Event('loadeddata'))
+  video.frameCallback?.()
+  await vi.advanceTimersByTimeAsync(50)
+  await rejected
 })

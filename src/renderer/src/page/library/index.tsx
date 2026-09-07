@@ -6,6 +6,7 @@ import { usePageHeader } from '@renderer/hooks/use-page-header'
 import { usePlayAnimeFailedToast } from '@renderer/hooks/use-toast'
 import { checkIsVideoType } from '@renderer/lib/utils'
 import { RouteName } from '@renderer/router'
+import { selectFileBatch } from '@renderer/services/player-loading/file-playlist'
 import { usePlayerLoadingService } from '@renderer/services/player-loading/hooks'
 import { captureFeatureUsed } from '@renderer/services/telemetry/features'
 import { useLiveQuery } from 'dexie-react-hooks'
@@ -168,7 +169,10 @@ export default function Library() {
   return (
     <VideoDropZone
       active={selectedAnime == null}
-      onFileDrop={importDroppedVideo}
+      onFileDrop={(_file, files) => {
+        const first = selectFileBatch(files)[0]
+        if (first) importDroppedVideo(first)
+      }}
       className="size-full"
     >
       <LibraryShell>

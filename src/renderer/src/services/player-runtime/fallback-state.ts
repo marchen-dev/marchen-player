@@ -1,5 +1,12 @@
-import type { PlaybackFallbackState } from './fallback-controller'
+import type { PlaybackMediaRestoreState } from '@marchen/playback-core'
 import type { PlayerRuntime } from './runtime'
+
+export interface PlaybackFallbackState {
+  media: PlaybackMediaRestoreState
+  rotation: 0 | 90 | 180 | 270
+  subtitle: { selectedId: string; timeOffset: number }
+  danmaku: { enabled: boolean }
+}
 
 export type PlaybackVisualState = Omit<PlaybackFallbackState, 'media'>
 

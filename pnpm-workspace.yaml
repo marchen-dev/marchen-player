@@ -5,6 +5,7 @@ minimumReleaseAgeExclude:
   - '@ai-sdk/openai@4.0.51'
   - '@ai-sdk/provider-utils@5.0.33'
   - ai@7.0.84
+  - '@suemor/libav-hevc@0.1.0 || 0.1.1'
 shamefullyHoist: true
 shellEmulator: true
 trustPolicy: no-downgrade

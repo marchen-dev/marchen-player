@@ -1,9 +1,4 @@
-export interface PersistentMediaPathRecord {
-  path?: string
-  pathStatus?: 'ready' | 'unresolved'
-  originalPath?: string
-  pathMigrationError?: string
-}
+import type { PersistentMediaSource } from '@marchen/shared/media'
 
 const WINDOWS_DRIVE_PATH = /^[a-z]:[\\/]/i
 const INTERNAL_MEDIA_ROUTE = /\/v1\/media\//i
@@ -16,12 +11,8 @@ export const isForbiddenPersistentMediaPath = (value: string): boolean => {
   return false
 }
 
-export const assertPersistentMediaPath = (record: PersistentMediaPathRecord): void => {
-  if (!record.path || !isForbiddenPersistentMediaPath(record.path)) return
-  const retainedLegacyRecord =
-    record.pathStatus === 'unresolved' &&
-    record.originalPath === record.path &&
-    Boolean(record.pathMigrationError)
-  if (retainedLegacyRecord) return
-  throw new TypeError('HISTORY.path 只能保存原始文件路径，不能保存临时播放地址')
+export const assertPersistentMediaPath = (record: { source?: PersistentMediaSource }): void => {
+  if (record.source?.kind !== 'electron-file') return
+  if (!record.source.path || isForbiddenPersistentMediaPath(record.source.path))
+    throw new TypeError('HISTORY.source.path 只能保存原始文件路径，不能保存临时播放地址')
 }

@@ -13,23 +13,33 @@ describe('hISTORY 媒体路径持久化边界', () => {
     'file:///Users/test/video.mkv',
   ])('拒绝临时播放地址：%s', (value) => {
     expect(isForbiddenPersistentMediaPath(value)).toBe(true)
-    expect(() => assertPersistentMediaPath({ path: value })).toThrow('原始文件路径')
+    expect(() =>
+      assertPersistentMediaPath({
+        source: { kind: 'electron-file', path: value, name: 'video.mkv', size: 1 },
+      }),
+    ).toThrow('原始文件路径')
   })
 
   it.each(['/Users/test/video.mkv', 'C:\\Media\\video.mkv', '\\\\server\\share\\video.mkv'])(
     '允许原始文件路径：%s',
-    (value) => expect(() => assertPersistentMediaPath({ path: value })).not.toThrow(),
+    (value) =>
+      expect(() =>
+        assertPersistentMediaPath({
+          source: { kind: 'electron-file', path: value, name: 'video.mkv', size: 1 },
+        }),
+      ).not.toThrow(),
   )
 
-  it('只允许 v5 明确标记的 unresolved 旧协议记录继续存在', () => {
-    const path = 'marchen://ambiguous-video.mkv'
+  it('新存储不接受旧协议记录', () => {
     expect(() =>
       assertPersistentMediaPath({
-        path,
-        pathStatus: 'unresolved',
-        originalPath: path,
-        pathMigrationError: '无法恢复',
+        source: {
+          kind: 'electron-file',
+          path: 'marchen://ambiguous-video.mkv',
+          name: 'video.mkv',
+          size: 1,
+        },
       }),
-    ).not.toThrow()
+    ).toThrow()
   })
 })

@@ -12,6 +12,8 @@ export {
   useNativeDanmaku,
 } from './danmaku'
 export type { DomDanmakuConfig } from './danmaku'
+export { PlaybackVisualStateBridge } from './fallback-state'
+export type { PlaybackFallbackStatePort } from './fallback-state'
 export {
   isCompleted,
   PlaybackHistoryAdapter,
@@ -59,8 +61,6 @@ export type {
 } from './platform'
 export { PlayerPortalRoot, usePlayerPortalContainer } from './portal'
 export { PlayerRuntime } from './runtime'
-export { PlaybackVisualStateBridge } from './fallback-state'
-export type { PlaybackFallbackStatePort } from './fallback-state'
 export type {
   PlayerRuntimeCommands,
   PlayerRuntimeDisposePhase,
@@ -69,4 +69,4 @@ export type {
 export { isPlayerSessionReady } from './session-readiness'
 export { LibassSubtitleAdapter, NativeSubtitleProvider, useNativeSubtitles } from './subtitles'
 export type { LibassInstance, LibassInstanceFactory, SubtitleTrackOption } from './subtitles'
-export { createPlaybackSource, useNativePlayerRuntime } from './use-native-player-runtime'
+export { useNativePlayerRuntime } from './use-native-player-runtime'

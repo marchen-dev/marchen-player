@@ -1,11 +1,12 @@
 import type {
+  MediaAudioTrack,
   MediaPort,
   PlaybackClock,
+  PlaybackError,
   PlaybackMediaRestoreState,
   PlaybackSource,
   PlaybackState,
 } from '@marchen/playback-core'
-import type { PlaybackSourceLease, PlaybackSourceLeaseDescriptor } from '@marchen/shared/media'
 import { PlaybackSession } from '@marchen/playback-core'
 
 export type PlayerRuntimeDisposePhase = 'ui-frame' | 'danmaku' | 'subtitle' | 'observer'
@@ -27,8 +28,17 @@ export interface PlayerRuntimeCommands {
   cancel: () => void
 }
 
+export type PlaybackCommandIntent =
+  | { type: 'play' | 'pause' }
+  | { type: 'seek'; time: number }
+  | { type: 'rate'; rate: number }
+  | { type: 'volume'; volume: number }
+  | { type: 'muted'; muted: boolean }
+
 /** Renderer 播放器的组合根，负责会话、资源阶段和 source 的所有权。 */
 export class PlayerRuntime {
+  private commandListener?: (intent: PlaybackCommandIntent) => void
+  private internalCommand = false
   private readonly session: PlaybackSession
   private readonly disposers: Record<PlayerRuntimeDisposePhase, PlayerRuntimeDisposer[]> = {
     'ui-frame': [],
@@ -36,12 +46,12 @@ export class PlayerRuntime {
     subtitle: [],
     observer: [],
   }
-  private sourceLease: PlaybackSourceLease | null = null
-  private generationSeek = 0
-  private seekIntent?: PlaybackMediaRestoreState
-  private clearSeekDeadline?: () => void
+  private sourceLease: { release: () => void } | null = null
   private destroyed = false
-  private heartbeatTimer?: ReturnType<typeof setInterval>
+  private audioControl?: {
+    getTracks: () => { tracks: readonly MediaAudioTrack[]; selectedId?: number }
+    select: (id: number) => Promise<void>
+  }
 
   readonly clock: PlaybackClock
   readonly commands: PlayerRuntimeCommands
@@ -54,25 +64,27 @@ export class PlayerRuntime {
     this.clock = this.session.clock
     this.commands = {
       play: () => {
-        if (this.seekIntent) this.seekIntent.paused = false
+        this.notifyCommand({ type: 'play' })
         return this.session.play()
       },
       pause: () => {
-        if (this.seekIntent) this.seekIntent.paused = true
+        this.notifyCommand({ type: 'pause' })
         this.session.pause()
       },
-      seek: (time) => this.seek(time),
+      seek: (time) => {
+        this.notifyCommand({ type: 'seek', time })
+        this.session.seek(time)
+      },
       setVolume: (volume) => {
-        if (this.seekIntent && Number.isFinite(volume))
-          this.seekIntent.volume = Math.min(1, Math.max(0, volume))
+        this.notifyCommand({ type: 'volume', volume })
         this.session.setVolume(volume)
       },
       setMuted: (muted) => {
-        if (this.seekIntent) this.seekIntent.muted = muted
+        this.notifyCommand({ type: 'muted', muted })
         this.session.setMuted(muted)
       },
       setRate: (rate) => {
-        if (this.seekIntent && Number.isFinite(rate) && rate > 0) this.seekIntent.rate = rate
+        this.notifyCommand({ type: 'rate', rate })
         this.session.setRate(rate)
       },
       restore: (state) => this.session.restore(state),
@@ -80,26 +92,49 @@ export class PlayerRuntime {
     }
   }
 
+  onCommand(listener: ((intent: PlaybackCommandIntent) => void) | undefined) {
+    this.commandListener = listener
+  }
+  /** 内核恢复沿用公开命令，但不能被误判成新的用户意图。 */
+  restoreCommands<T>(run: () => T): T {
+    const previous = this.internalCommand
+    this.internalCommand = true
+    try {
+      return run()
+    } finally {
+      this.internalCommand = previous
+    }
+  }
+  private notifyCommand(intent: PlaybackCommandIntent) {
+    if (!this.internalCommand) this.commandListener?.(intent)
+  }
+
+  setAudioControl(control: typeof this.audioControl) {
+    this.audioControl = control
+  }
+  get audioTracks() {
+    return this.audioControl?.getTracks() ?? this.media.getAudioTracks?.() ?? { tracks: [] }
+  }
+  async selectAudioTrack(id: number) {
+    if (this.audioControl) return this.audioControl.select(id)
+    if (!this.media.selectAudioTrack) throw new Error('音轨切换不可用')
+    await this.media.selectAudioTrack(id)
+  }
+
+  get presentation() {
+    return this.media.getPresentation?.()
+  }
+
   get state(): PlaybackState {
     return this.session.currentState
   }
 
-  get playbackMode(): PlaybackSourceLease['mode'] | undefined {
-    return this.sourceLease?.mode
+  get playbackInfo() {
+    return this.media.getPresentation?.()
   }
 
-  get playbackInfo(): PlaybackSourceLeaseDescriptor | undefined {
-    if (!this.sourceLease) return undefined
-    const {
-      release: _release,
-      seek: _seek,
-      markAttaching: _attaching,
-      markPlayable: _playable,
-      markFailed: _failed,
-      reportPlayback: _reportPlayback,
-      ...descriptor
-    } = this.sourceLease
-    return structuredClone(descriptor)
+  fail(error: PlaybackError): void {
+    this.session.failSourceSeek(error)
   }
 
   retryBlockedAutoplay(): void {
@@ -111,27 +146,20 @@ export class PlayerRuntime {
     return () => subscription.unsubscribe()
   }
 
-  load(source: PlaybackSource, lease?: PlaybackSourceLease): void {
-    if (this.destroyed) return
-    this.clearSeekDeadline?.()
-    this.releaseSource()
-    this.seekIntent = undefined
-    this.sourceLease = lease ?? null
-    this.generationSeek += 1
-    this.session.load(source)
-    if (lease?.reportPlayback) {
-      const report = () => lease.reportPlayback?.(this.clock.now())
-      report()
-      this.heartbeatTimer = setInterval(report, 5_000)
+  load(source: PlaybackSource, lease?: { release: () => void }): void {
+    if (this.destroyed) {
+      lease?.release()
+      return
     }
+    const previous = this.sourceLease
+    this.sourceLease = lease ?? null
+    this.session.load(source)
+    if (previous) this.safeDispose(previous.release)
   }
 
   cancel(): void {
     if (this.destroyed) return
-    this.clearSeekDeadline?.()
     this.session.cancel()
-    this.seekIntent = undefined
-    this.generationSeek += 1
     this.releaseSource()
   }
 
@@ -152,8 +180,6 @@ export class PlayerRuntime {
   destroy(): void {
     if (this.destroyed) return
     this.destroyed = true
-    this.clearSeekDeadline?.()
-    this.generationSeek += 1
 
     this.disposePhase('ui-frame')
     this.disposePhase('danmaku')
@@ -172,104 +198,10 @@ export class PlayerRuntime {
   }
 
   private releaseSource(): void {
-    if (this.heartbeatTimer) clearInterval(this.heartbeatTimer)
-    this.heartbeatTimer = undefined
     if (!this.sourceLease) return
     const lease = this.sourceLease
     this.sourceLease = null
     this.safeDispose(lease.release)
-  }
-
-  private seek(time: number): void {
-    const lease = this.sourceLease
-    const state = this.session.currentState
-    if (lease?.hlsSessionMode === 'stable-vod' && Number.isFinite(time)) {
-      this.clearSeekDeadline?.()
-      this.session.seek(time)
-      if (this.session.currentState.status !== 'seeking') return
-      let unsubscribe: (() => void) | undefined
-      const timer = setTimeout(() => {
-        cleanup()
-        // setSource(null) 销毁 HLS controller，主动中止 HTTP，Gateway 不再等满 10 秒。
-        this.session.failSourceSeek({
-          code: 'unknown',
-          message: '跳转恢复超过 5 秒，请重新加载视频',
-          recoverable: true,
-        })
-        this.releaseSource()
-      }, 5_000)
-      const cleanup = () => {
-        clearTimeout(timer)
-        unsubscribe?.()
-        unsubscribe = undefined
-      }
-      // seek 后旧缓冲仍可能派发 canplay；只有目标 seeked 才能证明这次跳转完成。
-      const target = Math.max(0, Math.min(time, lease.timeline.originalDuration || Infinity))
-      const subscription = this.media.events$.subscribe((event) => {
-        if (
-          event.type === 'seeked' &&
-          !event.snapshot.seeking &&
-          Math.abs(event.snapshot.currentTime - target) < 0.25
-        )
-          cleanup()
-      })
-      unsubscribe = () => subscription.unsubscribe()
-      this.clearSeekDeadline = cleanup
-      return
-    }
-    if (!lease?.seek || !('source' in state) || !state.source || !Number.isFinite(time)) {
-      this.session.seek(time)
-      return
-    }
-    const source = state.source
-    this.seekIntent ??= { ...this.clock.snapshot() }
-    const targetTime = Math.max(0, time)
-    this.session.beginSourceSeek(targetTime)
-    const request = ++this.generationSeek
-    this.clearSeekDeadline?.()
-    let expired = false
-    const isCurrent = () =>
-      !expired && !this.destroyed && request === this.generationSeek && lease === this.sourceLease
-    // 恢复超时只结束本次 UI 操作；迟到 descriptor 不得重新挂载媒体。
-    const timer = setTimeout(() => {
-      if (!isCurrent()) return
-      expired = true
-      this.session.failSourceSeek({
-        code: 'unknown',
-        message: '跳转恢复超时，请重试',
-        recoverable: true,
-      })
-    }, 5_000)
-    this.clearSeekDeadline = () => clearTimeout(timer)
-    void lease
-      .seek(targetTime)
-      .then(async (descriptor) => {
-        if (!isCurrent()) return
-        this.session.load({
-          ...source,
-          url: descriptor.url,
-          mimeType: descriptor.mimeType,
-          timeline: descriptor.timeline,
-          autoplay: false,
-        })
-        await this.media.waitForTransportReady?.()
-        if (!isCurrent()) return
-        await this.media.waitForPlayableData?.()
-        if (!isCurrent()) return
-        this.session.restore({ ...this.seekIntent!, currentTime: targetTime })
-        this.seekIntent = undefined
-      })
-      .catch((error) => {
-        if (!isCurrent()) return
-        this.session.failSourceSeek({
-          code: 'unknown',
-          message: '跳转失败，请重试或重新加载视频',
-          recoverable: true,
-          cause: error,
-        })
-        this.onDisposeError(error)
-      })
-      .finally(() => clearTimeout(timer))
   }
 
   private safeDispose(disposer: PlayerRuntimeDisposer): void {

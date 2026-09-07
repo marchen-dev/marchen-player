@@ -1,9 +1,6 @@
-import path from 'node:path'
-
 import { getRendererHandlers } from '@main/windows/setting'
 import logger from 'electron-log'
 
-import FFmpeg from './ffmpeg'
 import { isVideoFile } from './file-open'
 
 export { isVideoFile } from './file-open'
@@ -40,21 +37,4 @@ export function quickLaunchViaVideo(argv: readonly string[] = process.argv) {
     logger.info('[app] windows open File', filePath)
     getRendererHandlers()?.importAnime.send({ path: filePath })
   }
-}
-
-export async function coverSubtitleToAss(targetPath: string) {
-  const filePath = targetPath
-  const extName = path.extname(filePath)
-  if (!extName) {
-    return
-  }
-  if (extName === '.ass' || extName === '.ssa') {
-    return {
-      fileName: path.basename(filePath),
-      filePath,
-    }
-  }
-  const ffmepg = new FFmpeg(filePath)
-  const outPutPath = await ffmepg.coverToAssSubtitle()
-  return outPutPath
 }

@@ -106,6 +106,7 @@ export class PlaybackSession {
     if (this.destroyed || !this.source) return
     this.blockedAutoplay = false
     this.explicitPauseRequested = true
+    this.pendingSeekResume = false
     this.media.pause()
   }
 
@@ -250,7 +251,10 @@ export class PlaybackSession {
         const shouldResume = this.pendingSeekResume
         this.pendingSeekResume = false
         this.stateSubject.next(
-          this.createTimedState(shouldResume ? 'playing' : 'paused', event.snapshot),
+          this.createTimedState(
+            shouldResume || !event.snapshot.paused ? 'playing' : 'paused',
+            event.snapshot,
+          ),
         )
         if (shouldResume) {
           void this.play()
@@ -295,7 +299,8 @@ export class PlaybackSession {
     const snapshot = this.toLogicalSnapshot(mediaSnapshot)
     const duration = Number.isFinite(snapshot.duration) ? Math.max(snapshot.duration, 0) : 0
     const targetTime = duration > 0 ? clamp(time, 0, duration) : Math.max(time, 0)
-    this.pendingSeekResume = this.currentState.status === 'playing'
+    if (this.currentState.status !== 'seeking')
+      this.pendingSeekResume = this.currentState.status === 'playing'
     this.stateSubject.next({
       status: 'seeking',
       source: this.source!,
@@ -314,14 +319,14 @@ export class PlaybackSession {
   }
 
   private toLogicalTime(elementTime: number): number {
-    const offset = this.source?.timeline?.offset ?? this.source?.startTime ?? 0
+    const offset = this.source?.timeline?.offset ?? 0
     const duration = this.source?.timeline?.originalDuration
     const logical = Math.max(0, offset + finiteOr(elementTime, 0))
     return duration && duration > 0 ? clamp(logical, 0, duration) : logical
   }
 
   private toElementTime(logicalTime: number, elementDuration: number): number {
-    const offset = this.source?.timeline?.offset ?? this.source?.startTime ?? 0
+    const offset = this.source?.timeline?.offset ?? 0
     const local = Math.max(0, logicalTime - offset)
     return elementDuration > 0 ? clamp(local, 0, elementDuration) : local
   }
@@ -329,7 +334,7 @@ export class PlaybackSession {
   private toLogicalSnapshot(snapshot: PlaybackMediaSnapshot): PlaybackMediaSnapshot {
     const duration = this.source?.timeline?.originalDuration
     const logicalDuration = duration && duration > 0 ? duration : snapshot.duration
-    const offset = this.source?.timeline?.offset ?? this.source?.startTime ?? 0
+    const offset = this.source?.timeline?.offset ?? 0
     return {
       ...snapshot,
       currentTime: this.toLogicalTime(snapshot.currentTime),

@@ -112,7 +112,7 @@ describe('operational error mapping', () => {
       client: { ...createNoopTelemetryClient(), captureException, log },
     })
 
-    reportOperationalError('gateway', 'seek', {
+    reportOperationalError('player', 'seek', {
       code: 'cancelled',
       message: 'seek cancelled',
     })

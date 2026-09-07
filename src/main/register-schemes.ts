@@ -6,9 +6,12 @@ protocol.registerSchemesAsPrivileged([
   {
     scheme: MARCHEN_PROTOCOL,
     privileges: {
-      bypassCSP: true,
+      bypassCSP: false,
       stream: true,
       standard: true,
+      secure: true,
+      supportFetchAPI: true,
+      corsEnabled: true,
     },
   },
 ])

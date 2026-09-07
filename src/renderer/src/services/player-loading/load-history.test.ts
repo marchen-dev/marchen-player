@@ -34,7 +34,11 @@ describe('历史视频共享加载动作', () => {
   it('记录没有 path 时不触发加载', async () => {
     const loadFromPath = vi.fn()
     const result = await loadHistoricalVideo('missing-path', {
-      history: { get: vi.fn(async () => history({ path: '  ' })) },
+      history: {
+        get: vi.fn(async () =>
+          history({ source: { kind: 'electron-file', path: '  ', name: 'test.mkv', size: 1 } }),
+        ),
+      },
       service: { loadFromPath },
     })
 
@@ -71,7 +75,7 @@ describe('历史视频共享加载动作', () => {
 function history(overrides: Partial<DB_History> = {}): DB_History {
   return {
     hash: 'video-hash',
-    path: '/video/test.mkv',
+    source: { kind: 'electron-file', path: '/video/test.mkv', name: 'test.mkv', size: 1 },
     progress: 30,
     duration: 100,
     updatedAt: '2026-08-30T00:00:00.000Z',

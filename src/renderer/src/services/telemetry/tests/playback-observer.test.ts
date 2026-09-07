@@ -1,5 +1,4 @@
 import type { PlaybackState } from '@marchen/playback-core'
-import type { PlaybackSourceLeaseDescriptor } from '@marchen/shared/media'
 import type { TelemetryEventMap, TelemetryEventName } from '../contracts'
 
 import { afterEach, describe, expect, it, vi } from 'vitest'
@@ -18,13 +17,13 @@ const playing = (time = 0): PlaybackState => ({
   currentTime: time,
   rate: 1,
 })
-const lease: PlaybackSourceLeaseDescriptor = {
-  id: 'private-lease',
-  logicalSourceId: 'private-source',
-  mode: 'direct',
-  transport: 'custom-protocol',
-  url: 'marchen://private',
-  timeline: { originalDuration: 120, offset: 0, calibrated: true },
+const presentation = {
+  engine: 'canvas' as const,
+  backend: 'hevc-wasm' as const,
+  firstFrame: true,
+  buffering: false,
+  width: 1920,
+  height: 1080,
 }
 
 const harness = () => {
@@ -53,8 +52,8 @@ describe('playback telemetry observer', () => {
     const { observer, events, tick } = harness()
     const attempt = observer.beginPrepare(1)
     tick(50)
-    observer.completePrepare(attempt, lease)
     tick(150)
+    observer.completeEnginePrepare(attempt, presentation, 'native-incompatible')
     observer.observe(playing())
     observer.observe(playing(1))
     tick(2_000)
@@ -91,33 +90,20 @@ describe('playback telemetry observer', () => {
   it('creates a new fallback attempt and ignores a late prepare completion', () => {
     const { observer, events } = harness()
     const directAttempt = observer.beginPrepare(1)
-    const fallbackAttempt = observer.beginFallback('direct', 'transcode-video')
-
-    expect(observer.completePrepare(directAttempt, lease)).toBe(false)
+    const fallbackAttempt = observer.beginPrepare(2)
+    expect(observer.completeEnginePrepare(directAttempt, presentation, 'native-trial')).toBe(false)
     expect(
-      observer.completePrepare(
-        fallbackAttempt,
-        {
-          ...lease,
-          mode: 'transcode-video',
-          transport: 'hls',
-          generation: 0,
-        },
-        { fallback: true },
-      ),
+      observer.completeEnginePrepare(fallbackAttempt, presentation, 'native-decode-failed'),
     ).toBe(true)
-    expect(events).toEqual([
-      expect.objectContaining({ name: 'compat_fallback_triggered' }),
-      expect.objectContaining({
-        name: 'media_prepare_completed',
-        properties: expect.objectContaining({
-          attempt_id: fallbackAttempt,
-          mode: 'transcode-video',
-          reason: 'native-decode-failed',
-          generation: 0,
-        }),
-      }),
-    ])
+    expect(events.find((event) => event.name === 'media_prepare_completed')).toMatchObject({
+      properties: {
+        attempt_id: fallbackAttempt,
+        engine: 'canvas',
+        backend: 'hevc-wasm',
+        reason: 'native-decode-failed',
+      },
+    })
+    expect(JSON.stringify(events)).not.toContain('private')
   })
 
   it('keeps playback session context generation-safe', () => {
@@ -131,5 +117,49 @@ describe('playback telemetry observer', () => {
     expect(setContext).toHaveBeenNthCalledWith(1, first)
     expect(setContext).toHaveBeenNthCalledWith(2, second)
     expect(setContext).toHaveBeenLastCalledWith(undefined)
+  })
+})
+
+describe('seek 回执与首帧去重', () => {
+  it('连续跳转分别记录旧目标取消和最新目标完成，不重复上报', () => {
+    const { observer, events, tick } = harness()
+    observer.beginPrepare(1, 'canvas')
+    const seek = (targetTime: number): PlaybackState => ({
+      status: 'seeking',
+      source,
+      duration: 120,
+      targetTime,
+      resumeAfterSeek: true,
+      rate: 1,
+    })
+    observer.observe(seek(50))
+    tick(20)
+    observer.observe(seek(10))
+    tick(70)
+    observer.observe(playing(10))
+    observer.observe(playing(10.1))
+    const results = events.filter((event) => event.name === 'playback_seek_completed')
+    expect(results.map((event) => event.properties)).toEqual([
+      expect.objectContaining({ target_time: 50, duration_ms: 20, result: 'cancelled' }),
+      expect.objectContaining({ target_time: 10, duration_ms: 70, result: 'success' }),
+    ])
+  })
+  it('同一 attempt 的重复首帧与换内核取消都只记录一次', () => {
+    const { observer, events } = harness()
+    const attempt = observer.beginPrepare(1, 'native')
+    expect(observer.completeEnginePrepare(attempt, presentation, 'trial')).toBe(true)
+    expect(observer.completeEnginePrepare(attempt, presentation, 'trial')).toBe(false)
+    observer.observe({
+      status: 'seeking',
+      source,
+      duration: 120,
+      targetTime: 20,
+      resumeAfterSeek: false,
+      rate: 1,
+    })
+    observer.beginPrepare(2, 'canvas')
+    observer.finish('source_changed')
+    expect(events.filter((event) => event.name === 'media_prepare_completed')).toHaveLength(1)
+    expect(events.filter((event) => event.name === 'playback_seek_completed')).toHaveLength(1)
   })
 })

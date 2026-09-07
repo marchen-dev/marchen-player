@@ -31,12 +31,14 @@ export const useLoadingHistoricalAnime = () => {
     // 先消费 state，避免刷新或后续渲染重复加载同一条记录。
     navigate(location.pathname, { replace: true })
     void loadHistoricalVideo(hash, { service }).then((result) => {
-      if (result.status === 'loaded') return
+      if (result.status === 'loaded' || result.status === 'cancelled') return
       showFailedToast({
         title: '无法继续播放',
         description:
           result.status === 'error'
-            ? '读取播放记录失败，请稍后重试'
+            ? result.error instanceof Error
+              ? result.error.message
+              : '读取播放记录失败，请稍后重试'
             : '播放记录已失效，请重新导入视频',
       })
     })

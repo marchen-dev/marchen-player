@@ -6,7 +6,7 @@ import { hasDraggedFiles } from './video-drop-utils'
 type VideoDropZoneProps = PropsWithChildren<
   Omit<HTMLAttributes<HTMLDivElement>, 'onDragEnter' | 'onDragLeave' | 'onDragOver' | 'onDrop'> & {
     active?: boolean
-    onFileDrop: (file: File) => void
+    onFileDrop: (file: File, files: File[]) => void
   }
 >
 
@@ -83,7 +83,7 @@ const ActiveVideoDropZone: FC<Omit<VideoDropZoneProps, 'active'>> = ({
         event.preventDefault()
         const file = event.dataTransfer.files[0]
         clearDragging()
-        if (file) onFileDrop(file)
+        if (file) onFileDrop(file, Array.from(event.dataTransfer.files))
       }}
     >
       {children}

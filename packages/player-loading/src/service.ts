@@ -32,7 +32,6 @@ import {
 } from './pipelines/load'
 import { addLocalDanmakuEntry, createRematchPipeline } from './pipelines/rematch'
 import { INITIAL_STATE, mergeDanmakuEntries, reduce } from './state-machine'
-import { getDurableMediaPath } from './types'
 
 export class PlayerLoadingService {
   // 命令输入流
@@ -170,7 +169,6 @@ export class PlayerLoadingService {
     await this.deps.cache.set(state.video.hash, danmaku)
     await this.deps.history.save({
       hash: state.video.hash,
-      path: getDurableMediaPath(state.video),
       danmaku,
     })
 
@@ -288,7 +286,6 @@ export class PlayerLoadingService {
       // 保存历史（无弹幕匹配信息）
       await this.deps.history.save({
         hash: video.hash,
-        path: getDurableMediaPath(video),
         animeTitle: video.name,
         danmaku: localDanmaku.length > 0 ? localDanmaku : undefined,
       })

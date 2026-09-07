@@ -108,7 +108,7 @@ describe('播放器 UI 回归', () => {
     expect(contextSource).not.toContain('}, [settings])')
     expect(contextSource).not.toContain('settings.controllerPosition')
     expect(contextSource).toContain('danmakuMaxOnScreen,')
-    expect(contextSource).toContain('enableDanmakuHoverPause,')
+    expect(contextSource).not.toContain('enableDanmakuHoverPause')
   })
 
   it('控制器空白区域可以拖动，交互控件不会触发拖动', () => {
@@ -167,12 +167,15 @@ describe('播放器 UI 回归', () => {
       'playback',
       'danmaku',
       'subtitle',
+      'playlist',
     ])
-    expect(normalizePlayerSettingsSection('playlist', webPlayerCapabilities)).toBe('playback')
+    expect(normalizePlayerSettingsSection('playlist', webPlayerCapabilities)).toBe('playlist')
 
     const minimalCapabilities = {
       ...webPlayerCapabilities,
       externalSubtitle: false,
+      embeddedSubtitle: false,
+      playlist: false,
       domFullscreen: false,
     }
     expect(getAvailablePlayerSettingsSections(minimalCapabilities)).toEqual(['playback', 'danmaku'])

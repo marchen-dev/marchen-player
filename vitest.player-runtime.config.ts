@@ -13,6 +13,8 @@ export default defineConfig({
   test: {
     environment: 'node',
     include: [
+      'src/renderer/src/services/media/tests/**/*.test.ts',
+      'src/renderer/src/services/player-loading/**/*.test.ts',
       'src/renderer/src/services/player-runtime/tests/**/*.test.ts',
       'src/renderer/src/services/telemetry/tests/**/*.test.ts',
     ],
