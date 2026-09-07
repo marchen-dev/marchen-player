@@ -8,17 +8,19 @@ import { createReactRootErrorHandlers } from './services/telemetry/react-errors'
 import { installStableRouterTracing } from './services/telemetry/sentry/router-tracing'
 import './styles/main.css'
 
-initializeApp()
-installStableRouterTracing(reactRouter)
+export const mountRenderer = () => {
+  initializeApp()
+  installStableRouterTracing(reactRouter)
 
-const root = ReactDOM.createRoot(
-  document.querySelector('#root') as HTMLElement,
-  createReactRootErrorHandlers(),
-)
+  const root = ReactDOM.createRoot(
+    document.querySelector('#root') as HTMLElement,
+    createReactRootErrorHandlers(),
+  )
 
-root.render(
-  <>
-    <RouterProvider router={reactRouter} />
-    <ClickToComponent />
-  </>,
-)
+  root.render(
+    <>
+      <RouterProvider router={reactRouter} />
+      <ClickToComponent />
+    </>,
+  )
+}

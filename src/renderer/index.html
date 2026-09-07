@@ -7,6 +7,30 @@
       name="viewport"
       content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=0"
     />
+    <!-- 在业务模块和监控加载前应用主题，避免空白窗口先闪成白色。 -->
+    <script>
+      try {
+        const theme = localStorage.getItem('theme')
+        const dark =
+          theme === 'dark' ||
+          (theme !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches)
+        document.documentElement.classList.toggle('dark', dark)
+        document.documentElement.style.colorScheme = dark ? 'dark' : 'light'
+      } catch {}
+    </script>
+    <style>
+      html {
+        background: #fafafa;
+        color: #262626;
+      }
+      html.dark {
+        background: #121212;
+        color: #e5e5e5;
+      }
+      body {
+        margin: 0;
+      }
+    </style>
     <!-- favicon -->
     <link rel="icon" href="/favicon.ico" type="image/x-icon" />
     <title>Marchen</title>
