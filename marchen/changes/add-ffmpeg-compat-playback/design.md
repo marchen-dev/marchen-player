@@ -1,3 +1,5 @@
+> 2026-09-06：播放用 FFmpeg/HLS 交付路线由 [双端播放内核重建](../rebuild-cross-platform-player-engine/proposal.md) 替代。旧实验和勾选状态保留，不代表新路线验收通过；仍被使用的辅助媒体/文件能力按新方案迁移后清理。本记录不执行归档。
+
 ## 背景
 
 Marchen 已完成原生 `HTMLVideoElement`、`@marchen/playback-core`、平台 Ports、DOM 弹幕和 libass 字幕运行时重构。Electron 当前通过路径型 `marchen://` 自定义协议读取 MP4/MKV Range，通过 `@ffmpeg-installer`、`@ffprobe-installer` 和 `fluent-ffmpeg` 完成截图与字幕操作。该 FFmpeg 版本老旧，打包钩子还会在不同 macOS 架构之间动态增删依赖。

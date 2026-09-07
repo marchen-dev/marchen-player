@@ -1,3 +1,5 @@
+> 2026-09-06：[双端播放内核重建](../rebuild-cross-platform-player-engine/proposal.md) 保留本变更的 Sentry/PostHog、采集偏好与发布诊断；仅将 HLS/job/segment 播放事件调整为 engine/backend/attempt/线程和切换结果。本变更继续有效。
+
 ## 动机
 
 Marchen 当前只有 Renderer 中的局部 Sentry 初始化，Main 与 Preload 没有实际接入，发布产物也没有 release、dist、Debug ID 和 Source Map 上传，因此生产错误仍然只能定位到压缩后的 bundle。现有 React 错误入口与 `console.error` 捕获还会重复上报或产生不准确的 handled 分类。

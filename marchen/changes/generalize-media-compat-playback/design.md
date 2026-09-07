@@ -1,3 +1,5 @@
+> 2026-09-06：播放用 FFmpeg/HLS 交付路线由 [双端播放内核重建](../rebuild-cross-platform-player-engine/proposal.md) 替代。旧实验和勾选状态保留，不代表新路线验收通过；仍被使用的辅助媒体/文件能力按新方案迁移后清理。本记录不执行归档。
+
 ## 背景
 
 `add-ffmpeg-compat-playback` 已经把 Marchen 从“Renderer 直接拼 URL + 零散 fluent-ffmpeg 调用”迁移到可演进的本地媒体后端：Main 持有固定 FFmpeg runtime、probe/executor/scheduler、Media Gateway、缓存预算、媒体 session 与 HLS producer；Renderer 通过 SourceLifecyclePort 获得 lease，并使用 HLS.js/MSE 确认浏览器首帧。正常直放仍可保留现有内部 Range 协议，不要求本变更统一到 localhost。

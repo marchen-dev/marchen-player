@@ -1,3 +1,5 @@
+> 2026-09-06：播放用 FFmpeg/HLS 交付路线由 [双端播放内核重建](../rebuild-cross-platform-player-engine/proposal.md) 替代。旧实验和勾选状态保留，不代表新路线验收通过；仍被使用的辅助媒体/文件能力按新方案迁移后清理。本记录不执行归档。
+
 ## 动机
 
 Marchen 已通过 `add-ffmpeg-compat-playback` 建立 FFmpeg runtime、媒体探测、受控子进程、播放租约、loopback Media Gateway 和 fMP4 HLS 兼容播放基础，并能处理 HEVC 与 EAC-3 的典型组合。但当前决策仍围绕四个固定 OutputProfile 展开，codec string 推导、浏览器能力表达、视频/音频复制策略和失败原因都只覆盖有限组合。遇到 AV1、VP9、VC-1、MPEG-2 或新的音频格式时，系统无法像 Jellyfin Web 一样通过统一能力模型决定直放、重封装或转码。

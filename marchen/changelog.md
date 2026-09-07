@@ -32,3 +32,4 @@
 - 2026-08-30: [redesign-player-home](./archive/2026-08-30-redesign-player-home/) — 恢复播放器极简打开空态，并为播放器与影视库复用轻量视频拖拽提示
 - 2026-08-30: [harden-danmaku-collision-engine](./archive/2026-08-30-harden-danmaku-collision-engine/) — 强化 DOM 弹幕碰撞与生命周期同步，并让速度、字号和显示区域调整不清屏
 - 2026-08-30: [redesign-app-settings-dialog](./archive/2026-08-30-redesign-app-settings-dialog/) — 将应用设置重构为三分类双栏弹窗，完善主题、入口与无障碍交互
+- 2026-09-07: [rebuild-cross-platform-player-engine](./archive/2026-09-07-rebuild-cross-platform-player-engine/) — 重建H5/Canvas双内核，接入HEVC软解并移除FFmpeg转码，保留待验收项

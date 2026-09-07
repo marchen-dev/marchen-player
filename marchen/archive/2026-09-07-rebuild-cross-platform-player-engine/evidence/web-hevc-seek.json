@@ -1,0 +1,59 @@
+{
+  "samples": [
+    {
+      "time": 121.55683884417948,
+      "duration": 1309.5
+    },
+    {
+      "time": 1944.9086446232818,
+      "duration": 1079.8700000047684
+    },
+    {
+      "time": 243.11367768835896,
+      "duration": 574.1550000309944
+    },
+    {
+      "time": 1458.6816776883588,
+      "duration": 2019.25
+    },
+    {
+      "time": 486.2273553767179,
+      "duration": 1067.835000038147
+    },
+    {
+      "time": 1701.7953553767181,
+      "duration": 453.3299999833107
+    },
+    {
+      "time": 729.3406446232821,
+      "duration": 324.72500002384186
+    },
+    {
+      "time": 1215.568,
+      "duration": 407.61500000953674
+    },
+    {
+      "time": 972.3906178572889,
+      "duration": 1891.8199999928474
+    },
+    {
+      "time": 364.67032231164103,
+      "duration": 1536.175000011921
+    },
+    {
+      "time": 1580.238322311641,
+      "duration": 1286.3900000452995
+    },
+    {
+      "time": 607.784,
+      "duration": 2172.5450000166893
+    }
+  ],
+  "count": 12,
+  "p95Method": "nearest-rank",
+  "p95Ms": 2172.5450000166893,
+  "budgetMs": 2000,
+  "passed": false,
+  "measurement": "Worker seek request to Canvas pixel readback; excludes the earlier AudioContext setup",
+  "note": "The seek measurements completed. The first harness used a wrong close button label; resource release was verified separately."
+}

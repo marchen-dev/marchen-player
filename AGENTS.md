@@ -6,8 +6,8 @@
 
 Marchen Player：本地动漫视频弹幕播放器，拖入视频自动匹配弹幕。Electron + React，同时支持 Web。后端 API 代理弹弹play。
 
-- **技术栈**：Electron 41 + React 19 + TypeScript + Vite + Tailwind 4
-- **包管理**：pnpm 10（`corepack enable`），ES Module，AGPL-3.0
+- **技术栈**：Electron 44 + React 19 + TypeScript + Vite + Tailwind 4
+- **包管理**：pnpm 11（`corepack enable`），ES Module，AGPL-3.0
 
 ## 常用命令
 
@@ -29,7 +29,7 @@ pnpm format       # Prettier
 
 标准 Electron 三层 + 纯 Web 构建：
 
-- **Main** (`src/main/`)：窗口、文件系统、FFmpeg、自定义协议
+- **Main** (`src/main/`)：窗口、文件系统、受控媒体租约、自定义协议
 - **Preload** (`src/preload/`)：桥接
 - **Renderer** (`src/renderer/src/`)：React 前端，同时为 Web 版本
 
@@ -47,12 +47,12 @@ pnpm format       # Prettier
 
 ### IPC 通信
 
-`@marchen/electron-ipc`：`defineGroup` + `handler` 定义于 `src/main/tipc/`（app/player/setting/utils），渲染端通过 `ipcClient?.group.method()` 调用。事件用 `createEmitter` / `createListener`。Web 环境 `ipcClient` 为 null，必须可选链。
+`@marchen/electron-ipc`：`defineGroup` + `handler` 定义于 `src/main/ipc/`（app/player/setting/utils），渲染端通过 `ipcClient?.group.method()` 调用。事件用 `createEmitter` / `createListener`。Web 环境 `ipcClient` 为 null，必须可选链。
 
 ### 播放器分层
 
 `player-loading` 负责识别、匹配、弹幕数据与 HISTORY 初始记录；`playback-core` 负责媒体会话；
-renderer 的 `services/player-runtime/` 组合 HTMLVideoElement、平台 Port、libass 字幕和 DOM 弹幕。
+renderer 的 `services/player-runtime/` 组合 H5/Canvas 双内核、平台 Port、libass 字幕和 DOM 弹幕。
 平台差异通过 Fullscreen、Playlist、Snapshot、SubtitleCatalog、SourceLifecycle Port 隔离。
 
 **状态机**：
@@ -73,17 +73,17 @@ idle → importing → hashing → matching → [waiting_user] → loading_danma
 | ----------------- | ------------------------------------------------------------------ |
 | Jotai             | 全局 UI 状态（`atoms/`，自定义 store `jotaiStore` 支持组件外访问） |
 | TanStack Query    | 服务端数据（gcTime=10min, staleTime=5min）                         |
-| Dexie (IndexedDB) | 持久化（`database/`，当前 v3）                                     |
+| Dexie (IndexedDB) | 持久化（`database/`，MARCHEN_PLAYER_DB，当前 v1）                  |
 | RxJS              | player-loading 状态机                                              |
 
 关键 atom：`videoAtom`、`playerSettingSheetAtom`，设置类在 `atoms/settings/`。
 
 ### 数据库 HISTORY 表
 
-主键 `hash`，字段：path、animeId、episodeId、animeTitle、episodeTitle、progress、duration、cover、thumbnail、danmaku、newBangumi、subtitles、updatedAt。
+主键 `hash`，媒体来源 `source` 区分 Electron 路径与 Web 文件元信息（不保存 File/blob URL），音轨偏好保存在 `audioTrack`；字段：animeId、episodeId、animeTitle、episodeTitle、progress、duration、cover、thumbnail、danmaku、newBangumi、subtitles、updatedAt。
 
 - `danmaku`: `Array<{ type: 'auto'|'local', source, selected?, content: CommentsData }>`
-- `subtitles`: `{ defaultId, timeOffset?, tags: Array<{ id, path, index?, title, language? }> }`
+- `subtitles` 保存 defaultId/timeOffset 和轨道 tags；内嵌轨道保存稳定 UID/codec，外挂字幕保存路径或受预算限制的文本内容，不持久化临时 URL。
 
 ### API 请求
 
@@ -96,8 +96,8 @@ Web 产物时必须在站点层配置同一路径反代。Electron 端直接使�
 
 ### 其他
 
-- **自定义协议**：`marchen://`，逻辑在 `src/main/lib/protocols.ts`，常量在 `@marchen/shared/constants/protocol.ts`
-- **播放器**：HTML5 Video + `@marchen/playback-core` + `@marchen/danmaku-engine` + `@jellyfin/libass-wasm`（ASS/SSA）；HEVC 软解与 EAC-3 转码属于后续 FFmpeg 兼容变更
+- **自定义协议**：`marchen://`，固定应用 origin 为 `marchen://app`，媒体采用可撤销的不透明租约；逻辑在 `src/main/lib/media-protocol.ts`，常量在 `@marchen/shared/constants/protocol.ts`
+- **播放器**：HTML5 Video + `@marchen/playback-core` + `@marchen/danmaku-engine` + `@jellyfin/libass-wasm`（ASS/SSA）；Canvas 使用 MediaBunny、WebCodecs、@suemor/libav-hevc@0.1.1 和官方 AC-3/E-AC-3/DTS 扩展；没有 Node FFmpeg/HLS 播放回退
 - **UI**：shadcn/ui (Radix) + Tailwind 4 + next-themes，图标 `icon-[mingcute--xxx]`，动画 framer-motion（LazyMotion），模态框 ModalStackProvider
 - **路由**：React Router 7 HashRouter，`router/router.tsx` 定义 `/player`、`/history`，侧边栏由 `siderbarRoutes` 渲染，默认重定向 `/player`
 - **平台判断**：`isWeb = !window.electron`，见 `src/renderer/src/lib/utils.ts`
@@ -149,3 +149,7 @@ packages/{electron-ipc,shared,player-loading,playback-core,danmaku-engine}
 | `VITE_API_URL`                                                                       | 弹弹play API 代理（如 `https://dandi-proxy.suemor.com/api/v2`） |
 | `VITE_SENTRY_DSN`                                                                    | Sentry DSN                                                      |
 | `APPLE_ID` / `APPLE_APP_SPECIFIC_PASSWORD` / `APPLE_TEAM_ID` / `APPLE_APP_BUNDLE_ID` | macOS 公证                                                      |
+
+## 双内核构建与部署
+
+`pnpm media:prepare` 从锁定发布包复制 WASM/Worker 与 AudioWorklet，禁止重新引入播放器本地 libav 补丁/编译链。开发与构建自动执行。部署要求见 `docs/player-engine-deployment.md`。COOP 为 same-origin，COEP 为 credentialless；不设置 CSP，协议 bypassCSP=false。所有平台验收以 change evidence 为准，不把短样片通过写成平台支持结论。

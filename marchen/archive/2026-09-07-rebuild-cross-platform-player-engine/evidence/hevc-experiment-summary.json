@@ -1,0 +1,73 @@
+{
+  "status": "experiment-only",
+  "host": "Apple M4",
+  "browser": "Chrome 152.0.7977.77 headless",
+  "input": "authorized 1080p Main10 PQ sample, 180 packets",
+  "sampleStartSeconds": 57.292,
+  "sampleEndSeconds": 64.75,
+  "initialMemoryMiB": 256,
+  "copyout": "AVFrame pointer, no JS pixel copy",
+  "results": [
+    {
+      "threaded": false,
+      "threads": 1,
+      "runs": 3,
+      "medianFps": 56.52325461162408,
+      "minFps": 47.69753403559181,
+      "maxFps": 56.8792264474484,
+      "frames": [
+        180,
+        180,
+        180
+      ]
+    },
+    {
+      "threaded": true,
+      "threads": 1,
+      "runs": 3,
+      "medianFps": 52.07873726590557,
+      "minFps": 46.2743968935088,
+      "maxFps": 57.09699828227711,
+      "frames": [
+        180,
+        180,
+        180
+      ]
+    },
+    {
+      "threaded": true,
+      "threads": 2,
+      "runs": 3,
+      "medianFps": 74.17404115254757,
+      "minFps": 41.89295651490053,
+      "maxFps": 91.98879780346662,
+      "frames": [
+        180,
+        180,
+        180
+      ]
+    },
+    {
+      "threaded": true,
+      "threads": 4,
+      "runs": 3,
+      "medianFps": 124.72845573799535,
+      "minFps": 109.58103516326531,
+      "maxFps": 140.87979437438642,
+      "frames": [
+        180,
+        180,
+        180
+      ]
+    }
+  ],
+  "notVerified": [
+    "pixel correctness",
+    "rendering",
+    "audio",
+    "Electron packaging",
+    "production Web deployment",
+    "memory growth",
+    "long playback"
+  ]
+}
