@@ -1,6 +1,6 @@
 import type { AudioSample, VideoSample } from 'mediabunny'
 import type { HevcDiagnostics } from '../hevc-decoder'
-import type { CanvasReply, CanvasRequest } from './protocol'
+import type { CompatReply, CompatRequest } from './protocol'
 import { registerAc3Decoder } from '@mediabunny/ac3'
 import { registerDtsDecoder } from '@mediabunny/dts'
 import {
@@ -35,7 +35,7 @@ const onDecoded = () => {
 }
 if (typeof VideoDecoder !== 'undefined')
   globalThis.VideoDecoder = observeVideoDecoder(VideoDecoder, onDecoded)
-const send = (reply: CanvasReply, transfer: Transferable[] = []) =>
+const send = (reply: CompatReply, transfer: Transferable[] = []) =>
   globalThis.postMessage(reply, { transfer })
 
 // 独立于取帧/渲染发布，缓冲中的提前解码也会计入；Worker 终止时自动清理。
@@ -68,7 +68,7 @@ function seek(time: number, token: number) {
   return next
 }
 
-globalThis.onmessage = async ({ data: request }: MessageEvent<CanvasRequest>) => {
+globalThis.onmessage = async ({ data: request }: MessageEvent<CompatRequest>) => {
   const token = { id: request.id, generation: request.generation }
   try {
     if (request.type === 'open') {

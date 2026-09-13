@@ -1,14 +1,14 @@
 import type { EnginePreference } from '@renderer/services/player-runtime/engine-policy'
 import { playerEngineStateAtom } from '@renderer/atoms/player-engine'
 import { usePlayerSettings } from '@renderer/atoms/settings/player'
-import { getCanvasSupport } from '@renderer/services/player-runtime/canvas-support'
+import { getCompatSupport } from '@renderer/services/player-runtime/compat-support'
 import { useAtomValue } from 'jotai'
 import { SettingSelect } from './SettingSelect'
 
 const options = [
   { value: 'auto', label: '自动' },
   { value: 'native', label: '原生（H5）' },
-  { value: 'canvas', label: '兼容（Canvas）' },
+  { value: 'compat', label: '兼容内核' },
 ]
 
 export const PlayerEngineSetting = ({
@@ -20,11 +20,11 @@ export const PlayerEngineSetting = ({
 }) => {
   const [settings, setSettings] = usePlayerSettings()
   const engine = useAtomValue(playerEngineStateAtom)
-  const support = getCanvasSupport()
+  const support = getCompatSupport()
   const selected = engine?.pending ?? engine?.preference ?? settings.enginePreference ?? 'auto'
   const change = (value: string) => {
     const preference = value as EnginePreference
-    if (preference === 'canvas' && !support.supported) return
+    if (preference === 'compat' && !support.supported) return
     if (engine) void engine.selectPreference(preference)
     else setSettings((previous) => ({ ...previous, enginePreference: preference }))
   }
@@ -35,9 +35,9 @@ export const PlayerEngineSetting = ({
         <SettingSelect
           groups={options.map((option) => ({
             ...option,
-            disabled: option.value === 'canvas' && !support.supported,
+            disabled: option.value === 'compat' && !support.supported,
           }))}
-          value={!support.supported && selected === 'canvas' ? 'auto' : selected}
+          value={!support.supported && selected === 'compat' ? 'auto' : selected}
           onValueChange={change}
           container={container}
           playerMaterial={playerMaterial}
@@ -49,7 +49,7 @@ export const PlayerEngineSetting = ({
             ? '正在切换内核…'
             : '正在准备播放…'
           : engine?.actual
-            ? `当前使用：${engine.actual === 'native' ? '原生（H5）' : '兼容（Canvas）'}`
+            ? `当前使用：${engine.actual === 'native' ? '原生（H5）' : '兼容内核'}`
             : '下次打开视频时应用；自动模式优先使用原生播放。'}
       </p>
       {!support.supported && <p className="text-xs opacity-70">{support.reason}</p>}

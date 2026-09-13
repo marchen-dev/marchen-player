@@ -62,7 +62,7 @@ export class HtmlVideoMediaAdapter implements MediaPort {
       return
     }
 
-    if (source.engine === 'canvas') throw new Error('原生内核不能加载 Canvas 来源')
+    if (source.engine === 'compat') throw new Error('原生内核不能加载兼容来源')
     if (this.video.requestVideoFrameCallback)
       this.frameCallback = this.video.requestVideoFrameCallback(() => {
         this.firstFrame = true

@@ -1,7 +1,7 @@
 import type { DurableMediaSource } from '@marchen/shared/media'
 import { openPlaybackResource } from '../player-runtime/platform/media-resource'
-import { CanvasDecoderClient } from './canvas/client'
-import { CanvasFrameRenderer, HdrFrameLayoutError } from './canvas/frame-renderer'
+import { CompatDecoderClient } from './compat/client'
+import { HdrFrameLayoutError, PreviewFrameRenderer } from './preview/frame-renderer'
 
 export interface FrameRequest {
   source: DurableMediaSource
@@ -25,15 +25,15 @@ async function captureFrameOnce(request: FrameRequest, softwareFallback: boolean
   const signal = request.signal ?? new AbortController().signal
   signal.throwIfAborted()
   const resource = await openPlaybackResource(request.source, signal)
-  const client = new CanvasDecoderClient()
+  const client = new CompatDecoderClient()
   const canvas = document.createElement('canvas')
-  const renderer = new CanvasFrameRenderer(canvas)
+  const renderer = new PreviewFrameRenderer(canvas)
   const abort = () => client.close()
   signal.addEventListener('abort', abort, { once: true })
   if (signal.aborted) abort()
   let frame: VideoFrame | null = null
   try {
-    const descriptor = resource.canvas()
+    const descriptor = resource.compat()
     try {
       const ready = await client.request({
         type: 'open',

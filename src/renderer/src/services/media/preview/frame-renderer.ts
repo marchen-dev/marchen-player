@@ -3,8 +3,8 @@ import { HdrSdrRenderer } from '../render/hdr-sdr'
 
 export class HdrFrameLayoutError extends Error {}
 
-/** 画布合成走 GPU，HDR 转换只拷贝 YUV 平面，不在 CPU 生成 RGBA。 */
-export class CanvasFrameRenderer {
+/** 仅用于预览与历史封面：输出 SDR 画布，不参与主画面播放。 */
+export class PreviewFrameRenderer {
   colorOutput?: 'sdr' | 'hdr-to-sdr'
   private readonly context: CanvasRenderingContext2D
   private hdr?: HdrSdrRenderer

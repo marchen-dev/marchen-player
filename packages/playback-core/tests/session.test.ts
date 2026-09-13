@@ -300,7 +300,7 @@ describe('playbackSession', () => {
   it('原文件 startTime 是打开位置，不重复加成逻辑偏移', () => {
     const { media, setSnapshot } = createMedia()
     const session = new PlaybackSession(media)
-    session.load({ id: 'canvas', engine: 'canvas', resourceId: 'file', startTime: 40 })
+    session.load({ id: 'compat', engine: 'compat', resourceId: 'file', startTime: 40 })
     setSnapshot({ currentTime: 40, duration: 120 })
     expect(session.clock.now()).toBe(40)
     session.seek(50)

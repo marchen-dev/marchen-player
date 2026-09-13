@@ -1,4 +1,5 @@
 import type { PlayerRotation } from './setting/PlayerSettingsPanel'
+import { playerEngineStateAtom } from '@renderer/atoms/player-engine'
 import { mediaFrameQueue } from '@renderer/services/media/frame-queue'
 import { usePlayerLoadingSelector } from '@renderer/services/player-loading/hooks'
 import { getPlayerLoadingService } from '@renderer/services/player-loading/index'
@@ -15,6 +16,7 @@ import {
   usePlaybackSessionObservers,
 } from '@renderer/services/player-runtime'
 import { captureFeatureUsed } from '@renderer/services/telemetry/features'
+import { useAtomValue } from 'jotai'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { PlayerControls } from './controls'
 import {
@@ -32,12 +34,14 @@ export const NativePlayer = () => {
   const rootRef = useRef<HTMLElement | null>(null)
   const ports = useMemo(() => createPlayerPorts(), [])
   const [video, setVideo] = useState<HTMLVideoElement | null>(null)
-  const [canvas, setCanvas] = useState<HTMLCanvasElement | null>(null)
+  const [compatVideo, setCompatVideo] = useState<HTMLVideoElement | null>(null)
   const [rotation, setRotation] = useState<PlayerRotation>(0)
   const [fullscreen, setFullscreen] = useState(ports.fullscreen.getSnapshot().active)
   const fallbackState = useMemo(() => new PlaybackVisualStateBridge(), [])
   fallbackState.bindRotation(rotation, setRotation)
-  const runtime = useNativePlayerRuntime(video, canvas)
+  const runtime = useNativePlayerRuntime(video, compatVideo)
+  const engine = useAtomValue(playerEngineStateAtom)
+  const activeVideo = engine?.actual === 'compat' ? compatVideo : video
   const preparedVideo = usePlayerLoadingSelector((state) =>
     state.step === 'ready' || state.step === 'reloading' ? state.video : null,
   )
@@ -81,18 +85,12 @@ export const NativePlayer = () => {
       <PlayerPortalRoot>
         <PlayerWindowChrome onClose={() => getPlayerLoadingService().cancel()} />
         <VideoSurface videoRef={setVideo} rotation={rotation} />
-        <canvas
-          ref={setCanvas}
+        <VideoSurface
+          videoRef={setCompatVideo}
+          rotation={rotation}
+          muted
           hidden
-          data-player-canvas
-          data-telemetry-replay-block
-          className="absolute top-1/2 left-1/2 z-0 bg-black object-contain"
-          style={{
-            width: rotation === 90 || rotation === 270 ? '100dvh' : '100dvw',
-            height: rotation === 90 || rotation === 270 ? '100dvw' : '100dvh',
-            transform: `translate(-50%, -50%) rotate(${rotation}deg)`,
-          }}
-          aria-label="视频画面"
+          data-player-compat-video
         />
         <SubtitleSurface />
         {sessionReady ? <NativeDanmakuSurface /> : <DanmakuSurface />}
@@ -129,7 +127,7 @@ export const NativePlayer = () => {
     <PlayerRuntimeProvider runtime={runtime}>
       <NativeDanmakuProvider fallbackState={fallbackState}>
         <NativeSubtitleProvider
-          video={video}
+          video={activeVideo ?? video}
           runtime={runtime}
           catalog={ports.subtitles}
           source={preparedVideo.source}

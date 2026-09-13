@@ -1,20 +1,20 @@
-import type { CanvasReply, CanvasRequest } from './protocol'
+import type { CompatReply, CompatRequest } from './protocol'
 
-type Command = CanvasRequest extends infer Request
-  ? Request extends CanvasRequest
+type Command = CompatRequest extends infer Request
+  ? Request extends CompatRequest
     ? Omit<Request, 'id' | 'generation'>
     : never
   : never
 
 /** 每次 RPC 最多持有一份可转移帧；取消后迟到 VideoFrame 必须显式关闭。 */
-export class CanvasDecoderClient {
+export class CompatDecoderClient {
   private readonly worker = new Worker(new URL('./decoder.worker.ts', import.meta.url), {
     type: 'module',
   })
   private readonly pending = new Map<
     number,
     {
-      resolve: (reply: CanvasReply) => void
+      resolve: (reply: CompatReply) => void
       reject: (error: Error) => void
       timer: ReturnType<typeof setTimeout>
     }
@@ -29,7 +29,7 @@ export class CanvasDecoderClient {
       : undefined
   }
   constructor() {
-    this.worker.onmessage = ({ data }: MessageEvent<CanvasReply>) => {
+    this.worker.onmessage = ({ data }: MessageEvent<CompatReply>) => {
       if (data.type === 'decode-stats') {
         if (!this.closed && data.generation === this.generation)
           this.decodeStats = { fps: data.fps, time: performance.now() }
@@ -47,7 +47,7 @@ export class CanvasDecoderClient {
     }
     this.worker.onerror = (event) => this.close(new Error(event.message || '媒体 Worker 启动失败'))
   }
-  request(command: Command): Promise<CanvasReply> {
+  request(command: Command): Promise<CompatReply> {
     if (this.closed) return Promise.reject(new Error('媒体 Worker 已关闭'))
     if (command.type === 'seek') {
       this.decodeStats = undefined

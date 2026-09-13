@@ -43,7 +43,7 @@ export interface TelemetryEventMap {
     attempt_id: string
     reason: string
     duration_ms: number
-    engine?: 'native' | 'canvas'
+    engine?: 'native' | 'compat'
     backend?: string
     container?: string
     video_codec?: string
@@ -52,17 +52,17 @@ export interface TelemetryEventMap {
   playback_engine_changed: {
     operation_id: string
     attempt_id?: string
-    from?: 'native' | 'canvas'
-    to: 'native' | 'canvas'
+    from?: 'native' | 'compat'
+    to: 'native' | 'compat'
     trigger: 'settings' | 'automatic' | 'retry' | 'restore' | 'audio-track'
     result: 'success' | 'failed' | 'cancelled'
-    requested_preference?: 'auto' | 'native' | 'canvas'
-    committed_preference: 'auto' | 'native' | 'canvas'
+    requested_preference?: 'auto' | 'native' | 'compat'
+    committed_preference: 'auto' | 'native' | 'compat'
   }
   playback_seek_completed: {
     operation_id: string
     attempt_id?: string
-    engine?: 'native' | 'canvas'
+    engine?: 'native' | 'compat'
     target_time: number
     duration_ms: number
     result: 'success' | 'failed' | 'cancelled'
@@ -70,7 +70,7 @@ export interface TelemetryEventMap {
   playback_started: {
     operation_id: string
     attempt_id: string
-    engine?: 'native' | 'canvas'
+    engine?: 'native' | 'compat'
     backend?: string
     time_to_first_frame_ms: number
   }
@@ -95,7 +95,7 @@ export interface TelemetryEventMap {
   playback_failed: {
     operation_id: string
     attempt_id?: string
-    engine?: 'native' | 'canvas'
+    engine?: 'native' | 'compat'
     error_code: string
   }
 }

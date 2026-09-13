@@ -5,6 +5,7 @@ import {
   danmakuEndAreaList,
   danmakuFontSizeList,
 } from '@renderer/components/modules/settings/views/player/list'
+import { normalizeEnginePreference } from '@renderer/services/player-runtime/engine-policy'
 import { useAtom, useAtomValue } from 'jotai'
 
 import { createSettingATom } from './helper'
@@ -28,7 +29,11 @@ const createPlayerDefaultSettings = () => {
   }
 }
 
-const playerSettingAtom = createSettingATom('player', createPlayerDefaultSettings)
+const playerSettingAtom = createSettingATom('player', createPlayerDefaultSettings, (settings) => ({
+  ...createPlayerDefaultSettings(),
+  ...settings,
+  enginePreference: normalizeEnginePreference(settings?.enginePreference),
+}))
 
 export { playerSettingAtom }
 export const usePlayerSettings = () => useAtom(playerSettingAtom)

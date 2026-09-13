@@ -7,16 +7,16 @@ import type {
   PlaybackSource,
 } from '@marchen/playback-core'
 import type { SoundTouchNode } from '@soundtouchjs/audio-worklet'
-import type { CanvasReply, CanvasSource } from './protocol'
+import type { CompatReply, CompatSource } from './protocol'
+import type { VideoFramePresenter } from './video-frame-presenter'
 import { Subject } from 'rxjs'
 import { closeAudioStretch, createAudioStretch } from './audio-stretch'
-import { CanvasDecoderClient } from './client'
-import { CanvasFrameRenderer, HdrFrameLayoutError } from './frame-renderer'
+import { CompatDecoderClient } from './client'
 
-type VideoReply = Extract<CanvasReply, { type: 'video' }>
-type AudioReply = Extract<CanvasReply, { type: 'audio' }>
-export interface CanvasResource {
-  source: CanvasSource
+type VideoReply = Extract<CompatReply, { type: 'video' }>
+type AudioReply = Extract<CompatReply, { type: 'audio' }>
+export interface CompatResource {
+  source: CompatSource
   assetBase: string
   release: () => void
   forceSoftware?: boolean
@@ -24,17 +24,16 @@ export interface CanvasResource {
 }
 
 /** 媒体时钟和可呈现帧由适配器负责；Worker 只按请求解码，不自行推进播放时间。 */
-export class CanvasMediaAdapter implements MediaPort {
+export class CompatMediaAdapter implements MediaPort {
   private readonly subject = new Subject<MediaEvent>()
   readonly events$ = this.subject.asObservable()
-  private client?: CanvasDecoderClient
-  private resource?: CanvasResource
+  private client?: CompatDecoderClient
+  private resource?: CompatResource
   private context?: AudioContext
   private gain?: GainNode
   private stretch?: SoundTouchNode
   private stretchDelay = 0
   private readonly nodes = new Set<AudioBufferSourceNode>()
-  private readonly renderer: CanvasFrameRenderer
   private ready = Promise.resolve()
   private epoch = 0
   private sessionId = 0
@@ -65,7 +64,7 @@ export class CanvasMediaAdapter implements MediaPort {
   private lastTick = 0
   private lastMediaTime = 0
   private presentation: MediaPresentation = {
-    engine: 'canvas',
+    engine: 'compat',
     backend: 'unknown',
     firstFrame: false,
     buffering: false,
@@ -85,10 +84,9 @@ export class CanvasMediaAdapter implements MediaPort {
   }
 
   constructor(
-    canvas: HTMLCanvasElement,
-    private readonly resolveResource: (id: string) => Promise<CanvasResource>,
+    private readonly presenter: VideoFramePresenter,
+    private readonly resolveResource: (id: string) => Promise<CompatResource>,
   ) {
-    this.renderer = new CanvasFrameRenderer(canvas)
     navigator.mediaDevices?.addEventListener('devicechange', this.onDeviceChange)
   }
   private readonly onDeviceChange = () => {
@@ -100,7 +98,7 @@ export class CanvasMediaAdapter implements MediaPort {
     this.clear()
     this.sessionId = sessionId
     if (!source || this.destroyed) return
-    if (source.engine !== 'canvas') throw new Error('Canvas 内核需要媒体资源标识')
+    if (source.engine !== 'compat') throw new Error('兼容内核需要媒体资源标识')
     const epoch = this.epoch
     this.emit('load-start')
     this.ready = this.open(source.resourceId, source.startTime ?? 0, epoch).catch((error) => {
@@ -109,19 +107,19 @@ export class CanvasMediaAdapter implements MediaPort {
     })
     void this.ready.catch(() => {})
   }
-  private async open(id: string, time: number, epoch: number, softwareFallback = false) {
+  private async open(id: string, time: number, epoch: number) {
     const resource = await this.resolveResource(id)
     if (epoch !== this.epoch) {
       resource.release()
       return
     }
     this.resource = resource
-    const client = (this.client = new CanvasDecoderClient())
+    const client = (this.client = new CompatDecoderClient())
     const reply = await client.request({
       type: 'open',
       source: resource.source,
       assetBase: resource.assetBase,
-      forceSoftware: resource.forceSoftware || softwareFallback,
+      forceSoftware: resource.forceSoftware,
       audioTrackId: resource.audioTrackId,
     })
     if (epoch !== this.epoch) return
@@ -146,27 +144,10 @@ export class CanvasMediaAdapter implements MediaPort {
       height: reply.height,
       backend: reply.backend,
       videoCodec: reply.videoCodec ?? undefined,
-      fallbackReason: softwareFallback ? 'HDR 硬解帧布局不可读，已使用软件解码' : undefined,
       decodeThreads: reply.threads,
       audioOutputChannels: reply.hasAudio ? 2 : 0,
     }
-    try {
-      await this.position(time, epoch)
-    } catch (error) {
-      if (epoch !== this.epoch) throw error
-      if (
-        !softwareFallback &&
-        reply.backend === 'webcodecs' &&
-        reply.videoCodec === 'hevc' &&
-        error instanceof HdrFrameLayoutError
-      ) {
-        client.close()
-        resource.release()
-        this.resource = undefined
-        return this.open(id, time, epoch, true)
-      }
-      throw error
-    }
+    await this.position(time, epoch)
     if (epoch !== this.epoch) return
     this.emit('metadata')
     this.emit('can-play')
@@ -192,7 +173,12 @@ export class CanvasMediaAdapter implements MediaPort {
     return {
       ...this.presentation,
       decodeFps: this.client?.decodeFps,
-      colorOutput: this.presentation.firstFrame ? this.renderer.colorOutput : undefined,
+      colorOutput: this.presentation.firstFrame ? ('browser-managed' as const) : undefined,
+      presenter: 'video' as const,
+      submittedFrames: this.presenter.submittedFrames,
+      renderedFrames: this.presenter.presentedFrames,
+      sourceTransfer: this.presenter.sourceTransfer,
+      sourcePrimaries: this.presenter.sourcePrimaries,
     }
   }
   getSnapshot(): PlaybackMediaSnapshot {
@@ -349,6 +335,7 @@ export class CanvasMediaAdapter implements MediaPort {
   private async position(time: number, epoch: number) {
     const client = this.client
     if (!client) return
+    this.presenter.invalidate()
     this.nextVideo?.frame?.close()
     this.nextVideo = undefined
     this.nextAudio = undefined
@@ -369,7 +356,7 @@ export class CanvasMediaAdapter implements MediaPort {
       return
     }
     if (video.type !== 'video' || !video.frame) throw new Error('目标位置没有可显示画面')
-    await this.renderer.draw(video.frame, () => epoch === this.epoch, video.rotation)
+    await this.presenter.present(video.frame, () => epoch === this.epoch, video.rotation, true)
     if (epoch !== this.epoch) return
     this.presentation.firstFrame = true
     this.recordFrame(video)
@@ -420,8 +407,8 @@ export class CanvasMediaAdapter implements MediaPort {
           if (epoch === this.epoch) this.fail(error)
         })
       } else
-        void this.renderer
-          .draw(frame, () => epoch === this.epoch, rotation)
+        void this.presenter
+          .present(frame, () => epoch === this.epoch, rotation)
           .then(() => {
             if (epoch === this.epoch) this.recordFrame(reply)
             return this.pullVideo(epoch)
@@ -444,7 +431,6 @@ export class CanvasMediaAdapter implements MediaPort {
     this.raf = requestAnimationFrame(() => this.tick(epoch))
   }
   private recordFrame(reply: VideoReply) {
-    this.presentation.renderedFrames = (this.presentation.renderedFrames ?? 0) + 1
     if (reply.diagnostics?.mode) {
       this.presentation.decodeThreads =
         reply.diagnostics.mode === 'threads' ? reply.diagnostics.configuredThreads : 1
@@ -573,6 +559,10 @@ export class CanvasMediaAdapter implements MediaPort {
     this.snapshot.seeking = false
     this.presentation.buffering = false
     this.pause()
+    // 释放失败管线但保留恢复位置，供重试和历史记录使用。
+    const failedSnapshot = { ...this.snapshot, buffered: [] }
+    this.clear()
+    this.snapshot = failedSnapshot
     this.subject.next({
       type: 'error',
       sessionId: this.sessionId,
@@ -595,6 +585,7 @@ export class CanvasMediaAdapter implements MediaPort {
   }
   private clear() {
     this.epoch++
+    this.presenter.invalidate()
     this.playIntent++
     this.playing = undefined
     this.ready = Promise.resolve()
@@ -623,7 +614,7 @@ export class CanvasMediaAdapter implements MediaPort {
     this.resumeAfterSeek = false
     this.stretchDelay = 0
     this.presentation = {
-      engine: 'canvas',
+      engine: 'compat',
       backend: 'unknown',
       firstFrame: false,
       buffering: false,
@@ -645,7 +636,7 @@ export class CanvasMediaAdapter implements MediaPort {
     this.destroyed = true
     navigator.mediaDevices?.removeEventListener('devicechange', this.onDeviceChange)
     this.clear()
-    this.renderer.close()
+    this.presenter.dispose()
     this.subject.complete()
   }
 }

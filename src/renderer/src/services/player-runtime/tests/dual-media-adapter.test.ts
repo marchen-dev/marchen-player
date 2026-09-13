@@ -3,7 +3,7 @@ import type { ReadyMediaPort } from '../adapters/dual-media-adapter'
 import { Subject } from 'rxjs'
 import { describe, expect, it, vi } from 'vitest'
 import { DualMediaAdapter } from '../adapters/dual-media-adapter'
-import { canFallbackToCanvas } from '../engine-policy'
+import { canFallbackToCompat } from '../engine-policy'
 
 function fake(): ReadyMediaPort & { events: Subject<MediaEvent> } {
   const events = new Subject<MediaEvent>()
@@ -41,7 +41,7 @@ describe('双内核媒体端口', () => {
     adapter.setRate(2)
     adapter.pause()
     expect(adapter.getPresentation().videoFrameRate).toBe(24000 / 1001)
-    adapter.setSource({ id: 'film', engine: 'canvas', resourceId: 'resource' }, 2)
+    adapter.setSource({ id: 'film', engine: 'compat', resourceId: 'resource' }, 2)
     expect(adapter.getPresentation().videoFrameRate).toBe(24000 / 1001)
     frameRate = undefined
     adapter.setSource({ id: 'next', url: 'next' }, 3)
@@ -53,10 +53,10 @@ describe('双内核媒体端口', () => {
   })
   it('先销毁旧内核，迟到事件不进入新会话，并保留音量/静音/倍速', () => {
     const native = fake()
-    const canvas = fake()
+    const compat = fake()
     const create = vi.fn((engine) => {
-      if (engine === 'canvas') expect(native.destroy).toHaveBeenCalledOnce()
-      return engine === 'native' ? native : canvas
+      if (engine === 'compat') expect(native.destroy).toHaveBeenCalledOnce()
+      return engine === 'native' ? native : compat
     })
     const adapter = new DualMediaAdapter(create, vi.fn())
     const received: MediaEvent[] = []
@@ -65,23 +65,23 @@ describe('双内核媒体端口', () => {
     adapter.setVolume(0.4)
     adapter.setMuted(true)
     adapter.setRate(1.5)
-    adapter.setSource({ id: 'film', engine: 'canvas', resourceId: 'resource' }, 2)
+    adapter.setSource({ id: 'film', engine: 'compat', resourceId: 'resource' }, 2)
     native.events.next({ type: 'load-start', sessionId: 1 })
-    canvas.events.next({ type: 'load-start', sessionId: 2 })
+    compat.events.next({ type: 'load-start', sessionId: 2 })
     expect(received).toEqual([{ type: 'load-start', sessionId: 2 }])
-    expect(canvas.setVolume).toHaveBeenCalledWith(0.4)
-    expect(canvas.setMuted).toHaveBeenCalledWith(true)
-    expect(canvas.setRate).toHaveBeenCalledWith(1.5)
+    expect(compat.setVolume).toHaveBeenCalledWith(0.4)
+    expect(compat.setMuted).toHaveBeenCalledWith(true)
+    expect(compat.setRate).toHaveBeenCalledWith(1.5)
     adapter.destroy()
     adapter.destroy()
-    expect(canvas.destroy).toHaveBeenCalledOnce()
+    expect(compat.destroy).toHaveBeenCalledOnce()
   })
   it('仅自动模式下的明确兼容错误有一次回退额度', () => {
-    expect(canFallbackToCanvas('auto', 'native', false, { code: 'decode' })).toBe(true)
+    expect(canFallbackToCompat('auto', 'native', false, { code: 'decode' })).toBe(true)
     for (const code of ['network', 'aborted', 'unknown', 'source-unavailable'] as const)
-      expect(canFallbackToCanvas('auto', 'native', false, { code })).toBe(false)
-    expect(canFallbackToCanvas('native', 'native', false, { code: 'decode' })).toBe(false)
-    expect(canFallbackToCanvas('auto', 'canvas', false, { code: 'decode' })).toBe(false)
-    expect(canFallbackToCanvas('auto', 'native', true, { code: 'decode' })).toBe(false)
+      expect(canFallbackToCompat('auto', 'native', false, { code })).toBe(false)
+    expect(canFallbackToCompat('native', 'native', false, { code: 'decode' })).toBe(false)
+    expect(canFallbackToCompat('auto', 'compat', false, { code: 'decode' })).toBe(false)
+    expect(canFallbackToCompat('auto', 'native', true, { code: 'decode' })).toBe(false)
   })
 })

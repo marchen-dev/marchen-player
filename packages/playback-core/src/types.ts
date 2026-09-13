@@ -14,9 +14,9 @@ export interface PlaybackSourceOptions {
   autoplay?: boolean
 }
 
-/** Canvas 通过会话内资源标识解析来源，不伪造 video URL。 */
+/** 兼容内核通过会话内资源标识解析来源，不伪造 video URL。 */
 export type PlaybackSource = PlaybackSourceOptions &
-  ({ engine?: 'native'; url: string } | { engine: 'canvas'; resourceId: string })
+  ({ engine?: 'native'; url: string } | { engine: 'compat'; resourceId: string })
 
 export interface MediaAudioTrack {
   id: number
@@ -28,7 +28,7 @@ export interface MediaAudioTrack {
 }
 
 export interface MediaPresentation {
-  engine: 'native' | 'canvas'
+  engine: 'native' | 'compat'
   firstFrame: boolean
   buffering: boolean
   width: number
@@ -38,7 +38,11 @@ export interface MediaPresentation {
   /** 最近约一秒实际解码输出速率；undefined 表示尚未采集或平台不支持。 */
   decodeFps?: number
   backend: 'native' | 'webcodecs' | 'hevc-wasm' | 'unknown'
-  colorOutput?: 'sdr' | 'hdr-to-sdr'
+  colorOutput?: 'sdr' | 'hdr-to-sdr' | 'browser-managed'
+  presenter?: 'video'
+  submittedFrames?: number
+  sourceTransfer?: string
+  sourcePrimaries?: string
   videoCodec?: string
   fallbackReason?: string
   linearMemoryBytes?: number

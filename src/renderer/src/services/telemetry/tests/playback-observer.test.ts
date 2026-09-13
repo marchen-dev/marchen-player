@@ -18,7 +18,7 @@ const playing = (time = 0): PlaybackState => ({
   rate: 1,
 })
 const presentation = {
-  engine: 'canvas' as const,
+  engine: 'compat' as const,
   backend: 'hevc-wasm' as const,
   firstFrame: true,
   buffering: false,
@@ -98,7 +98,7 @@ describe('playback telemetry observer', () => {
     expect(events.find((event) => event.name === 'media_prepare_completed')).toMatchObject({
       properties: {
         attempt_id: fallbackAttempt,
-        engine: 'canvas',
+        engine: 'compat',
         backend: 'hevc-wasm',
         reason: 'native-decode-failed',
       },
@@ -123,7 +123,7 @@ describe('playback telemetry observer', () => {
 describe('seek 回执与首帧去重', () => {
   it('连续跳转分别记录旧目标取消和最新目标完成，不重复上报', () => {
     const { observer, events, tick } = harness()
-    observer.beginPrepare(1, 'canvas')
+    observer.beginPrepare(1, 'compat')
     const seek = (targetTime: number): PlaybackState => ({
       status: 'seeking',
       source,
@@ -157,7 +157,7 @@ describe('seek 回执与首帧去重', () => {
       resumeAfterSeek: false,
       rate: 1,
     })
-    observer.beginPrepare(2, 'canvas')
+    observer.beginPrepare(2, 'compat')
     observer.finish('source_changed')
     expect(events.filter((event) => event.name === 'media_prepare_completed')).toHaveLength(1)
     expect(events.filter((event) => event.name === 'playback_seek_completed')).toHaveLength(1)

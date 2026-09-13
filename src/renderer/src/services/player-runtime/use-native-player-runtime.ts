@@ -11,15 +11,16 @@ import { reportOperationalError } from '@renderer/services/telemetry/operational
 import { PlaybackTelemetryObserver } from '@renderer/services/telemetry/playback-observer'
 import { getPlayerOperationId } from '@renderer/services/telemetry/player-loading-observer'
 import { useEffect, useRef, useState } from 'react'
-import { CanvasMediaAdapter } from '../media/canvas/media-adapter'
+import { CompatMediaAdapter } from '../media/compat/media-adapter'
+import { VideoFramePresenter } from '../media/compat/video-frame-presenter'
 import { HtmlVideoMediaAdapter } from './adapters'
 import { DualMediaAdapter } from './adapters/dual-media-adapter'
 import { restoreAudioPreference } from './audio-preference'
 import { waitForBrowserFirstFrame } from './browser-playback-readiness'
-import { getCanvasSupport } from './canvas-support'
+import { getCompatSupport } from './compat-support'
 import {
   assertNativeVideoSupport,
-  canFallbackToCanvas,
+  canFallbackToCompat,
   choosePlaybackEngine,
 } from './engine-policy'
 import { isCompleted } from './history/playback-history-adapter'
@@ -29,7 +30,7 @@ import { PlayerRuntime } from './runtime'
 /** 影片与业务 Runtime 跨内核切换保持稳定；原文件授权由逻辑加载持有。 */
 export const useNativePlayerRuntime = (
   video: HTMLVideoElement | null,
-  canvas: HTMLCanvasElement | null,
+  compatVideo: HTMLVideoElement | null,
 ): PlayerRuntime | null => {
   const loading = usePlayerLoadingState()
   const prepared = loading.step === 'ready' || loading.step === 'reloading' ? loading.video : null
@@ -46,19 +47,19 @@ export const useNativePlayerRuntime = (
   } | null>(null)
 
   useEffect(() => {
-    if (!video || !canvas || !active) return
+    if (!video || !compatVideo || !active) return
     const adapter = new DualMediaAdapter(
       (engine) =>
         engine === 'native'
           ? new HtmlVideoMediaAdapter(video)
-          : new CanvasMediaAdapter(canvas, async (id) => {
+          : new CompatMediaAdapter(new VideoFramePresenter(compatVideo), async (id) => {
               const resource = bindingRef.current?.resource
               if (!resource || resource.id !== id) throw new Error('媒体来源已关闭')
-              return { ...resource.canvas(), audioTrackId: bindingRef.current?.audioTrackId }
+              return { ...resource.compat(), audioTrackId: bindingRef.current?.audioTrackId }
             }),
       (engine) => {
-        video.hidden = engine === 'canvas'
-        canvas.hidden = engine !== 'canvas'
+        video.hidden = engine === 'compat'
+        compatVideo.hidden = engine !== 'compat'
       },
       () => bindingRef.current?.resource?.metadata.videoFrameRate,
     )
@@ -84,7 +85,7 @@ export const useNativePlayerRuntime = (
       }
       setRuntime((current) => (current === next ? null : current))
     }
-  }, [active, canvas, video])
+  }, [active, compatVideo, video])
 
   useEffect(() => {
     const media = preparedRef.current
@@ -96,9 +97,9 @@ export const useNativePlayerRuntime = (
     let generation = 0
     let fallbackAttempted = false
     let actual: PlayerEngine = 'native'
-    const canvasSupport = getCanvasSupport()
+    const compatSupport = getCompatSupport()
     let preference = jotaiStore.get(playerSettingAtom).enginePreference ?? 'auto'
-    if (!canvasSupport.supported && preference === 'canvas') preference = 'auto'
+    if (!compatSupport.supported && preference === 'compat') preference = 'auto'
     let userIntent = 0
     let pendingRestore: PlaybackMediaRestoreState | undefined
     let activeRestore: PlaybackMediaRestoreState | undefined
@@ -144,7 +145,7 @@ export const useNativePlayerRuntime = (
       state: PlaybackMediaRestoreState,
       reason: string,
     ) => {
-      if (engine === 'canvas' && !canvasSupport.supported) throw new Error(canvasSupport.reason)
+      if (engine === 'compat' && !compatSupport.supported) throw new Error(compatSupport.reason)
       if (!resource || controller.signal.aborted)
         throw new DOMException('媒体来源已关闭', 'AbortError')
       attemptController.abort()
@@ -153,7 +154,7 @@ export const useNativePlayerRuntime = (
       const token = ++generation
       observer.observePresentation(runtime.presentation)
       const attemptId = observer.beginPrepare(token, engine)
-      if (engine === 'native' && !canvasSupport.supported) {
+      if (engine === 'native' && !compatSupport.supported) {
         await assertNativeVideoSupport(resource, (mime) => video.canPlayType(mime))
         signal.throwIfAborted()
         if (token !== generation) throw new DOMException('媒体来源已变化', 'AbortError')
@@ -161,7 +162,7 @@ export const useNativePlayerRuntime = (
       actual = engine
       activeRestore = state
       runtime.load({
-        ...(engine === 'canvas'
+        ...(engine === 'compat'
           ? { engine, resourceId: resource.id }
           : { engine, url: resource.url }),
         id: logicalId,
@@ -172,13 +173,13 @@ export const useNativePlayerRuntime = (
       runtime.restoreCommands(() => {
         runtime.commands.setVolume(state.volume)
         runtime.commands.setMuted(
-          engine === 'native' && !canvasSupport.supported ? true : state.muted,
+          engine === 'native' && !compatSupport.supported ? true : state.muted,
         )
         runtime.commands.setRate(state.rate)
       })
-      // 原生回执必须在可能同步出现首帧之前注册；Canvas ready 本身包含实际绘制。
+      // 原生回执必须在可能同步出现首帧之前注册；兼容内核 ready 包含当前代次的实际呈现。
       let firstFrame =
-        engine === 'canvas' ? current.adapter.waitForPlayableData() : Promise.resolve()
+        engine === 'compat' ? current.adapter.waitForPlayableData() : Promise.resolve()
       void firstFrame.catch(() => {})
       try {
         if (engine === 'native' && current.audioTrackId !== primaryAudioTrackId)
@@ -198,12 +199,12 @@ export const useNativePlayerRuntime = (
         if (!state.paused) await runtime.restoreCommands(() => runtime.commands.play())
         await firstFrame
         signal.throwIfAborted()
-        if (engine === 'native' && !canvasSupport.supported)
+        if (engine === 'native' && !compatSupport.supported)
           runtime.restoreCommands(() => runtime.commands.setMuted(state.muted))
         if (token !== generation) throw new DOMException('内核切换已取消', 'AbortError')
         if (runtime.presentation)
           observer.completeEnginePrepare(attemptId, runtime.presentation, reason)
-        if (engine === 'canvas')
+        if (engine === 'compat')
           notify(
             reason === 'native-incompatible' || reason === 'preference'
               ? '正在使用兼容内核播放'
@@ -235,12 +236,12 @@ export const useNativePlayerRuntime = (
         actual: resource ? actual : undefined,
         switching: false,
         selectPreference,
-        retryCanvas,
+        retryCompat,
         ...extra,
       })
     }
     const selectPreference = async (next: EnginePreference) => {
-      if (next === 'canvas' && !canvasSupport.supported) return
+      if (next === 'compat' && !compatSupport.supported) return
       const intent = ++userIntent
       pendingPreference = next
       publish({ pending: next, switching: true })
@@ -259,7 +260,7 @@ export const useNativePlayerRuntime = (
           resource,
           (mime) => video.canPlayType(mime),
           current.audioTrackId,
-          canvasSupport.supported,
+          compatSupport.supported,
         )
         if (intent !== userIntent || controller.signal.aborted) return
         await activate(engine, state, 'settings')
@@ -314,18 +315,18 @@ export const useNativePlayerRuntime = (
         publish({ error: error instanceof Error ? error.message : '内核切换失败' })
       }
     }
-    const retryCanvas = async () => {
-      if (!canvasSupport.supported) return
+    const retryCompat = async () => {
+      if (!compatSupport.supported) return
       const intent = ++userIntent
       fallbackAttempted = true
       const from = actual
       publish({ switching: true })
       try {
-        await activate('canvas', failedRestore ?? { ...runtime.clock.snapshot() }, 'retry')
+        await activate('compat', failedRestore ?? { ...runtime.clock.snapshot() }, 'retry')
         if (intent === userIntent) {
           observer.engineChanged({
             from,
-            to: 'canvas',
+            to: 'compat',
             trigger: 'retry',
             result: 'success',
             committed_preference: preference,
@@ -336,7 +337,7 @@ export const useNativePlayerRuntime = (
         if (intent === userIntent) {
           observer.engineChanged({
             from,
-            to: 'canvas',
+            to: 'compat',
             trigger: 'retry',
             result: 'failed',
             committed_preference: preference,
@@ -386,15 +387,15 @@ export const useNativePlayerRuntime = (
         const from = actual
         current.audioTrackId = id
         try {
-          if (actual === 'canvas') await current.adapter.selectAudioTrack(id)
-          else await activate('canvas', { ...runtime.clock.snapshot() }, 'audio-track')
+          if (actual === 'compat') await current.adapter.selectAudioTrack(id)
+          else await activate('compat', { ...runtime.clock.snapshot() }, 'audio-track')
         } catch (error) {
           if (!controller.signal.aborted && selection === audioSelection) {
             current.audioTrackId = previousAudioTrackId
-            if (from !== 'canvas')
+            if (from !== 'compat')
               observer.engineChanged({
                 from,
-                to: 'canvas',
+                to: 'compat',
                 trigger: 'audio-track',
                 result: 'failed',
                 committed_preference: preference,
@@ -404,10 +405,10 @@ export const useNativePlayerRuntime = (
         }
         if (controller.signal.aborted || selection !== audioSelection)
           throw new DOMException('音轨切换已取消', 'AbortError')
-        if (from !== 'canvas')
+        if (from !== 'compat')
           observer.engineChanged({
             from,
-            to: 'canvas',
+            to: 'compat',
             trigger: 'audio-track',
             result: 'success',
             committed_preference: preference,
@@ -423,12 +424,12 @@ export const useNativePlayerRuntime = (
       if (
         !pendingPreference &&
         !pendingRestore &&
-        canFallbackToCanvas(
+        canFallbackToCompat(
           preference,
           actual,
           fallbackAttempted,
           event.error,
-          canvasSupport.supported,
+          compatSupport.supported,
         )
       ) {
         fallbackAttempted = true
@@ -439,12 +440,12 @@ export const useNativePlayerRuntime = (
         // 先让当前会话消费 error，再进入新 attempt，避免重入覆盖新状态。
         queueMicrotask(() => {
           if (intent !== userIntent || controller.signal.aborted) return
-          void activate('canvas', state, 'native-decode-failed')
+          void activate('compat', state, 'native-decode-failed')
             .then(() => {
               if (intent === userIntent) {
                 observer.engineChanged({
                   from: 'native',
-                  to: 'canvas',
+                  to: 'compat',
                   trigger: 'automatic',
                   result: 'success',
                   committed_preference: preference,
@@ -456,7 +457,7 @@ export const useNativePlayerRuntime = (
               if (intent === userIntent) {
                 observer.engineChanged({
                   from: 'native',
-                  to: 'canvas',
+                  to: 'compat',
                   trigger: 'automatic',
                   result: 'failed',
                   committed_preference: preference,
@@ -500,16 +501,16 @@ export const useNativePlayerRuntime = (
         history?.audioTrack,
         primaryAudioTrackId,
       )
-      if (!canvasSupport.supported) current.audioTrackId = primaryAudioTrackId
+      if (!compatSupport.supported) current.audioTrackId = primaryAudioTrackId
       const engine =
         preference === 'auto' && current.audioTrackId !== primaryAudioTrackId
-          ? 'canvas'
+          ? 'compat'
           : await choosePlaybackEngine(
               preference,
               resource,
               (type) => video.canPlayType(type),
               undefined,
-              canvasSupport.supported,
+              compatSupport.supported,
             )
       controller.signal.throwIfAborted()
       const progress = history?.progress ?? 0
@@ -517,9 +518,9 @@ export const useNativePlayerRuntime = (
       await activate(
         engine,
         { currentTime: finished ? 0 : progress, volume: 1, muted: false, rate: 1, paused: false },
-        preference === 'canvas'
+        preference === 'compat'
           ? 'preference'
-          : engine === 'canvas'
+          : engine === 'compat'
             ? 'native-incompatible'
             : 'native-trial',
       )

@@ -5,7 +5,7 @@ describe('播放信息', () => {
   it.each([0, 23.5, 120])('显示实时解码速率 %s，包含暂停后的零值', (decodeFps) => {
     expect(
       createPlaybackInfoRows({
-        engine: 'canvas',
+        engine: 'compat',
         backend: 'webcodecs',
         firstFrame: true,
         buffering: false,
@@ -15,7 +15,7 @@ describe('播放信息', () => {
       }),
     ).toContainEqual({ label: '实时解码 FPS', value: `${decodeFps.toFixed(1)} fps` })
   })
-  it.each(['native', 'canvas'] as const)('%s 显示采样帧率并保留三位小数', (engine) => {
+  it.each(['native', 'compat'] as const)('%s 显示采样帧率并保留三位小数', (engine) => {
     expect(
       createPlaybackInfoRows({
         engine,
@@ -30,7 +30,7 @@ describe('播放信息', () => {
   })
   it('报告实际解码线程，不把 Canvas 笼统标成软件解码', () => {
     const base = {
-      engine: 'canvas' as const,
+      engine: 'compat' as const,
       firstFrame: true,
       buffering: false,
       width: 1920,

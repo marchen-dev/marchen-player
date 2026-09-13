@@ -2,7 +2,7 @@ import type { MediaEvent, MediaPort, PlaybackSource } from '@marchen/playback-co
 import type { Subscription } from 'rxjs'
 import { Subject } from 'rxjs'
 
-type Engine = 'native' | 'canvas'
+type Engine = 'native' | 'compat'
 export interface ReadyMediaPort extends MediaPort {
   waitForPlayableData: () => Promise<void>
   waitForTransportReady?: () => Promise<void>

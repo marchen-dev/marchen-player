@@ -1,11 +1,11 @@
 import type { MediaAudioTrack } from '@marchen/playback-core'
 import type { HevcDiagnostics } from '../hevc-decoder'
 
-export type CanvasSource = { kind: 'file'; file: File } | { kind: 'url'; url: string }
-export type CanvasRequest = { id: number; generation: number } & (
+export type CompatSource = { kind: 'file'; file: File } | { kind: 'url'; url: string }
+export type CompatRequest = { id: number; generation: number } & (
   | {
       type: 'open'
-      source: CanvasSource
+      source: CompatSource
       assetBase: string
       forceSoftware?: boolean
       videoOnly?: boolean
@@ -15,7 +15,7 @@ export type CanvasRequest = { id: number; generation: number } & (
   | { type: 'video' }
   | { type: 'audio' }
 )
-export type CanvasReply = { id: number; generation: number } & (
+export type CompatReply = { id: number; generation: number } & (
   | { type: 'decode-stats'; fps?: number }
   | {
       type: 'ready'

@@ -1,5 +1,7 @@
+import { getVideoGenerator } from '../media/compat/video-frame-presenter'
+
 /** 产品支持范围：Electron 和具备解码 API 的桌面 Chromium，暂不开放 Safari/Firefox。 */
-export function detectCanvasSupport(userAgent: string, electron: boolean, hasApis: boolean) {
+export function detectCompatSupport(userAgent: string, electron: boolean, hasApis: boolean) {
   const supported =
     hasApis &&
     (electron ||
@@ -9,15 +11,18 @@ export function detectCanvasSupport(userAgent: string, electron: boolean, hasApi
     supported,
     reason: supported
       ? undefined
-      : '当前浏览器暂不支持 Canvas 内核，请使用原生（H5）播放，或换用桌面 Chrome / Edge。',
+      : '当前浏览器暂不支持 兼容内核，请使用原生（H5）播放，或换用桌面 Chrome / Edge。',
   }
 }
 
-export const getCanvasSupport = () =>
-  detectCanvasSupport(
+export const getCompatSupport = () =>
+  detectCompatSupport(
     typeof navigator === 'undefined' ? '' : navigator.userAgent,
     typeof window !== 'undefined' && Boolean(window.electron),
     typeof VideoDecoder !== 'undefined' &&
+      typeof getVideoGenerator() === 'function' &&
+      typeof HTMLVideoElement !== 'undefined' &&
+      typeof HTMLVideoElement.prototype.requestVideoFrameCallback === 'function' &&
       typeof AudioContext !== 'undefined' &&
       typeof Worker !== 'undefined' &&
       typeof WebAssembly !== 'undefined',

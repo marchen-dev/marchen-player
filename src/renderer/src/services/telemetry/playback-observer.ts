@@ -25,7 +25,7 @@ interface Attempt {
   generation: number
   prepareStartedAt: number
   completed?: boolean
-  engine?: 'native' | 'canvas'
+  engine?: 'native' | 'compat'
   finishSpan: () => void
 }
 
@@ -74,7 +74,7 @@ export class PlaybackTelemetryObserver {
     this.#lastObservedAt = this.#startedAt
   }
 
-  beginPrepare(generation: number, engine?: 'native' | 'canvas'): string {
+  beginPrepare(generation: number, engine?: 'native' | 'compat'): string {
     this.#finishSeek('cancelled')
     this.#attempt?.finishSpan()
     this.#lastFrames = 0
