@@ -85,6 +85,12 @@ export const Subtitle = () => {
         />
       </FieldLayout>
 
+      {loading && (
+        <p role="status" className="text-sm text-white/60">
+          正在读取字幕…
+        </p>
+      )}
+
       {error && (
         <p role="status" className="text-sm text-red-400">
           {error}，视频将继续无字幕播放。

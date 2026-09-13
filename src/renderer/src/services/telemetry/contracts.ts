@@ -92,6 +92,7 @@ export interface TelemetryEventMap {
     video_queue_peak?: number
     audio_ahead_peak_s?: number
   }
+  subtitle_failed: { stage: 'resolve' | 'renderer' | 'catalog' | 'import'; error_code: string }
   playback_failed: {
     operation_id: string
     attempt_id?: string

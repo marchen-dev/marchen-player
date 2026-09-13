@@ -49,9 +49,15 @@ function vint(bytes: Uint8Array, offset: number, keepMarker = false) {
 }
 
 class Reader {
+  // EBML 扫描有大量相邻的小头部；合并读取，避免每个十几字节都产生 Blob/Range 往返。
+  // 仅保留一个 1 MiB 窗口，跳过大块时按新位置读取，不缓存整部影片。
+  private windowStart = 0
+  private window: Uint8Array = new Uint8Array()
+
   constructor(
     readonly source: SubtitleSource,
     readonly signal?: AbortSignal,
+    private readonly readAhead = 0,
   ) {}
 
   async bytes(start: number, end: number) {
@@ -64,10 +70,18 @@ class Reader {
       end > this.source.size
     )
       throw new Error('字幕读取范围越界')
-    const bytes = await this.source.read(start, end, this.signal)
+    const windowEnd = this.windowStart + this.window.byteLength
+    if (start >= this.windowStart && end <= windowEnd)
+      return this.window.subarray(start - this.windowStart, end - this.windowStart)
+    const readEnd = Math.min(this.source.size, Math.max(end, start + this.readAhead))
+    const bytes = await this.source.read(start, readEnd, this.signal)
     this.signal?.throwIfAborted()
-    if (bytes.length !== end - start) throw new Error('媒体文件短读或已变化')
-    return bytes
+    if (bytes.length !== readEnd - start) throw new Error('媒体文件短读或已变化')
+    if (this.readAhead > 0 && bytes.byteLength <= this.readAhead) {
+      this.windowStart = start
+      this.window = bytes
+    }
+    return bytes.subarray(0, end - start)
   }
 
   async element(offset: number, limit: number): Promise<Element> {
@@ -119,7 +133,7 @@ export class MatroskaSubtitles {
   ) {}
 
   static async open(source: SubtitleSource, signal?: AbortSignal) {
-    const reader = new Reader(source, signal)
+    const reader = new Reader(source, signal, 1024 * 1024)
     let segment: Element | undefined
     for (let offset = 0; offset < source.size;) {
       const element = await reader.element(offset, source.size)
@@ -160,7 +174,16 @@ export class MatroskaSubtitles {
   async *cues(trackNumber: number, signal?: AbortSignal): AsyncGenerator<SubtitleCue> {
     const track = this.tracks.find((track) => track.number === trackNumber)
     if (!track || !track.supported) throw new Error(track?.unsupportedReason ?? '字幕轨道不存在')
-    const reader = new Reader(this.source, signal)
+    // 索引读取完整成功后才交付，坏索引回到原扫描，避免重复交付半条轨道。
+    const indexed = await this.indexedCues(track, signal)
+    if (indexed) {
+      for (const cue of indexed) {
+        signal?.throwIfAborted()
+        yield cue
+      }
+      return
+    }
+    const reader = new Reader(this.source, signal, 1024 * 1024)
     // 逐事件产出，不把整部影片或全部字幕预读到内存。
     for (let offset = this.segment.start; offset < this.segment.end;) {
       const cluster = await reader.element(offset, this.segment.end)
@@ -206,6 +229,123 @@ export class MatroskaSubtitles {
         cursor = field.end
       }
       offset = cursor
+    }
+  }
+
+  private async indexedCues(track: EmbeddedSubtitleTrack, signal?: AbortSignal) {
+    try {
+      // SeekHead 通常位于 Segment 开头；只在首个 Cluster 前寻找，缺失时直接走扫描。
+      const metadata = new Reader(this.source, signal, 64 * 1024)
+      let index: Element | undefined
+      for (let offset = this.segment.start; offset < this.segment.end;) {
+        const entry = await metadata.element(offset, this.segment.end)
+        if (entry.id === 0x1F43B675) break
+        if (entry.id === 0x1C53BB6B) {
+          index = entry
+          break
+        }
+        if (entry.id === 0x114D9B74) {
+          for await (const seek of metadata.children(entry)) {
+            if (seek.id !== 0x4DBB) continue
+            let id = 0
+            let position = -1
+            for await (const field of metadata.children(seek)) {
+              if (field.id === 0x53AB) id = Number(await metadata.uint(field))
+              if (field.id === 0x53AC) position = Number(await metadata.uint(field))
+            }
+            if (id === 0x1C53BB6B && position >= 0) {
+              index = await metadata.element(this.segment.start + position, this.segment.end)
+              if (index.id !== 0x1C53BB6B) return null
+              break
+            }
+          }
+        }
+        if (index) break
+        offset = await skipElement(metadata, entry)
+      }
+      if (!index || index.unknown || index.end - index.start > 8 * 1024 * 1024) return null
+      const targets: { time: number; cluster: number; relative: number }[] = []
+      for await (const point of metadata.children(index)) {
+        if (point.id !== 0xBB) continue
+        let time = -1
+        const positions: { track: number; cluster: number; relative: number }[] = []
+        for await (const field of metadata.children(point)) {
+          if (field.id === 0xB3) time = Number(await metadata.uint(field))
+          if (field.id !== 0xB7) continue
+          const position = { track: -1, cluster: -1, relative: -1 }
+          for await (const value of metadata.children(field)) {
+            if (value.id === 0xF7) position.track = Number(await metadata.uint(value))
+            if (value.id === 0xF1) position.cluster = Number(await metadata.uint(value))
+            if (value.id === 0xF0) position.relative = Number(await metadata.uint(value))
+          }
+          positions.push(position)
+        }
+        for (const position of positions) {
+          if (position.track !== track.number) continue
+          if (![time, position.cluster, position.relative].every((value) => Number.isSafeInteger(value) && value >= 0)) return null
+          targets.push({ time, cluster: position.cluster, relative: position.relative })
+          if (targets.length > 100000) return null
+        }
+      }
+      if (!targets.length) return null
+      const cues: SubtitleCue[] = []
+      let next = 0
+      let size = track.header.length
+      const seen = new Set<number>()
+      const clusters = new Map<number, Promise<Element>>()
+      // 有界并发隐藏本地 Range 往返；每个读取器仅预读小块，限制无关视频载荷的读取量。
+      const results = await Promise.allSettled(
+        Array.from({ length: Math.min(8, targets.length) }, async () => {
+          const reader = new Reader(this.source, signal, 1024)
+          while (next < targets.length) {
+            signal?.throwIfAborted()
+            const i = next++
+            const target = targets[i]
+            let pending = clusters.get(target.cluster)
+            if (!pending) {
+              pending = reader.element(this.segment.start + target.cluster, this.segment.end)
+              clusters.set(target.cluster, pending)
+            }
+            const cluster = await pending
+            if (cluster.id !== 0x1F43B675) throw new Error('字幕索引未指向 Cluster')
+            const address = cluster.start + target.relative
+            if (address < cluster.start || seen.has(address))
+              throw new Error('字幕索引位置重复或越界')
+            seen.add(address)
+            const group = await reader.element(address, cluster.end)
+            if (group.unknown) throw new Error('字幕索引块长度未知')
+            let block: Element | undefined = group.id === 0xA3 ? group : undefined
+            let duration = track.defaultDuration
+            if (group.id === 0xA0) {
+              for await (const item of reader.children(group)) {
+                if (item.id === 0xA1) block = item
+                if (item.id === 0x9B)
+                  duration = Number(await reader.uint(item)) * this.timestampScale
+              }
+            }
+            if (!block || !(duration > 0)) throw new Error('字幕索引缺少文本块或时长')
+            const prefix = await reader.bytes(block.start, Math.min(block.end, block.start + 11))
+            const number = vint(prefix, 0)
+            if (
+              number.value !== BigInt(track.number) ||
+              prefix.length < number.width + 3 ||
+              prefix[number.width + 2] & 6
+            )
+              throw new Error('字幕索引轨道不匹配或块格式无效')
+            const text = await reader.text({ ...block, start: block.start + number.width + 3 })
+            size += text.length
+            if (size > 8 * 1024 * 1024) throw new Error('字幕文本超过预算')
+            const start = target.time * this.timestampScale
+            cues[i] = { start, end: start + duration, text }
+          }
+        }),
+      )
+      const failed = results.find((result) => result.status === 'rejected')
+      if (failed?.status === 'rejected') throw failed.reason
+      return cues
+    } catch {
+      signal?.throwIfAborted()
+      return null
     }
   }
 }

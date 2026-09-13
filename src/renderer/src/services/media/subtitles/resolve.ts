@@ -10,6 +10,46 @@ export async function resolveEmbeddedSubtitle(
   signal?: AbortSignal,
   expected?: { uid: string; codec: string },
 ) {
+  // 字体与字幕正文独立准备；任一失败后等待另一任务收尾，避免字体 URL 泄漏。
+  const [textResult, fontResult] = await Promise.allSettled([
+    readSubtitleContent(source, number, signal, expected),
+    loadSubtitleFonts(source, signal),
+  ])
+  if (textResult.status === 'rejected') {
+    if (fontResult.status === 'fulfilled') fontResult.value.close()
+    throw textResult.reason
+  }
+  if (fontResult.status === 'rejected') throw fontResult.reason
+  const content = textResult.value
+  const fonts = fontResult.value
+  let url: string
+  try {
+    signal?.throwIfAborted()
+    url = URL.createObjectURL(new Blob([content], { type: 'text/plain;charset=utf-8' }))
+  } catch (error) {
+    fonts.close()
+    throw error
+  }
+  let closed = false
+  return {
+    url,
+    fonts: fonts.urls,
+    warning: fonts.warning,
+    release: () => {
+      if (closed) return
+      closed = true
+      URL.revokeObjectURL(url)
+      fonts.close()
+    },
+  }
+}
+
+async function readSubtitleContent(
+  source: SubtitleSource,
+  number: number,
+  signal?: AbortSignal,
+  expected?: { uid: string; codec: string },
+) {
   const reader = await MatroskaSubtitles.open(source, signal)
   const track = reader.tracks.find((track) => track.number === number)
   if (!track) throw new Error('字幕轨不存在')
@@ -32,25 +72,5 @@ export async function resolveEmbeddedSubtitle(
       .sort((a, b) => a.order - b.order)
     content = `${header}\n[Events]\nFormat: ${ssa ? 'Marked' : 'Layer'}, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text\n${events.map((event) => event.line).join('\n')}`
   }
-  const fonts = await loadSubtitleFonts(source, signal)
-  let url: string
-  try {
-    signal?.throwIfAborted()
-    url = URL.createObjectURL(new Blob([content], { type: 'text/plain;charset=utf-8' }))
-  } catch (error) {
-    fonts.close()
-    throw error
-  }
-  let closed = false
-  return {
-    url,
-    fonts: fonts.urls,
-    warning: fonts.warning,
-    release: () => {
-      if (closed) return
-      closed = true
-      URL.revokeObjectURL(url)
-      fonts.close()
-    },
-  }
+  return content
 }

@@ -9,6 +9,7 @@ import type {
 import type { PropsWithChildren } from 'react'
 import { db } from '@renderer/database/db'
 import { captureFeatureUsed } from '@renderer/services/telemetry/features'
+import { reportSubtitleFailure } from '@renderer/services/telemetry/subtitles'
 import { createContext, use, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { LibassSubtitleAdapter } from './libass-subtitle-adapter'
 import { allocateExternalHistoryId, selectPreferredSubtitleTrack } from './preferences'
@@ -50,6 +51,9 @@ export const NativeSubtitleProvider = ({
 }: NativeSubtitleProviderProps) => {
   const requestRef = useRef<AbortController | null>(null)
   const adapterRef = useRef<LibassSubtitleAdapter | null>(null)
+  const canvasRef = useRef<HTMLCanvasElement | null>(null)
+  const releaseAdapterRef = useRef<(() => void) | null>(null)
+  const [readyAdapter, setReadyAdapter] = useState<LibassSubtitleAdapter | null>(null)
   const [tracks, setTracks] = useState<SubtitleTrackOption[]>([])
   const [selectedId, setSelectedId] = useState('off')
   const [timeOffset, setTimeOffset] = useState(0)
@@ -104,18 +108,21 @@ export const NativeSubtitleProvider = ({
       requestRef.current = request
       setLoading(true)
       setError(null)
+      let trackResolved = false
       try {
         const resolved = await catalog.resolve(source, option, request.signal)
         if (request.signal.aborted) {
           resolved.release?.()
           return
         }
-        adapter.setTrack(resolved.url, resolved.release, resolved.fonts)
+        trackResolved = true
+        if (!adapter.setTrack(resolved.url, resolved.release, resolved.fonts)) return
         setError(resolved.warning ?? null)
         setSelectedId(option.id)
         if (shouldPersist) await persistSelection(option, resolved)
       } catch (cause) {
         if (request.signal.aborted) return
+        if (!trackResolved) reportSubtitleFailure('resolve', cause)
         adapter.close()
         setSelectedId('off')
         setError(cause instanceof Error ? cause.message : '字幕加载失败')
@@ -126,17 +133,47 @@ export const NativeSubtitleProvider = ({
     [catalog, persistSelection, source],
   )
 
+  // 字幕实例属于媒体会话；更换呈现 video 只解绑尺寸观察，不释放轨道、字体或 Worker。
+  useEffect(
+    () => () => {
+      requestRef.current?.abort()
+      releaseAdapterRef.current?.()
+      releaseAdapterRef.current = null
+      adapterRef.current = null
+      canvasRef.current = null
+    },
+    [runtime],
+  )
+
   useEffect(() => {
     const root = video.closest('[data-player-root]')
     const surface = root?.querySelector('[data-player-subtitle-surface]')
     if (!surface || !root) return
-    const canvas = document.createElement('canvas')
-    canvas.style.position = 'absolute'
-    canvas.style.top = '50%'
-    canvas.style.left = '50%'
-    surface.appendChild(canvas)
-    const adapter = new LibassSubtitleAdapter(canvas, runtime.clock)
-    adapterRef.current = adapter
+    if (!adapterRef.current || !canvasRef.current) {
+      const canvas = document.createElement('canvas')
+      canvas.style.position = 'absolute'
+      canvas.style.top = '50%'
+      canvas.style.left = '50%'
+      const adapter = new LibassSubtitleAdapter(canvas, runtime.clock, (cause) => {
+        reportSubtitleFailure('renderer', cause)
+        setLoading(false)
+        setSelectedId('off')
+        setError(cause instanceof Error ? cause.message : '字幕渲染失败')
+      })
+      const unregister = runtime.registerDisposer('subtitle', () => adapter.dispose())
+      adapterRef.current = adapter
+      canvasRef.current = canvas
+      releaseAdapterRef.current = () => {
+        unregister()
+        adapter.dispose()
+        canvas.remove()
+      }
+      // 首次挂载可能先拿到脱离 DOM 的旧 video，等有效表面创建好实例后再初始化字幕。
+      setReadyAdapter(adapter)
+    }
+    const adapter = adapterRef.current
+    const canvas = canvasRef.current
+    if (canvas.parentElement !== surface) surface.appendChild(canvas)
     const resize = () => {
       const width = runtime.presentation?.width || video.videoWidth
       const height = runtime.presentation?.height || video.videoHeight
@@ -159,7 +196,6 @@ export const NativeSubtitleProvider = ({
       canvas.style.transform = `translate(-50%, -50%) rotate(${rotation}deg)`
       adapter.resize()
     }
-    const unregister = runtime.registerDisposer('subtitle', () => adapter.dispose())
     const observer = new ResizeObserver(resize)
     observer.observe(root)
     const rotationObserver = new MutationObserver(resize)
@@ -182,10 +218,6 @@ export const NativeSubtitleProvider = ({
       video.removeEventListener('loadedmetadata', resize)
       observer.disconnect()
       rotationObserver.disconnect()
-      unregister()
-      adapter.dispose()
-      canvas.remove()
-      if (adapterRef.current === adapter) adapterRef.current = null
     }
   }, [runtime, video])
 
@@ -193,8 +225,8 @@ export const NativeSubtitleProvider = ({
     let cancelled = false
     const initializeAbort = new AbortController()
     const initialize = async () => {
-      const adapter = adapterRef.current
-      if (!adapter) return
+      const adapter = readyAdapter
+      if (!adapter || adapter !== adapterRef.current) return
       adapter.close()
       setTracks([])
       setSelectedId('off')
@@ -269,6 +301,7 @@ export const NativeSubtitleProvider = ({
       } catch (cause) {
         if (!cancelled) {
           adapter.close()
+          reportSubtitleFailure('catalog', cause)
           setError(cause instanceof Error ? cause.message : '字幕初始化失败')
         }
       } finally {
@@ -281,7 +314,7 @@ export const NativeSubtitleProvider = ({
       initializeAbort.abort()
       requestRef.current?.abort()
     }
-  }, [activateTrack, catalog, hash, source])
+  }, [activateTrack, catalog, hash, readyAdapter, source])
 
   const selectTrack = useCallback(
     async (id: string) => {
@@ -319,6 +352,7 @@ export const NativeSubtitleProvider = ({
       setTracks((items) => [...items, option])
       await activateTrack(option)
     } catch (cause) {
+      reportSubtitleFailure('import', cause)
       setError(cause instanceof Error ? cause.message : '字幕导入失败')
     } finally {
       setLoading(false)

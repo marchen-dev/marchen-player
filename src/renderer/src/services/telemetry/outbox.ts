@@ -13,6 +13,7 @@ export const CRITICAL_TELEMETRY_EVENTS = new Set<TelemetryEventName>([
   'playback_started',
   'playback_ended',
   'playback_failed',
+  'subtitle_failed',
 ])
 
 export interface OutboxItem {

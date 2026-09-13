@@ -60,7 +60,7 @@ const fixture = () =>
     ),
     true,
   )
-const open = (bytes = fixture()) =>
+const open = (bytes: Uint8Array = fixture()) =>
   MatroskaSubtitles.open({
     size: bytes.length,
     read: async (start, end) => bytes.slice(start, end),
@@ -126,4 +126,79 @@ it('内嵌 UTF8 返回原始文本，损坏轨失败后仍可读取另一轨', a
   expect(() => assDialogue(bad.value!, 'S_TEXT/ASS')).toThrow()
   const good = await reader.cues(1).next()
   expect(good.value).toEqual({ start: 9.9, end: 11.4, text: '<i>中文</i>\n第二行' })
+})
+
+it('相邻 EBML 头部合并读取，缓存命中仍遵守取消', async () => {
+  const bytes = fixture()
+  let reads = 0
+  const reader = await MatroskaSubtitles.open({
+    size: bytes.length,
+    read: async (start, end) => {
+      reads++
+      return bytes.slice(start, end)
+    },
+  })
+  expect(reads).toBe(1)
+  const abort = new AbortController()
+  const cues = reader.cues(1, abort.signal)
+  expect((await cues.next()).value?.text).toContain('你好')
+  expect(reads).toBe(3)
+  abort.abort()
+  await expect(cues.next()).rejects.toThrow()
+  expect(reads).toBe(3)
+})
+
+it('字幕索引直达 BlockGroup，结果与扫描一致，坏索引回退且不重复输出', async () => {
+  const info = e(0x1549A966, e(0x2AD7B1, uint(1000000)))
+  const tracks = e(0x1654AE6B, track(1, 'S_TEXT/UTF8'))
+  const stamp = e(0xE7, uint(10000))
+  const cluster = e(0x1F43B675, concat(stamp, group(1, '索引字幕')))
+  const make = (relative: number, includeIndex = true) => {
+    // 固定宽度位置保持 SeekHead 长度稳定。
+    const seek = (position: number) =>
+      e(
+        0x114D9B74,
+        e(
+          0x4DBB,
+          concat(
+            e(0x53AB, new Uint8Array([0x1C, 0x53, 0xBB, 0x6B])),
+            e(0x53AC, new Uint8Array([position >> 16, position >> 8, position])),
+          ),
+        ),
+      )
+    const clusterPosition = seek(0).length + info.length + tracks.length
+    const index = e(
+      0x1C53BB6B,
+      e(
+        0xBB,
+        concat(
+          e(0xB3, uint(9900)),
+          e(
+            0xB7,
+            concat(e(0xF7, uint(1)), e(0xF1, uint(clusterPosition)), e(0xF0, uint(relative))),
+          ),
+        ),
+      ),
+    )
+    return e(
+      0x18538067,
+      concat(
+        seek(clusterPosition + cluster.length),
+        info,
+        tracks,
+        cluster,
+        includeIndex ? index : e(0xEC, new Uint8Array(100)),
+      ),
+    )
+  }
+  const collect = async (bytes: Uint8Array) => {
+    const reader = await open(bytes)
+    const cues: SubtitleCue[] = []
+    for await (const cue of reader.cues(1)) cues.push(cue)
+    return cues
+  }
+  const expected = [{ start: 9.9, end: 11.4, text: '索引字幕' }]
+  expect(await collect(make(stamp.length))).toEqual(expected)
+  expect(await collect(make(9999))).toEqual(expected)
+  expect(await collect(make(stamp.length, false))).toEqual(expected)
 })
