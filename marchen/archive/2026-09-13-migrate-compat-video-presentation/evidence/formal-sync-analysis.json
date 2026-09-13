@@ -1,0 +1,3801 @@
+{
+  "summary": {
+    "durationSec": 637.2363149999976,
+    "method": "video expectedDisplayTime minus analyser onset wall time minus AudioContext.outputLatency; positive means video later; estimates only, no acoustic loopback",
+    "all": {
+      "count": 628,
+      "medianMs": 52.009999990448705,
+      "p05Ms": 18.904999991646037,
+      "p95Ms": 69.61499999824446,
+      "minMs": -122.1100000119186,
+      "maxMs": 261.44999998569256
+    },
+    "firstMinute": {
+      "count": 60,
+      "medianMs": 45.989999994933896,
+      "p05Ms": 13.904999996422703,
+      "p95Ms": 51.92999998927189,
+      "minMs": 8.269999991058285,
+      "maxMs": 52.35499998629166
+    },
+    "lastMinute": {
+      "count": 58,
+      "medianMs": 36.012499991687946,
+      "p05Ms": 18.424999986309558,
+      "p95Ms": 79.93499999167398,
+      "minMs": 17.71499998564832,
+      "maxMs": 151.60999998624902
+    },
+    "monitorGap": "Analyser connection changed during AudioContext reinitialization; monitoring repaired at ~166s. Unpaired events excluded. All paired outliers retained."
+  },
+  "pairs": [
+    {
+      "atSec": 0.23814499999582767,
+      "graphOffsetMs": 215.6299999970197,
+      "estimatedOutputOffsetMs": 47.629999997019695,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 1.254579999995828,
+      "graphOffsetMs": 219.86499999642365,
+      "estimatedOutputOffsetMs": 51.86499999642365,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 2.2548099999958278,
+      "graphOffsetMs": 215.19999999284755,
+      "estimatedOutputOffsetMs": 47.19999999284755,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 3.2548149999958276,
+      "graphOffsetMs": 213.35499999940475,
+      "estimatedOutputOffsetMs": 45.354999999404754,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 4.254814999995828,
+      "graphOffsetMs": 213.9699999988079,
+      "estimatedOutputOffsetMs": 45.96999999880791,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 5.2548049999958275,
+      "graphOffsetMs": 220.3199999946355,
+      "estimatedOutputOffsetMs": 52.31999999463551,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 6.253854999995827,
+      "graphOffsetMs": 214.15499998629093,
+      "estimatedOutputOffsetMs": 46.15499998629093,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 7.253949999995828,
+      "graphOffsetMs": 218.37499999165448,
+      "estimatedOutputOffsetMs": 50.37499999165448,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 8.254814999995828,
+      "graphOffsetMs": 216.1999999892705,
+      "estimatedOutputOffsetMs": 48.19999998927051,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 9.254334999995828,
+      "graphOffsetMs": 215.2199999988079,
+      "estimatedOutputOffsetMs": 47.21999999880791,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 10.254814999995828,
+      "graphOffsetMs": 215.154999988079,
+      "estimatedOutputOffsetMs": 47.154999988079,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 11.254824999995828,
+      "graphOffsetMs": 220.35499998629166,
+      "estimatedOutputOffsetMs": 52.35499998629166,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 12.238139999995827,
+      "graphOffsetMs": 182.1349999970189,
+      "estimatedOutputOffsetMs": 14.134999997018895,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 13.254804999995828,
+      "graphOffsetMs": 210.12999999046224,
+      "estimatedOutputOffsetMs": 42.12999999046224,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 14.238139999995827,
+      "graphOffsetMs": 214.69999998628919,
+      "estimatedOutputOffsetMs": 46.699999986289185,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 15.254799999995827,
+      "graphOffsetMs": 219.9299999892719,
+      "estimatedOutputOffsetMs": 51.92999998927189,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 16.254804999995827,
+      "graphOffsetMs": 209.62999999046224,
+      "estimatedOutputOffsetMs": 41.62999999046224,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 17.23813499999583,
+      "graphOffsetMs": 185.58999998867512,
+      "estimatedOutputOffsetMs": 17.589999988675117,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 18.254804999995827,
+      "graphOffsetMs": 207.40999999165433,
+      "estimatedOutputOffsetMs": 39.40999999165433,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 19.254804999995827,
+      "graphOffsetMs": 219.5549999892719,
+      "estimatedOutputOffsetMs": 51.55499998927189,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 20.254814999995826,
+      "graphOffsetMs": 203.67499998867424,
+      "estimatedOutputOffsetMs": 35.674999988674244,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 21.23813499999583,
+      "graphOffsetMs": 176.26999999105828,
+      "estimatedOutputOffsetMs": 8.269999991058285,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 22.254819999995828,
+      "graphOffsetMs": 207.93499999403866,
+      "estimatedOutputOffsetMs": 39.93499999403866,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 23.23718499999583,
+      "graphOffsetMs": 181.9049999964227,
+      "estimatedOutputOffsetMs": 13.904999996422703,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 24.23814999999583,
+      "graphOffsetMs": 215.11499998629006,
+      "estimatedOutputOffsetMs": 47.11499998629006,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 25.253809999995827,
+      "graphOffsetMs": 218.76499999582666,
+      "estimatedOutputOffsetMs": 50.764999995826656,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 26.254799999995825,
+      "graphOffsetMs": 202.10499999940293,
+      "estimatedOutputOffsetMs": 34.104999999402935,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 27.23720499999583,
+      "graphOffsetMs": 186.19999998807907,
+      "estimatedOutputOffsetMs": 18.19999998807907,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 28.254799999995825,
+      "graphOffsetMs": 210.12999999523163,
+      "estimatedOutputOffsetMs": 42.12999999523163,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 29.237199999995827,
+      "graphOffsetMs": 177.2299999976167,
+      "estimatedOutputOffsetMs": 9.229999997616687,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 30.238079999995826,
+      "graphOffsetMs": 182.4249999976164,
+      "estimatedOutputOffsetMs": 14.424999997616396,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 31.254799999995825,
+      "graphOffsetMs": 205.62999999999738,
+      "estimatedOutputOffsetMs": 37.62999999999738,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 32.254799999995825,
+      "graphOffsetMs": 208.8899999976129,
+      "estimatedOutputOffsetMs": 40.889999997612904,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 33.254799999995825,
+      "graphOffsetMs": 218.8099999868864,
+      "estimatedOutputOffsetMs": 50.809999986886396,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 34.25447999999583,
+      "graphOffsetMs": 209.70500000000175,
+      "estimatedOutputOffsetMs": 41.705000000001746,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 35.254579999995826,
+      "graphOffsetMs": 218.71499999881053,
+      "estimatedOutputOffsetMs": 50.71499999881053,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 36.254799999995825,
+      "graphOffsetMs": 205.09499999582476,
+      "estimatedOutputOffsetMs": 37.094999995824764,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 37.23813499999583,
+      "graphOffsetMs": 181.96499999940715,
+      "estimatedOutputOffsetMs": 13.964999999407155,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 38.23812999999583,
+      "graphOffsetMs": 182.71999999940454,
+      "estimatedOutputOffsetMs": 14.719999999404536,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 39.237494999995825,
+      "graphOffsetMs": 219.85499999642343,
+      "estimatedOutputOffsetMs": 51.85499999642343,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 40.23813999999583,
+      "graphOffsetMs": 182.3549999898678,
+      "estimatedOutputOffsetMs": 14.354999989867792,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 41.23793499999583,
+      "graphOffsetMs": 178.469999991059,
+      "estimatedOutputOffsetMs": 10.469999991059012,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 42.25479499999583,
+      "graphOffsetMs": 214.00999999105989,
+      "estimatedOutputOffsetMs": 46.009999991059885,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 43.254804999995834,
+      "graphOffsetMs": 214.20999998867774,
+      "estimatedOutputOffsetMs": 46.20999998867774,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 44.60479499999583,
+      "graphOffsetMs": 200.49999998688872,
+      "estimatedOutputOffsetMs": 32.499999986888724,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 45.603854999995825,
+      "graphOffsetMs": 214.50999999880878,
+      "estimatedOutputOffsetMs": 46.50999999880878,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 46.60479999999583,
+      "graphOffsetMs": 207.8799999868861,
+      "estimatedOutputOffsetMs": 39.879999986886105,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 47.60451999999583,
+      "graphOffsetMs": 214.27499998689018,
+      "estimatedOutputOffsetMs": 46.27499998689018,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 48.60445999999583,
+      "graphOffsetMs": 214.51499999284715,
+      "estimatedOutputOffsetMs": 46.51499999284715,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 49.60481999999583,
+      "graphOffsetMs": 214.13499999821215,
+      "estimatedOutputOffsetMs": 46.13499999821215,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 50.60479999999583,
+      "graphOffsetMs": 204.349999985694,
+      "estimatedOutputOffsetMs": 36.34999998569401,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 51.60384999999583,
+      "graphOffsetMs": 214.3099999946353,
+      "estimatedOutputOffsetMs": 46.30999999463529,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 52.60384999999583,
+      "graphOffsetMs": 209.1949999999997,
+      "estimatedOutputOffsetMs": 41.19499999999971,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 53.60440999999583,
+      "graphOffsetMs": 214.1399999958303,
+      "estimatedOutputOffsetMs": 46.139999995830294,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 54.60386499999583,
+      "graphOffsetMs": 210.37499999463762,
+      "estimatedOutputOffsetMs": 42.37499999463762,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 55.60479499999583,
+      "graphOffsetMs": 215.1649999928486,
+      "estimatedOutputOffsetMs": 47.16499999284861,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 56.60385999999583,
+      "graphOffsetMs": 214.18499998986954,
+      "estimatedOutputOffsetMs": 46.18499998986954,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 57.60479499999583,
+      "graphOffsetMs": 215.789999998211,
+      "estimatedOutputOffsetMs": 47.78999999821099,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 58.60480999999583,
+      "graphOffsetMs": 202.73999998748332,
+      "estimatedOutputOffsetMs": 34.739999987483316,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 59.60479499999583,
+      "graphOffsetMs": 214.94999999046559,
+      "estimatedOutputOffsetMs": 46.949999990465585,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 60.60478499999583,
+      "graphOffsetMs": 214.97999998688465,
+      "estimatedOutputOffsetMs": 46.97999998688465,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 61.60479999999583,
+      "graphOffsetMs": 214.38999999462976,
+      "estimatedOutputOffsetMs": 46.38999999462976,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 62.603919999995824,
+      "graphOffsetMs": 214.8999999886728,
+      "estimatedOutputOffsetMs": 46.89999998867279,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 63.60478999999583,
+      "graphOffsetMs": 214.77499999344582,
+      "estimatedOutputOffsetMs": 46.77499999344582,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 64.60429499999582,
+      "graphOffsetMs": 214.26999999284453,
+      "estimatedOutputOffsetMs": 46.26999999284453,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 65.60416999999582,
+      "graphOffsetMs": 214.70999999702326,
+      "estimatedOutputOffsetMs": 46.70999999702326,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 66.60478499999583,
+      "graphOffsetMs": 214.50499999284511,
+      "estimatedOutputOffsetMs": 46.504999992845114,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 67.60478499999583,
+      "graphOffsetMs": 215.2349999922444,
+      "estimatedOutputOffsetMs": 47.23499999224441,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 68.60479499999582,
+      "graphOffsetMs": 214.46499998569197,
+      "estimatedOutputOffsetMs": 46.464999985691975,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 69.58812499999583,
+      "graphOffsetMs": 214.32999998808373,
+      "estimatedOutputOffsetMs": 46.32999998808373,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 70.60479499999582,
+      "graphOffsetMs": 215.51999999284453,
+      "estimatedOutputOffsetMs": 47.51999999284453,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 71.60479499999582,
+      "graphOffsetMs": 209.88000000000466,
+      "estimatedOutputOffsetMs": 41.88000000000466,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 72.60479499999582,
+      "graphOffsetMs": 213.83999999820662,
+      "estimatedOutputOffsetMs": 45.83999999820662,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 73.60398999999583,
+      "graphOffsetMs": 215.85999999166233,
+      "estimatedOutputOffsetMs": 47.859999991662335,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 74.60478999999583,
+      "graphOffsetMs": 213.85499999880267,
+      "estimatedOutputOffsetMs": 45.85499999880267,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 75.60455499999583,
+      "graphOffsetMs": 214.34499998867977,
+      "estimatedOutputOffsetMs": 46.344999988679774,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 76.60480499999584,
+      "graphOffsetMs": 214.86999999939871,
+      "estimatedOutputOffsetMs": 46.869999999398715,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 77.60477999999583,
+      "graphOffsetMs": 214.6849999982078,
+      "estimatedOutputOffsetMs": 46.684999998207786,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 78.60478499999583,
+      "graphOffsetMs": 214.4199999946286,
+      "estimatedOutputOffsetMs": 46.4199999946286,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 79.60479499999582,
+      "graphOffsetMs": 213.95499999821186,
+      "estimatedOutputOffsetMs": 45.95499999821186,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 80.60396499999584,
+      "graphOffsetMs": 214.89499998866813,
+      "estimatedOutputOffsetMs": 46.89499998866813,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 81.60477999999583,
+      "graphOffsetMs": 215.0749999982072,
+      "estimatedOutputOffsetMs": 47.074999998207204,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 82.60444999999582,
+      "graphOffsetMs": 215.06999999702384,
+      "estimatedOutputOffsetMs": 47.06999999702384,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 83.60439999999583,
+      "graphOffsetMs": 214.0249999952357,
+      "estimatedOutputOffsetMs": 46.0249999952357,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 84.60477999999583,
+      "graphOffsetMs": 214.6699999946286,
+      "estimatedOutputOffsetMs": 46.6699999946286,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 85.60397499999583,
+      "graphOffsetMs": 215.4399999952293,
+      "estimatedOutputOffsetMs": 47.4399999952293,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 86.60431499999582,
+      "graphOffsetMs": 215.2499999976135,
+      "estimatedOutputOffsetMs": 47.249999997613486,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 87.60477999999583,
+      "graphOffsetMs": 214.27999999641906,
+      "estimatedOutputOffsetMs": 46.279999996419065,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 88.60378499999582,
+      "graphOffsetMs": 205.6599999982136,
+      "estimatedOutputOffsetMs": 37.65999999821361,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 89.60385999999582,
+      "graphOffsetMs": 214.9799999922543,
+      "estimatedOutputOffsetMs": 46.97999999225431,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 90.60402999999582,
+      "graphOffsetMs": 214.56499999880907,
+      "estimatedOutputOffsetMs": 46.56499999880907,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 91.60441499999583,
+      "graphOffsetMs": 214.4049999916606,
+      "estimatedOutputOffsetMs": 46.40499999166059,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 92.60401499999583,
+      "graphOffsetMs": 206.9499999958207,
+      "estimatedOutputOffsetMs": 38.94999999582069,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 93.60392999999583,
+      "graphOffsetMs": 214.60499999523745,
+      "estimatedOutputOffsetMs": 46.60499999523745,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 94.60477499999583,
+      "graphOffsetMs": 214.74999999106512,
+      "estimatedOutputOffsetMs": 46.749999991065124,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 95.60388499999583,
+      "graphOffsetMs": 214.76999998629617,
+      "estimatedOutputOffsetMs": 46.76999998629617,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 96.60448999999583,
+      "graphOffsetMs": 213.9399999898742,
+      "estimatedOutputOffsetMs": 45.939999989874195,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 97.60432499999582,
+      "graphOffsetMs": 215.55499999523454,
+      "estimatedOutputOffsetMs": 47.55499999523454,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 98.60385999999582,
+      "graphOffsetMs": 214.30499998747837,
+      "estimatedOutputOffsetMs": 46.30499998747837,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 99.60459499999583,
+      "graphOffsetMs": 214.85499999165768,
+      "estimatedOutputOffsetMs": 46.85499999165768,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 100.60381499999582,
+      "graphOffsetMs": 213.6499999910593,
+      "estimatedOutputOffsetMs": 45.6499999910593,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 102.95393499999582,
+      "graphOffsetMs": 230.40999998748885,
+      "estimatedOutputOffsetMs": 62.409999987488845,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 103.92046499999583,
+      "graphOffsetMs": 198.86999999344698,
+      "estimatedOutputOffsetMs": 30.86999999344698,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 105.17123999999583,
+      "graphOffsetMs": 429.44999998569256,
+      "estimatedOutputOffsetMs": 261.44999998569256,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 106.17145499999583,
+      "graphOffsetMs": 226.4749999892665,
+      "estimatedOutputOffsetMs": 58.47499998926651,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 107.17143999999583,
+      "graphOffsetMs": 189.85999999761407,
+      "estimatedOutputOffsetMs": 21.859999997614068,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 108.17066499999584,
+      "graphOffsetMs": 191.06499999045627,
+      "estimatedOutputOffsetMs": 23.064999990456272,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 109.17122999999583,
+      "graphOffsetMs": 189.1699999970151,
+      "estimatedOutputOffsetMs": 21.16999999701511,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 110.17144499999583,
+      "graphOffsetMs": 222.9099999898608,
+      "estimatedOutputOffsetMs": 54.90999998986081,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 111.17053999999584,
+      "graphOffsetMs": 186.9649999999965,
+      "estimatedOutputOffsetMs": 18.964999999996508,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 112.17083499999583,
+      "graphOffsetMs": 191.98499998987245,
+      "estimatedOutputOffsetMs": 23.98499998987245,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 167.18729499999583,
+      "graphOffsetMs": 224.6299999988114,
+      "estimatedOutputOffsetMs": 56.6299999988114,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 168.18718499999585,
+      "graphOffsetMs": 228.29999998569838,
+      "estimatedOutputOffsetMs": 60.29999998569838,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 169.18809499999583,
+      "graphOffsetMs": 225.39499999640975,
+      "estimatedOutputOffsetMs": 57.39499999640975,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 170.18728499999585,
+      "graphOffsetMs": 226.58499999821652,
+      "estimatedOutputOffsetMs": 58.58499999821652,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 171.18783499999583,
+      "graphOffsetMs": 223.32499999762513,
+      "estimatedOutputOffsetMs": 55.32499999762513,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 172.18720499999583,
+      "graphOffsetMs": 223.92999999105814,
+      "estimatedOutputOffsetMs": 55.92999999105814,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 173.18810999999582,
+      "graphOffsetMs": 224.8999999910593,
+      "estimatedOutputOffsetMs": 56.8999999910593,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 174.18718499999585,
+      "graphOffsetMs": 228.91999998569372,
+      "estimatedOutputOffsetMs": 60.91999998569372,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 175.18800499999583,
+      "graphOffsetMs": 224.9849999898579,
+      "estimatedOutputOffsetMs": 56.9849999898579,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 176.1880999999958,
+      "graphOffsetMs": 224.47999999285094,
+      "estimatedOutputOffsetMs": 56.479999992850935,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 177.18715999999583,
+      "graphOffsetMs": 225.71499999283697,
+      "estimatedOutputOffsetMs": 57.714999992836965,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 178.1873799999958,
+      "graphOffsetMs": 226.5499999964377,
+      "estimatedOutputOffsetMs": 58.54999999643769,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 179.18718499999585,
+      "graphOffsetMs": 223.08499998689513,
+      "estimatedOutputOffsetMs": 55.08499998689513,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 180.18718499999585,
+      "graphOffsetMs": 224.65499998629093,
+      "estimatedOutputOffsetMs": 56.65499998629093,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 181.18718499999585,
+      "graphOffsetMs": 225.06999999165419,
+      "estimatedOutputOffsetMs": 57.069999991654186,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 182.18786499999584,
+      "graphOffsetMs": 227.6949999964272,
+      "estimatedOutputOffsetMs": 59.694999996427214,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 183.18809499999583,
+      "graphOffsetMs": 225.68499998628977,
+      "estimatedOutputOffsetMs": 57.68499998628977,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 184.18718999999584,
+      "graphOffsetMs": 218.7099999874772,
+      "estimatedOutputOffsetMs": 50.709999987477204,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 185.18718999999584,
+      "graphOffsetMs": 225.25499999403837,
+      "estimatedOutputOffsetMs": 57.25499999403837,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 186.17090999999584,
+      "graphOffsetMs": 193.75499999700696,
+      "estimatedOutputOffsetMs": 25.754999997006962,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 187.18729499999583,
+      "graphOffsetMs": 224.4699999934528,
+      "estimatedOutputOffsetMs": 56.4699999934528,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 188.18808499999582,
+      "graphOffsetMs": 219.41499999642838,
+      "estimatedOutputOffsetMs": 51.41499999642838,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 189.18721499999583,
+      "graphOffsetMs": 225.9849999982107,
+      "estimatedOutputOffsetMs": 57.9849999982107,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 190.18808499999582,
+      "graphOffsetMs": 227.04999998569838,
+      "estimatedOutputOffsetMs": 59.04999998569838,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 191.20385499999583,
+      "graphOffsetMs": 224.9999999976135,
+      "estimatedOutputOffsetMs": 56.999999997613486,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 192.18718499999585,
+      "graphOffsetMs": 225.46999999284162,
+      "estimatedOutputOffsetMs": 57.46999999284162,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 193.18808499999582,
+      "graphOffsetMs": 225.5049999958137,
+      "estimatedOutputOffsetMs": 57.504999995813705,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 194.18809499999583,
+      "graphOffsetMs": 226.4049999898707,
+      "estimatedOutputOffsetMs": 58.4049999898707,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 195.18807999999584,
+      "graphOffsetMs": 224.78999999223743,
+      "estimatedOutputOffsetMs": 56.789999992237426,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 196.18718499999585,
+      "graphOffsetMs": 228.92499999105348,
+      "estimatedOutputOffsetMs": 60.92499999105348,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 197.18718999999584,
+      "graphOffsetMs": 217.4949999988021,
+      "estimatedOutputOffsetMs": 49.494999998802086,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 198.18808499999582,
+      "graphOffsetMs": 211.375,
+      "estimatedOutputOffsetMs": 43.375,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 199.18808499999582,
+      "graphOffsetMs": 226.9049999952258,
+      "estimatedOutputOffsetMs": 58.90499999522581,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 200.18808499999582,
+      "graphOffsetMs": 228.4299999862851,
+      "estimatedOutputOffsetMs": 60.42999998628511,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 201.18808999999584,
+      "graphOffsetMs": 219.3149999976158,
+      "estimatedOutputOffsetMs": 51.314999997615814,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 202.20476999999582,
+      "graphOffsetMs": 228.18999999164953,
+      "estimatedOutputOffsetMs": 60.18999999164953,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 203.18807999999584,
+      "graphOffsetMs": 225.2599999916565,
+      "estimatedOutputOffsetMs": 57.259999991656514,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 204.18787499999584,
+      "graphOffsetMs": 224.58499999760534,
+      "estimatedOutputOffsetMs": 56.58499999760534,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 205.18718499999585,
+      "graphOffsetMs": 224.3699999988021,
+      "estimatedOutputOffsetMs": 56.369999998802086,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 206.18808499999582,
+      "graphOffsetMs": 224.5199999898614,
+      "estimatedOutputOffsetMs": 56.51999998986139,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 207.18808499999582,
+      "graphOffsetMs": 225.3599999952421,
+      "estimatedOutputOffsetMs": 57.359999995242106,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 208.18810999999582,
+      "graphOffsetMs": 224.3549999886891,
+      "estimatedOutputOffsetMs": 56.35499998868909,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 209.18738499999583,
+      "graphOffsetMs": 224.45999999166816,
+      "estimatedOutputOffsetMs": 56.459999991668155,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 210.18808999999584,
+      "graphOffsetMs": 219.9899999886693,
+      "estimatedOutputOffsetMs": 51.9899999886693,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 211.18719499999582,
+      "graphOffsetMs": 224.05499999879976,
+      "estimatedOutputOffsetMs": 56.05499999879976,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 212.18730999999585,
+      "graphOffsetMs": 222.92499999524443,
+      "estimatedOutputOffsetMs": 54.924999995244434,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 213.18745999999584,
+      "graphOffsetMs": 224.9549999886658,
+      "estimatedOutputOffsetMs": 56.954999988665804,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 214.18731499999583,
+      "graphOffsetMs": 209.68499999164487,
+      "estimatedOutputOffsetMs": 41.68499999164487,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 215.18716499999582,
+      "graphOffsetMs": 223.78499999761698,
+      "estimatedOutputOffsetMs": 55.78499999761698,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 216.18807999999584,
+      "graphOffsetMs": 227.27999999999884,
+      "estimatedOutputOffsetMs": 59.279999999998836,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 217.18808499999582,
+      "graphOffsetMs": 223.529999995837,
+      "estimatedOutputOffsetMs": 55.52999999583699,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 218.18778499999584,
+      "graphOffsetMs": 216.46499999045045,
+      "estimatedOutputOffsetMs": 48.46499999045045,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 219.1871999999958,
+      "graphOffsetMs": 225.6899999868765,
+      "estimatedOutputOffsetMs": 57.6899999868765,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 221.0204799999958,
+      "graphOffsetMs": 222.73499999940395,
+      "estimatedOutputOffsetMs": 54.73499999940395,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 221.82077499999582,
+      "graphOffsetMs": 219.17499999760184,
+      "estimatedOutputOffsetMs": 51.174999997601844,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 222.6210999999958,
+      "graphOffsetMs": 222.6649999958172,
+      "estimatedOutputOffsetMs": 54.6649999958172,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 223.42141999999583,
+      "graphOffsetMs": 222.61999999164254,
+      "estimatedOutputOffsetMs": 54.619999991642544,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 224.22141499999583,
+      "graphOffsetMs": 222.78499999284395,
+      "estimatedOutputOffsetMs": 54.78499999284395,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 225.02042999999583,
+      "graphOffsetMs": 223.41499998988002,
+      "estimatedOutputOffsetMs": 55.414999989880016,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 225.8214199999958,
+      "graphOffsetMs": 223.81499998748768,
+      "estimatedOutputOffsetMs": 55.81499998748768,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 226.68749999999585,
+      "graphOffsetMs": 289.73499998866464,
+      "estimatedOutputOffsetMs": 121.73499998866464,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 227.42141499999582,
+      "graphOffsetMs": 221.9299999976065,
+      "estimatedOutputOffsetMs": 53.9299999976065,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 228.22087499999583,
+      "graphOffsetMs": 222.31999999046093,
+      "estimatedOutputOffsetMs": 54.31999999046093,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 229.02142999999583,
+      "graphOffsetMs": 224.34499999938998,
+      "estimatedOutputOffsetMs": 56.344999999389984,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 229.82071499999583,
+      "graphOffsetMs": 221.49499999164254,
+      "estimatedOutputOffsetMs": 53.494999991642544,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 230.62048999999584,
+      "graphOffsetMs": 218.06499999345397,
+      "estimatedOutputOffsetMs": 50.06499999345397,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 231.42141499999582,
+      "graphOffsetMs": 223.12999999106978,
+      "estimatedOutputOffsetMs": 55.12999999106978,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 232.22046499999584,
+      "graphOffsetMs": 223.18999999345397,
+      "estimatedOutputOffsetMs": 55.18999999345397,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 233.02047499999583,
+      "graphOffsetMs": 220.4999999892607,
+      "estimatedOutputOffsetMs": 52.49999998926069,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 233.82043999999584,
+      "graphOffsetMs": 223.13999998627696,
+      "estimatedOutputOffsetMs": 55.13999998627696,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 234.62130499999583,
+      "graphOffsetMs": 222.18499998628977,
+      "estimatedOutputOffsetMs": 54.18499998628977,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 235.42141499999582,
+      "graphOffsetMs": 221.90999999819905,
+      "estimatedOutputOffsetMs": 53.909999998199055,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 236.2204449999958,
+      "graphOffsetMs": 221.7599999976228,
+      "estimatedOutputOffsetMs": 53.7599999976228,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 237.02116999999583,
+      "graphOffsetMs": 222.56999999881373,
+      "estimatedOutputOffsetMs": 54.56999999881373,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 237.82141499999582,
+      "graphOffsetMs": 223.40499999225722,
+      "estimatedOutputOffsetMs": 55.40499999225722,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 238.63776999999584,
+      "graphOffsetMs": 222.48999999344232,
+      "estimatedOutputOffsetMs": 54.489999993442325,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 239.42068499999584,
+      "graphOffsetMs": 218.27499998689746,
+      "estimatedOutputOffsetMs": 50.274999986897456,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 240.22049499999582,
+      "graphOffsetMs": 228.3349999874772,
+      "estimatedOutputOffsetMs": 60.334999987477204,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 241.02140999999585,
+      "graphOffsetMs": 223.47500000000582,
+      "estimatedOutputOffsetMs": 55.47500000000582,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 241.8206999999958,
+      "graphOffsetMs": 223.35999998569605,
+      "estimatedOutputOffsetMs": 55.35999998569605,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 242.62078999999582,
+      "graphOffsetMs": 222.68999999939115,
+      "estimatedOutputOffsetMs": 54.68999999939115,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 243.42052499999582,
+      "graphOffsetMs": 222.2699999868928,
+      "estimatedOutputOffsetMs": 54.2699999868928,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 244.22053999999582,
+      "graphOffsetMs": 222.31499998926301,
+      "estimatedOutputOffsetMs": 54.314999989263015,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 245.0214149999958,
+      "graphOffsetMs": 223.70999998928164,
+      "estimatedOutputOffsetMs": 55.70999998928164,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 245.82077499999582,
+      "graphOffsetMs": 223.1949999886856,
+      "estimatedOutputOffsetMs": 55.194999988685595,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 246.62141999999582,
+      "graphOffsetMs": 223.0649999981979,
+      "estimatedOutputOffsetMs": 55.06499999819789,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 247.42061999999584,
+      "graphOffsetMs": 223.64999998689746,
+      "estimatedOutputOffsetMs": 55.649999986897456,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 248.22141999999582,
+      "graphOffsetMs": 219.20499999940512,
+      "estimatedOutputOffsetMs": 51.20499999940512,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 249.02091499999582,
+      "graphOffsetMs": 222.8399999999965,
+      "estimatedOutputOffsetMs": 54.83999999999651,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 249.82140999999584,
+      "graphOffsetMs": 224.00499998629675,
+      "estimatedOutputOffsetMs": 56.00499998629675,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 250.62140999999585,
+      "graphOffsetMs": 223.39999999164138,
+      "estimatedOutputOffsetMs": 55.39999999164138,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 251.42141999999583,
+      "graphOffsetMs": 223.28499999642372,
+      "estimatedOutputOffsetMs": 55.28499999642372,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 252.22141499999583,
+      "graphOffsetMs": 223.30499999821768,
+      "estimatedOutputOffsetMs": 55.30499999821768,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 253.02137999999582,
+      "graphOffsetMs": 222.5749999898544,
+      "estimatedOutputOffsetMs": 54.574999989854405,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 253.8380799999958,
+      "graphOffsetMs": 239.8299999946321,
+      "estimatedOutputOffsetMs": 71.82999999463209,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 254.6214149999958,
+      "graphOffsetMs": 206.1699999863049,
+      "estimatedOutputOffsetMs": 38.1699999863049,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 255.42051999999583,
+      "graphOffsetMs": 205.96499999344815,
+      "estimatedOutputOffsetMs": 37.964999993448146,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 256.22141499999583,
+      "graphOffsetMs": 205.90499998806627,
+      "estimatedOutputOffsetMs": 37.904999988066265,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 257.0214049999958,
+      "graphOffsetMs": 201.58999999106163,
+      "estimatedOutputOffsetMs": 33.58999999106163,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 257.82127999999585,
+      "graphOffsetMs": 206.82499998569256,
+      "estimatedOutputOffsetMs": 38.82499998569256,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 258.6214099999958,
+      "graphOffsetMs": 206.63499999704072,
+      "estimatedOutputOffsetMs": 38.63499999704072,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 259.4214149999958,
+      "graphOffsetMs": 204.83999998687068,
+      "estimatedOutputOffsetMs": 36.83999998687068,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 260.2204899999958,
+      "graphOffsetMs": 206.78499999642372,
+      "estimatedOutputOffsetMs": 38.78499999642372,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 261.0205599999958,
+      "graphOffsetMs": 206.06499999581138,
+      "estimatedOutputOffsetMs": 38.06499999581138,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 261.82060999999584,
+      "graphOffsetMs": 205.07999998808373,
+      "estimatedOutputOffsetMs": 37.07999998808373,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 262.6214099999958,
+      "graphOffsetMs": 206.7849999993923,
+      "estimatedOutputOffsetMs": 38.78499999939231,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 263.4206949999958,
+      "graphOffsetMs": 206.88499998749467,
+      "estimatedOutputOffsetMs": 38.884999987494666,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 264.22082499999584,
+      "graphOffsetMs": 206.60999999940395,
+      "estimatedOutputOffsetMs": 38.60999999940395,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 265.0207099999958,
+      "graphOffsetMs": 206.50999999820488,
+      "estimatedOutputOffsetMs": 38.509999998204876,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 265.8210899999958,
+      "graphOffsetMs": 202.03499999584164,
+      "estimatedOutputOffsetMs": 34.034999995841645,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 266.62141999999585,
+      "graphOffsetMs": 205.82999998808373,
+      "estimatedOutputOffsetMs": 37.82999998808373,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 267.42141999999586,
+      "graphOffsetMs": 206.04499999940163,
+      "estimatedOutputOffsetMs": 38.044999999401625,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 268.22141499999583,
+      "graphOffsetMs": 205.6599999940372,
+      "estimatedOutputOffsetMs": 37.65999999403721,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 269.0214199999958,
+      "graphOffsetMs": 207.06500000000233,
+      "estimatedOutputOffsetMs": 39.06500000000233,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 269.82141499999585,
+      "graphOffsetMs": 206.54999999463325,
+      "estimatedOutputOffsetMs": 38.549999994633254,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 270.6206899999958,
+      "graphOffsetMs": 207.0199999898905,
+      "estimatedOutputOffsetMs": 39.01999998989049,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 271.42140999999583,
+      "graphOffsetMs": 207.5749999958207,
+      "estimatedOutputOffsetMs": 39.57499999582069,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 272.22050999999584,
+      "graphOffsetMs": 205.359999995213,
+      "estimatedOutputOffsetMs": 37.359999995213,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 273.02140999999585,
+      "graphOffsetMs": 205.67499999998836,
+      "estimatedOutputOffsetMs": 37.67499999998836,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 273.82053499999586,
+      "graphOffsetMs": 205.9249999910826,
+      "estimatedOutputOffsetMs": 37.924999991082586,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 274.6214099999958,
+      "graphOffsetMs": 201.91499998926884,
+      "estimatedOutputOffsetMs": 33.914999989268836,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 275.42140999999583,
+      "graphOffsetMs": 204.93499999702908,
+      "estimatedOutputOffsetMs": 36.93499999702908,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 276.22052499999586,
+      "graphOffsetMs": 206.53999998926884,
+      "estimatedOutputOffsetMs": 38.539999989268836,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 277.02066499999586,
+      "graphOffsetMs": 206.65499999345047,
+      "estimatedOutputOffsetMs": 38.654999993450474,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 277.8208249999958,
+      "graphOffsetMs": 206.14499999163672,
+      "estimatedOutputOffsetMs": 38.14499999163672,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 278.62045499999584,
+      "graphOffsetMs": 205.24499998928513,
+      "estimatedOutputOffsetMs": 37.244999989285134,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 279.42040999999585,
+      "graphOffsetMs": 191.82999999285676,
+      "estimatedOutputOffsetMs": 23.829999992856756,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 280.2206899999958,
+      "graphOffsetMs": 193.73999999347143,
+      "estimatedOutputOffsetMs": 25.73999999347143,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 281.0214049999958,
+      "graphOffsetMs": 206.84999998746207,
+      "estimatedOutputOffsetMs": 38.84999998746207,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 281.82069999999584,
+      "graphOffsetMs": 207.53999999939697,
+      "estimatedOutputOffsetMs": 39.53999999939697,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 282.6213949999958,
+      "graphOffsetMs": 205.56499999942025,
+      "estimatedOutputOffsetMs": 37.56499999942025,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 283.40473499999587,
+      "graphOffsetMs": 201.35999998747138,
+      "estimatedOutputOffsetMs": 33.35999998747138,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 284.2211949999958,
+      "graphOffsetMs": 206.64999999880092,
+      "estimatedOutputOffsetMs": 38.64999999880092,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 285.0210599999958,
+      "graphOffsetMs": 205.4849999922444,
+      "estimatedOutputOffsetMs": 37.48499999224441,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 285.8206449999958,
+      "graphOffsetMs": 206.3499999922351,
+      "estimatedOutputOffsetMs": 38.3499999922351,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 286.6214099999958,
+      "graphOffsetMs": 204.93999998626532,
+      "estimatedOutputOffsetMs": 36.93999998626532,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 287.4205699999958,
+      "graphOffsetMs": 206.08999998687068,
+      "estimatedOutputOffsetMs": 38.08999998687068,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 288.27140999999585,
+      "graphOffsetMs": 274.40999998745974,
+      "estimatedOutputOffsetMs": 106.40999998745974,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 289.0206899999958,
+      "graphOffsetMs": 205.45999999163905,
+      "estimatedOutputOffsetMs": 37.45999999163905,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 289.82051999999584,
+      "graphOffsetMs": 206.4799999940442,
+      "estimatedOutputOffsetMs": 38.47999999404419,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 290.62051999999585,
+      "graphOffsetMs": 206.70499998808373,
+      "estimatedOutputOffsetMs": 38.70499998808373,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 291.42040999999585,
+      "graphOffsetMs": 206.12499998806743,
+      "estimatedOutputOffsetMs": 38.12499998806743,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 292.2204699999958,
+      "graphOffsetMs": 202.40499999106396,
+      "estimatedOutputOffsetMs": 34.40499999106396,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 293.0205249999958,
+      "graphOffsetMs": 206.52999999403255,
+      "estimatedOutputOffsetMs": 38.52999999403255,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 293.8211549999958,
+      "graphOffsetMs": 188.70999998686602,
+      "estimatedOutputOffsetMs": 20.709999986866023,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 294.6206999999958,
+      "graphOffsetMs": 206.4849999982398,
+      "estimatedOutputOffsetMs": 38.4849999982398,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 295.4214149999958,
+      "graphOffsetMs": 206.43499998690095,
+      "estimatedOutputOffsetMs": 38.43499998690095,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 297.2713699999958,
+      "graphOffsetMs": 231.7699999976321,
+      "estimatedOutputOffsetMs": 63.76999999763211,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 298.0713649999958,
+      "graphOffsetMs": 212.30999999045162,
+      "estimatedOutputOffsetMs": 44.309999990451615,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 298.90384499999584,
+      "graphOffsetMs": 263.44999998807907,
+      "estimatedOutputOffsetMs": 95.44999998807907,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 299.6712649999958,
+      "graphOffsetMs": 232.6049999857205,
+      "estimatedOutputOffsetMs": 64.6049999857205,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 300.4713949999958,
+      "graphOffsetMs": 223.94999998866115,
+      "estimatedOutputOffsetMs": 55.94999998866115,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 301.2705199999958,
+      "graphOffsetMs": 233.33499998989282,
+      "estimatedOutputOffsetMs": 65.33499998989282,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 302.0547449999958,
+      "graphOffsetMs": 223.84499999287073,
+      "estimatedOutputOffsetMs": 55.844999992870726,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 302.87135999999583,
+      "graphOffsetMs": 227.16499998810468,
+      "estimatedOutputOffsetMs": 59.16499998810468,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 303.67041499999584,
+      "graphOffsetMs": 226.60499999584863,
+      "estimatedOutputOffsetMs": 58.60499999584863,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 304.47059999999584,
+      "graphOffsetMs": 233.3599999922444,
+      "estimatedOutputOffsetMs": 65.35999999224441,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 305.2705199999958,
+      "graphOffsetMs": 234.10499999584863,
+      "estimatedOutputOffsetMs": 66.10499999584863,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 306.07139999999583,
+      "graphOffsetMs": 228.02499999763677,
+      "estimatedOutputOffsetMs": 60.02499999763677,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 306.8709599999958,
+      "graphOffsetMs": 224.6049999910756,
+      "estimatedOutputOffsetMs": 56.6049999910756,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 307.6705199999958,
+      "graphOffsetMs": 232.4549999946612,
+      "estimatedOutputOffsetMs": 64.4549999946612,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 308.4704699999958,
+      "graphOffsetMs": 227.85999999701744,
+      "estimatedOutputOffsetMs": 59.85999999701744,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 309.25472499999586,
+      "graphOffsetMs": 191.7549999958137,
+      "estimatedOutputOffsetMs": 23.754999995813705,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 310.0537299999958,
+      "graphOffsetMs": 199.33499999763444,
+      "estimatedOutputOffsetMs": 31.33499999763444,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 310.8547249999958,
+      "graphOffsetMs": 192.99999998987187,
+      "estimatedOutputOffsetMs": 24.999999989871867,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 311.67135499999586,
+      "graphOffsetMs": 223.13499999704072,
+      "estimatedOutputOffsetMs": 55.13499999704072,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 312.4714199999959,
+      "graphOffsetMs": 233.26499998685904,
+      "estimatedOutputOffsetMs": 65.26499998685904,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 313.25403499999584,
+      "graphOffsetMs": 200.36999999522232,
+      "estimatedOutputOffsetMs": 32.369999995222315,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 314.05465999999586,
+      "graphOffsetMs": 162.95999998867046,
+      "estimatedOutputOffsetMs": -5.040000011329539,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 314.87139999999584,
+      "graphOffsetMs": 191.7399999863119,
+      "estimatedOutputOffsetMs": 23.739999986311886,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 315.67071999999587,
+      "graphOffsetMs": 159.5449999999837,
+      "estimatedOutputOffsetMs": -8.455000000016298,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 316.47140499999585,
+      "graphOffsetMs": 188.31999999762047,
+      "estimatedOutputOffsetMs": 20.31999999762047,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 317.2709549999958,
+      "graphOffsetMs": 234.8699999874807,
+      "estimatedOutputOffsetMs": 66.8699999874807,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 318.05401499999584,
+      "graphOffsetMs": 224.07499999640277,
+      "estimatedOutputOffsetMs": 56.07499999640277,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 318.8707099999958,
+      "graphOffsetMs": 224.8349999904749,
+      "estimatedOutputOffsetMs": 56.8349999904749,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 319.67135999999584,
+      "graphOffsetMs": 222.94499999046093,
+      "estimatedOutputOffsetMs": 54.94499999046093,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 320.47071499999583,
+      "graphOffsetMs": 221.154999995837,
+      "estimatedOutputOffsetMs": 53.15499999583699,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 321.2713549999958,
+      "graphOffsetMs": 232.1149999863119,
+      "estimatedOutputOffsetMs": 64.11499998631189,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 322.05472999999586,
+      "graphOffsetMs": 187.61999999464024,
+      "estimatedOutputOffsetMs": 19.61999999464024,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 322.8546899999958,
+      "graphOffsetMs": 159.28499999642372,
+      "estimatedOutputOffsetMs": -8.715000003576279,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 323.6713949999958,
+      "graphOffsetMs": 191.72499999584397,
+      "estimatedOutputOffsetMs": 23.724999995843973,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 324.4538549999958,
+      "graphOffsetMs": 173.8149999922607,
+      "estimatedOutputOffsetMs": 5.814999992260709,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 325.2538199999958,
+      "graphOffsetMs": 193.64499999879627,
+      "estimatedOutputOffsetMs": 25.644999998796266,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 326.0713599999959,
+      "graphOffsetMs": 232.9399999952293,
+      "estimatedOutputOffsetMs": 64.9399999952293,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 326.8538099999958,
+      "graphOffsetMs": 196.01999999105465,
+      "estimatedOutputOffsetMs": 28.019999991054647,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 327.65429499999584,
+      "graphOffsetMs": 232.45499998988817,
+      "estimatedOutputOffsetMs": 64.45499998988817,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 328.45472999999583,
+      "graphOffsetMs": 227.18499998928746,
+      "estimatedOutputOffsetMs": 59.18499998928746,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 329.2707899999958,
+      "graphOffsetMs": 226.44999999878928,
+      "estimatedOutputOffsetMs": 58.44999999878928,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 330.0713699999958,
+      "graphOffsetMs": 232.50999999704072,
+      "estimatedOutputOffsetMs": 64.50999999704072,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 331.10377499999584,
+      "graphOffsetMs": 220.7249999975902,
+      "estimatedOutputOffsetMs": 52.7249999975902,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 331.9047299999958,
+      "graphOffsetMs": 220.3699999958044,
+      "estimatedOutputOffsetMs": 52.36999999580439,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 332.70384999999584,
+      "graphOffsetMs": 221.3449999874574,
+      "estimatedOutputOffsetMs": 53.34499998745741,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 333.5041849999958,
+      "graphOffsetMs": 221.93999998568324,
+      "estimatedOutputOffsetMs": 53.939999985683244,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 334.30472499999587,
+      "graphOffsetMs": 221.6199999981909,
+      "estimatedOutputOffsetMs": 53.619999998190906,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 335.1047249999958,
+      "graphOffsetMs": 222.29499998572282,
+      "estimatedOutputOffsetMs": 54.294999985722825,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 335.9038499999958,
+      "graphOffsetMs": 221.98499998566695,
+      "estimatedOutputOffsetMs": 53.984999985666946,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 336.70471999999586,
+      "graphOffsetMs": 222.41499999520602,
+      "estimatedOutputOffsetMs": 54.41499999520602,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 337.52139499999583,
+      "graphOffsetMs": 226.46499998867512,
+      "estimatedOutputOffsetMs": 58.46499998867512,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 338.3041849999958,
+      "graphOffsetMs": 220.71499998867512,
+      "estimatedOutputOffsetMs": 52.71499998867512,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 339.1037349999959,
+      "graphOffsetMs": 221.10499998746673,
+      "estimatedOutputOffsetMs": 53.10499998746673,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 339.90429499999584,
+      "graphOffsetMs": 222.2149999976391,
+      "estimatedOutputOffsetMs": 54.2149999976391,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 340.7041199999958,
+      "graphOffsetMs": 221.62499999406282,
+      "estimatedOutputOffsetMs": 53.62499999406282,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 341.5038649999958,
+      "graphOffsetMs": 222.24499999522232,
+      "estimatedOutputOffsetMs": 54.244999995222315,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 342.3040049999958,
+      "graphOffsetMs": 222.44499999878462,
+      "estimatedOutputOffsetMs": 54.444999998784624,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 343.1041399999958,
+      "graphOffsetMs": 221.524999999383,
+      "estimatedOutputOffsetMs": 53.524999999383,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 343.9205599999958,
+      "graphOffsetMs": 220.7999999904423,
+      "estimatedOutputOffsetMs": 52.7999999904423,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 344.7041499999958,
+      "graphOffsetMs": 219.90999998984626,
+      "estimatedOutputOffsetMs": 51.909999989846256,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 345.5043699999958,
+      "graphOffsetMs": 221.9949999958044,
+      "estimatedOutputOffsetMs": 53.99499999580439,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 346.30403999999584,
+      "graphOffsetMs": 227.49499999941327,
+      "estimatedOutputOffsetMs": 59.49499999941327,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 347.10428999999584,
+      "graphOffsetMs": 222.01499998988584,
+      "estimatedOutputOffsetMs": 54.01499998988584,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 347.90473499999587,
+      "graphOffsetMs": 222.51500000001397,
+      "estimatedOutputOffsetMs": 54.51500000001397,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 348.7043999999958,
+      "graphOffsetMs": 222.31999999284744,
+      "estimatedOutputOffsetMs": 54.31999999284744,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 349.5042449999958,
+      "graphOffsetMs": 221.46499999222578,
+      "estimatedOutputOffsetMs": 53.464999992225785,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 350.30459999999584,
+      "graphOffsetMs": 221.05999999580672,
+      "estimatedOutputOffsetMs": 53.05999999580672,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 351.10471999999584,
+      "graphOffsetMs": 221.2149999969988,
+      "estimatedOutputOffsetMs": 53.21499999699881,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 351.9213899999958,
+      "graphOffsetMs": 220.92499998689163,
+      "estimatedOutputOffsetMs": 52.924999986891635,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 352.7205399999958,
+      "graphOffsetMs": 221.3099999940605,
+      "estimatedOutputOffsetMs": 53.30999999406049,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 353.5047199999958,
+      "graphOffsetMs": 221.81499998626532,
+      "estimatedOutputOffsetMs": 53.81499998626532,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 354.3209599999958,
+      "graphOffsetMs": 222.59999999700813,
+      "estimatedOutputOffsetMs": 54.599999997008126,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 356.2046999999958,
+      "graphOffsetMs": 228.56999999878462,
+      "estimatedOutputOffsetMs": 60.569999998784624,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 357.45471999999586,
+      "graphOffsetMs": 216.51999998750398,
+      "estimatedOutputOffsetMs": 48.51999998750398,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 358.2537949999959,
+      "graphOffsetMs": 245.6249999886495,
+      "estimatedOutputOffsetMs": 77.6249999886495,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 359.1213849999958,
+      "graphOffsetMs": 303.9999999869033,
+      "estimatedOutputOffsetMs": 135.99999998690328,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 359.8540799999958,
+      "graphOffsetMs": 238.07499999401625,
+      "estimatedOutputOffsetMs": 70.07499999401625,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 367.50422499999587,
+      "graphOffsetMs": 216.1499999940279,
+      "estimatedOutputOffsetMs": 48.149999994027894,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 368.30422999999587,
+      "graphOffsetMs": 220.65999999345513,
+      "estimatedOutputOffsetMs": 52.65999999345513,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 369.15471499999586,
+      "graphOffsetMs": 250.17999998567393,
+      "estimatedOutputOffsetMs": 82.17999998567393,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 369.90456999999583,
+      "graphOffsetMs": 221.90999999048654,
+      "estimatedOutputOffsetMs": 53.90999999048654,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 370.7047099999958,
+      "graphOffsetMs": 221.1899999898742,
+      "estimatedOutputOffsetMs": 53.189999989874195,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 371.5047149999958,
+      "graphOffsetMs": 217.60499999346212,
+      "estimatedOutputOffsetMs": 49.604999993462116,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 372.30472499999587,
+      "graphOffsetMs": 222.2649999994319,
+      "estimatedOutputOffsetMs": 54.26499999943189,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 373.10371999999586,
+      "graphOffsetMs": 222.52499998989515,
+      "estimatedOutputOffsetMs": 54.52499998989515,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 373.9047299999958,
+      "graphOffsetMs": 217.38999998924555,
+      "estimatedOutputOffsetMs": 49.38999998924555,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 374.7206999999958,
+      "graphOffsetMs": 221.09499999700347,
+      "estimatedOutputOffsetMs": 53.09499999700347,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 376.78804499999586,
+      "graphOffsetMs": 228.86999998567626,
+      "estimatedOutputOffsetMs": 60.86999998567626,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 377.5875899999958,
+      "graphOffsetMs": 220.05499999283347,
+      "estimatedOutputOffsetMs": 52.05499999283347,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 378.3703949999958,
+      "graphOffsetMs": 223.8499999975902,
+      "estimatedOutputOffsetMs": 55.8499999975902,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 379.1880549999958,
+      "graphOffsetMs": 219.6999999898835,
+      "estimatedOutputOffsetMs": 51.69999998988351,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 379.9875549999958,
+      "graphOffsetMs": 225.04999999760184,
+      "estimatedOutputOffsetMs": 57.049999997601844,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 380.7876099999959,
+      "graphOffsetMs": 225.24999999103602,
+      "estimatedOutputOffsetMs": 57.24999999103602,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 381.58804999999586,
+      "graphOffsetMs": 219.35999999346677,
+      "estimatedOutputOffsetMs": 51.35999999346677,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 382.38804999999587,
+      "graphOffsetMs": 225.33999999222578,
+      "estimatedOutputOffsetMs": 57.339999992225785,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 383.1878249999958,
+      "graphOffsetMs": 228.12999999104068,
+      "estimatedOutputOffsetMs": 60.12999999104068,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 383.98704999999586,
+      "graphOffsetMs": 218.59999998629792,
+      "estimatedOutputOffsetMs": 50.59999998629792,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 384.78804499999586,
+      "graphOffsetMs": 224.734999995213,
+      "estimatedOutputOffsetMs": 56.734999995213,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 385.58767499999584,
+      "graphOffsetMs": 225.4999999892898,
+      "estimatedOutputOffsetMs": 57.49999998928979,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 386.38708999999585,
+      "graphOffsetMs": 220.31999999342952,
+      "estimatedOutputOffsetMs": 52.31999999342952,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 387.18803999999585,
+      "graphOffsetMs": 224.5649999898742,
+      "estimatedOutputOffsetMs": 56.564999989874195,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 387.9880549999958,
+      "graphOffsetMs": 220.0299999922281,
+      "estimatedOutputOffsetMs": 52.02999999222811,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 388.7880399999959,
+      "graphOffsetMs": 226.55999999225605,
+      "estimatedOutputOffsetMs": 58.55999999225605,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 389.58803999999583,
+      "graphOffsetMs": 224.54499998985557,
+      "estimatedOutputOffsetMs": 56.54499998985557,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 390.38803999999584,
+      "graphOffsetMs": 219.37499999580905,
+      "estimatedOutputOffsetMs": 51.37499999580905,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 391.18803999999585,
+      "graphOffsetMs": 223.8299999940209,
+      "estimatedOutputOffsetMs": 55.82999999402091,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 391.9873199999958,
+      "graphOffsetMs": 225.34999998984858,
+      "estimatedOutputOffsetMs": 57.349999989848584,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 392.7880399999959,
+      "graphOffsetMs": 219.76499998627696,
+      "estimatedOutputOffsetMs": 51.76499998627696,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 393.5880449999959,
+      "graphOffsetMs": 225.2199999988079,
+      "estimatedOutputOffsetMs": 57.21999999880791,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 394.38707499999583,
+      "graphOffsetMs": 225.14999998686835,
+      "estimatedOutputOffsetMs": 57.14999998686835,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 395.18803999999585,
+      "graphOffsetMs": 219.05499998631421,
+      "estimatedOutputOffsetMs": 51.054999986314215,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 395.98709499999586,
+      "graphOffsetMs": 224.30999999283813,
+      "estimatedOutputOffsetMs": 56.30999999283813,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 396.78703999999584,
+      "graphOffsetMs": 218.60999999940395,
+      "estimatedOutputOffsetMs": 50.60999999940395,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 397.5880449999959,
+      "graphOffsetMs": 224.40499999880558,
+      "estimatedOutputOffsetMs": 56.40499999880558,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 398.3880449999958,
+      "graphOffsetMs": 225.2849999970058,
+      "estimatedOutputOffsetMs": 57.2849999970058,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 399.18803999999585,
+      "graphOffsetMs": 220.0549999976065,
+      "estimatedOutputOffsetMs": 52.0549999976065,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 399.9873349999958,
+      "graphOffsetMs": 224.63999998866348,
+      "estimatedOutputOffsetMs": 56.639999988663476,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 400.78804499999586,
+      "graphOffsetMs": 225.15499999164604,
+      "estimatedOutputOffsetMs": 57.15499999164604,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 401.58803999999583,
+      "graphOffsetMs": 219.75499999942258,
+      "estimatedOutputOffsetMs": 51.75499999942258,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 402.3873999999958,
+      "graphOffsetMs": 225.51999999582767,
+      "estimatedOutputOffsetMs": 57.519999995827675,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 403.18765999999584,
+      "graphOffsetMs": 228.10999999463093,
+      "estimatedOutputOffsetMs": 60.109999994630925,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 403.98803999999586,
+      "graphOffsetMs": 218.6499999964144,
+      "estimatedOutputOffsetMs": 50.64999999641441,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 404.78803499999583,
+      "graphOffsetMs": 223.7799999952549,
+      "estimatedOutputOffsetMs": 55.77999999525491,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 405.5875049999958,
+      "graphOffsetMs": 219.58499998570187,
+      "estimatedOutputOffsetMs": 51.58499998570187,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 406.3874299999958,
+      "graphOffsetMs": 227.97499999107094,
+      "estimatedOutputOffsetMs": 59.974999991070945,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 407.1877399999958,
+      "graphOffsetMs": 209.7449999898672,
+      "estimatedOutputOffsetMs": 41.74499998986721,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 407.98795999999584,
+      "graphOffsetMs": 219.8849999862723,
+      "estimatedOutputOffsetMs": 51.884999986272305,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 408.78728999999583,
+      "graphOffsetMs": 225.72499999997672,
+      "estimatedOutputOffsetMs": 57.72499999997672,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 409.58721999999585,
+      "graphOffsetMs": 224.5549999976065,
+      "estimatedOutputOffsetMs": 56.5549999976065,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 410.38803499999585,
+      "graphOffsetMs": 220.04499999404652,
+      "estimatedOutputOffsetMs": 52.04499999404652,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 411.18754499999585,
+      "graphOffsetMs": 224.86999999999534,
+      "estimatedOutputOffsetMs": 56.86999999999534,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 411.98772499999586,
+      "graphOffsetMs": 225.2849999970058,
+      "estimatedOutputOffsetMs": 57.2849999970058,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 412.7880599999958,
+      "graphOffsetMs": 220.65999999223277,
+      "estimatedOutputOffsetMs": 52.65999999223277,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 413.58703999999585,
+      "graphOffsetMs": 225.2449999958044,
+      "estimatedOutputOffsetMs": 57.24499999580439,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 414.3870549999958,
+      "graphOffsetMs": 219.9049999922281,
+      "estimatedOutputOffsetMs": 51.90499999222811,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 415.18803999999585,
+      "graphOffsetMs": 224.03999999939697,
+      "estimatedOutputOffsetMs": 56.03999999939697,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 415.9880549999958,
+      "graphOffsetMs": 223.73999998805812,
+      "estimatedOutputOffsetMs": 55.739999988058116,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 416.78802999999584,
+      "graphOffsetMs": 219.46499999938533,
+      "estimatedOutputOffsetMs": 51.46499999938533,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 417.5879599999958,
+      "graphOffsetMs": 223.88999998685904,
+      "estimatedOutputOffsetMs": 55.88999998685904,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 418.38803499999585,
+      "graphOffsetMs": 225.20999999402557,
+      "estimatedOutputOffsetMs": 57.209999994025566,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 419.1880499999959,
+      "graphOffsetMs": 220.51499999163207,
+      "estimatedOutputOffsetMs": 52.51499999163207,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 420.05469499999583,
+      "graphOffsetMs": 291.7799999904819,
+      "estimatedOutputOffsetMs": 123.77999999048188,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 420.78803499999583,
+      "graphOffsetMs": 225.12499999580905,
+      "estimatedOutputOffsetMs": 57.12499999580905,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 421.5880449999959,
+      "graphOffsetMs": 219.92499999818392,
+      "estimatedOutputOffsetMs": 51.92499999818392,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 422.38803499999585,
+      "graphOffsetMs": 223.53999999107327,
+      "estimatedOutputOffsetMs": 55.53999999107327,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 423.18803499999586,
+      "graphOffsetMs": 219.86999999464024,
+      "estimatedOutputOffsetMs": 51.86999999464024,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 423.9880349999958,
+      "graphOffsetMs": 191.5649999869056,
+      "estimatedOutputOffsetMs": 23.564999986905605,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 424.78803499999583,
+      "graphOffsetMs": 170.30999999702908,
+      "estimatedOutputOffsetMs": 2.309999997029081,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 425.58803499999584,
+      "graphOffsetMs": 186.8049999868963,
+      "estimatedOutputOffsetMs": 18.80499998689629,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 426.38803999999584,
+      "graphOffsetMs": 191.75499998929445,
+      "estimatedOutputOffsetMs": 23.754999989294447,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 427.18729999999584,
+      "graphOffsetMs": 191.0849999928614,
+      "estimatedOutputOffsetMs": 23.084999992861412,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 427.9877049999958,
+      "graphOffsetMs": 186.64499999047257,
+      "estimatedOutputOffsetMs": 18.64499999047257,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 428.7880549999958,
+      "graphOffsetMs": 190.6249999892898,
+      "estimatedOutputOffsetMs": 22.62499998928979,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 429.58766999999585,
+      "graphOffsetMs": 191.6049999886891,
+      "estimatedOutputOffsetMs": 23.604999988689087,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 430.38803499999585,
+      "graphOffsetMs": 186.97499999345746,
+      "estimatedOutputOffsetMs": 18.97499999345746,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 431.18803999999585,
+      "graphOffsetMs": 191.60499998688465,
+      "estimatedOutputOffsetMs": 23.60499998688465,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 431.9875849999958,
+      "graphOffsetMs": 185.6849999856786,
+      "estimatedOutputOffsetMs": 17.684999985678587,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 432.78803499999583,
+      "graphOffsetMs": 192.63999999524094,
+      "estimatedOutputOffsetMs": 24.63999999524094,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 433.58803499999584,
+      "graphOffsetMs": 191.8549999940442,
+      "estimatedOutputOffsetMs": 23.854999994044192,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 434.3870549999958,
+      "graphOffsetMs": 186.51499999524094,
+      "estimatedOutputOffsetMs": 18.51499999524094,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 435.1880599999958,
+      "graphOffsetMs": 191.93999999703374,
+      "estimatedOutputOffsetMs": 23.939999997033738,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 435.98732499999585,
+      "graphOffsetMs": 191.15499998809537,
+      "estimatedOutputOffsetMs": 23.15499998809537,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 436.78802999999584,
+      "graphOffsetMs": 187.8049999868963,
+      "estimatedOutputOffsetMs": 19.80499998689629,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 437.58703999999585,
+      "graphOffsetMs": 192.1249999946449,
+      "estimatedOutputOffsetMs": 24.124999994644895,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 438.38804999999587,
+      "graphOffsetMs": 191.7599999946542,
+      "estimatedOutputOffsetMs": 23.75999999465421,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 439.18803999999585,
+      "graphOffsetMs": 185.64499999466352,
+      "estimatedOutputOffsetMs": 17.64499999466352,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 439.9872899999958,
+      "graphOffsetMs": 190.93499999999767,
+      "estimatedOutputOffsetMs": 22.93499999999767,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 440.78802999999584,
+      "graphOffsetMs": 187.23499999404885,
+      "estimatedOutputOffsetMs": 19.23499999404885,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 441.5870549999958,
+      "graphOffsetMs": 190.86499998747604,
+      "estimatedOutputOffsetMs": 22.86499998747604,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 442.3871799999958,
+      "graphOffsetMs": 190.8349999875063,
+      "estimatedOutputOffsetMs": 22.834999987506308,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 443.1873999999958,
+      "graphOffsetMs": 185.54499999107793,
+      "estimatedOutputOffsetMs": 17.54499999107793,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 443.98804999999584,
+      "graphOffsetMs": 191.9699999934528,
+      "estimatedOutputOffsetMs": 23.969999993452802,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 444.78703999999584,
+      "graphOffsetMs": 190.31999999226537,
+      "estimatedOutputOffsetMs": 22.319999992265366,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 445.5872299999958,
+      "graphOffsetMs": 185.75499999464955,
+      "estimatedOutputOffsetMs": 17.754999994649552,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 446.38704499999585,
+      "graphOffsetMs": 190.04499998688698,
+      "estimatedOutputOffsetMs": 22.044999986886978,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 447.18802499999583,
+      "graphOffsetMs": 191.24999998987187,
+      "estimatedOutputOffsetMs": 23.249999989871867,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 447.98802499999584,
+      "graphOffsetMs": 186.7349999868893,
+      "estimatedOutputOffsetMs": 18.734999986889306,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 448.78802499999586,
+      "graphOffsetMs": 190.60999999404885,
+      "estimatedOutputOffsetMs": 22.60999999404885,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 449.58803499999584,
+      "graphOffsetMs": 185.52499999286374,
+      "estimatedOutputOffsetMs": 17.52499999286374,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 450.3870699999958,
+      "graphOffsetMs": 192.3649999994086,
+      "estimatedOutputOffsetMs": 24.36499999940861,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 451.2704749999958,
+      "graphOffsetMs": 291.58999999047955,
+      "estimatedOutputOffsetMs": 123.58999999047955,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 451.98802499999584,
+      "graphOffsetMs": 203.10499998746673,
+      "estimatedOutputOffsetMs": 35.10499998746673,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 452.7874599999958,
+      "graphOffsetMs": 208.81999999581603,
+      "estimatedOutputOffsetMs": 40.81999999581603,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 453.5880249999958,
+      "graphOffsetMs": 206.65499999700114,
+      "estimatedOutputOffsetMs": 38.65499999700114,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 454.3880449999958,
+      "graphOffsetMs": 203.75999999343185,
+      "estimatedOutputOffsetMs": 35.75999999343185,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 455.18752499999584,
+      "graphOffsetMs": 208.23999998805812,
+      "estimatedOutputOffsetMs": 40.239999988058116,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 455.9871899999958,
+      "graphOffsetMs": 208.80499999044696,
+      "estimatedOutputOffsetMs": 40.80499999044696,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 456.78703499999585,
+      "graphOffsetMs": 202.33499999105697,
+      "estimatedOutputOffsetMs": 34.334999991056975,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 457.5874149999959,
+      "graphOffsetMs": 206.93499999999767,
+      "estimatedOutputOffsetMs": 38.93499999999767,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 458.3880449999958,
+      "graphOffsetMs": 203.32499998627463,
+      "estimatedOutputOffsetMs": 35.324999986274634,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 459.18802499999583,
+      "graphOffsetMs": 208.31999999581603,
+      "estimatedOutputOffsetMs": 40.31999999581603,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 459.9880199999958,
+      "graphOffsetMs": 206.34999999048887,
+      "estimatedOutputOffsetMs": 38.34999999048887,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 460.7880199999958,
+      "graphOffsetMs": 202.33499998686602,
+      "estimatedOutputOffsetMs": 34.33499998686602,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 461.5880199999958,
+      "graphOffsetMs": 207.9249999964377,
+      "estimatedOutputOffsetMs": 39.92499999643769,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 462.38801999999583,
+      "graphOffsetMs": 208.11499999760417,
+      "estimatedOutputOffsetMs": 40.11499999760417,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 463.1870399999958,
+      "graphOffsetMs": 202.4199999892735,
+      "estimatedOutputOffsetMs": 34.41999998927349,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 463.9870899999958,
+      "graphOffsetMs": 208.18999999342486,
+      "estimatedOutputOffsetMs": 40.18999999342486,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 464.7870449999958,
+      "graphOffsetMs": 208.79499999521067,
+      "estimatedOutputOffsetMs": 40.794999995210674,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 465.72135499999587,
+      "graphOffsetMs": 206.88499999343185,
+      "estimatedOutputOffsetMs": 38.88499999343185,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 466.52052999999586,
+      "graphOffsetMs": 211.92499999701977,
+      "estimatedOutputOffsetMs": 43.92499999701977,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 467.3212049999958,
+      "graphOffsetMs": 206.6999999898835,
+      "estimatedOutputOffsetMs": 38.69999998988351,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 468.12135999999583,
+      "graphOffsetMs": 211.54499999585096,
+      "estimatedOutputOffsetMs": 43.54499999585096,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 468.9213649999958,
+      "graphOffsetMs": 210.4649999976391,
+      "estimatedOutputOffsetMs": 42.4649999976391,
+      "outputLatencyMs": 168.0
+    },
+    {
+      "atSec": 469.70370999999585,
+      "graphOffsetMs": 42.9199999999837,
+      "estimatedOutputOffsetMs": 18.919999999983702,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 470.5046999999958,
+      "graphOffsetMs": 48.12499999819556,
+      "estimatedOutputOffsetMs": 24.124999998195563,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 471.30469499999583,
+      "graphOffsetMs": 48.01499998627696,
+      "estimatedOutputOffsetMs": 24.014999986276962,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 472.10469999999583,
+      "graphOffsetMs": 42.954999991634395,
+      "estimatedOutputOffsetMs": 18.954999991634395,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 472.90370999999584,
+      "graphOffsetMs": 48.169999985722825,
+      "estimatedOutputOffsetMs": 24.169999985722825,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 473.7046949999958,
+      "graphOffsetMs": 46.90000000002328,
+      "estimatedOutputOffsetMs": 22.900000000023283,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 474.5046799999958,
+      "graphOffsetMs": 44.41999998927349,
+      "estimatedOutputOffsetMs": 20.419999989273492,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 475.3038699999958,
+      "graphOffsetMs": 46.45999999524793,
+      "estimatedOutputOffsetMs": 22.459999995247927,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 476.10370999999583,
+      "graphOffsetMs": 43.81999998626998,
+      "estimatedOutputOffsetMs": 19.819999986269977,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 476.5703449999958,
+      "graphOffsetMs": -98.1100000119186,
+      "estimatedOutputOffsetMs": -122.1100000119186,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 477.70442499999587,
+      "graphOffsetMs": 91.86999999883119,
+      "estimatedOutputOffsetMs": 67.86999999883119,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 478.70425499999584,
+      "graphOffsetMs": 92.36499999283114,
+      "estimatedOutputOffsetMs": 68.36499999283114,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 479.7046799999958,
+      "graphOffsetMs": 91.80499999463791,
+      "estimatedOutputOffsetMs": 67.80499999463791,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 480.7046899999958,
+      "graphOffsetMs": 92.62999999284511,
+      "estimatedOutputOffsetMs": 68.62999999284511,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 481.70440999999585,
+      "graphOffsetMs": 92.9049999898416,
+      "estimatedOutputOffsetMs": 68.9049999898416,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 482.70468499999583,
+      "graphOffsetMs": 93.45499998686137,
+      "estimatedOutputOffsetMs": 69.45499998686137,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 483.7046899999958,
+      "graphOffsetMs": 93.09499999764375,
+      "estimatedOutputOffsetMs": 69.09499999764375,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 484.70468499999583,
+      "graphOffsetMs": 92.73999999818625,
+      "estimatedOutputOffsetMs": 68.73999999818625,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 485.70370999999585,
+      "graphOffsetMs": 92.899999999383,
+      "estimatedOutputOffsetMs": 68.899999999383,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 486.70414499999583,
+      "graphOffsetMs": 93.94999999162974,
+      "estimatedOutputOffsetMs": 69.94999999162974,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 487.70468499999583,
+      "graphOffsetMs": 92.67999998567393,
+      "estimatedOutputOffsetMs": 68.67999998567393,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 488.7046899999958,
+      "graphOffsetMs": 93.01999999402324,
+      "estimatedOutputOffsetMs": 69.01999999402324,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 489.7046899999958,
+      "graphOffsetMs": 93.75499998865416,
+      "estimatedOutputOffsetMs": 69.75499998865416,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 490.70370999999585,
+      "graphOffsetMs": 92.92499998689163,
+      "estimatedOutputOffsetMs": 68.92499998689163,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 491.70442499999587,
+      "graphOffsetMs": 92.85999999701744,
+      "estimatedOutputOffsetMs": 68.85999999701744,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 492.7046949999958,
+      "graphOffsetMs": 92.68499999999767,
+      "estimatedOutputOffsetMs": 68.68499999999767,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 493.70371499999584,
+      "graphOffsetMs": 93.2449999874807,
+      "estimatedOutputOffsetMs": 69.2449999874807,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 494.70372499999587,
+      "graphOffsetMs": 92.68499999103369,
+      "estimatedOutputOffsetMs": 68.68499999103369,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 495.70467499999586,
+      "graphOffsetMs": 92.06499999703374,
+      "estimatedOutputOffsetMs": 68.06499999703374,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 496.7046949999958,
+      "graphOffsetMs": 93.91499998571817,
+      "estimatedOutputOffsetMs": 69.91499998571817,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 497.70458999999585,
+      "graphOffsetMs": 93.36499999347143,
+      "estimatedOutputOffsetMs": 69.36499999347143,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 498.70467499999586,
+      "graphOffsetMs": 91.54499999881955,
+      "estimatedOutputOffsetMs": 67.54499999881955,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 499.70467499999586,
+      "graphOffsetMs": 93.06499998626532,
+      "estimatedOutputOffsetMs": 69.06499998626532,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 500.70422499999586,
+      "graphOffsetMs": 92.09499999822583,
+      "estimatedOutputOffsetMs": 68.09499999822583,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 501.7044349999958,
+      "graphOffsetMs": 94.15500000002794,
+      "estimatedOutputOffsetMs": 70.15500000002794,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 502.7046699999959,
+      "graphOffsetMs": 92.14999999763677,
+      "estimatedOutputOffsetMs": 68.14999999763677,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 503.7046699999959,
+      "graphOffsetMs": 91.9699999964214,
+      "estimatedOutputOffsetMs": 67.9699999964214,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 504.7046699999959,
+      "graphOffsetMs": 92.61999999225372,
+      "estimatedOutputOffsetMs": 68.61999999225372,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 505.7041699999958,
+      "graphOffsetMs": 93.54499999043765,
+      "estimatedOutputOffsetMs": 69.54499999043765,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 506.7046699999959,
+      "graphOffsetMs": 92.54499999107793,
+      "estimatedOutputOffsetMs": 68.54499999107793,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 507.7037399999958,
+      "graphOffsetMs": 92.73999998689396,
+      "estimatedOutputOffsetMs": 68.73999998689396,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 508.70370999999585,
+      "graphOffsetMs": 92.65500000002794,
+      "estimatedOutputOffsetMs": 68.65500000002794,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 509.7042199999958,
+      "graphOffsetMs": 92.59499999700347,
+      "estimatedOutputOffsetMs": 68.59499999700347,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 510.7037899999958,
+      "graphOffsetMs": 91.6099999868893,
+      "estimatedOutputOffsetMs": 67.6099999868893,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 511.7046699999959,
+      "graphOffsetMs": 92.40499999525491,
+      "estimatedOutputOffsetMs": 68.40499999525491,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 512.7046999999958,
+      "graphOffsetMs": 93.6149999886984,
+      "estimatedOutputOffsetMs": 69.6149999886984,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 513.7046749999959,
+      "graphOffsetMs": 93.46999999700347,
+      "estimatedOutputOffsetMs": 69.46999999700347,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 514.7046199999958,
+      "graphOffsetMs": 92.67999998567393,
+      "estimatedOutputOffsetMs": 68.67999998567393,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 515.7040699999958,
+      "graphOffsetMs": 92.67999999044696,
+      "estimatedOutputOffsetMs": 68.67999999044696,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 516.7046649999959,
+      "graphOffsetMs": 93.12999998929445,
+      "estimatedOutputOffsetMs": 69.12999998929445,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 517.7039149999958,
+      "graphOffsetMs": 93.34499999223044,
+      "estimatedOutputOffsetMs": 69.34499999223044,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 518.7046799999958,
+      "graphOffsetMs": 94.27499998989515,
+      "estimatedOutputOffsetMs": 70.27499998989515,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 519.7046699999959,
+      "graphOffsetMs": 92.67499999934807,
+      "estimatedOutputOffsetMs": 68.67499999934807,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 520.7046599999959,
+      "graphOffsetMs": 93.73499999882188,
+      "estimatedOutputOffsetMs": 69.73499999882188,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 521.7046649999959,
+      "graphOffsetMs": 93.21999998984393,
+      "estimatedOutputOffsetMs": 69.21999998984393,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 522.7046699999959,
+      "graphOffsetMs": 92.31499999109656,
+      "estimatedOutputOffsetMs": 68.31499999109656,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 523.7203899999959,
+      "graphOffsetMs": 55.80499998992309,
+      "estimatedOutputOffsetMs": 31.80499998992309,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 524.7046649999959,
+      "graphOffsetMs": 92.22499999636784,
+      "estimatedOutputOffsetMs": 68.22499999636784,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 525.7044149999958,
+      "graphOffsetMs": 92.01499998627696,
+      "estimatedOutputOffsetMs": 68.01499998627696,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 526.7046849999958,
+      "graphOffsetMs": 91.704999985639,
+      "estimatedOutputOffsetMs": 67.704999985639,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 527.7046699999959,
+      "graphOffsetMs": 92.79499999049585,
+      "estimatedOutputOffsetMs": 68.79499999049585,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 528.7046799999958,
+      "graphOffsetMs": 93.82499999227002,
+      "estimatedOutputOffsetMs": 69.82499999227002,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 529.7041099999958,
+      "graphOffsetMs": 92.70999999705236,
+      "estimatedOutputOffsetMs": 68.70999999705236,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 530.7046599999959,
+      "graphOffsetMs": 92.28999998571817,
+      "estimatedOutputOffsetMs": 68.28999998571817,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 531.7046649999959,
+      "graphOffsetMs": 93.08999998751096,
+      "estimatedOutputOffsetMs": 69.08999998751096,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 532.7046549999958,
+      "graphOffsetMs": 92.92999999166932,
+      "estimatedOutputOffsetMs": 68.92999999166932,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 533.7046549999958,
+      "graphOffsetMs": 92.78999998630024,
+      "estimatedOutputOffsetMs": 68.78999998630024,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 534.7046599999959,
+      "graphOffsetMs": 91.45499999402091,
+      "estimatedOutputOffsetMs": 67.45499999402091,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 535.7046549999958,
+      "graphOffsetMs": 92.95999999227934,
+      "estimatedOutputOffsetMs": 68.95999999227934,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 536.7046599999959,
+      "graphOffsetMs": 94.01000000000931,
+      "estimatedOutputOffsetMs": 70.01000000000931,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 537.7044049999959,
+      "graphOffsetMs": 92.449999987497,
+      "estimatedOutputOffsetMs": 68.449999987497,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 538.7037049999959,
+      "graphOffsetMs": 92.40499999048188,
+      "estimatedOutputOffsetMs": 68.40499999048188,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 539.7046549999958,
+      "graphOffsetMs": 93.23999998811632,
+      "estimatedOutputOffsetMs": 69.23999998811632,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 540.7037249999958,
+      "graphOffsetMs": 93.0449999863049,
+      "estimatedOutputOffsetMs": 69.0449999863049,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 541.7046749999959,
+      "graphOffsetMs": 93.79999999701977,
+      "estimatedOutputOffsetMs": 69.79999999701977,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 542.7046599999959,
+      "graphOffsetMs": 91.5149999994319,
+      "estimatedOutputOffsetMs": 67.5149999994319,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 543.7044099999958,
+      "graphOffsetMs": 92.74999998987187,
+      "estimatedOutputOffsetMs": 68.74999998987187,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 544.7046599999959,
+      "graphOffsetMs": 93.82499999762513,
+      "estimatedOutputOffsetMs": 69.82499999762513,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 545.7046699999959,
+      "graphOffsetMs": 92.47999999346212,
+      "estimatedOutputOffsetMs": 68.47999999346212,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 546.7046599999959,
+      "graphOffsetMs": 92.70499999762978,
+      "estimatedOutputOffsetMs": 68.70499999762978,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 547.7046599999959,
+      "graphOffsetMs": 93.3849999892991,
+      "estimatedOutputOffsetMs": 69.3849999892991,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 548.7046549999958,
+      "graphOffsetMs": 92.33499998867046,
+      "estimatedOutputOffsetMs": 68.33499998867046,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 549.7046699999959,
+      "graphOffsetMs": 92.51499999756925,
+      "estimatedOutputOffsetMs": 68.51499999756925,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 550.7037099999958,
+      "graphOffsetMs": 93.3649999940535,
+      "estimatedOutputOffsetMs": 69.3649999940535,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 551.7041149999958,
+      "graphOffsetMs": 92.70499999285676,
+      "estimatedOutputOffsetMs": 68.70499999285676,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 552.7046549999958,
+      "graphOffsetMs": 93.91499999642838,
+      "estimatedOutputOffsetMs": 69.91499999642838,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 553.7044299999959,
+      "graphOffsetMs": 93.67999999702442,
+      "estimatedOutputOffsetMs": 69.67999999702442,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 554.7038049999959,
+      "graphOffsetMs": 92.72999999881722,
+      "estimatedOutputOffsetMs": 68.72999999881722,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 555.7044549999958,
+      "graphOffsetMs": 92.75499999639578,
+      "estimatedOutputOffsetMs": 68.75499999639578,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 556.7046499999958,
+      "graphOffsetMs": 93.61499999824446,
+      "estimatedOutputOffsetMs": 69.61499999824446,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 557.7046549999958,
+      "graphOffsetMs": 92.53999998630024,
+      "estimatedOutputOffsetMs": 68.53999998630024,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 558.7046499999958,
+      "graphOffsetMs": 92.55999999225605,
+      "estimatedOutputOffsetMs": 68.55999999225605,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 559.7046549999958,
+      "graphOffsetMs": 93.63499999523629,
+      "estimatedOutputOffsetMs": 69.63499999523629,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 560.7046499999958,
+      "graphOffsetMs": 93.99499999464024,
+      "estimatedOutputOffsetMs": 69.99499999464024,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 561.7046649999959,
+      "graphOffsetMs": 93.85499998927116,
+      "estimatedOutputOffsetMs": 69.85499998927116,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 562.7037099999958,
+      "graphOffsetMs": 93.19499998691026,
+      "estimatedOutputOffsetMs": 69.19499998691026,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 563.7046449999958,
+      "graphOffsetMs": 93.49499998986721,
+      "estimatedOutputOffsetMs": 69.49499998986721,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 564.7037049999959,
+      "graphOffsetMs": 92.83499999821652,
+      "estimatedOutputOffsetMs": 68.83499999821652,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 565.7046449999958,
+      "graphOffsetMs": 96.89999999338761,
+      "estimatedOutputOffsetMs": 72.89999999338761,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 566.7046499999958,
+      "graphOffsetMs": 92.29999998747371,
+      "estimatedOutputOffsetMs": 68.29999998747371,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 567.7036699999959,
+      "graphOffsetMs": 92.56999999459367,
+      "estimatedOutputOffsetMs": 68.56999999459367,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 568.7046449999958,
+      "graphOffsetMs": 93.99499999696855,
+      "estimatedOutputOffsetMs": 69.99499999696855,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 569.7046399999958,
+      "graphOffsetMs": 76.1249999916181,
+      "estimatedOutputOffsetMs": 52.1249999916181,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 570.7042699999959,
+      "graphOffsetMs": 76.57999999704771,
+      "estimatedOutputOffsetMs": 52.57999999704771,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 571.7046449999958,
+      "graphOffsetMs": 75.88999998802319,
+      "estimatedOutputOffsetMs": 51.88999998802319,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 572.7046499999958,
+      "graphOffsetMs": 76.6549999981653,
+      "estimatedOutputOffsetMs": 52.654999998165295,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 573.7044149999958,
+      "graphOffsetMs": 77.01999999699183,
+      "estimatedOutputOffsetMs": 53.01999999699183,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 574.7046399999958,
+      "graphOffsetMs": 76.52499999280553,
+      "estimatedOutputOffsetMs": 52.52499999280553,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 576.7046399999958,
+      "graphOffsetMs": 68.6449999922188,
+      "estimatedOutputOffsetMs": 44.6449999922188,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 577.7046449999958,
+      "graphOffsetMs": 76.21499999519438,
+      "estimatedOutputOffsetMs": 52.214999995194376,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 578.7046449999958,
+      "graphOffsetMs": 42.03999999340158,
+      "estimatedOutputOffsetMs": 18.03999999340158,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 579.7040449999959,
+      "graphOffsetMs": 44.11499999766238,
+      "estimatedOutputOffsetMs": 20.11499999766238,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 580.7041249999958,
+      "graphOffsetMs": 43.37499999522697,
+      "estimatedOutputOffsetMs": 19.374999995226972,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 581.7046799999958,
+      "graphOffsetMs": 42.59499998926185,
+      "estimatedOutputOffsetMs": 18.59499998926185,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 582.7046449999958,
+      "graphOffsetMs": 42.9499999928521,
+      "estimatedOutputOffsetMs": 18.9499999928521,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 583.7042349999958,
+      "graphOffsetMs": 76.22999999579042,
+      "estimatedOutputOffsetMs": 52.22999999579042,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 584.7037249999958,
+      "graphOffsetMs": 76.309999996447,
+      "estimatedOutputOffsetMs": 52.309999996447004,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 585.7046399999958,
+      "graphOffsetMs": 41.71499998564832,
+      "estimatedOutputOffsetMs": 17.71499998564832,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 586.7046399999958,
+      "graphOffsetMs": 75.83999999042135,
+      "estimatedOutputOffsetMs": 51.83999999042135,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 587.7042449999958,
+      "graphOffsetMs": 43.05999999761116,
+      "estimatedOutputOffsetMs": 19.059999997611158,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 588.7041149999958,
+      "graphOffsetMs": 44.34499998926185,
+      "estimatedOutputOffsetMs": 20.34499998926185,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 589.7037099999958,
+      "graphOffsetMs": 42.45499998808373,
+      "estimatedOutputOffsetMs": 18.454999988083728,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 590.7046399999958,
+      "graphOffsetMs": 76.69999998924322,
+      "estimatedOutputOffsetMs": 52.699999989243224,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 591.7044049999959,
+      "graphOffsetMs": 76.1449999922188,
+      "estimatedOutputOffsetMs": 52.1449999922188,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 592.7046399999958,
+      "graphOffsetMs": 43.489999989862554,
+      "estimatedOutputOffsetMs": 19.489999989862554,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 593.7046549999958,
+      "graphOffsetMs": 43.52999999886379,
+      "estimatedOutputOffsetMs": 19.529999998863786,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 594.7046399999958,
+      "graphOffsetMs": 42.42499998630956,
+      "estimatedOutputOffsetMs": 18.424999986309558,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 595.7046349999958,
+      "graphOffsetMs": 43.14499998628162,
+      "estimatedOutputOffsetMs": 19.14499998628162,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 596.7046399999958,
+      "graphOffsetMs": 42.90499999164604,
+      "estimatedOutputOffsetMs": 18.904999991646037,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 597.7046399999958,
+      "graphOffsetMs": 76.63499998743646,
+      "estimatedOutputOffsetMs": 52.63499998743646,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 598.8206899999959,
+      "graphOffsetMs": 175.60999998624902,
+      "estimatedOutputOffsetMs": 151.60999998624902,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 599.7044699999958,
+      "graphOffsetMs": 75.3949999952456,
+      "estimatedOutputOffsetMs": 51.3949999952456,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 600.7205849999958,
+      "graphOffsetMs": 103.93499999167398,
+      "estimatedOutputOffsetMs": 79.93499999167398,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 601.7044049999959,
+      "graphOffsetMs": 75.28999999107327,
+      "estimatedOutputOffsetMs": 51.28999999107327,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 602.7372099999958,
+      "graphOffsetMs": 92.45999998564366,
+      "estimatedOutputOffsetMs": 68.45999998564366,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 603.7045349999959,
+      "graphOffsetMs": 60.764999994658865,
+      "estimatedOutputOffsetMs": 36.764999994658865,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 604.7037099999958,
+      "graphOffsetMs": 59.54999998805579,
+      "estimatedOutputOffsetMs": 35.54999998805579,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 605.7046299999959,
+      "graphOffsetMs": 60.934999996447004,
+      "estimatedOutputOffsetMs": 36.934999996447004,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 606.7046449999958,
+      "graphOffsetMs": 59.58999999228399,
+      "estimatedOutputOffsetMs": 35.58999999228399,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 607.7046249999958,
+      "graphOffsetMs": 59.809999985736795,
+      "estimatedOutputOffsetMs": 35.809999985736795,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 608.7037099999958,
+      "graphOffsetMs": 59.42999999108724,
+      "estimatedOutputOffsetMs": 35.42999999108724,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 609.7037649999958,
+      "graphOffsetMs": 59.514999994658865,
+      "estimatedOutputOffsetMs": 35.514999994658865,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 610.7041499999958,
+      "graphOffsetMs": 60.949999991687946,
+      "estimatedOutputOffsetMs": 36.949999991687946,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 613.5371699999959,
+      "graphOffsetMs": 48.36499999999069,
+      "estimatedOutputOffsetMs": 24.364999999990687,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 614.5379599999958,
+      "graphOffsetMs": 53.50499998626765,
+      "estimatedOutputOffsetMs": 29.50499998626765,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 615.5379599999958,
+      "graphOffsetMs": 52.44499999820255,
+      "estimatedOutputOffsetMs": 28.444999998202547,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 616.5379599999958,
+      "graphOffsetMs": 53.28999999340158,
+      "estimatedOutputOffsetMs": 29.28999999340158,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 617.5546399999959,
+      "graphOffsetMs": 74.3699999875389,
+      "estimatedOutputOffsetMs": 50.369999987538904,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 618.5370399999958,
+      "graphOffsetMs": 52.27499999816064,
+      "estimatedOutputOffsetMs": 28.274999998160638,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 619.5374999999958,
+      "graphOffsetMs": 48.05499998747837,
+      "estimatedOutputOffsetMs": 24.054999987478368,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 620.5544799999958,
+      "graphOffsetMs": 86.9349999934202,
+      "estimatedOutputOffsetMs": 62.934999993420206,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 621.5536449999959,
+      "graphOffsetMs": 76.31499999994412,
+      "estimatedOutputOffsetMs": 52.31499999994412,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 622.5546449999958,
+      "graphOffsetMs": 71.47499999043066,
+      "estimatedOutputOffsetMs": 47.47499999043066,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 623.5546299999958,
+      "graphOffsetMs": 72.82499999040738,
+      "estimatedOutputOffsetMs": 48.82499999040738,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 624.5544099999959,
+      "graphOffsetMs": 87.03999998932704,
+      "estimatedOutputOffsetMs": 63.03999998932704,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 625.5546249999958,
+      "graphOffsetMs": 81.93500000005588,
+      "estimatedOutputOffsetMs": 57.93500000005588,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 626.5546249999958,
+      "graphOffsetMs": 85.7549999988405,
+      "estimatedOutputOffsetMs": 61.7549999988405,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 627.5537149999958,
+      "graphOffsetMs": 74.60999999707565,
+      "estimatedOutputOffsetMs": 50.60999999707565,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 628.5543499999958,
+      "graphOffsetMs": 85.2699999952456,
+      "estimatedOutputOffsetMs": 61.2699999952456,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 629.5539849999958,
+      "graphOffsetMs": 81.40000000002328,
+      "estimatedOutputOffsetMs": 57.40000000002328,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 630.5379699999958,
+      "graphOffsetMs": 52.8249999928521,
+      "estimatedOutputOffsetMs": 28.8249999928521,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 631.5379699999958,
+      "graphOffsetMs": 48.05499998747837,
+      "estimatedOutputOffsetMs": 24.054999987478368,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 632.5546149999958,
+      "graphOffsetMs": 87.024999988731,
+      "estimatedOutputOffsetMs": 63.024999988731,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 633.5379599999958,
+      "graphOffsetMs": 51.454999991110526,
+      "estimatedOutputOffsetMs": 27.454999991110526,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 635.0376599999959,
+      "graphOffsetMs": 153.27500000002328,
+      "estimatedOutputOffsetMs": 129.27500000002328,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 635.9546299999959,
+      "graphOffsetMs": 54.7149999946123,
+      "estimatedOutputOffsetMs": 30.7149999946123,
+      "outputLatencyMs": 24.0
+    },
+    {
+      "atSec": 636.9546299999959,
+      "graphOffsetMs": 60.2149999976391,
+      "estimatedOutputOffsetMs": 36.2149999976391,
+      "outputLatencyMs": 24.0
+    }
+  ]
+}

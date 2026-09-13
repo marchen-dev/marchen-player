@@ -5,6 +5,7 @@ minimumReleaseAgeExclude:
   - '@ai-sdk/openai@4.0.51'
   - '@ai-sdk/provider-utils@5.0.33'
   - ai@7.0.84
+  - '@suemor/libav-hevc@0.1.0 || 0.1.1'
 shamefullyHoist: true
 shellEmulator: true
 trustPolicy: no-downgrade
@@ -15,10 +16,7 @@ trustPolicyExclude:
 packages:
   - 'packages/*'
 allowBuilds:
-  '@ffmpeg-installer/darwin-arm64': true
-  '@ffmpeg-installer/linux-x64': true
-  '@ffprobe-installer/darwin-arm64': true
-  '@ffprobe-installer/linux-x64': true
+  '@sentry/cli': true
   '@swc/core': true
   core-js: true
   electron: true

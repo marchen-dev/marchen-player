@@ -1,5 +1,6 @@
 import { toast } from '@renderer/components/ui/toast'
 import { db } from '@renderer/database/db'
+import { telemetry } from '@renderer/services/telemetry'
 
 import { ipcClient } from './client'
 import { isWeb } from './utils'
@@ -17,6 +18,7 @@ export const clearStorage = () => {
 }
 
 export const resetApp = async () => {
+  await telemetry.reset()
   if (isWeb) {
     localStorage.clear()
     await db.deleteDatabase()

@@ -1,0 +1,91 @@
+{
+  "environment": {
+    "platform": "darwin-arm64",
+    "ffmpeg": "bundled-runtime",
+    "input": "hevc-main10-hdr-eac3",
+    "startsSeconds": [0, 600, 1200]
+  },
+  "results": [
+    {
+      "profile": "copy-hevc-aac-at",
+      "stableStreamFingerprint": true,
+      "stableCompleteInit": false,
+      "initBytes": [2353, 2365, 2365],
+      "initHashes": [
+        "3cf2f2be886de6315d62d66e74ea452f933140b5feb36a9551946d99d4882703",
+        "1c054b2864715492d999cc501332102201382c0cc75899a93648b94821de57d4",
+        "b81d8ae23551b58b726c0b9467ec132c69ab9e2dc1e95a68dff28e9ff62494f1"
+      ],
+      "streams": [
+        {
+          "id": "0x1",
+          "codec": "hevc",
+          "sampleEntry": "hvc1",
+          "profile": "Main 10",
+          "level": 120,
+          "timeBase": "1/16000",
+          "extradataSize": 276,
+          "extradataHash": "632d3568ed421a302908cc47975c709c0073b7d34eb80c6e0a5a0339a2ff881f"
+        },
+        {
+          "id": "0x2",
+          "codec": "aac",
+          "sampleEntry": "mp4a",
+          "timeBase": "1/48000",
+          "extradataSize": 2,
+          "extradataHash": "d479511c795988be9c7929c7bed024f93dffa122d7226a38105e0d702bd80ee3"
+        }
+      ]
+    },
+    {
+      "profile": "videotoolbox-h264-aac-at",
+      "stableStreamFingerprint": true,
+      "stableCompleteInit": true,
+      "initBytes": [1864, 1864, 1864],
+      "initHash": "9d3fb15db37892a7cefba01a8342964b4ed61c7931bbbc0037cd44a07bb1121f",
+      "streams": [
+        {
+          "id": "0x1",
+          "codec": "h264",
+          "sampleEntry": "avc1",
+          "timeBase": "1/12288",
+          "extradataSize": 35,
+          "extradataHash": "ded34ffd582eb5910706bdb1e88c6ac6c1bc43551d064d7226b7f77943adfe3e"
+        },
+        {
+          "id": "0x2",
+          "codec": "aac",
+          "sampleEntry": "mp4a",
+          "timeBase": "1/48000",
+          "extradataSize": 2,
+          "extradataHash": "d479511c795988be9c7929c7bed024f93dffa122d7226a38105e0d702bd80ee3"
+        }
+      ]
+    },
+    {
+      "profile": "libx264-aac-at",
+      "stableStreamFingerprint": true,
+      "stableCompleteInit": true,
+      "initBytes": [1871, 1871, 1871],
+      "initHash": "3657381df8ded3da20518e4e616ea9dfab20d131852016cfc7e00069059d7930",
+      "streams": [
+        {
+          "id": "0x1",
+          "codec": "h264",
+          "sampleEntry": "avc1",
+          "timeBase": "1/12288",
+          "extradataSize": 50,
+          "extradataHash": "4ab5836859603549767b87adfd8017aad5277df181f75250c7bf71fbc5decd53"
+        },
+        {
+          "id": "0x2",
+          "codec": "aac",
+          "sampleEntry": "mp4a",
+          "timeBase": "1/48000",
+          "extradataSize": 2,
+          "extradataHash": "d479511c795988be9c7929c7bed024f93dffa122d7226a38105e0d702bd80ee3"
+        }
+      ]
+    }
+  ]
+}

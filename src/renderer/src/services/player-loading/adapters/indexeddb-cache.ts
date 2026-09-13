@@ -5,7 +5,7 @@
  * isStale 通过 newBangumi 字段判断是否需要强制刷新。
  */
 
-import type { DanmakuCache, DanmakuEntry } from '@marchen/player-core'
+import type { DanmakuCache, DanmakuEntry } from '@marchen/player-loading'
 import { db } from '@renderer/database/db'
 
 export class IndexedDBCache implements DanmakuCache {

@@ -5,11 +5,12 @@
  * 导出 service 实例供 React hook 和组件使用。
  */
 
-import { PlayerLoadingService } from '@marchen/player-core'
+import { PlayerLoadingService } from '@marchen/player-loading'
 import { videoAtom } from '@renderer/atoms/player'
 import { jotaiStore } from '@renderer/atoms/store'
 import { getStorageNS } from '@renderer/lib/ns'
 import { isWeb } from '@renderer/lib/utils'
+import { installPlayerLoadingTelemetry } from '@renderer/services/telemetry/player-loading-observer'
 
 import { DandanplayAPI } from './adapters/dandanplay-api'
 import { ElectronImporter } from './adapters/electron-importer'
@@ -46,15 +47,17 @@ export function getPlayerLoadingService(): PlayerLoadingService {
       },
     })
 
+    installPlayerLoadingTelemetry(serviceInstance)
+
     // 同步 service state 中的 video 信息到 videoAtom
     // 这样 SettingProvider、Event.tsx 等仍然从 videoAtom 读取 hash 的组件能正常工作
     // 只在 video 信息完整时（hash 存在）才同步，跳过 hashing 阶段的 Partial<VideoInfo>
     serviceInstance.state$.subscribe((state) => {
       if ('video' in state && state.video && state.video.hash) {
-        const { url, hash, size, name, playList } = state.video as Required<typeof state.video>
+        const { source, hash, size, name, playList } = state.video as Required<typeof state.video>
         const current = jotaiStore.get(videoAtom)
-        if (current.hash !== hash || current.url !== url) {
-          jotaiStore.set(videoAtom, { url, hash, size, name, playList })
+        if (current.hash !== hash || current.source !== source) {
+          jotaiStore.set(videoAtom, { source, hash, size, name, playList })
         }
       }
     })
@@ -63,7 +66,7 @@ export function getPlayerLoadingService(): PlayerLoadingService {
 }
 
 // 导出类型供外部使用
-export type { PlayerLoadingService } from '@marchen/player-core'
+export type { PlayerLoadingService } from '@marchen/player-loading'
 export {
   type CommentModel,
   type DanmakuEntry,
@@ -72,4 +75,4 @@ export {
   type StepName,
   type VideoInfo,
   VISIBLE_STEPS,
-} from '@marchen/player-core'
+} from '@marchen/player-loading'

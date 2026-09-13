@@ -1,9 +1,11 @@
 import type { SelectOption } from '@renderer/components/modules/shared/setting/SettingSelect'
+import type { EnginePreference } from '@renderer/services/player-runtime/engine-policy'
 import {
   danmakuDurationList,
   danmakuEndAreaList,
   danmakuFontSizeList,
 } from '@renderer/components/modules/settings/views/player/list'
+import { normalizeEnginePreference } from '@renderer/services/player-runtime/engine-policy'
 import { useAtom, useAtomValue } from 'jotai'
 
 import { createSettingATom } from './helper'
@@ -14,16 +16,24 @@ const getSelectedDefaultValue = (list: SelectOption[]) => {
 
 const createPlayerDefaultSettings = () => {
   return {
+    enginePreference: 'auto' as EnginePreference,
     enableTraditionalToSimplified: false,
     enableAutomaticEpisodeSwitching: false,
+    enableDanmaku: true,
+    danmakuMaxOnScreen: '80',
     enableMiniProgress: true,
+    controllerPosition: { xRatio: 0.5, yRatio: 0.72 },
     danmakuFontSize: getSelectedDefaultValue(danmakuFontSizeList) ?? '26',
     danmakuDuration: getSelectedDefaultValue(danmakuDurationList) ?? '15000',
     danmakuEndArea: getSelectedDefaultValue(danmakuEndAreaList)!,
   }
 }
 
-const playerSettingAtom = createSettingATom('player', createPlayerDefaultSettings)
+const playerSettingAtom = createSettingATom('player', createPlayerDefaultSettings, (settings) => ({
+  ...createPlayerDefaultSettings(),
+  ...settings,
+  enginePreference: normalizeEnginePreference(settings?.enginePreference),
+}))
 
 export { playerSettingAtom }
 export const usePlayerSettings = () => useAtom(playerSettingAtom)

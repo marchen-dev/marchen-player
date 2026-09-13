@@ -3,15 +3,21 @@ productName: Marchen
 directories:
   buildResources: build
 files:
+  # 明确发布边界，避免把本地样片、旧 libav 构建缓存和规划资料打入应用。
+  - 'out/main/**'
+  - 'out/preload/**'
+  - 'out/renderer/**'
+  - 'resources/**'
+  - package.json
+  - '!out/**/*.map'
   - '!**/.vscode/*'
   - '!src/*'
+  - '!resources/ffmpeg/**'
   - '!packages/*'
   - '!electron.vite.config.{js,ts,mjs,cjs}'
   - '!{.eslintignore,.eslintrc.cjs,.prettierignore,.prettierrc.yaml,dev-app-update.yml,CHANGELOG.md,README.md}'
   - '!{.env,.env.*,.npmrc,pnpm-lock.yaml}'
   - '!{tsconfig.json,tsconfig.node.json,tsconfig.web.json}'
-asarUnpack:
-  - resources/**
 win:
   executableName: Marchen
   fileAssociations:
@@ -65,8 +71,6 @@ publish:
 # publish:
 #   provider: generic
 #   url: http://localhost:3000
-beforePack: scripts/install-darwin-deps.js
-afterPack: scripts/after-pack.js
 afterSign: scripts/notarize.js
 releaseInfo:
   releaseNotes: |

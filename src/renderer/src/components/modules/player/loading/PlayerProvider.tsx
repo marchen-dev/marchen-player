@@ -12,6 +12,7 @@ import {
   usePlayerLoadingSelector,
   usePlayerLoadingService,
 } from '@renderer/services/player-loading/hooks'
+import { captureFeatureUsed } from '@renderer/services/telemetry/features'
 
 import { useLoadingHistoricalAnime } from './hooks'
 
@@ -23,8 +24,8 @@ export const VideoProvider: FC<PropsWithChildren> = ({ children }) => {
 
   // 加载中：显示 stepper
   // waiting_user：显示 stepper + 对话框
-  // playing/idle：显示 children
-  if (step === 'idle' || step === 'playing' || step === 'reloading') {
+  // ready/idle：显示 children；reloading 时保持当前播放器可见
+  if (step === 'idle' || step === 'ready' || step === 'reloading') {
     return children
   }
 
@@ -56,9 +57,11 @@ const WaitingUserDialog: FC = () => {
       matchData={state.matchData}
       onSelected={(params) => {
         if (!params) {
+          captureFeatureUsed('danmaku_match', 'skip')
           service.skipDanmaku()
           return
         }
+        captureFeatureUsed('danmaku_match', 'select')
         service.selectMatch(params)
       }}
       onClosed={() => service.cancel()}

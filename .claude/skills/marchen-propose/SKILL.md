@@ -15,13 +15,21 @@ description: 提出新变更，创建并填充所有 artifact。适用于用户�
 
 ---
 
-**输入**：用户的请求应包含变更名称（kebab-case）或变更描述。
+**输入**：用户的请求应包含变更名称（kebab-case）、变更描述，或一个/多个显式 `idea:<name>`。
+
+如果包含 `idea:<name>`，在创建变更前逐个读取：
+
+```bash
+marchen idea show <name> --json
+```
+
+把完整 Idea 作为所有 artifact 的探索背景。只消费用户显式指定的 Idea；不要通过模糊语义匹配静默带入其他 Idea。任一指定 Idea 不存在或损坏时先停止处理。
 
 **流程**
 
 1. **确定变更名称**
 
-   如果提供了输入，直接使用或从描述中提取 kebab-case 名称（如"添加用户认证" → `add-user-auth`）。
+   如果提供了输入，直接使用或从描述、Idea 标题与摘要中提取 kebab-case 名称（如"添加用户认证" → `add-user-auth`）。`idea:<name>` 是来源标识，不强制作为 change 名称。
 
    如果没有输入，用 **AskUserQuestion** 工具询问：
    > "你想做什么变更？描述一下你要构建或修复的内容。"
@@ -75,12 +83,14 @@ description: 提出新变更，创建并填充所有 artifact。适用于用户�
 
       **普通 artifact（proposal / design / tasks）：**
       - 读取 `context` 中 `status` 为 `filled` 的 `content` 作为上下文
+      - 如果指定了 Idea，同时读取其完整内容作为形成正式决策前的背景；区分其中的已确认事项、倾向和待确认问题
       - 按 `instruction` 指引 + `template` 结构生成内容
       - 写入 `marchen/changes/<name>/<outputPath>`
       - 写入后验证文件存在
 
       **specs（目录型 artifact，outputPath 为 `specs/`）：**
       - 读取 proposal 内容（在 `context` 中，`id` 为 `proposal` 的 `content`）
+      - 结合显式 Idea 背景，但以 proposal 中已经确定的能力范围为准
       - 从 proposal 的"能力"章节提取能力列表（kebab-case 名称）
       - 为每个能力：
         - 创建目录 `marchen/changes/<name>/specs/<capability>/`
@@ -94,7 +104,21 @@ description: 提出新变更，创建并填充所有 artifact。适用于用户�
 
    d. 显示进度："已创建 `<artifact-id>`"，标记任务完成，回到步骤 a。
 
-4. **显示最终状态**
+4. **验证并晋升显式 Idea**
+
+   ```bash
+   marchen status <name> --json
+   ```
+
+   只有 `workflow.next` 为 `null`，且 proposal、specs、design、tasks 全部为 `filled` 时，才一次性晋升所有显式 Idea：
+
+   ```bash
+   marchen idea promote <idea-name> [<idea-name>...] --change <name> --json
+   ```
+
+   未使用 Idea 时跳过。任一 artifact 创建或验证失败时不得 promote，原 Idea 留在 `marchen/ideas/`。promote 失败时报告实际错误并停止，不要声称提案已经完整衔接。
+
+5. **显示最终状态**
 
    ```bash
    marchen status <name>
@@ -120,5 +144,7 @@ description: 提出新变更，创建并填充所有 artifact。适用于用户�
 - 写入后验证文件存在再继续下一个
 - 如果上下文关键信息不清楚，询问用户；但小疑问优先做合理判断，保持节奏
 - 已存在同名变更时必须询问用户，不要覆盖
+- 只读取和晋升用户显式指定的 `idea:<name>`，不得隐式消费语义候选
+- 必须先完成并验证全部 artifact，再晋升 Idea；探索文件不替代正式 artifact
 - `instruction` 是给你的指引，不要把它原样复制到 artifact 文件中
 - 使用 AskUserQuestion 时，选项不超过 4 个；需要更多选项时合并或分步询问

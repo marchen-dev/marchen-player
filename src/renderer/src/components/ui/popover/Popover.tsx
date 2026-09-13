@@ -13,11 +13,13 @@ const PopoverContent = ({
   className,
   align = 'center',
   sideOffset = 4,
+  container,
   ...props
 }: React.ComponentPropsWithoutRef<typeof PopoverPrimitive.Content> & {
   ref?: React.RefObject<React.ElementRef<typeof PopoverPrimitive.Content>>
+  container?: Element | DocumentFragment | null
 }) => (
-  <PopoverPrimitive.Portal>
+  <PopoverPrimitive.Portal container={container}>
     <PopoverPrimitive.Content
       ref={ref}
       align={align}

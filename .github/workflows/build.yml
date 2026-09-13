@@ -38,4 +38,7 @@ jobs:
           pnpm run lint
 
       - name: Build project
+        env:
+          # PR 检查没有本地 .env；公开代理地址不依赖 secrets，fork PR 也可构建。
+          VITE_API_URL: https://dandan-proxy.suemor.com/api/v2
         run: pnpm run build:web

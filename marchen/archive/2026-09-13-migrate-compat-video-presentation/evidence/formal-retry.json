@@ -1,0 +1,92 @@
+{
+  "before": {
+    "currentTime": 1.820599,
+    "duration": 1420.0619274376418,
+    "volume": 1,
+    "muted": false,
+    "rate": 1,
+    "paused": true,
+    "seeking": false,
+    "ended": false,
+    "buffered": []
+  },
+  "after": {
+    "currentTime": 120,
+    "duration": 1420.0619274376418,
+    "volume": 1,
+    "muted": false,
+    "rate": 1,
+    "paused": true,
+    "seeking": false,
+    "ended": false,
+    "buffered": []
+  },
+  "state": {
+    "status": "error",
+    "source": {
+      "engine": "compat",
+      "resourceId": "e16bc4d4-1c0c-47c9-82c4-a5041efc0697",
+      "id": "4d113e717c9f1d6dc31e2ddcc6e94555:electron-file",
+      "title": "[Studio GreenTea] Kimi ga Shinu made Koi wo Shitai [05][WebRip][HEVC-10bit 1080p AAC][JPSC].mp4",
+      "startTime": 1.820599,
+      "autoplay": false
+    },
+    "error": {
+      "code": "decode",
+      "message": "验收注入的 play 拒绝",
+      "recoverable": true
+    }
+  },
+  "released": {
+    "track": "ended",
+    "client": false,
+    "context": false
+  },
+  "retry": {
+    "state": {
+      "status": "ready",
+      "source": {
+        "engine": "compat",
+        "resourceId": "e16bc4d4-1c0c-47c9-82c4-a5041efc0697",
+        "id": "4d113e717c9f1d6dc31e2ddcc6e94555:electron-file",
+        "title": "[Studio GreenTea] Kimi ga Shinu made Koi wo Shitai [05][WebRip][HEVC-10bit 1080p AAC][JPSC].mp4",
+        "startTime": 120,
+        "autoplay": false
+      },
+      "duration": 1420.0619274376418,
+      "currentTime": 120,
+      "rate": 1
+    },
+    "clock": {
+      "currentTime": 120,
+      "duration": 1420.0619274376418,
+      "volume": 1,
+      "muted": false,
+      "rate": 1,
+      "paused": true,
+      "seeking": false,
+      "ended": false,
+      "buffered": []
+    },
+    "presentation": {
+      "engine": "compat",
+      "backend": "webcodecs",
+      "firstFrame": true,
+      "buffering": false,
+      "width": 1920,
+      "height": 1080,
+      "videoCodec": "hevc",
+      "decodeThreads": 0,
+      "audioOutputChannels": 2,
+      "videoQueuePeak": 1,
+      "decodeFps": 0,
+      "colorOutput": "browser-managed",
+      "presenter": "video",
+      "submittedFrames": 1,
+      "renderedFrames": 1,
+      "sourceTransfer": "bt709",
+      "sourcePrimaries": "bt709",
+      "videoFrameRate": 23.976023976023978
+    }
+  }
+}

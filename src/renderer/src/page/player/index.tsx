@@ -1,11 +1,18 @@
-import type { ChangeEvent, DragEvent, FC } from 'react'
-import { Player } from '@renderer/components/modules/player'
+import type { ChangeEvent, FC } from 'react'
 import { VideoProvider } from '@renderer/components/modules/player/loading/PlayerProvider'
+import { NativePlayer } from '@renderer/components/modules/player/NativePlayer'
+import { PlaybackFailure } from '@renderer/components/modules/player/shell/PlaybackFailure'
+import { VideoDropZone } from '@renderer/components/modules/shared/VideoDropZone'
 import { usePageHeader } from '@renderer/hooks/use-page-header'
 import { usePlayAnimeFailedToast } from '@renderer/hooks/use-toast'
 import { ipcClient } from '@renderer/lib/client'
 import { checkIsVideoType, cn, isWeb } from '@renderer/lib/utils'
-import { usePlayerLoadingSelector, usePlayerLoadingService } from '@renderer/services/player-loading/hooks'
+import { selectFileBatch, selectPathBatch } from '@renderer/services/player-loading/file-playlist'
+import {
+  usePlayerLoadingSelector,
+  usePlayerLoadingService,
+} from '@renderer/services/player-loading/hooks'
+import { markNextPlayerImportSource } from '@renderer/services/telemetry/player-loading-observer'
 import { AnimatePresence, m } from 'framer-motion'
 import { useCallback, useMemo, useRef } from 'react'
 
@@ -18,27 +25,30 @@ export default function VideoPlayer() {
 
   usePageHeader(PLAYER_HEADER)
 
-  // 从 service state 读取当前视频 URL（playing 状态时有值）
-  const url = usePlayerLoadingSelector((s) =>
-    'video' in s && s.video ? s.video.url : '',
+  const preparedVideo = usePlayerLoadingSelector((state) =>
+    state.step === 'ready' || state.step === 'reloading' ? state.video : null,
   )
 
-  // 拖拽/点击导入
-  const handleImport = useCallback(
-    (e: DragEvent<HTMLDivElement> | ChangeEvent<HTMLInputElement>) => {
-      e.preventDefault()
-      let file: File | undefined
-      if (e.type === 'drop') {
-        file = (e as DragEvent<HTMLDivElement>).dataTransfer?.files[0]
-      } else if (e.type === 'change') {
-        file = (e as ChangeEvent<HTMLInputElement>).target?.files?.[0]
-      }
+  const loadError = usePlayerLoadingSelector((state) =>
+    state.step === 'error' ? state.error.message : null,
+  )
+
+  // 拖拽与 Web input 共用同一格式校验和加载入口。
+  const importFile = useCallback(
+    (file: File | undefined, source: 'click' | 'drop') => {
       if (!file || !checkIsVideoType(file.name)) {
         return showFailedToast({ title: '格式错误', description: '请导入 mp4 或者 mkv 格式的动漫' })
       }
+      markNextPlayerImportSource(source)
       service.loadFromFile(file)
     },
-    [service],
+    [service, showFailedToast],
+  )
+
+  const handleInputChange = useCallback(
+    (event: ChangeEvent<HTMLInputElement>) =>
+      importFile(selectFileBatch(Array.from(event.target.files ?? []))[0], 'click'),
+    [importFile],
   )
 
   // 点击导入（Electron 打开文件对话框，Web 触发 input）
@@ -46,35 +56,49 @@ export default function VideoPlayer() {
     if (isWeb) {
       return fileInputRef.current?.click()
     }
-    const path = await ipcClient?.player.importAnime()
+    const selected = await ipcClient?.player.importAnime()
+    const path = selected && selectPathBatch(selected)[0]
     if (path) {
+      markNextPlayerImportSource('click')
       service.loadFromPath(path)
     }
   }, [service])
 
   const content = useMemo(
-    () => (url ? <Player url={url} key={url} /> : <DragTips key={url} onClick={manualImport} />),
-    [url, manualImport],
+    () =>
+      loadError ? (
+        <PlaybackFailure
+          key="load-error"
+          description="视频打开失败，请检查文件是否可访问，或重新选择视频。"
+          detail={loadError}
+          onExit={() => service.cancel()}
+        />
+      ) : preparedVideo ? (
+        <NativePlayer key={preparedVideo.hash} />
+      ) : (
+        <DragTips key="empty-player" onClick={manualImport} />
+      ),
+    [preparedVideo, manualImport, loadError, service],
   )
 
   return (
     <VideoProvider>
-      <div
-        onDrop={handleImport}
-        onDragOver={(e) => e.preventDefault()}
+      <VideoDropZone
+        onFileDrop={(_file, files) => importFile(selectFileBatch(files)[0], 'drop')}
         className={cn('flex size-full items-center justify-center')}
       >
         <AnimatePresence>{content}</AnimatePresence>
-        {!url && (
+        {!preparedVideo && (
           <input
             type="file"
+            multiple
             accept="video/mp4, video/x-matroska"
             ref={fileInputRef}
-            onChange={handleImport}
+            onChange={handleInputChange}
             className="hidden"
           />
         )}
-      </div>
+      </VideoDropZone>
     </VideoProvider>
   )
 }

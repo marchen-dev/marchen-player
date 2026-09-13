@@ -80,6 +80,6 @@ tags: [workflow, implementation]
 - 每完成一个任务立即勾选 checkbox，不要攒着
 - 改动最小化，只做任务要求的事
 - 不确定就暂停问，不要猜
-- 如果实现过程中遇到不确定的设计决策，可以用 `marchen search "<关键词>" --json` 搜索历史变更中的相关方案
+- 如果实现过程中遇到不确定的设计决策，先扫描 `marchen/changelog.md`，再读取相关 archive 中的 proposal、design 或 spec
 - 使用 AskUserQuestion 时，选项不超过 4 个
 - `instruction` 是给你的指引，不要原样复制到代码注释中

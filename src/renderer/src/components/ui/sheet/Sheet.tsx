@@ -61,6 +61,8 @@ interface SheetContentProps
   classNames?: {
     sheetOverlay: string
   }
+  closeIcon?: React.ReactNode
+  closeLabel?: string
 }
 
 const SheetContent = ({
@@ -68,6 +70,8 @@ const SheetContent = ({
   side = 'right',
   className,
   classNames,
+  closeIcon,
+  closeLabel = '关闭',
   overlay = true,
   container = document.body,
   children,
@@ -80,8 +84,8 @@ const SheetContent = ({
     <SheetPrimitive.Content ref={ref} className={cn(sheetVariants({ side }), className)} {...props}>
       {children}
       <SheetPrimitive.Close className="data-[state=open]:bg-secondary no-drag-region ring-offset-background focus:ring-ring absolute top-4 right-4 cursor-default rounded-sm opacity-70 transition-opacity hover:opacity-100 focus:ring-2 focus:ring-offset-2 focus:outline-none disabled:pointer-events-none">
-        <X className="size-4" />
-        <span className="sr-only">Close</span>
+        {closeIcon ?? <X className="size-4" />}
+        <span className="sr-only">{closeLabel}</span>
       </SheetPrimitive.Close>
     </SheetPrimitive.Content>
   </SheetPortal>

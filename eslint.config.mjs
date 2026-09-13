@@ -3,6 +3,8 @@ import reactHooks from 'eslint-plugin-react-hooks'
 
 export default antfu(
   {
+    // 历史 spike 不进入产品构建；正式回归和发布脚本仍参与检查。
+    ignores: ['scripts/player-engine/experiments/**'],
     stylistic: false,
     react: true,
   },

@@ -1,0 +1,66 @@
+{
+  "environment": {
+    "platform": "darwin-arm64",
+    "storage": "external-volume",
+    "ffprobe": "bundled-runtime",
+    "metadataTool": "mkvextract-cues"
+  },
+  "results": [
+    {
+      "sample": "hevc-main10-hdr-eac3-long",
+      "sizeBytes": 1888231403,
+      "containerDurationSeconds": 2431.136,
+      "metadata": {
+        "elapsedMs": 5408.737083,
+        "maximumResidentSetBytes": 20299776,
+        "keyframeCount": 407,
+        "p95GapSeconds": 11.25,
+        "maximumGapSeconds": 21.958,
+        "lastKeyframeSeconds": 2320.292
+      },
+      "ffprobe": {
+        "elapsedMs": 3409.186917,
+        "maximumResidentSetBytes": 28622848,
+        "keyframeCount": 477,
+        "p95GapSeconds": 8.875,
+        "maximumGapSeconds": 9.916,
+        "lastKeyframeSeconds": 2320.292
+      },
+      "comparison": {
+        "toleranceMs": 2,
+        "matched": 407,
+        "metadataOnly": 0,
+        "scannedOnly": 70,
+        "maximumMatchedDeltaMs": 0.000001
+      }
+    },
+    {
+      "sample": "hevc-main10-flac-long",
+      "sizeBytes": 703947698,
+      "containerDurationSeconds": 1495.965,
+      "metadata": {
+        "elapsedMs": 1217.704584,
+        "maximumResidentSetBytes": 18300928,
+        "keyframeCount": 278,
+        "p95GapSeconds": 10.427,
+        "maximumGapSeconds": 10.428,
+        "lastKeyframeSeconds": 1494.952
+      },
+      "ffprobe": {
+        "elapsedMs": 4548.262458,
+        "maximumResidentSetBytes": 19300352,
+        "keyframeCount": 278,
+        "p95GapSeconds": 10.427,
+        "maximumGapSeconds": 10.428,
+        "lastKeyframeSeconds": 1494.952
+      },
+      "comparison": {
+        "toleranceMs": 2,
+        "matched": 278,
+        "metadataOnly": 0,
+        "scannedOnly": 0,
+        "maximumMatchedDeltaMs": 0.000001
+      }
+    }
+  ]
+}

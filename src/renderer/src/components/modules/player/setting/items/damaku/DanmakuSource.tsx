@@ -1,9 +1,6 @@
-import type { DB_History } from '@renderer/database/schemas/history'
-import type { Checkbox as CheckboxPrimitive} from 'radix-ui';
+import type { Checkbox as CheckboxPrimitive } from 'radix-ui'
 import type { FC, PropsWithChildren } from 'react'
-import { playerSettingSheetAtom, videoAtom } from '@renderer/atoms/player'
-import { usePlayerSettingsValue } from '@renderer/atoms/settings/player'
-import { jotaiStore } from '@renderer/atoms/store'
+import { hidePlayerSettingsPanel, videoAtom } from '@renderer/atoms/player'
 import { FieldLayout } from '@renderer/components/modules/settings/views/Layout'
 import { Badge } from '@renderer/components/ui/badge'
 import { Button } from '@renderer/components/ui/button'
@@ -12,34 +9,37 @@ import { Label } from '@renderer/components/ui/label'
 import { Popover, PopoverContent, PopoverTrigger } from '@renderer/components/ui/popover'
 import { db } from '@renderer/database/db'
 import { useConfirmationDialog } from '@renderer/hooks/use-dialog'
-import {
-  danmakuPlatformMap,
-  mergeDanmaku,
-  mostDanmakuPlatform,
-  parseDanmakuData,
-} from '@renderer/lib/danmaku'
+import { danmakuPlatformMap, mostDanmakuPlatform } from '@renderer/lib/danmaku'
 import queryClient from '@renderer/lib/query-client'
 import { isWeb } from '@renderer/lib/utils'
 import { getPlayerLoadingService } from '@renderer/services/player-loading/index'
+import { usePlayerPortalContainer } from '@renderer/services/player-runtime'
 import { useAtomValue } from 'jotai'
 import { debounce } from 'lodash-es'
 import { Select as SelectPrimitive } from 'radix-ui'
 import { memo } from 'react'
 
-import { usePlayerInstance } from '../../../Context'
-import { useXgPlayerUtils } from '../../../initialize/hooks'
 import { showMatchAnimeDialog } from '../../../loading/dialog/hooks'
-import { SettingProviderQueryKey, useSettingConfig } from '../../Sheet'
+import { danmakuSourceQueryKey, useDanmakuSourceConfig } from '../../danmaku-source-context'
 
 export const DanmakuSource = memo(() => {
-  const { danmaku } = useSettingConfig()
+  const { danmaku } = useDanmakuSourceConfig()
+  const portalContainer = usePlayerPortalContainer()
   return (
     <FieldLayout title="来源">
       <Popover>
         <PopoverTrigger asChild>
-          <Button variant="outline">{mostDanmakuPlatform(danmaku)}...</Button>
+          <Button
+            className="border-white/11 bg-white/8 text-white hover:bg-white/14 hover:text-white"
+            variant="outline"
+          >
+            {mostDanmakuPlatform(danmaku)}...
+          </Button>
         </PopoverTrigger>
-        <PopoverContent className="mx-2 w-80">
+        <PopoverContent
+          container={portalContainer}
+          className="mx-2 w-80 border-white/11 bg-[rgb(38_38_44/96%)] text-white shadow-xl"
+        >
           <PopoverContentLayout title="来源">
             <SourceList />
             <div className="flex flex-col gap-2.5">
@@ -55,52 +55,25 @@ export const DanmakuSource = memo(() => {
 })
 
 const SourceList = memo(() => {
-  const { danmakuDuration } = usePlayerSettingsValue()
-  const { danmaku } = useSettingConfig()
+  const { danmaku } = useDanmakuSourceConfig()
   const video = useAtomValue(videoAtom)
-  const player = usePlayerInstance()
-  const { setResponsiveSettingsUpdate } = useXgPlayerUtils()
-  const handleCheckDanmaku = debounce((params: { checked: CheckboxPrimitive.CheckedState; source: string }) => {
-    const { checked, source } = params
-    if (checked === 'indeterminate') {
-      return
-    }
-    queryClient.setQueryData([SettingProviderQueryKey, video.hash], (oldSetting: DB_History) => {
-      const newSetting = oldSetting
-      const { danmaku } = newSetting
-      danmaku?.forEach((item) => {
-        if (item.source === source) {
-          item.selected = checked
-        }
-      })
-      if (!danmaku) {
-        return
-      }
-      const mergedDanmakuData = mergeDanmaku(danmaku)
+  const handleCheckDanmaku = debounce(
+    async (params: { checked: CheckboxPrimitive.CheckedState; source: string }) => {
+      const { checked, source } = params
+      if (checked === 'indeterminate') return
 
-      const parsedDanmaku = parseDanmakuData({
-        danmuData: mergedDanmakuData,
-        duration: +danmakuDuration,
-      })
+      const service = getPlayerLoadingService()
+      await service.setDanmakuSourceSelected(source, checked)
+      const state = service.currentState
+      if (state.step !== 'ready') return
 
-      if (!player) {
-        return
-      }
-      player.danmu?.clear()
-
-      player.danmu?.updateComments(parsedDanmaku, true)
-      setResponsiveSettingsUpdate(player)
-
-      db.history.update(video.hash, {
-        danmaku,
-      })
-
-      return {
-        ...oldSetting,
-        newSetting,
-      }
-    })
-  }, 300)
+      queryClient.setQueryData([danmakuSourceQueryKey, video.hash], (oldSetting) => ({
+        ...(oldSetting ?? {}),
+        danmaku: state.danmaku,
+      }))
+    },
+    300,
+  )
   if (!danmaku) {
     return <p>暂无弹幕</p>
   }
@@ -110,13 +83,14 @@ const SourceList = memo(() => {
       <div key={item.source} className="flex items-center space-x-2">
         <Checkbox
           id={item.source}
-          defaultChecked={item.selected}
+          checked={item.selected}
+          className="border-white/40 bg-white/6 text-white focus-visible:ring-[var(--player-settings-focus)] focus-visible:ring-offset-0 data-[state=checked]:border-[var(--player-settings-accent)] data-[state=checked]:bg-[var(--player-settings-accent)]"
           onCheckedChange={(checked) => handleCheckDanmaku({ checked, source: item.source })}
         />
         <Label htmlFor={item.source}>
           {danmakuPlatform}
           {item.type === 'local' && (
-            <Badge className="ml-2 py-0" variant="secondary">
+            <Badge className="ml-2 border-0 bg-white/12 py-0 text-white" variant="secondary">
               本地弹幕文件
             </Badge>
           )}
@@ -140,13 +114,11 @@ export const PopoverContentLayout: FC<PopoverContentLayoutProps> = ({ children, 
 
 const RematchDanmaku = () => {
   const video = useAtomValue(videoAtom)
-  const player = usePlayerInstance()
   return (
     <Button
       variant="outline"
       onClick={() => {
-        player?.pause()
-        jotaiStore.set(playerSettingSheetAtom, false)
+        hidePlayerSettingsPanel()
         showMatchAnimeDialog(true, video.hash)
       }}
     >
@@ -169,9 +141,11 @@ const ClearDanmakuCache = () => {
           title: '是否清除弹幕缓存? 清除后将重新匹配弹幕库',
           handleConfirm: async () => {
             await db.history.update(video.hash, { danmaku: undefined })
-            jotaiStore.set(playerSettingSheetAtom, false)
+            hidePlayerSettingsPanel()
             // 通过 service 重新加载
-            getPlayerLoadingService().loadFromPath(video.url)
+            if (video.source?.kind === 'electron-file') {
+              getPlayerLoadingService().loadFromPath(video.source.path)
+            }
           },
         })
       }}

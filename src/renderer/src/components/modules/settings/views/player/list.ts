@@ -79,3 +79,9 @@ export const danmakuEndAreaList = [
     value: '1',
   },
 ] satisfies SelectOption[]
+
+export const danmakuDensityList = [
+  { label: '低（40 条）', value: '40' },
+  { label: '中（80 条）', value: '80', default: true },
+  { label: '高（120 条）', value: '120' },
+] satisfies SelectOption[]

@@ -2,7 +2,7 @@ import { join } from 'node:path'
 
 import { is } from '@electron-toolkit/utils'
 import { quickLaunchViaVideo } from '@main/lib/utils'
-import { app, BrowserWindow, shell } from 'electron'
+import { app, BrowserWindow, nativeTheme, shell } from 'electron'
 
 import { getIconPath } from '../lib/icon'
 import { getRendererHandlers } from './setting'
@@ -24,10 +24,16 @@ export default function createWindow() {
     minWidth: 800, // 设置最小宽度
     minHeight: 650, // 设置最小高度
     show: false,
+    backgroundColor: nativeTheme.shouldUseDarkColors ? '#121212' : '#fafafa',
     autoHideMenuBar: true,
     webPreferences: {
       preload: join(__dirname, '../preload/index.mjs'),
       sandbox: false,
+      contextIsolation: true,
+      nodeIntegration: false,
+      webSecurity: true,
+      // 切换桌面仍持续播放；Canvas 的音频排程不能被后台计时器节流。
+      backgroundThrottling: false,
     },
   }
   switch (platform) {
@@ -67,7 +73,7 @@ export default function createWindow() {
   if (is.dev && process.env.ELECTRON_RENDERER_URL) {
     mainWindow.loadURL(process.env.ELECTRON_RENDERER_URL)
   } else {
-    mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
+    mainWindow.loadURL('marchen://app/index.html')
   }
   return mainWindow
 }

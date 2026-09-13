@@ -1,0 +1,125 @@
+{
+  "coldMs": 9001,
+  "baseline": {
+    "open": 2,
+    "scan": 1,
+    "workers": 1
+  },
+  "results": [
+    {
+      "engine": "native",
+      "switchMs": 898,
+      "counts": {
+        "open": 2,
+        "scan": 1,
+        "workers": 1
+      },
+      "sameCanvas": true,
+      "sameWorker": true,
+      "clock": {
+        "currentTime": 680.5,
+        "duration": 1420.109,
+        "volume": 1,
+        "muted": false,
+        "rate": 1,
+        "paused": true,
+        "seeking": false,
+        "ended": false,
+        "buffered": [
+          [
+            0,
+            2.836
+          ],
+          [
+            626.043,
+            628.314
+          ],
+          [
+            679.858,
+            683.433
+          ]
+        ]
+      }
+    },
+    {
+      "engine": "compat",
+      "switchMs": 1097,
+      "counts": {
+        "open": 2,
+        "scan": 1,
+        "workers": 1
+      },
+      "sameCanvas": true,
+      "sameWorker": true,
+      "clock": {
+        "currentTime": 680.5,
+        "duration": 1420.109,
+        "volume": 1,
+        "muted": false,
+        "rate": 1,
+        "paused": true,
+        "seeking": false,
+        "ended": false,
+        "buffered": []
+      }
+    },
+    {
+      "engine": "native",
+      "switchMs": 903,
+      "counts": {
+        "open": 2,
+        "scan": 1,
+        "workers": 1
+      },
+      "sameCanvas": true,
+      "sameWorker": true,
+      "clock": {
+        "currentTime": 680.5,
+        "duration": 1420.109,
+        "volume": 1,
+        "muted": false,
+        "rate": 1,
+        "paused": true,
+        "seeking": false,
+        "ended": false,
+        "buffered": [
+          [
+            0,
+            2.836
+          ],
+          [
+            626.043,
+            628.405
+          ],
+          [
+            679.858,
+            683.433
+          ]
+        ]
+      }
+    },
+    {
+      "engine": "compat",
+      "switchMs": 1088,
+      "counts": {
+        "open": 2,
+        "scan": 1,
+        "workers": 1
+      },
+      "sameCanvas": true,
+      "sameWorker": true,
+      "clock": {
+        "currentTime": 680.5,
+        "duration": 1420.109,
+        "volume": 1,
+        "muted": false,
+        "rate": 1,
+        "paused": true,
+        "seeking": false,
+        "ended": false,
+        "buffered": []
+      }
+    }
+  ],
+  "text": "关闭\n11:20\n23:40\n播放器设置\n播放\n弹幕\n字幕\n播放列表\n字幕轨道\nSimplified Chinese · zh-Hans\n导入外挂字幕…\n时间偏移 0.0 秒\n关闭播放器设置\n已切换到兼容内核"
+}

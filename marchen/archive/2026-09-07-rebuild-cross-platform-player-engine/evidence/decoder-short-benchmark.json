@@ -1,0 +1,179 @@
+{
+  "scope": "短片纯解码，含帧复制；不含 GPU 呈现、音频和真实播放丢帧。合成 Main8/4K 与授权 Main10 内容不同，不作分辨率性能对照。线性内存不是 RSS。",
+  "samples": [
+    {
+      "sample": "main8-contract",
+      "browser": "152.0.7977.77",
+      "results": [
+        {
+          "threaded": false,
+          "threads": 1,
+          "frames": 180,
+          "medianDecodeFps": 121.3,
+          "peakLinearMemoryBytes": 30212096,
+          "firstDecodedFrameMs": null,
+          "cleanup": {
+            "unterminatedWorkers": 0,
+            "registeredThreads": 0,
+            "idleWorkers": 0
+          }
+        },
+        {
+          "threaded": true,
+          "threads": 1,
+          "frames": 180,
+          "medianDecodeFps": 117.0,
+          "peakLinearMemoryBytes": 30212096,
+          "firstDecodedFrameMs": null,
+          "cleanup": {
+            "unterminatedWorkers": 0,
+            "registeredThreads": 0,
+            "idleWorkers": 0
+          }
+        },
+        {
+          "threaded": true,
+          "threads": 2,
+          "frames": 180,
+          "medianDecodeFps": 280.4,
+          "peakLinearMemoryBytes": 43581440,
+          "firstDecodedFrameMs": null,
+          "cleanup": {
+            "unterminatedWorkers": 0,
+            "registeredThreads": 0,
+            "idleWorkers": 0
+          }
+        },
+        {
+          "threaded": true,
+          "threads": 4,
+          "frames": 180,
+          "medianDecodeFps": 596.2,
+          "peakLinearMemoryBytes": 62783488,
+          "firstDecodedFrameMs": null,
+          "cleanup": {
+            "unterminatedWorkers": 0,
+            "registeredThreads": 0,
+            "idleWorkers": 0
+          }
+        }
+      ]
+    },
+    {
+      "sample": "main10-contract",
+      "browser": "152.0.7977.77",
+      "results": [
+        {
+          "threaded": false,
+          "threads": 1,
+          "frames": 180,
+          "medianDecodeFps": 50.1,
+          "peakLinearMemoryBytes": 43581440,
+          "firstDecodedFrameMs": null,
+          "cleanup": {
+            "unterminatedWorkers": 0,
+            "registeredThreads": 0,
+            "idleWorkers": 0
+          }
+        },
+        {
+          "threaded": true,
+          "threads": 1,
+          "frames": 180,
+          "medianDecodeFps": 50.1,
+          "peakLinearMemoryBytes": 52297728,
+          "firstDecodedFrameMs": null,
+          "cleanup": {
+            "unterminatedWorkers": 0,
+            "registeredThreads": 0,
+            "idleWorkers": 0
+          }
+        },
+        {
+          "threaded": true,
+          "threads": 2,
+          "frames": 180,
+          "medianDecodeFps": 110.9,
+          "peakLinearMemoryBytes": 62783488,
+          "firstDecodedFrameMs": null,
+          "cleanup": {
+            "unterminatedWorkers": 0,
+            "registeredThreads": 0,
+            "idleWorkers": 0
+          }
+        },
+        {
+          "threaded": true,
+          "threads": 4,
+          "frames": 180,
+          "medianDecodeFps": 212.6,
+          "peakLinearMemoryBytes": 90439680,
+          "firstDecodedFrameMs": null,
+          "cleanup": {
+            "unterminatedWorkers": 0,
+            "registeredThreads": 0,
+            "idleWorkers": 0
+          }
+        }
+      ]
+    },
+    {
+      "sample": "main10-4k-contract",
+      "browser": "152.0.7977.77",
+      "results": [
+        {
+          "threaded": false,
+          "threads": 1,
+          "frames": 60,
+          "medianDecodeFps": 34.7,
+          "peakLinearMemoryBytes": 188088320,
+          "firstDecodedFrameMs": 151.86000001430511,
+          "cleanup": {
+            "unterminatedWorkers": 0,
+            "registeredThreads": 0,
+            "idleWorkers": 0
+          }
+        },
+        {
+          "threaded": true,
+          "threads": 1,
+          "frames": 60,
+          "medianDecodeFps": 33.5,
+          "peakLinearMemoryBytes": 192020480,
+          "firstDecodedFrameMs": 104.76499998569489,
+          "cleanup": {
+            "unterminatedWorkers": 0,
+            "registeredThreads": 0,
+            "idleWorkers": 0
+          }
+        },
+        {
+          "threaded": true,
+          "threads": 2,
+          "frames": 60,
+          "medianDecodeFps": 103.9,
+          "peakLinearMemoryBytes": 254803968,
+          "firstDecodedFrameMs": 81.9099999666214,
+          "cleanup": {
+            "unterminatedWorkers": 0,
+            "registeredThreads": 0,
+            "idleWorkers": 0
+          }
+        },
+        {
+          "threaded": true,
+          "threads": 4,
+          "frames": 60,
+          "medianDecodeFps": 137.0,
+          "peakLinearMemoryBytes": 324403200,
+          "firstDecodedFrameMs": 83.60000002384186,
+          "cleanup": {
+            "unterminatedWorkers": 0,
+            "registeredThreads": 0,
+            "idleWorkers": 0
+          }
+        }
+      ]
+    }
+  ]
+}

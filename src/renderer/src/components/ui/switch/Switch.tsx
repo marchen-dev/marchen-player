@@ -7,9 +7,11 @@ import * as React from 'react'
 const Switch = ({
   ref,
   className,
+  thumbClassName,
   ...props
 }: React.ComponentPropsWithoutRef<typeof SwitchPrimitives.Root> & {
   ref?: React.RefObject<React.ElementRef<typeof SwitchPrimitives.Root>>
+  thumbClassName?: string
 }) => (
   <SwitchPrimitives.Root
     className={cn(
@@ -22,6 +24,7 @@ const Switch = ({
     <SwitchPrimitives.Thumb
       className={cn(
         'bg-background pointer-events-none block size-5 rounded-full shadow-lg ring-0 transition-transform data-[state=checked]:translate-x-5 data-[state=unchecked]:translate-x-0',
+        thumbClassName,
       )}
     />
   </SwitchPrimitives.Root>

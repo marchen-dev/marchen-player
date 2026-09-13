@@ -1,22 +1,35 @@
 import fs from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
-
 import tailwindcss from '@tailwindcss/vite'
+
 import react from '@vitejs/plugin-react'
-import { defineConfig } from 'vite'
+import { defineConfig, loadEnv } from 'vite'
 import { viteStaticCopy } from 'vite-plugin-static-copy'
+import { mediaIsolationPlugin } from './src/main/build/media-isolation'
+import { createSentryBuildPlugin } from './src/main/build/sentry-vite'
+import {
+  createTelemetryDefine,
+  resolveTelemetryBuildMetadata,
+} from './src/main/build/telemetry-metadata'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const packageJson = JSON.parse(fs.readFileSync(join(__dirname, 'package.json'), 'utf-8'))
 
 const ROOT = './src/renderer'
 
-const vite = () =>
-  defineConfig({
+const vite = ({ mode }: { mode: string }) => {
+  const env = loadEnv(mode, __dirname, '')
+  const apiProxyOrigin = new URL(env.VITE_API_URL).origin
+  const telemetryDefine = createTelemetryDefine(
+    resolveTelemetryBuildMetadata({ target: 'web', version: packageJson.version, mode }),
+  )
+
+  return defineConfig({
     build: {
       outDir: resolve(__dirname, 'out/web'),
       target: 'esnext',
+      sourcemap: 'hidden',
       rollupOptions: {
         input: {
           main: resolve(ROOT, '/index.html'),
@@ -25,20 +38,47 @@ const vite = () =>
     },
     root: ROOT,
     envDir: resolve(__dirname, '.'),
+    optimizeDeps: {
+      include: ['mediabunny', '@mediabunny/ac3', '@mediabunny/dts', '@soundtouchjs/audio-worklet'],
+    },
     resolve: {
       alias: {
         '@pkg': resolve('./package.json'),
         '@renderer': resolve('src/renderer/src'),
         '@marchen/electron-ipc': resolve('packages/electron-ipc/src'),
+        '@marchen/danmaku-engine': resolve('packages/danmaku-engine/src'),
         '@marchen/shared': resolve('packages/shared/src'),
       },
     },
     base: '/',
     server: {
+      headers: {
+        'Cross-Origin-Opener-Policy': 'same-origin',
+        'Cross-Origin-Embedder-Policy': 'credentialless',
+      },
       port: 1106,
       host: true,
+      proxy: {
+        '/api/v2': {
+          target: apiProxyOrigin,
+          changeOrigin: true,
+        },
+      },
+    },
+    preview: {
+      headers: {
+        'Cross-Origin-Opener-Policy': 'same-origin',
+        'Cross-Origin-Embedder-Policy': 'credentialless',
+      },
+      proxy: {
+        '/api/v2': {
+          target: apiProxyOrigin,
+          changeOrigin: true,
+        },
+      },
     },
     plugins: [
+      mediaIsolationPlugin(),
       tailwindcss(),
       react(),
       viteStaticCopy({
@@ -46,13 +86,28 @@ const vite = () =>
           {
             src: '../../node_modules/@jellyfin/libass-wasm/dist/js/subtitles-octopus-worker.wasm',
             dest: 'assets',
+            rename: { stripBase: true },
           },
         ],
+      }),
+      createSentryBuildPlugin({
+        metadata: resolveTelemetryBuildMetadata({
+          target: 'web',
+          version: packageJson.version,
+          mode,
+        }),
+        authToken: env.SENTRY_AUTH_TOKEN,
+        org: env.SENTRY_ORG,
+        project: env.SENTRY_PROJECT,
+        assets: 'out/web/**/*.{js,mjs,cjs,map}',
+        mapsToDelete: 'out/web/**/*.map',
       }),
     ],
 
     define: {
       APP_NAME: JSON.stringify(packageJson.name),
+      ...telemetryDefine,
     },
   })
+}
 export default vite

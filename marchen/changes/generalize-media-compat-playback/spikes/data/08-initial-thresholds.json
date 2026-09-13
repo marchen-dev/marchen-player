@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "keyframes": {
+    "metadataPreferredDeadlineMs": 2000,
+    "coldTotalDeadlineMs": 8000,
+    "desiredSegmentSeconds": { "copyVideo": 6, "transcodeVideo": 2 },
+    "metadataMaximumGapSeconds": 12,
+    "degradedGapSeconds": 12,
+    "unsupportedDynamicCopyGapSeconds": 30
+  },
+  "readiness": {
+    "jobToFirstSegmentTargetMs": 1000,
+    "jobToFirstSegmentHardMs": 3000,
+    "segmentToFirstFrameTargetMs": 1500,
+    "segmentToFirstFrameHardMs": 5000,
+    "warmPrepareToFirstFrameTargetMs": 3000,
+    "warmPrepareToFirstFrameHardMs": 8000,
+    "segmentWaiterHardMs": 10000
+  },
+  "seek": {
+    "recoveryTargetMs": 1500,
+    "recoveryHardMs": 5000
+  },
+  "job": {
+    "aheadResumeSeconds": 20,
+    "aheadPauseSeconds": 60,
+    "aheadHardStopSeconds": 90,
+    "idleStopSeconds": 60,
+    "futureBackWindowSeconds": 120
+  }
+}

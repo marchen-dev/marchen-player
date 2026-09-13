@@ -1,11 +1,11 @@
 /**
  * DanmakuAPI adapter：调用 dandanplay API
  *
- * 实现 @marchen/player-core 的 DanmakuAPI 接口，
+ * 实现 @marchen/player-loading 的 DanmakuAPI 接口，
  * 内部使用项目已有的 apiClient 发起请求。
  */
 
-import type { CommentsData, DanmakuAPI, MatchResult } from '@marchen/player-core'
+import type { CommentsData, DanmakuAPI, MatchResult } from '@marchen/player-loading'
 import { apiClient } from '@renderer/request'
 
 export class DandanplayAPI implements DanmakuAPI {

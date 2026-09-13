@@ -1,0 +1,58 @@
+{
+  "body": "关闭\n11:19\n23:40\n播放器设置\n播放\n弹幕\n字幕\n播放列表\n字幕轨道\nSimplified Chinese · zh-Hans\n导入外挂字幕…\n时间偏移 0.0 秒\n关闭播放器设置",
+  "state": {
+    "workers": [
+      {
+        "url": "http://localhost:5173/src/services/media/compat/decoder.worker.ts?worker_file&type=module",
+        "errors": []
+      },
+      {
+        "url": "/@fs/[PROJECT]/node_modules/.pnpm/@jellyfin+libass-wasm@4.2.4/node_modules/@jellyfin/libass-wasm/dist/js/subtitles-octopus-worker.js",
+        "errors": []
+      },
+      {
+        "url": "http://localhost:5173/src/services/media/compat/decoder.worker.ts?worker_file&type=module",
+        "errors": []
+      },
+      {
+        "url": "/@fs/[PROJECT]/node_modules/.pnpm/@jellyfin+libass-wasm@4.2.4/node_modules/@jellyfin/libass-wasm/dist/js/subtitles-octopus-worker.js",
+        "errors": []
+      }
+    ],
+    "state": {
+      "status": "paused",
+      "source": {
+        "engine": "compat",
+        "resourceId": "c88a5f5f-8b22-4ee8-8f85-bcba3ad54ef9",
+        "id": "74d394ecf6a1603ad0caabe4a837d147:electron-file",
+        "title": "[New Fyy Raws] Bang Dream Ave Mujica - 06 [IEM 2160p WEB-DL AAC Multi-Subs].mkv",
+        "startTime": 739.590654,
+        "autoplay": true
+      },
+      "duration": 1420.109,
+      "currentTime": 679,
+      "rate": 1
+    },
+    "presentation": {
+      "engine": "compat",
+      "backend": "webcodecs",
+      "firstFrame": true,
+      "buffering": false,
+      "width": 3840,
+      "height": 2160,
+      "videoCodec": "hevc",
+      "decodeThreads": 0,
+      "audioOutputChannels": 2,
+      "videoQueuePeak": 1,
+      "audioAheadPeak": 0.4999292562389428,
+      "decodeFps": 0,
+      "colorOutput": "browser-managed",
+      "presenter": "video",
+      "submittedFrames": 452,
+      "renderedFrames": 452,
+      "sourceTransfer": "bt709",
+      "sourcePrimaries": "bt709",
+      "videoFrameRate": 23.976023976023978
+    }
+  }
+}

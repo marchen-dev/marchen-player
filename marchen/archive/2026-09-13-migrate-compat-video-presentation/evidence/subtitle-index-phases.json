@@ -1,0 +1,59 @@
+[
+  {
+    "name": "metadata",
+    "ms": 34.66499999910593,
+    "requests": 1,
+    "bytes": 1048576,
+    "ioMs": 33.235000000335276,
+    "result": [
+      {
+        "number": 3,
+        "title": "Simplified Chinese"
+      },
+      {
+        "number": 4,
+        "title": "Traditional Chinese"
+      },
+      {
+        "number": 5,
+        "title": "English"
+      },
+      {
+        "number": 6,
+        "title": "Spanish (Latin America)"
+      }
+    ]
+  },
+  {
+    "name": "cues",
+    "ms": 1897.375,
+    "requests": 719,
+    "bytes": 848489,
+    "ioMs": 13372.064999992028,
+    "result": {
+      "count": 405,
+      "textBytes": 21940
+    }
+  },
+  {
+    "name": "fonts",
+    "ms": 3209.8300000000745,
+    "requests": 854,
+    "bytes": 4021775,
+    "ioMs": 3163.210000003688,
+    "result": {
+      "bytes": 3949800,
+      "count": 11
+    }
+  },
+  {
+    "name": "resolveTotal",
+    "ms": 4047.7949999999255,
+    "requests": 1574,
+    "bytes": 5918840,
+    "ioMs": 19041.69499998167,
+    "result": {
+      "assLength": 25350
+    }
+  }
+]

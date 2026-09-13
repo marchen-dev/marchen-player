@@ -1,0 +1,69 @@
+{
+  "title": "弹幕碰撞与生命周期强化验收",
+  "plan": [
+    {
+      "id": "dense-zero-collision",
+      "name": "高密度混排无重叠"
+    },
+    {
+      "id": "hover-lifecycle",
+      "name": "悬停暂停与恢复同步"
+    },
+    {
+      "id": "layout-changes",
+      "name": "倍速、控制器和窗口变化"
+    }
+  ],
+  "cases": [
+    {
+      "id": "dense-zero-collision",
+      "name": "高密度混排无重叠",
+      "status": "passed",
+      "observation": "1200 条长短文本、不同字号及滚动/顶部/底部混排样本在 Web 窗口态运行；403 次可见 DOM 矩形采样记录 0 次非法相交，可见与核心峰值均为 8，安全丢弃 1192，Long Task 为 0。",
+      "evidence": [
+        {
+          "path": "assets/web-dense-zero-collision.jpg",
+          "type": "image",
+          "text": "1x 高密度弹幕与实时零相交诊断"
+        }
+      ]
+    },
+    {
+      "id": "hover-lifecycle",
+      "name": "悬停暂停与恢复同步",
+      "status": "passed",
+      "observation": "对在屏滚动弹幕触发 hover 后，核心运动进度在 0.5 秒悬停期内增量为 0.000 秒，恢复后 0.4 秒内增量为 0.400 秒；591 次累计矩形采样保持 0 次非法相交。",
+      "evidence": [
+        {
+          "path": "assets/web-hover-lifecycle.jpg",
+          "type": "image",
+          "text": "hover 暂停与恢复的运动进度诊断"
+        }
+      ]
+    },
+    {
+      "id": "layout-changes",
+      "name": "倍速、控制器和窗口变化",
+      "status": "passed",
+      "observation": "播放中切换 2x、把控制器从底部移至顶部，并将验收画面从 960px 缩至 720px；resize 原子清除旧布局节点，542 次累计采样保持 0 次非法相交，Long Task 为 0。",
+      "evidence": [
+        {
+          "path": "assets/web-rate-controller-resize.jpg",
+          "type": "image",
+          "text": "2x、顶部控制器与 720px 窗口重建结果"
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "verdict": "passed",
+    "conclusion": "统一活动占用、真实 DOM 尺寸和动画生命周期同步已在 Web 窗口态证明零非法相交；密度峰值由旧验收的 32 收敛到 8，属于无重叠优先的明确取舍，等待维护者签核。"
+  },
+  "commit": "working-tree@173e45a69f4b1cd75f08829fe46cf675ac8f46d3",
+  "surfaces": [
+    "Web 桌面窗口态 DOM 弹幕",
+    "滚动、顶部与底部混排",
+    "hover 单条暂停与恢复",
+    "2x 倍速、控制器移动与 960px→720px resize"
+  ]
+}

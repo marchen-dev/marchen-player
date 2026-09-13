@@ -2,9 +2,8 @@ import type { useAppSettingsValue } from '@renderer/atoms/settings/app'
 import { updateProgressAtom } from '@renderer/atoms/progress'
 import { appSettingAtom } from '@renderer/atoms/settings/app'
 import { jotaiStore } from '@renderer/atoms/store'
-import { WindowState, windowStateAtom } from '@renderer/atoms/window'
+import { windowFullscreenAtom, WindowState, windowStateAtom } from '@renderer/atoms/window'
 import { useSettingModal } from '@renderer/components/modules/settings/hooks'
-import { settingTabs } from '@renderer/components/modules/settings/tabs'
 import { toast } from '@renderer/components/ui/toast/use-toast'
 import { handlers } from '@renderer/lib/client'
 import { getStorageNS } from '@renderer/lib/ns'
@@ -18,18 +17,12 @@ export const IpcListener = () => {
   const navigation = useNavigate()
   useEffect(() => {
     const unlisten = [
-      handlers?.showSetting.listen(() => {
+      handlers?.showSetting.listen((section) => {
         // 防止关闭窗口过程中，再次打开窗口，导致窗口无法打开
         const timeoutId = setTimeout(() => {
-          showModal()
+          showModal(section)
         }, 10)
         return () => clearTimeout(timeoutId)
-      }),
-
-      handlers?.showSetting.listen((tab) => {
-        const showTab = settingTabs.find((settingTab) => settingTab.title === tab)
-
-        return showModal({ settingTabsModel: showTab })
       }),
 
       handlers?.importAnime.listen((params) => {
@@ -67,6 +60,14 @@ export const IpcListener = () => {
       }),
       handlers?.windowAction.listen((action) => {
         switch (action) {
+          case 'enter-full-screen': {
+            jotaiStore.set(windowFullscreenAtom, true)
+            break
+          }
+          case 'leave-full-screen': {
+            jotaiStore.set(windowFullscreenAtom, false)
+            break
+          }
           case 'maximize': {
             jotaiStore.set(windowStateAtom, WindowState.MAXIMIZED)
             break

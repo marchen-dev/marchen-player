@@ -1,0 +1,57 @@
+{
+  "title": "通用视频拖拽反馈验收",
+  "plan": [
+    {
+      "id": "electron-original-empty-state",
+      "name": "播放器原版空态上的拖拽反馈"
+    },
+    {
+      "id": "shared-video-drop-overlay",
+      "name": "播放器与影视库共用拖拽提示"
+    }
+  ],
+  "cases": [
+    {
+      "id": "electron-original-empty-state",
+      "name": "播放器原版空态上的拖拽反馈",
+      "status": "passed",
+      "observation": "播放器常态继续保留原版线框播放图标和文案；文件实际拖入后才出现轻量覆盖层，没有重新引入历史、卡片或分格内容。",
+      "evidence": [
+        {
+          "path": "assets/player-drop-overlay.jpeg",
+          "type": "image",
+          "text": "Electron 播放器文件拖入状态"
+        }
+      ]
+    },
+    {
+      "id": "shared-video-drop-overlay",
+      "name": "播放器与影视库共用拖拽提示",
+      "status": "passed",
+      "observation": "影视库复用与播放器相同的细虚线边框、浅色遮罩、下载图标和释放文案；共享组件负责稳定拖入状态，页面分别处理后续导入业务。",
+      "evidence": [
+        {
+          "path": "assets/player-drop-overlay.jpeg",
+          "type": "image",
+          "text": "播放器共享拖拽提示"
+        },
+        {
+          "path": "assets/library-drop-overlay.jpeg",
+          "type": "image",
+          "text": "影视库共享拖拽提示"
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "verdict": "passed",
+    "conclusion": "原版播放器空态保持不变，播放器和影视库均已接入同一套仅在文件拖入时出现的轻量反馈，等待维护者签核。"
+  },
+  "commit": "working-tree@173e45a69f4b1cd75f08829fe46cf675ac8f46d3",
+  "surfaces": [
+    "Electron 播放器拖拽态",
+    "Electron 影视库拖拽态",
+    "共享文件拖拽组件",
+    "MP4/MKV 导入边界"
+  ]
+}

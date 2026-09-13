@@ -1,0 +1,64 @@
+{
+  "before": {
+    "subtitle": true,
+    "clock": {
+      "currentTime": 2,
+      "duration": 1495.965,
+      "volume": 1,
+      "muted": false,
+      "rate": 1,
+      "paused": true,
+      "seeking": false,
+      "ended": false,
+      "buffered": []
+    }
+  },
+  "failed": {
+    "subtitle": false,
+    "clock": {
+      "currentTime": 3.838648666666667,
+      "duration": 1495.965,
+      "volume": 1,
+      "muted": false,
+      "rate": 1,
+      "paused": false,
+      "seeking": false,
+      "ended": false,
+      "buffered": [
+        [
+          3.838648666666667,
+          4.266375
+        ]
+      ]
+    },
+    "state": "playing",
+    "root": true
+  },
+  "notice": "关闭\n0:04\n24:55\n播放器设置\n播放\n弹幕\n字幕\n播放列表\n字幕轨道\n关闭字幕\n导入外挂字幕…\n时间偏移 0.0 秒\n\n验收注入：字幕 Worker 故障，视频将继续无字幕播放。\n\n关闭播放器设置",
+  "options": [
+    "关闭字幕",
+    "[DBD-Raws][日在校园][01][1080P][BDRip][HEVC-10bit][FLAC].srt",
+    "[DBD-Raws][日在校园][01][1080P][BDRip][HEVC-10bit][FLAC].srt",
+    "[DBD-Raws][日在校园][01][1080P][BDRip][HEVC-10bit][FLAC].srt"
+  ],
+  "retry": {
+    "subtitle": true,
+    "clock": {
+      "currentTime": 6.560052666662495,
+      "duration": 1495.965,
+      "volume": 1,
+      "muted": false,
+      "rate": 1,
+      "paused": false,
+      "seeking": false,
+      "ended": false,
+      "buffered": [
+        [
+          6.560052666662495,
+          6.997041666666667
+        ]
+      ]
+    },
+    "state": "playing"
+  }
+}

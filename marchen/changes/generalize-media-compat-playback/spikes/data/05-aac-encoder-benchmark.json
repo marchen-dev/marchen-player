@@ -1,0 +1,111 @@
+{
+  "environment": {
+    "platform": "darwin-arm64",
+    "ffmpeg": "bundled-runtime",
+    "output": "aac-lc-48000-fmp4-hls",
+    "targetBitrate": 192000,
+    "windowSeconds": 60
+  },
+  "results": [
+    {
+      "sample": "flac-mono",
+      "startSeconds": 0,
+      "aacAt": {
+        "firstSegmentMs": 98.495,
+        "realSeconds": 0.15,
+        "speed": 273,
+        "channels": 1,
+        "bitRate": 191952,
+        "firstPtsSeconds": 0
+      },
+      "aac": {
+        "firstSegmentMs": 81.492,
+        "realSeconds": 0.76,
+        "speed": 40.1,
+        "channels": 1,
+        "bitRate": 145097,
+        "firstPtsSeconds": 0
+      }
+    },
+    {
+      "sample": "eac3-5.1",
+      "startSeconds": 0,
+      "aacAt": {
+        "firstSegmentMs": 61.037,
+        "realSeconds": 0.44,
+        "speed": 145,
+        "channels": 2,
+        "bitRate": 191816,
+        "firstPtsSeconds": 0
+      },
+      "aac": {
+        "firstSegmentMs": 61.637,
+        "realSeconds": 0.7,
+        "speed": 88.2,
+        "channels": 2,
+        "bitRate": 125709,
+        "firstPtsSeconds": 0
+      }
+    },
+    {
+      "sample": "eac3-5.1",
+      "startSeconds": 600,
+      "aacAt": {
+        "firstSegmentMs": 74.824,
+        "realSeconds": 0.44,
+        "speed": 143,
+        "channels": 2,
+        "bitRate": 192758,
+        "firstPtsSeconds": 0
+      },
+      "aac": {
+        "firstSegmentMs": 70.035,
+        "realSeconds": 0.6,
+        "speed": 103,
+        "channels": 2,
+        "bitRate": 194174,
+        "firstPtsSeconds": 0
+      }
+    },
+    {
+      "sample": "flac-stereo",
+      "startSeconds": 0,
+      "aacAt": {
+        "firstSegmentMs": 48.868,
+        "realSeconds": 0.41,
+        "speed": 153,
+        "channels": 2,
+        "bitRate": 194633,
+        "firstPtsSeconds": 0
+      },
+      "aac": {
+        "firstSegmentMs": 80.857,
+        "realSeconds": 0.68,
+        "speed": 89.9,
+        "channels": 2,
+        "bitRate": 189430,
+        "firstPtsSeconds": 0
+      }
+    },
+    {
+      "sample": "flac-stereo",
+      "startSeconds": 600,
+      "aacAt": {
+        "firstSegmentMs": 61.054,
+        "realSeconds": 0.45,
+        "speed": 138,
+        "channels": 2,
+        "bitRate": 191669,
+        "firstPtsSeconds": 0
+      },
+      "aac": {
+        "firstSegmentMs": 48.864,
+        "realSeconds": 0.68,
+        "speed": 89.8,
+        "channels": 2,
+        "bitRate": 192291,
+        "firstPtsSeconds": 0
+      }
+    }
+  ]
+}

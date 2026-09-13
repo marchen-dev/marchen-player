@@ -4,8 +4,8 @@ import { ipcClient } from '@renderer/lib/client'
 import { usePlayerLoadingSelector } from '@renderer/services/player-loading/hooks'
 
 export const Titlebar = () => {
-  // 播放中隐藏标题栏
-  const isPlaying = usePlayerLoadingSelector((s) => s.step === 'playing' || s.step === 'reloading')
+  // 当前视频已经准备好时隐藏普通应用标题栏
+  const isPlaying = usePlayerLoadingSelector((s) => s.step === 'ready' || s.step === 'reloading')
   const windowState = useWindowState()
 
   // Hide titlebar when playing

@@ -1,6 +1,75 @@
-@import '@suemor/xgplayer/dist/index.min.css';
-@import '@suemor/xgplayer/es/plugins/danmu/index.css';
+[data-player-root] {
+  /* 用底色保证复杂视频画面上的可读性，背景模糊仅作为材质增强。 */
+  --player-surface: rgb(43 43 51 / 86%);
+  --player-surface-solid: rgb(25 31 37 / 96%);
+  --player-fg: rgb(245 248 250 / 96%);
+  --player-fg-muted: rgb(220 230 236 / 72%);
+  --player-border: rgb(255 255 255 / 16%);
+  --player-shadow: 0 18px 60px rgb(0 0 0 / 36%), 0 2px 10px rgb(0 0 0 / 24%);
+  --player-focus: #8dd7ff;
+  --player-track: rgb(255 255 255 / 16%);
+  --player-buffered: rgb(255 255 255 / 30%);
+  --player-progress: rgb(238 246 250 / 92%);
+  /* 播放器设置始终使用同一套 IINA 风格材质，不跟随应用 light/dark 主题。 */
+  --player-settings-panel: rgb(30 30 35 / 82%);
+  --player-settings-raised: rgb(255 255 255 / 8%);
+  --player-settings-selected: rgb(255 255 255 / 14%);
+  --player-settings-border: rgb(255 255 255 / 11%);
+  --player-settings-fg: rgb(255 255 255 / 94%);
+  --player-settings-muted: rgb(255 255 255 / 58%);
+  --player-settings-accent: #0a84ff;
+  --player-settings-focus: #64b5ff;
+  --player-settings-width: clamp(380px, 28vw, 440px);
+}
 
-.xgplayer {
-  cursor: default;
+@supports not (backdrop-filter: blur(1px)) {
+  [data-player-floating-controller],
+  [data-player-mobile-dock] > div {
+    background: var(--player-surface-solid);
+  }
+
+  [data-player-settings-panel] {
+    background: rgb(30 30 35);
+    backdrop-filter: none;
+  }
+}
+
+/* 播放器 ready 后由 fixed PlayerShell 接管窗口，普通应用框架不再占用画面。 */
+.root-layout:has([data-player-active]) {
+  display: block;
+  background: #000;
+}
+
+.root-layout:has([data-player-active]) > .app-header,
+.root-layout:has([data-player-active]) > .sidebar {
+  display: none;
+}
+
+.root-layout:has([data-player-active]) > main {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+}
+
+[data-player-portal-root] > * {
+  pointer-events: auto;
+}
+
+[data-player-settings-panel] > button[aria-label],
+[data-player-settings-panel] > button:has(.sr-only) {
+  color: var(--player-settings-muted);
+  background: rgb(255 255 255 / 6%);
+  border-radius: 0.5rem;
+}
+
+[data-player-settings-panel] > button:hover {
+  color: var(--player-settings-fg);
+  background: var(--player-settings-selected);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-player-settings-panel] {
+    animation: none;
+    transition: none;
+  }
 }

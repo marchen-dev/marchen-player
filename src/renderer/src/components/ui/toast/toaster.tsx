@@ -15,7 +15,7 @@ import { useToast } from './use-toast'
 
 export function Toaster() {
   const { toasts } = useToast()
-  const isPlaying = usePlayerLoadingSelector((s) => s.step === 'playing' || s.step === 'reloading')
+  const isPlaying = usePlayerLoadingSelector((s) => s.step === 'ready' || s.step === 'reloading')
   return (
     <ToastProvider>
       {toasts.map(({ id, title, description, action, ...props }) => (

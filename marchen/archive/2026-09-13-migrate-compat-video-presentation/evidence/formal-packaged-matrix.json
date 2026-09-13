@@ -1,0 +1,429 @@
+[
+  {
+    "case": "HEVC-PQ-hardware",
+    "data": {
+      "state": {
+        "status": "paused",
+        "source": {
+          "engine": "compat",
+          "resourceId": "40b2e148-fccd-4950-8554-ffdb5c841f0a",
+          "id": "37f9f5e13d171181eeda762c680ab9b7:electron-file",
+          "title": "Arcane.2021.S01E02.1080p.NF.WEB-DL.H265.10bit.HDR.DDP5.1-YingWEB.mkv",
+          "startTime": 0,
+          "autoplay": true
+        },
+        "duration": 2431.136,
+        "currentTime": 53.60032966666905,
+        "rate": 1
+      },
+      "clock": {
+        "currentTime": 53.60032966666905,
+        "duration": 2431.136,
+        "volume": 1,
+        "muted": false,
+        "rate": 1,
+        "paused": true,
+        "seeking": false,
+        "ended": false,
+        "buffered": [
+          [
+            53.60032966666905,
+            54.08
+          ]
+        ]
+      },
+      "presentation": {
+        "engine": "compat",
+        "backend": "webcodecs",
+        "firstFrame": true,
+        "buffering": false,
+        "width": 1920,
+        "height": 1080,
+        "videoCodec": "hevc",
+        "decodeThreads": 0,
+        "audioOutputChannels": 2,
+        "videoQueuePeak": 1,
+        "audioAheadPeak": 0.499895666655342,
+        "droppedFrames": 15,
+        "decodeFps": 0,
+        "colorOutput": "browser-managed",
+        "presenter": "video",
+        "submittedFrames": 1272,
+        "renderedFrames": 1272,
+        "sourceTransfer": "pq",
+        "sourcePrimaries": "bt2020",
+        "videoFrameRate": 24
+      },
+      "video": {
+        "paused": false,
+        "ready": 4,
+        "width": 1920,
+        "height": 1080
+      },
+      "output": {
+        "format": null,
+        "color": {
+          "fullRange": false,
+          "matrix": "bt2020-ncl",
+          "primaries": "bt2020",
+          "transfer": "pq"
+        }
+      }
+    }
+  },
+  {
+    "case": "HEVC-PQ-WASM",
+    "data": {
+      "state": {
+        "status": "playing",
+        "source": {
+          "engine": "compat",
+          "resourceId": "40b2e148-fccd-4950-8554-ffdb5c841f0a",
+          "id": "37f9f5e13d171181eeda762c680ab9b7:electron-file",
+          "title": "Arcane.2021.S01E02.1080p.NF.WEB-DL.H265.10bit.HDR.DDP5.1-YingWEB.mkv",
+          "startTime": 0,
+          "autoplay": true
+        },
+        "duration": 2431.136,
+        "currentTime": 55.693948333343464,
+        "rate": 1
+      },
+      "clock": {
+        "currentTime": 55.90189533332737,
+        "duration": 2431.136,
+        "volume": 1,
+        "muted": false,
+        "rate": 1,
+        "paused": false,
+        "seeking": false,
+        "ended": false,
+        "buffered": [
+          [
+            55.90189533332737,
+            56.224
+          ]
+        ]
+      },
+      "presentation": {
+        "engine": "compat",
+        "backend": "hevc-wasm",
+        "firstFrame": true,
+        "buffering": false,
+        "width": 1920,
+        "height": 1080,
+        "videoCodec": "hevc",
+        "decodeThreads": 4,
+        "audioOutputChannels": 2,
+        "linearMemoryBytes": 90439680,
+        "peakLinearMemoryBytes": 90439680,
+        "decoderWorkerCount": 5,
+        "videoQueuePeak": 1,
+        "audioAheadPeak": 0.499499999998811,
+        "droppedFrames": 2,
+        "decodeFps": 16.957436833457056,
+        "colorOutput": "browser-managed",
+        "presenter": "video",
+        "submittedFrames": 1319,
+        "renderedFrames": 1319,
+        "sourceTransfer": "pq",
+        "sourcePrimaries": "bt2020",
+        "videoFrameRate": 24
+      },
+      "video": {
+        "paused": false,
+        "ready": 4,
+        "width": 1920,
+        "height": 1080
+      },
+      "output": {
+        "format": null,
+        "color": {
+          "fullRange": false,
+          "matrix": "bt2020-ncl",
+          "primaries": "bt2020",
+          "transfer": "pq"
+        }
+      }
+    }
+  },
+  {
+    "case": "WASM-paused",
+    "data": {
+      "state": {
+        "status": "paused",
+        "source": {
+          "engine": "compat",
+          "resourceId": "40b2e148-fccd-4950-8554-ffdb5c841f0a",
+          "id": "37f9f5e13d171181eeda762c680ab9b7:electron-file",
+          "title": "Arcane.2021.S01E02.1080p.NF.WEB-DL.H265.10bit.HDR.DDP5.1-YingWEB.mkv",
+          "startTime": 0,
+          "autoplay": true
+        },
+        "duration": 2431.136,
+        "currentTime": 55.91435900000596,
+        "rate": 1
+      },
+      "clock": {
+        "currentTime": 55.91435900000596,
+        "duration": 2431.136,
+        "volume": 1,
+        "muted": false,
+        "rate": 1,
+        "paused": true,
+        "seeking": false,
+        "ended": false,
+        "buffered": [
+          [
+            55.91435900000596,
+            56.288
+          ]
+        ]
+      },
+      "presentation": {
+        "engine": "compat",
+        "backend": "hevc-wasm",
+        "firstFrame": true,
+        "buffering": false,
+        "width": 1920,
+        "height": 1080,
+        "videoCodec": "hevc",
+        "decodeThreads": 4,
+        "audioOutputChannels": 2,
+        "linearMemoryBytes": 90439680,
+        "peakLinearMemoryBytes": 90439680,
+        "decoderWorkerCount": 5,
+        "videoQueuePeak": 1,
+        "audioAheadPeak": 0.499499999998811,
+        "droppedFrames": 3,
+        "decodeFps": 3.2034212538823437,
+        "colorOutput": "browser-managed",
+        "presenter": "video",
+        "submittedFrames": 1319,
+        "renderedFrames": 1319,
+        "sourceTransfer": "pq",
+        "sourcePrimaries": "bt2020",
+        "videoFrameRate": 24
+      },
+      "video": {
+        "paused": false,
+        "ready": 4,
+        "width": 1920,
+        "height": 1080
+      },
+      "output": {
+        "format": null,
+        "color": {
+          "fullRange": false,
+          "matrix": "bt2020-ncl",
+          "primaries": "bt2020",
+          "transfer": "pq"
+        }
+      }
+    }
+  },
+  {
+    "case": "AV1-PQ",
+    "data": {
+      "state": {
+        "status": "playing",
+        "source": {
+          "engine": "compat",
+          "resourceId": "99838c37-84a1-4b21-95c6-57243f4d56bc",
+          "id": "a85aa0ef747a91322183528ac23d01bb:electron-file",
+          "title": "marchen-av1-pq.mkv",
+          "startTime": 0,
+          "autoplay": true
+        },
+        "duration": 158.601,
+        "currentTime": 1.6002426666613023,
+        "rate": 1
+      },
+      "clock": {
+        "currentTime": 1.7418476666654745,
+        "duration": 158.601,
+        "volume": 1,
+        "muted": false,
+        "rate": 1,
+        "paused": false,
+        "seeking": false,
+        "ended": false,
+        "buffered": [
+          [
+            1.7418476666654745,
+            2.2135
+          ]
+        ]
+      },
+      "presentation": {
+        "engine": "compat",
+        "backend": "webcodecs",
+        "firstFrame": true,
+        "buffering": false,
+        "width": 1920,
+        "height": 1080,
+        "videoCodec": "av1",
+        "decodeThreads": 0,
+        "audioOutputChannels": 2,
+        "videoQueuePeak": 1,
+        "audioAheadPeak": 0.49977733333989005,
+        "decodeFps": 47.99385678589658,
+        "colorOutput": "browser-managed",
+        "presenter": "video",
+        "submittedFrames": 104,
+        "renderedFrames": 103,
+        "sourceTransfer": "pq",
+        "sourcePrimaries": "bt2020",
+        "videoFrameRate": 59.94005994005994
+      },
+      "video": {
+        "paused": false,
+        "ready": 4,
+        "width": 1920,
+        "height": 1080
+      },
+      "output": {
+        "format": null,
+        "color": {
+          "fullRange": false,
+          "matrix": "bt2020-ncl",
+          "primaries": "bt2020",
+          "transfer": "pq"
+        }
+      }
+    }
+  },
+  {
+    "case": "HEVC-SDR10",
+    "data": {
+      "state": {
+        "status": "playing",
+        "source": {
+          "engine": "compat",
+          "resourceId": "ee0bedcd-50b4-43d8-9a46-8e703f1d0dba",
+          "id": "4d113e717c9f1d6dc31e2ddcc6e94555:electron-file",
+          "title": "[Studio GreenTea] Kimi ga Shinu made Koi wo Shitai [05][WebRip][HEVC-10bit 1080p AAC][JPSC].mp4",
+          "startTime": 0,
+          "autoplay": true
+        },
+        "duration": 1420.0619274376418,
+        "currentTime": 1.55506100000298,
+        "rate": 1
+      },
+      "clock": {
+        "currentTime": 1.7337399999952317,
+        "duration": 1420.0619274376418,
+        "volume": 1,
+        "muted": false,
+        "rate": 1,
+        "paused": false,
+        "seeking": false,
+        "ended": false,
+        "buffered": [
+          [
+            1.7337399999952317,
+            2.2058956916099772
+          ]
+        ]
+      },
+      "presentation": {
+        "engine": "compat",
+        "backend": "webcodecs",
+        "firstFrame": true,
+        "buffering": false,
+        "width": 1920,
+        "height": 1080,
+        "videoCodec": "hevc",
+        "decodeThreads": 0,
+        "audioOutputChannels": 2,
+        "videoQueuePeak": 1,
+        "audioAheadPeak": 0.49918361224072594,
+        "decodeFps": 19.97124141241374,
+        "colorOutput": "browser-managed",
+        "presenter": "video",
+        "submittedFrames": 42,
+        "renderedFrames": 41,
+        "sourceTransfer": "bt709",
+        "sourcePrimaries": "bt709",
+        "videoFrameRate": 23.976023976023978
+      },
+      "video": {
+        "paused": false,
+        "ready": 4,
+        "width": 1920,
+        "height": 1080
+      },
+      "output": {
+        "format": null,
+        "color": {
+          "fullRange": false,
+          "matrix": "bt709",
+          "primaries": "bt709",
+          "transfer": "bt709"
+        }
+      }
+    }
+  },
+  {
+    "case": "SDR8-noaudio-SAR2",
+    "data": {
+      "state": {
+        "status": "ended",
+        "source": {
+          "engine": "compat",
+          "resourceId": "c7cf0c71-0c53-4f6d-ad4d-e3a146c3b5c4",
+          "id": "99477a38833eb8578341a5f363b87e87:electron-file",
+          "title": "marchen-noaudio.mp4",
+          "startTime": 0,
+          "autoplay": true
+        },
+        "duration": 4,
+        "rate": 1
+      },
+      "clock": {
+        "currentTime": 4,
+        "duration": 4,
+        "volume": 1,
+        "muted": false,
+        "rate": 1,
+        "paused": true,
+        "seeking": false,
+        "ended": true,
+        "buffered": []
+      },
+      "presentation": {
+        "engine": "compat",
+        "backend": "webcodecs",
+        "firstFrame": true,
+        "buffering": false,
+        "width": 640,
+        "height": 180,
+        "videoCodec": "avc",
+        "decodeThreads": 0,
+        "audioOutputChannels": 0,
+        "videoQueuePeak": 1,
+        "droppedFrames": 4,
+        "decodeFps": 0,
+        "colorOutput": "browser-managed",
+        "presenter": "video",
+        "submittedFrames": 116,
+        "renderedFrames": 116,
+        "videoFrameRate": 30
+      },
+      "video": {
+        "paused": false,
+        "ready": 4,
+        "width": 640,
+        "height": 180
+      },
+      "output": {
+        "format": "NV12",
+        "color": {
+          "fullRange": false,
+          "matrix": "bt709",
+          "primaries": "bt709",
+          "transfer": "bt709"
+        }
+      }
+    }
+  }
+]

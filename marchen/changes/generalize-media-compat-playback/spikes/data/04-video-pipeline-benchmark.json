@@ -1,0 +1,132 @@
+{
+  "environment": {
+    "platform": "darwin-arm64",
+    "ffmpeg": "bundled-runtime",
+    "input": "hevc-main10-1080p",
+    "output": "h264-yuv420p-fmp4-hls",
+    "windowSeconds": 30,
+    "segmentSeconds": 2
+  },
+  "results": [
+    {
+      "sample": "hdr-eac3",
+      "startSeconds": 0,
+      "profile": "software-decode-videotoolbox-encode",
+      "firstSegmentMs": 524.103,
+      "realSeconds": 3.43,
+      "cpuPercent": 207.58,
+      "maximumResidentSetBytes": 287457280,
+      "speed": 8.96
+    },
+    {
+      "sample": "hdr-eac3",
+      "startSeconds": 0,
+      "profile": "software-decode-libx264-encode",
+      "firstSegmentMs": 253.986,
+      "realSeconds": 2.99,
+      "cpuPercent": 736.12,
+      "maximumResidentSetBytes": 683540480,
+      "speed": 10.1
+    },
+    {
+      "sample": "hdr-eac3",
+      "startSeconds": 0,
+      "profile": "videotoolbox-decode-videotoolbox-encode",
+      "firstSegmentMs": 438.423,
+      "realSeconds": 3.56,
+      "cpuPercent": 113.2,
+      "maximumResidentSetBytes": 436207616,
+      "speed": 8.5
+    },
+    {
+      "sample": "hdr-eac3",
+      "startSeconds": 1200,
+      "profile": "software-decode-videotoolbox-encode",
+      "firstSegmentMs": 569.721,
+      "realSeconds": 3.47,
+      "cpuPercent": 222.48,
+      "maximumResidentSetBytes": 285671424,
+      "speed": 8.71
+    },
+    {
+      "sample": "hdr-eac3",
+      "startSeconds": 1200,
+      "profile": "software-decode-libx264-encode",
+      "firstSegmentMs": 564.179,
+      "realSeconds": 3.33,
+      "cpuPercent": 709.01,
+      "maximumResidentSetBytes": 683769856,
+      "speed": 9.11
+    },
+    {
+      "sample": "hdr-eac3",
+      "startSeconds": 1200,
+      "profile": "videotoolbox-decode-videotoolbox-encode",
+      "firstSegmentMs": 480.929,
+      "realSeconds": 3.64,
+      "cpuPercent": 118.41,
+      "maximumResidentSetBytes": 465846272,
+      "speed": 8.28
+    },
+    {
+      "sample": "sdr-flac",
+      "startSeconds": 0,
+      "profile": "software-decode-videotoolbox-encode",
+      "firstSegmentMs": 443.847,
+      "realSeconds": 3.37,
+      "cpuPercent": 244.21,
+      "maximumResidentSetBytes": 292962304,
+      "speed": 9.06
+    },
+    {
+      "sample": "sdr-flac",
+      "startSeconds": 0,
+      "profile": "software-decode-libx264-encode",
+      "firstSegmentMs": 496.134,
+      "realSeconds": 4.33,
+      "cpuPercent": 745.96,
+      "maximumResidentSetBytes": 686653440,
+      "speed": 6.99
+    },
+    {
+      "sample": "sdr-flac",
+      "startSeconds": 0,
+      "profile": "videotoolbox-decode-videotoolbox-encode",
+      "firstSegmentMs": 417.987,
+      "realSeconds": 3.66,
+      "cpuPercent": 115.03,
+      "maximumResidentSetBytes": 466534400,
+      "speed": 8.26
+    },
+    {
+      "sample": "sdr-flac",
+      "startSeconds": 700,
+      "profile": "software-decode-videotoolbox-encode",
+      "firstSegmentMs": 658.922,
+      "realSeconds": 3.58,
+      "cpuPercent": 217.6,
+      "maximumResidentSetBytes": 283131904,
+      "speed": 8.45
+    },
+    {
+      "sample": "sdr-flac",
+      "startSeconds": 700,
+      "profile": "software-decode-libx264-encode",
+      "firstSegmentMs": 657.72,
+      "realSeconds": 3.36,
+      "cpuPercent": 734.82,
+      "maximumResidentSetBytes": 647184384,
+      "speed": 8.99
+    },
+    {
+      "sample": "sdr-flac",
+      "startSeconds": 700,
+      "profile": "videotoolbox-decode-videotoolbox-encode",
+      "firstSegmentMs": 614.905,
+      "realSeconds": 3.8,
+      "cpuPercent": 111.05,
+      "maximumResidentSetBytes": 450887680,
+      "speed": 7.95
+    }
+  ]
+}

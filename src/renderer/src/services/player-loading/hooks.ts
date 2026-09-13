@@ -5,7 +5,7 @@
  * 支持 selector 选择性订阅，避免不必要的重渲染。
  */
 
-import type { LoadingState } from '@marchen/player-core'
+import type { LoadingState } from '@marchen/player-loading'
 import { useEffect, useRef, useState } from 'react'
 
 import { getPlayerLoadingService } from './index'
@@ -32,7 +32,7 @@ export function usePlayerLoadingState(): LoadingState {
  *
  * @example
  * const step = usePlayerLoadingSelector(s => s.step)
- * const danmaku = usePlayerLoadingSelector(s => s.step === 'playing' ? s.danmaku : null)
+ * const danmaku = usePlayerLoadingSelector(s => s.step === 'ready' ? s.danmaku : null)
  */
 export function usePlayerLoadingSelector<T>(
   selector: (state: LoadingState) => T,

@@ -1,0 +1,169 @@
+{
+  "tailStart": {
+    "state": {
+      "status": "playing",
+      "source": {
+        "engine": "compat",
+        "resourceId": "4fa365d6-5f2c-45e5-b5df-683f396b1403",
+        "id": "07a5bf18ca6a024c2fafb88819926083:electron-file",
+        "title": "marchen-audio-tail.mp4",
+        "startTime": 0,
+        "autoplay": true
+      },
+      "duration": 5,
+      "currentTime": 2.0895683333333337,
+      "rate": 1
+    },
+    "clock": {
+      "currentTime": 2.1609046666714353,
+      "duration": 5,
+      "volume": 1,
+      "muted": false,
+      "rate": 1,
+      "paused": false,
+      "seeking": false,
+      "ended": false,
+      "buffered": [
+        [
+          2.1609046666714353,
+          2.6453333333333333
+        ]
+      ]
+    },
+    "presentation": {
+      "engine": "compat",
+      "backend": "webcodecs",
+      "firstFrame": true,
+      "buffering": false,
+      "width": 320,
+      "height": 180,
+      "videoCodec": "avc",
+      "decodeThreads": 0,
+      "audioOutputChannels": 2,
+      "videoQueuePeak": 1,
+      "audioAheadPeak": 0.4987443333297571,
+      "decodeFps": 20.002560327903193,
+      "colorOutput": "browser-managed",
+      "presenter": "video",
+      "submittedFrames": 60,
+      "renderedFrames": 60,
+      "videoFrameRate": 30
+    },
+    "media": {
+      "nodes": 13,
+      "context": "running",
+      "track": "live"
+    }
+  },
+  "tailPaused": {
+    "state": {
+      "status": "paused",
+      "source": {
+        "engine": "compat",
+        "resourceId": "4fa365d6-5f2c-45e5-b5df-683f396b1403",
+        "id": "07a5bf18ca6a024c2fafb88819926083:electron-file",
+        "title": "marchen-audio-tail.mp4",
+        "startTime": 0,
+        "autoplay": true
+      },
+      "duration": 5,
+      "currentTime": 2.1632820000071527,
+      "rate": 1
+    },
+    "clock": {
+      "currentTime": 2.1632820000071527,
+      "duration": 5,
+      "volume": 1,
+      "muted": false,
+      "rate": 1,
+      "paused": true,
+      "seeking": false,
+      "ended": false,
+      "buffered": [
+        [
+          2.1632820000071527,
+          2.6453333333333333
+        ]
+      ]
+    },
+    "presentation": {
+      "engine": "compat",
+      "backend": "webcodecs",
+      "firstFrame": true,
+      "buffering": false,
+      "width": 320,
+      "height": 180,
+      "videoCodec": "avc",
+      "decodeThreads": 0,
+      "audioOutputChannels": 2,
+      "videoQueuePeak": 1,
+      "audioAheadPeak": 0.4987443333297571,
+      "decodeFps": 0,
+      "colorOutput": "browser-managed",
+      "presenter": "video",
+      "submittedFrames": 60,
+      "renderedFrames": 60,
+      "videoFrameRate": 30
+    },
+    "media": {
+      "nodes": 13,
+      "context": "suspended",
+      "track": "live"
+    }
+  },
+  "tailEnd": {
+    "state": {
+      "status": "ended",
+      "source": {
+        "engine": "compat",
+        "resourceId": "4fa365d6-5f2c-45e5-b5df-683f396b1403",
+        "id": "07a5bf18ca6a024c2fafb88819926083:electron-file",
+        "title": "marchen-audio-tail.mp4",
+        "startTime": 0,
+        "autoplay": true
+      },
+      "duration": 5,
+      "rate": 1
+    },
+    "clock": {
+      "currentTime": 5,
+      "duration": 5,
+      "volume": 1,
+      "muted": false,
+      "rate": 1,
+      "paused": true,
+      "seeking": false,
+      "ended": true,
+      "buffered": [
+        [
+          5,
+          5
+        ]
+      ]
+    },
+    "presentation": {
+      "engine": "compat",
+      "backend": "webcodecs",
+      "firstFrame": true,
+      "buffering": false,
+      "width": 320,
+      "height": 180,
+      "videoCodec": "avc",
+      "decodeThreads": 0,
+      "audioOutputChannels": 2,
+      "videoQueuePeak": 1,
+      "audioAheadPeak": 0.49908733333333366,
+      "decodeFps": 0,
+      "colorOutput": "browser-managed",
+      "presenter": "video",
+      "submittedFrames": 60,
+      "renderedFrames": 60,
+      "videoFrameRate": 30
+    },
+    "media": {
+      "nodes": 0,
+      "context": "suspended",
+      "track": "live"
+    }
+  }
+}

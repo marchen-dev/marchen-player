@@ -1,0 +1,74 @@
+{
+  "title": "播放器首页启动台验收",
+  "plan": [
+    {
+      "id": "electron-resume-launcher",
+      "name": "Electron 续播启动台"
+    },
+    {
+      "id": "web-import-boundary",
+      "name": "Web 导入优先边界"
+    },
+    {
+      "id": "light-dark-theme",
+      "name": "浅色与夜间主题"
+    }
+  ],
+  "cases": [
+    {
+      "id": "electron-resume-launcher",
+      "name": "Electron 续播启动台",
+      "status": "passed",
+      "observation": "Electron 首页使用大幅续播 Hero、独立导入卡和最多四个最近播放卡片组成清晰的桌面启动台；作品、集数、百分比和继续播放操作均直接可见，最近播放不重复 Hero。",
+      "evidence": [
+        {
+          "path": "assets/electron-home-light.jpeg",
+          "type": "image",
+          "text": "Electron 浅色有历史首页、续播 Hero、导入卡与四个最近播放项"
+        }
+      ]
+    },
+    {
+      "id": "web-import-boundary",
+      "name": "Web 导入优先边界",
+      "status": "passed",
+      "observation": "Web 首页不展示依赖 Electron 本地路径的历史入口，只保留居中的原生文件选择入口，并明确支持 MP4、MKV 与自动匹配弹幕。",
+      "evidence": [
+        {
+          "path": "assets/web-empty-light.png",
+          "type": "image",
+          "text": "Web 浅色导入优先空状态"
+        }
+      ]
+    },
+    {
+      "id": "light-dark-theme",
+      "name": "浅色与夜间主题",
+      "status": "passed",
+      "observation": "首页在浅色和夜间主题下均使用克制的中性色、清晰边界和高对比主操作；切换后结构、文案与交互层级保持一致。",
+      "evidence": [
+        {
+          "path": "assets/web-empty-light.png",
+          "type": "image",
+          "text": "浅色首页"
+        },
+        {
+          "path": "assets/web-empty-dark.png",
+          "type": "image",
+          "text": "夜间首页"
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "verdict": "passed",
+    "conclusion": "播放器首页已形成 Electron 续播与最近播放、Web 导入优先的双端启动台，并完成浅色和夜间主题的可见验收，等待维护者签核。"
+  },
+  "commit": "working-tree@173e45a69f4b1cd75f08829fe46cf675ac8f46d3",
+  "surfaces": [
+    "Electron 播放器首页",
+    "Web 桌面播放器首页",
+    "续播 Hero、最近播放与导入入口",
+    "浅色与夜间主题"
+  ]
+}

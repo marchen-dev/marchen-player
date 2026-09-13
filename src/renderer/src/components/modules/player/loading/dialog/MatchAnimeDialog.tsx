@@ -24,11 +24,12 @@ interface MatchAnimeDialogProps {
   onSelected?: (params?: MatchedVideoType) => void
   onClosed?: () => void
   isLoading?: boolean
+  container?: Element | DocumentFragment | null
 }
 
 export const MatchAnimeDialog: FC<MatchAnimeDialogProps> = (props) => {
   const { handleSearchAnime, searchData } = useSearchAnime()
-  const { matchData, onSelected, onClosed, isLoading } = props
+  const { matchData, onSelected, onClosed, isLoading, container } = props
   const { toast } = useToast()
   const { open } = useAtomValue(showMatchAnimeDialogAtom)
 
@@ -71,6 +72,7 @@ export const MatchAnimeDialog: FC<MatchAnimeDialogProps> = (props) => {
   return (
     <Dialog open={open} onOpenChange={(open) => showMatchAnimeDialog(open)}>
       <DialogContent
+        container={container}
         className="max-h-[80vh] min-h-[700px] sm:max-w-[725px]"
         onClosed={onClosed}
         onEscapeKeyDown={(event) => event.preventDefault()}

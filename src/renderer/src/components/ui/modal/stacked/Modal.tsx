@@ -67,6 +67,8 @@ export const ModalInternal: FC<ModalInternalProps> = memo(({ ref, ...props }) =>
     clickOutsideToDismiss,
     classNames,
     title,
+    description,
+    returnFocusRef,
     max,
     content,
   } = item
@@ -165,7 +167,16 @@ export const ModalInternal: FC<ModalInternalProps> = memo(({ ref, ...props }) =>
       <Wrapper>
         <Dialog.Root open onOpenChange={onClose}>
           <Dialog.Portal>
-            <Dialog.Content asChild ref={modalContentRef} aria-description="设置">
+            <Dialog.Content
+              asChild
+              ref={modalContentRef}
+              aria-description={description ?? '弹窗内容'}
+              onCloseAutoFocus={(event) => {
+                if (!returnFocusRef?.current?.isConnected) return
+                event.preventDefault()
+                returnFocusRef.current.focus()
+              }}
+            >
               <div
                 className={cn(
                   'fixed inset-0 z-20 overflow-auto',
@@ -192,7 +203,15 @@ export const ModalInternal: FC<ModalInternalProps> = memo(({ ref, ...props }) =>
     <Wrapper>
       <Dialog.Root open onOpenChange={onClose}>
         <Dialog.Portal>
-          <Dialog.Content asChild ref={modalContentRef}>
+          <Dialog.Content
+            asChild
+            ref={modalContentRef}
+            onCloseAutoFocus={(event) => {
+              if (!returnFocusRef?.current?.isConnected) return
+              event.preventDefault()
+              returnFocusRef.current.focus()
+            }}
+          >
             <div
               ref={edgeElementRef}
               id="modal-container"

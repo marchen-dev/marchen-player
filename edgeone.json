@@ -1,0 +1,16 @@
+{
+  "nodeVersion": "24.5.0",
+  "installCommand": "npx --yes pnpm@11.24.0 install --frozen-lockfile",
+  "buildCommand": "npx --yes pnpm@11.24.0 run build:web:release",
+  "outputDirectory": "out/web",
+  "headers": [
+    {
+      "source": "/*",
+      "headers": [
+        { "key": "Cross-Origin-Opener-Policy", "value": "same-origin" },
+        { "key": "Cross-Origin-Embedder-Policy", "value": "credentialless" },
+        { "key": "Cache-Control", "value": "no-cache" }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,92 @@
+{
+  "title": "应用设置双栏重构验收",
+  "plan": [
+    {
+      "id": "light-general-shell",
+      "name": "浅色通用设置与紧凑双栏"
+    },
+    {
+      "id": "dark-ai-service",
+      "name": "夜间 AI 服务与嵌套弹窗"
+    },
+    {
+      "id": "system-about",
+      "name": "系统主题关于页"
+    },
+    {
+      "id": "electron-entry-routing",
+      "name": "Electron 设置入口与关于定位"
+    }
+  ],
+  "cases": [
+    {
+      "id": "light-general-shell",
+      "name": "浅色通用设置与紧凑双栏",
+      "status": "passed",
+      "observation": "通用页只显示应用级设置，左侧固定为通用、AI 服务、关于三类；外观与数据按单一分组表面排列，播放器分类已删除，危险的重置操作有明确层级。",
+      "evidence": [
+        {
+          "path": "assets/web-light-general.png",
+          "type": "image",
+          "text": "浅色通用页、三分类导航和分组设置行"
+        }
+      ]
+    },
+    {
+      "id": "dark-ai-service",
+      "name": "夜间 AI 服务与嵌套弹窗",
+      "status": "passed",
+      "observation": "夜间模式使用分层深灰材质，空状态和页面级添加操作清晰；添加服务商 Dialog 位于设置外壳上方且没有被裁切。",
+      "evidence": [
+        {
+          "path": "assets/web-dark-ai.png",
+          "type": "image",
+          "text": "夜间 AI 服务空状态"
+        },
+        {
+          "path": "assets/web-dark-ai-dialog.png",
+          "type": "image",
+          "text": "夜间设置上方的 AI 服务商编辑弹窗"
+        }
+      ]
+    },
+    {
+      "id": "system-about",
+      "name": "系统主题关于页",
+      "status": "passed",
+      "observation": "关于页只保留产品标识、版本与反馈渠道，缓存和重置操作已迁出；系统主题切换时页面原地更新，Logo 使用实际解析主题。",
+      "evidence": [
+        {
+          "path": "assets/web-system-about.png",
+          "type": "image",
+          "text": "系统主题下的关于页与实际主题 Logo"
+        }
+      ]
+    },
+    {
+      "id": "electron-entry-routing",
+      "name": "Electron 设置入口与关于定位",
+      "status": "passed",
+      "observation": "Electron 侧边栏齿轮和 Cmd+, 默认进入通用；macOS 应用菜单在关闭状态直接打开关于，并能让已打开的同一设置弹窗从通用切换到关于。",
+      "evidence": [
+        {
+          "path": "assets/electron-menu-about.jpeg",
+          "type": "image",
+          "text": "Electron 菜单定位后的关于页"
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "verdict": "passed",
+    "conclusion": "应用设置已收敛为通用、AI 服务、关于三分类，并在 Web 与 Electron 的浅色、夜间和系统主题中完成可见交互验收，等待维护者签核。"
+  },
+  "commit": "working-tree@173e45a69f4b1cd75f08829fe46cf675ac8f46d3",
+  "surfaces": [
+    "Electron 应用设置与 macOS 菜单入口",
+    "Web 桌面应用设置",
+    "浅色、夜间与系统主题",
+    "AI Provider 嵌套 Dialog、Select 与 Combobox",
+    "键盘分类导航与分层焦点恢复"
+  ]
+}

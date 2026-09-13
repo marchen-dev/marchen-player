@@ -57,14 +57,14 @@ export async function upsertLibraryEntry(
 
     // 如果 episodes 为空（迁移产生的不完整记录），补全
     const finalEpisodes =
-      episodes.length > 0 ? episodes : extractEpisodes(bangumi.episodes).map((ep) =>
-        ep.episodeId === episodeId ? { ...ep, fileHash } : ep,
-      )
+      episodes.length > 0
+        ? episodes
+        : extractEpisodes(bangumi.episodes).map((ep) =>
+            ep.episodeId === episodeId ? { ...ep, fileHash } : ep,
+          )
 
     await db.library.update(animeId, {
       episodes: finalEpisodes,
-      lastWatchedEpisodeId: episodeId,
-      lastWatchedAt: new Date().toISOString(),
       // 补全可能缺失的字段
       ...(existing.summary === '' && {
         summary: bangumi.summary || '',
@@ -100,8 +100,7 @@ export async function upsertLibraryEntry(
       intro: bangumi.metadata?.join(' / ') || '',
       episodes,
       watchedEpisodeIds: [],
-      lastWatchedEpisodeId: episodeId,
-      lastWatchedAt: now,
+      lastWatchedAt: '',
       addedAt: now,
     }
 
@@ -109,13 +108,29 @@ export async function upsertLibraryEntry(
   }
 }
 
+/** 只有媒体实际 ready/playing 后才把作品推进“最近观看”。 */
+export async function markEpisodeStarted(
+  animeId: number,
+  episodeId: number,
+  fileHash: string,
+): Promise<void> {
+  let existing = await db.library.get(animeId)
+  if (!existing) {
+    const bangumiDetail = await apiClient.bangumi.getBangumiDetailById(animeId)
+    await upsertLibraryEntry(bangumiDetail, episodeId, fileHash)
+    existing = await db.library.get(animeId)
+  }
+  if (!existing) return
+  await db.library.update(animeId, {
+    lastWatchedEpisodeId: episodeId,
+    lastWatchedAt: new Date().toISOString(),
+  })
+}
+
 /**
  * 标记某集为已观看
  */
-export async function markEpisodeWatched(
-  animeId: number,
-  episodeId: number,
-): Promise<void> {
+export async function markEpisodeWatched(animeId: number, episodeId: number): Promise<void> {
   const existing = await db.library.get(animeId)
   if (!existing) return
 

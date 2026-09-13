@@ -12,8 +12,12 @@
       "@pkg": ["./package.json"],
       "@marchen/electron-ipc/*": ["./packages/electron-ipc/src/*"],
       "@marchen/shared/*": ["./packages/shared/src/*"],
-      "@marchen/player-core": ["./packages/player-core/src/index.ts"],
-      "@marchen/player-core/*": ["./packages/player-core/src/*"]
+      "@marchen/player-loading": ["./packages/player-loading/src/index.ts"],
+      "@marchen/player-loading/*": ["./packages/player-loading/src/*"],
+      "@marchen/playback-core": ["./packages/playback-core/src/index.ts"],
+      "@marchen/playback-core/*": ["./packages/playback-core/src/*"],
+      "@marchen/danmaku-engine": ["./packages/danmaku-engine/src/index.ts"],
+      "@marchen/danmaku-engine/*": ["./packages/danmaku-engine/src/*"]
     },
     "strict": true,
     "noUnusedLocals": false
@@ -26,7 +30,9 @@
     "src/main/ipc/**/*",
     "packages/electron-ipc/src/**/*",
     "packages/shared/src/**/*",
-    "packages/player-core/src/**/*",
+    "packages/player-loading/src/**/*",
+    "packages/playback-core/src/**/*",
+    "packages/danmaku-engine/src/**/*",
     "types/**/*.d.ts",
     "src/env.ts"
   ]

@@ -1,4 +1,4 @@
-import type { RendererHandlers } from '@marchen/shared/types/renderer-handlers'
+import type { AppSettingsSection, RendererHandlers } from '@marchen/shared/types/renderer-handlers'
 import { clearAllData } from '@main/lib/cleaner'
 import { createEmitter } from '@marchen/electron-ipc/main'
 
@@ -17,10 +17,10 @@ export const getRendererHandlers = () => {
   return createEmitter<RendererHandlers>(mainWindow.webContents)
 }
 
-/** 打开设置窗口，可选指定要显示的 tab */
-export const createSettingWindow = (tab?: string) => {
+/** 打开设置窗口，可选指定稳定分类 ID。 */
+export const createSettingWindow = (section?: AppSettingsSection) => {
   const handlers = getRendererHandlers()
-  handlers?.showSetting.send(tab)
+  handlers?.showSetting.send(section)
 }
 
 /** 通知 renderer 导入动画文件 */

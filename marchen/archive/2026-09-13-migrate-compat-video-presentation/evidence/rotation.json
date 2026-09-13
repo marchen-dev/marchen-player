@@ -1,0 +1,10 @@
+{
+  "rotation": "90",
+  "subtitle": [
+    {
+      "width": 1300,
+      "height": 731,
+      "transform": "translate(-50%, -50%) rotate(90deg)"
+    }
+  ]
+}

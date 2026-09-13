@@ -8,7 +8,7 @@ interface ProviderCardProps {
   provider: AIProviderConfig
   isActive: boolean
   onActivate: () => void
-  onEdit: () => void
+  onEdit: (trigger: HTMLButtonElement) => void
   onDelete: () => void
 }
 
@@ -31,39 +31,59 @@ export const ProviderCard: FC<ProviderCardProps> = ({
   return (
     <div
       className={cn(
-        'flex items-center gap-3 rounded-md border p-3 transition-colors',
-        isActive && 'border-primary bg-primary/5',
+        'app-settings-provider-row flex min-w-0 items-center gap-3 px-4 py-3 transition-colors',
+        isActive && 'is-active',
       )}
     >
-      {/* 激活 radio */}
       <button
         type="button"
-        className="flex size-4 shrink-0 items-center justify-center rounded-full border-2 border-muted-foreground/50"
+        role="radio"
+        aria-checked={isActive}
+        aria-label={`设为当前服务商：${provider.name}`}
+        className="app-settings-provider-radio"
         onClick={onActivate}
       >
-        {isActive && <span className="size-2 rounded-full bg-primary" />}
+        {isActive && <span className="size-2 rounded-full bg-current" />}
       </button>
 
-      {/* 信息 */}
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
-          <span className="text-sm font-medium">{provider.name}</span>
-          <span className="rounded bg-muted px-1.5 py-0.5 text-xs text-muted-foreground">
+          <span className="truncate text-sm font-medium" title={provider.name}>
+            {provider.name}
+          </span>
+          <span className="shrink-0 rounded bg-[var(--settings-selected)] px-1.5 py-0.5 text-xs text-[var(--settings-muted)]">
             {provider.type}
           </span>
+          {isActive && (
+            <span className="shrink-0 text-xs font-medium text-[var(--settings-focus)]">当前</span>
+          )}
         </div>
-        <p className="truncate text-xs text-muted-foreground">
+        <p
+          className="truncate text-xs text-[var(--settings-muted)]"
+          title={`${provider.model} · ${provider.baseUrl}`}
+        >
           {provider.model} · {provider.baseUrl}
         </p>
       </div>
 
-      {/* 操作按钮 */}
       <div className="flex shrink-0 gap-1">
-        <Button variant="ghost" size="sm" className="size-7 p-0" onClick={onEdit}>
-          <i className="icon-[mingcute--edit-line] text-sm" />
+        <Button
+          variant="ghost"
+          size="sm"
+          className="size-8 p-0"
+          aria-label={`编辑服务商：${provider.name}`}
+          onClick={(event) => onEdit(event.currentTarget)}
+        >
+          <i className="icon-[mingcute--edit-line] text-sm" aria-hidden="true" />
         </Button>
-        <Button variant="ghost" size="sm" className="size-7 p-0" onClick={handleDelete}>
-          <i className="icon-[mingcute--delete-2-line] text-sm" />
+        <Button
+          variant="ghost"
+          size="sm"
+          className="text-destructive size-8 p-0"
+          aria-label={`删除服务商：${provider.name}`}
+          onClick={handleDelete}
+        >
+          <i className="icon-[mingcute--delete-2-line] text-sm" aria-hidden="true" />
         </Button>
       </div>
     </div>

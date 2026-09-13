@@ -1,0 +1,307 @@
+{
+  "samples": [
+    {
+      "decode": {
+        "frames": 1435,
+        "workers": 2,
+        "closed": 1,
+        "mode": "threads",
+        "memory": {
+          "linearMemoryBytes": 90439680,
+          "activePthreads": 5,
+          "idlePthreads": 0
+        }
+      },
+      "progress": "60",
+      "canvas": 1920
+    },
+    {
+      "decode": {
+        "frames": 2875,
+        "workers": 2,
+        "closed": 1,
+        "mode": "threads",
+        "memory": {
+          "linearMemoryBytes": 90439680,
+          "activePthreads": 5,
+          "idlePthreads": 0
+        }
+      },
+      "progress": "120",
+      "canvas": 1920
+    },
+    {
+      "decode": {
+        "frames": 4315,
+        "workers": 2,
+        "closed": 1,
+        "mode": "threads",
+        "memory": {
+          "linearMemoryBytes": 90439680,
+          "activePthreads": 5,
+          "idlePthreads": 0
+        }
+      },
+      "progress": "180",
+      "canvas": 1920
+    },
+    {
+      "decode": {
+        "frames": 5755,
+        "workers": 2,
+        "closed": 1,
+        "mode": "threads",
+        "memory": {
+          "linearMemoryBytes": 90439680,
+          "activePthreads": 5,
+          "idlePthreads": 0
+        }
+      },
+      "progress": "239",
+      "canvas": 1920
+    },
+    {
+      "decode": {
+        "frames": 7196,
+        "workers": 2,
+        "closed": 1,
+        "mode": "threads",
+        "memory": {
+          "linearMemoryBytes": 90439680,
+          "activePthreads": 5,
+          "idlePthreads": 0
+        }
+      },
+      "progress": "300",
+      "canvas": 1920
+    },
+    {
+      "decode": {
+        "frames": 8636,
+        "workers": 2,
+        "closed": 1,
+        "mode": "threads",
+        "memory": {
+          "linearMemoryBytes": 90439680,
+          "activePthreads": 5,
+          "idlePthreads": 0
+        }
+      },
+      "progress": "360",
+      "canvas": 1920
+    },
+    {
+      "decode": {
+        "frames": 10076,
+        "workers": 2,
+        "closed": 1,
+        "mode": "threads",
+        "memory": {
+          "linearMemoryBytes": 90439680,
+          "activePthreads": 5,
+          "idlePthreads": 0
+        }
+      },
+      "progress": "420",
+      "canvas": 1920
+    },
+    {
+      "decode": {
+        "frames": 11516,
+        "workers": 2,
+        "closed": 1,
+        "mode": "threads",
+        "memory": {
+          "linearMemoryBytes": 90439680,
+          "activePthreads": 5,
+          "idlePthreads": 0
+        }
+      },
+      "progress": "480",
+      "canvas": 1920
+    },
+    {
+      "decode": {
+        "frames": 12956,
+        "workers": 2,
+        "closed": 1,
+        "mode": "threads",
+        "memory": {
+          "linearMemoryBytes": 90439680,
+          "activePthreads": 5,
+          "idlePthreads": 0
+        }
+      },
+      "progress": "540",
+      "canvas": 1920
+    },
+    {
+      "decode": {
+        "frames": 14397,
+        "workers": 2,
+        "closed": 1,
+        "mode": "threads",
+        "memory": {
+          "linearMemoryBytes": 90439680,
+          "activePthreads": 5,
+          "idlePthreads": 0
+        }
+      },
+      "progress": "600",
+      "canvas": 1920
+    },
+    {
+      "decode": {
+        "frames": 15837,
+        "workers": 2,
+        "closed": 1,
+        "mode": "threads",
+        "memory": {
+          "linearMemoryBytes": 90439680,
+          "activePthreads": 5,
+          "idlePthreads": 0
+        }
+      },
+      "progress": "660",
+      "canvas": 1920
+    },
+    {
+      "decode": {
+        "frames": 17277,
+        "workers": 2,
+        "closed": 1,
+        "mode": "threads",
+        "memory": {
+          "linearMemoryBytes": 90439680,
+          "activePthreads": 5,
+          "idlePthreads": 0
+        }
+      },
+      "progress": "720",
+      "canvas": 1920
+    },
+    {
+      "decode": {
+        "frames": 18717,
+        "workers": 2,
+        "closed": 1,
+        "mode": "threads",
+        "memory": {
+          "linearMemoryBytes": 90439680,
+          "activePthreads": 5,
+          "idlePthreads": 0
+        }
+      },
+      "progress": "780",
+      "canvas": 1920
+    },
+    {
+      "decode": {
+        "frames": 20158,
+        "workers": 2,
+        "closed": 1,
+        "mode": "threads",
+        "memory": {
+          "linearMemoryBytes": 90439680,
+          "activePthreads": 5,
+          "idlePthreads": 0
+        }
+      },
+      "progress": "840",
+      "canvas": 1920
+    },
+    {
+      "decode": {
+        "frames": 21598,
+        "workers": 2,
+        "closed": 1,
+        "mode": "threads",
+        "memory": {
+          "linearMemoryBytes": 90439680,
+          "activePthreads": 5,
+          "idlePthreads": 0
+        }
+      },
+      "progress": "900",
+      "canvas": 1920
+    },
+    {
+      "decode": {
+        "frames": 23038,
+        "workers": 2,
+        "closed": 1,
+        "mode": "threads",
+        "memory": {
+          "linearMemoryBytes": 90439680,
+          "activePthreads": 5,
+          "idlePthreads": 0
+        }
+      },
+      "progress": "960",
+      "canvas": 1920
+    },
+    {
+      "decode": {
+        "frames": 24479,
+        "workers": 2,
+        "closed": 1,
+        "mode": "threads",
+        "memory": {
+          "linearMemoryBytes": 90439680,
+          "activePthreads": 5,
+          "idlePthreads": 0
+        }
+      },
+      "progress": "1020",
+      "canvas": 1920
+    },
+    {
+      "decode": {
+        "frames": 25919,
+        "workers": 2,
+        "closed": 1,
+        "mode": "threads",
+        "memory": {
+          "linearMemoryBytes": 90439680,
+          "activePthreads": 5,
+          "idlePthreads": 0
+        }
+      },
+      "progress": "1080",
+      "canvas": 1920
+    },
+    {
+      "decode": {
+        "frames": 27359,
+        "workers": 2,
+        "closed": 1,
+        "mode": "threads",
+        "memory": {
+          "linearMemoryBytes": 90439680,
+          "activePthreads": 5,
+          "idlePthreads": 0
+        }
+      },
+      "progress": "1140",
+      "canvas": 1920
+    },
+    {
+      "decode": {
+        "frames": 28800,
+        "workers": 2,
+        "closed": 1,
+        "mode": "threads",
+        "memory": {
+          "linearMemoryBytes": 90439680,
+          "activePthreads": 5,
+          "idlePthreads": 0
+        }
+      },
+      "progress": "1200",
+      "canvas": 1920
+    }
+  ],
+  "errors": [],
+  "durationSeconds": 1200.27,
+  "completed": true
+}

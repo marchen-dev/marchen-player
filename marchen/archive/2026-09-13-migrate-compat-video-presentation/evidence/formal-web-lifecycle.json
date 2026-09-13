@@ -1,0 +1,367 @@
+[
+  {
+    "case": "pause",
+    "data": {
+      "state": {
+        "status": "paused",
+        "source": {
+          "engine": "compat",
+          "resourceId": "b88125f6-42f2-48f3-b2a6-b89283359b0a",
+          "id": "37f9f5e13d171181eeda762c680ab9b7:web-file",
+          "title": "Arcane.2021.S01E02.1080p.NF.WEB-DL.H265.10bit.HDR.DDP5.1-YingWEB.mkv",
+          "startTime": 32.648849333324996,
+          "autoplay": true
+        },
+        "duration": 2431.136,
+        "currentTime": 69.5865396666631,
+        "rate": 1
+      },
+      "clock": {
+        "currentTime": 69.5865396666631,
+        "duration": 2431.136,
+        "volume": 1,
+        "muted": false,
+        "rate": 1,
+        "paused": true,
+        "seeking": false,
+        "ended": false,
+        "buffered": [
+          [
+            69.5865396666631,
+            70.048
+          ]
+        ]
+      },
+      "presentation": {
+        "engine": "compat",
+        "backend": "webcodecs",
+        "firstFrame": true,
+        "buffering": false,
+        "width": 1920,
+        "height": 1080,
+        "videoCodec": "hevc",
+        "decodeThreads": 0,
+        "audioOutputChannels": 2,
+        "videoQueuePeak": 1,
+        "audioAheadPeak": 0.4999116666797647,
+        "droppedFrames": 35,
+        "decodeFps": 14.947981026189236,
+        "colorOutput": "browser-managed",
+        "presenter": "video",
+        "submittedFrames": 852,
+        "renderedFrames": 852,
+        "sourceTransfer": "pq",
+        "sourcePrimaries": "bt2020",
+        "videoFrameRate": 24
+      },
+      "video": [
+        {
+          "hidden": true,
+          "paused": true,
+          "ready": 0,
+          "width": 0,
+          "height": 0,
+          "stream": false
+        },
+        {
+          "hidden": false,
+          "paused": false,
+          "ready": 4,
+          "width": 1920,
+          "height": 1080,
+          "stream": true
+        }
+      ]
+    }
+  },
+  {
+    "case": "held",
+    "data": {
+      "state": {
+        "status": "paused",
+        "source": {
+          "engine": "compat",
+          "resourceId": "b88125f6-42f2-48f3-b2a6-b89283359b0a",
+          "id": "37f9f5e13d171181eeda762c680ab9b7:web-file",
+          "title": "Arcane.2021.S01E02.1080p.NF.WEB-DL.H265.10bit.HDR.DDP5.1-YingWEB.mkv",
+          "startTime": 32.648849333324996,
+          "autoplay": true
+        },
+        "duration": 2431.136,
+        "currentTime": 69.5865396666631,
+        "rate": 1
+      },
+      "clock": {
+        "currentTime": 69.5865396666631,
+        "duration": 2431.136,
+        "volume": 1,
+        "muted": false,
+        "rate": 1,
+        "paused": true,
+        "seeking": false,
+        "ended": false,
+        "buffered": [
+          [
+            69.5865396666631,
+            70.048
+          ]
+        ]
+      },
+      "presentation": {
+        "engine": "compat",
+        "backend": "webcodecs",
+        "firstFrame": true,
+        "buffering": false,
+        "width": 1920,
+        "height": 1080,
+        "videoCodec": "hevc",
+        "decodeThreads": 0,
+        "audioOutputChannels": 2,
+        "videoQueuePeak": 1,
+        "audioAheadPeak": 0.4999116666797647,
+        "droppedFrames": 35,
+        "decodeFps": 0,
+        "colorOutput": "browser-managed",
+        "presenter": "video",
+        "submittedFrames": 852,
+        "renderedFrames": 852,
+        "sourceTransfer": "pq",
+        "sourcePrimaries": "bt2020",
+        "videoFrameRate": 24
+      },
+      "video": [
+        {
+          "hidden": true,
+          "paused": true,
+          "ready": 0,
+          "width": 0,
+          "height": 0,
+          "stream": false
+        },
+        {
+          "hidden": false,
+          "paused": false,
+          "ready": 4,
+          "width": 1920,
+          "height": 1080,
+          "stream": true
+        }
+      ]
+    }
+  },
+  {
+    "case": "rapid-paused-seek",
+    "data": {
+      "state": {
+        "status": "paused",
+        "source": {
+          "engine": "compat",
+          "resourceId": "b88125f6-42f2-48f3-b2a6-b89283359b0a",
+          "id": "37f9f5e13d171181eeda762c680ab9b7:web-file",
+          "title": "Arcane.2021.S01E02.1080p.NF.WEB-DL.H265.10bit.HDR.DDP5.1-YingWEB.mkv",
+          "startTime": 32.648849333324996,
+          "autoplay": true
+        },
+        "duration": 2431.136,
+        "currentTime": 90,
+        "rate": 1
+      },
+      "clock": {
+        "currentTime": 90,
+        "duration": 2431.136,
+        "volume": 1,
+        "muted": false,
+        "rate": 1,
+        "paused": true,
+        "seeking": false,
+        "ended": false,
+        "buffered": []
+      },
+      "presentation": {
+        "engine": "compat",
+        "backend": "webcodecs",
+        "firstFrame": true,
+        "buffering": false,
+        "width": 1920,
+        "height": 1080,
+        "videoCodec": "hevc",
+        "decodeThreads": 0,
+        "audioOutputChannels": 2,
+        "videoQueuePeak": 1,
+        "audioAheadPeak": 0.4999116666797647,
+        "droppedFrames": 35,
+        "decodeFps": 0,
+        "colorOutput": "browser-managed",
+        "presenter": "video",
+        "submittedFrames": 853,
+        "renderedFrames": 853,
+        "sourceTransfer": "pq",
+        "sourcePrimaries": "bt2020",
+        "videoFrameRate": 24
+      },
+      "video": [
+        {
+          "hidden": true,
+          "paused": true,
+          "ready": 0,
+          "width": 0,
+          "height": 0,
+          "stream": false
+        },
+        {
+          "hidden": false,
+          "paused": false,
+          "ready": 4,
+          "width": 1920,
+          "height": 1080,
+          "stream": true
+        }
+      ]
+    }
+  },
+  {
+    "case": "paused-rate",
+    "data": {
+      "state": {
+        "status": "paused",
+        "source": {
+          "engine": "compat",
+          "resourceId": "b88125f6-42f2-48f3-b2a6-b89283359b0a",
+          "id": "37f9f5e13d171181eeda762c680ab9b7:web-file",
+          "title": "Arcane.2021.S01E02.1080p.NF.WEB-DL.H265.10bit.HDR.DDP5.1-YingWEB.mkv",
+          "startTime": 32.648849333324996,
+          "autoplay": true
+        },
+        "duration": 2431.136,
+        "currentTime": 90,
+        "rate": 1.5
+      },
+      "clock": {
+        "currentTime": 90,
+        "duration": 2431.136,
+        "volume": 1,
+        "muted": false,
+        "rate": 1.5,
+        "paused": true,
+        "seeking": false,
+        "ended": false,
+        "buffered": []
+      },
+      "presentation": {
+        "engine": "compat",
+        "backend": "webcodecs",
+        "firstFrame": true,
+        "buffering": false,
+        "width": 1920,
+        "height": 1080,
+        "videoCodec": "hevc",
+        "decodeThreads": 0,
+        "audioOutputChannels": 2,
+        "videoQueuePeak": 1,
+        "audioAheadPeak": 0.4999116666797647,
+        "droppedFrames": 35,
+        "decodeFps": 0,
+        "colorOutput": "browser-managed",
+        "presenter": "video",
+        "submittedFrames": 854,
+        "renderedFrames": 854,
+        "sourceTransfer": "pq",
+        "sourcePrimaries": "bt2020",
+        "videoFrameRate": 24
+      },
+      "video": [
+        {
+          "hidden": true,
+          "paused": true,
+          "ready": 0,
+          "width": 0,
+          "height": 0,
+          "stream": false
+        },
+        {
+          "hidden": false,
+          "paused": false,
+          "ready": 4,
+          "width": 1920,
+          "height": 1080,
+          "stream": true
+        }
+      ]
+    }
+  },
+  {
+    "case": "resume",
+    "data": {
+      "state": {
+        "status": "playing",
+        "source": {
+          "engine": "compat",
+          "resourceId": "b88125f6-42f2-48f3-b2a6-b89283359b0a",
+          "id": "37f9f5e13d171181eeda762c680ab9b7:web-file",
+          "title": "Arcane.2021.S01E02.1080p.NF.WEB-DL.H265.10bit.HDR.DDP5.1-YingWEB.mkv",
+          "startTime": 32.648849333324996,
+          "autoplay": true
+        },
+        "duration": 2431.136,
+        "currentTime": 93.75097,
+        "rate": 1.5
+      },
+      "clock": {
+        "currentTime": 93.96724750000448,
+        "duration": 2431.136,
+        "volume": 1,
+        "muted": false,
+        "rate": 1.5,
+        "paused": false,
+        "seeking": false,
+        "ended": false,
+        "buffered": [
+          [
+            93.96724750000448,
+            94.464
+          ]
+        ]
+      },
+      "presentation": {
+        "engine": "compat",
+        "backend": "webcodecs",
+        "firstFrame": true,
+        "buffering": false,
+        "width": 1920,
+        "height": 1080,
+        "videoCodec": "hevc",
+        "decodeThreads": 0,
+        "audioOutputChannels": 2,
+        "videoQueuePeak": 1,
+        "audioAheadPeak": 0.4999116666797647,
+        "droppedFrames": 35,
+        "decodeFps": 36.08038710236083,
+        "colorOutput": "browser-managed",
+        "presenter": "video",
+        "submittedFrames": 948,
+        "renderedFrames": 948,
+        "sourceTransfer": "pq",
+        "sourcePrimaries": "bt2020",
+        "videoFrameRate": 24
+      },
+      "video": [
+        {
+          "hidden": true,
+          "paused": true,
+          "ready": 0,
+          "width": 0,
+          "height": 0,
+          "stream": false
+        },
+        {
+          "hidden": false,
+          "paused": false,
+          "ready": 4,
+          "width": 1920,
+          "height": 1080,
+          "stream": true
+        }
+      ]
+    }
+  }
+]

@@ -5,13 +5,14 @@
  * 影视库页面：直接更新 history 记录和 library 关联。
  */
 
-import type { MatchedVideo } from '@marchen/player-core'
+import type { MatchedVideo } from '@marchen/player-loading'
 import { db } from '@renderer/database/db'
 import { handleRematchLibraryUpdate } from '@renderer/database/lib/library-writer'
 import { ipcClient } from '@renderer/lib/client'
 import { apiClient } from '@renderer/request'
 import { RouteName, useCurrentRoute } from '@renderer/router'
 import { getPlayerLoadingService } from '@renderer/services/player-loading/index'
+import { usePlayerPortalContainer } from '@renderer/services/player-runtime'
 import { useQuery } from '@tanstack/react-query'
 import { useAtomValue } from 'jotai'
 
@@ -21,6 +22,7 @@ import { MatchAnimeDialog } from '../player/loading/dialog/MatchAnimeDialog'
 export const MatchDanmakuDialog = () => {
   const { hash } = useAtomValue(showMatchAnimeDialogAtom)
   const routes = useCurrentRoute()
+  const portalContainer = usePlayerPortalContainer()
   const isLibraryPage = routes?.path === RouteName.LIBRARY
 
   // 仅在影视库页面获取匹配数据（播放中由 service 管理）
@@ -28,18 +30,23 @@ export const MatchDanmakuDialog = () => {
     queryKey: [apiClient.match.Matchkeys.postVideoEpisodeId, hash],
     queryFn: async () => {
       const historyData = await db.history.get({ hash })
-      if (!historyData?.path) {
-        return
+      const source = historyData?.source
+      if (!source) return
+      let fileHash = hash
+      let fileSize = source.size
+      let fileName = source.name
+      if (source.kind === 'electron-file') {
+        const detail = await ipcClient?.player.getAnimeDetailByPath({ path: source.path })
+        if (!detail || detail.ok !== 1 || !detail.fileHash || !detail.fileSize || !detail.fileName)
+          return
+        fileHash = detail.fileHash
+        fileSize = detail.fileSize
+        fileName = detail.fileName
       }
-      const animeDetail = await ipcClient?.player.getAnimeDetailByPath({ path: historyData.path })
-      if (!animeDetail || animeDetail.ok !== 1) {
-        return
-      }
-      const { fileHash, fileSize, fileName } = animeDetail
-      if (!fileHash || !fileSize || !fileName) {
-        return
-      }
-      return apiClient.match.postVideoEpisodeId({ fileSize, fileHash, fileName })
+      if (!fileHash || !fileSize || !fileName) return
+      const response = await apiClient.match.postVideoEpisodeId({ fileSize, fileHash, fileName })
+      if (response.success === false) throw new Error(response.errorMessage || '弹幕匹配失败')
+      return response
     },
     enabled: !!hash && isLibraryPage,
   })
@@ -69,5 +76,11 @@ export const MatchDanmakuDialog = () => {
     handleRematchLibraryUpdate(oldAnimeId, params.animeId, params.episodeId, hash)
   }
 
-  return <MatchAnimeDialog matchData={matchData} onSelected={handleUpdateHistory} />
+  return (
+    <MatchAnimeDialog
+      container={isLibraryPage ? undefined : portalContainer}
+      matchData={matchData}
+      onSelected={handleUpdateHistory}
+    />
+  )
 }

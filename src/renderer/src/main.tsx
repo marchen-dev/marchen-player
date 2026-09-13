@@ -1,29 +1,18 @@
-import * as Sentry from '@sentry/react'
+import { initializeRendererTelemetry } from './services/telemetry/initialize'
 
-import { ClickToComponent } from 'click-to-react-component'
-import ReactDOM from 'react-dom/client'
-import { RouterProvider } from 'react-router/dom'
-import { initializeApp } from './initialize'
+const start = async () => {
+  performance.mark('marchen:startup-start')
+  // 提前并行下载业务模块，挂载仍等监控就绪，保留首屏错误和路由埋点。
+  const bootstrap = import('./renderer-bootstrap')
+  const instrumentation = initializeRendererTelemetry()
+    .catch((error) => {
+      console.warn('[telemetry] Renderer instrumentation 失败，已降级继续启动', error)
+    })
+    .finally(() => performance.mark('marchen:telemetry-ready'))
+  const [{ mountRenderer }] = await Promise.all([bootstrap, instrumentation])
+  performance.mark('marchen:modules-ready')
+  mountRenderer()
+  requestAnimationFrame(() => performance.mark('marchen:first-render-frame'))
+}
 
-import { reactRouter } from './router'
-import './styles/main.css'
-
-initializeApp()
-
-const root = ReactDOM.createRoot(document.querySelector('#root') as HTMLElement, {
-  // Callback called when an error is thrown and not caught by an Error Boundary.
-  onUncaughtError: Sentry.reactErrorHandler((error, errorInfo) => {
-    console.warn('Uncaught error', error, errorInfo.componentStack)
-  }),
-  // Callback called when React catches an error in an Error Boundary.
-  onCaughtError: Sentry.reactErrorHandler(),
-  // Callback called when React automatically recovers from errors.
-  onRecoverableError: Sentry.reactErrorHandler(),
-})
-
-root.render(
-  <>
-    <RouterProvider router={reactRouter} />
-    <ClickToComponent />
-  </>,
-)
+void start()

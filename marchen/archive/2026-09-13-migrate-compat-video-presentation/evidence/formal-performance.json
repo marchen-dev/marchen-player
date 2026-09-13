@@ -1,0 +1,2439 @@
+{
+  "openMs": 1671,
+  "seekMs": 408,
+  "samples": [
+    {
+      "at": 1789201862414,
+      "runtime": {
+        "state": {
+          "status": "playing",
+          "source": {
+            "engine": "compat",
+            "resourceId": "f9b2020c-87f4-4c13-b36c-d45cb21bf8c9",
+            "id": "37f9f5e13d171181eeda762c680ab9b7:electron-file",
+            "title": "Arcane.2021.S01E02.1080p.NF.WEB-DL.H265.10bit.HDR.DDP5.1-YingWEB.mkv",
+            "startTime": 55.91435900000596,
+            "autoplay": true
+          },
+          "duration": 2431.136,
+          "currentTime": 60.8981263333375,
+          "rate": 1
+        },
+        "clock": {
+          "currentTime": 61.09754566666905,
+          "duration": 2431.136,
+          "volume": 1,
+          "muted": false,
+          "rate": 1,
+          "paused": false,
+          "seeking": false,
+          "ended": false,
+          "buffered": [
+            [
+              61.09754566666905,
+              61.568
+            ]
+          ]
+        },
+        "presentation": {
+          "engine": "compat",
+          "backend": "webcodecs",
+          "firstFrame": true,
+          "buffering": false,
+          "width": 1920,
+          "height": 1080,
+          "videoCodec": "hevc",
+          "decodeThreads": 0,
+          "audioOutputChannels": 2,
+          "videoQueuePeak": 1,
+          "audioAheadPeak": 0.4996943333220045,
+          "decodeFps": 23.990211993403737,
+          "colorOutput": "browser-managed",
+          "presenter": "video",
+          "submittedFrames": 125,
+          "renderedFrames": 125,
+          "sourceTransfer": "pq",
+          "sourcePrimaries": "bt2020",
+          "videoFrameRate": 24
+        },
+        "media": {
+          "nodes": 9,
+          "context": "running",
+          "track": "live"
+        }
+      },
+      "processes": [
+        {
+          "cpu": {
+            "cumulativeCPUUsage": 78.879769,
+            "percentCPUUsage": 10.975975975975976,
+            "idleWakeupsPerSecond": 0
+          },
+          "pid": 73613,
+          "type": "Browser",
+          "creationTime": 1789201721934.985,
+          "memory": {
+            "workingSetSize": 145056,
+            "peakWorkingSetSize": 282112
+          },
+          "sandboxed": false
+        },
+        {
+          "cpu": {
+            "cumulativeCPUUsage": 13.366333,
+            "percentCPUUsage": 8.486842105263158,
+            "idleWakeupsPerSecond": 730
+          },
+          "pid": 73718,
+          "type": "GPU",
+          "creationTime": 1789201725494.272,
+          "serviceName": "GPU",
+          "memory": {
+            "workingSetSize": 61536,
+            "peakWorkingSetSize": 157136
+          },
+          "sandboxed": true
+        },
+        {
+          "cpu": {
+            "cumulativeCPUUsage": 0.395813,
+            "percentCPUUsage": 0,
+            "idleWakeupsPerSecond": 0
+          },
+          "pid": 73719,
+          "type": "Utility",
+          "creationTime": 1789201725501.957,
+          "serviceName": "network.mojom.NetworkService",
+          "name": "Network Service",
+          "memory": {
+            "workingSetSize": 31120,
+            "peakWorkingSetSize": 49456
+          },
+          "sandboxed": true
+        },
+        {
+          "cpu": {
+            "cumulativeCPUUsage": 71.998957,
+            "percentCPUUsage": 16.813970064148254,
+            "idleWakeupsPerSecond": 711
+          },
+          "pid": 73744,
+          "type": "Tab",
+          "creationTime": 1789201725969.518,
+          "memory": {
+            "workingSetSize": 228592,
+            "peakWorkingSetSize": 706064
+          },
+          "sandboxed": false
+        },
+        {
+          "cpu": {
+            "cumulativeCPUUsage": 0.794305,
+            "percentCPUUsage": 0,
+            "idleWakeupsPerSecond": 0
+          },
+          "pid": 73770,
+          "type": "Utility",
+          "creationTime": 1789201727508.473,
+          "serviceName": "audio.mojom.AudioService",
+          "name": "Audio Service",
+          "memory": {
+            "workingSetSize": 26368,
+            "peakWorkingSetSize": 42256
+          },
+          "sandboxed": true
+        },
+        {
+          "cpu": {
+            "cumulativeCPUUsage": 0.504443,
+            "percentCPUUsage": 0,
+            "idleWakeupsPerSecond": 0
+          },
+          "pid": 73771,
+          "type": "Utility",
+          "creationTime": 1789201727509.853,
+          "serviceName": "video_capture.mojom.VideoCaptureService",
+          "name": "Video Capture",
+          "memory": {
+            "workingSetSize": 23456,
+            "peakWorkingSetSize": 54448
+          },
+          "sandboxed": false
+        }
+      ]
+    },
+    {
+      "at": 1789201867432,
+      "runtime": {
+        "state": {
+          "status": "playing",
+          "source": {
+            "engine": "compat",
+            "resourceId": "f9b2020c-87f4-4c13-b36c-d45cb21bf8c9",
+            "id": "37f9f5e13d171181eeda762c680ab9b7:electron-file",
+            "title": "Arcane.2021.S01E02.1080p.NF.WEB-DL.H265.10bit.HDR.DDP5.1-YingWEB.mkv",
+            "startTime": 55.91435900000596,
+            "autoplay": true
+          },
+          "duration": 2431.136,
+          "currentTime": 66.08286233332677,
+          "rate": 1
+        },
+        "clock": {
+          "currentTime": 66.14571400000537,
+          "duration": 2431.136,
+          "volume": 1,
+          "muted": false,
+          "rate": 1,
+          "paused": false,
+          "seeking": false,
+          "ended": false,
+          "buffered": [
+            [
+              66.14571400000537,
+              66.624
+            ]
+          ]
+        },
+        "presentation": {
+          "engine": "compat",
+          "backend": "webcodecs",
+          "firstFrame": true,
+          "buffering": false,
+          "width": 1920,
+          "height": 1080,
+          "videoCodec": "hevc",
+          "decodeThreads": 0,
+          "audioOutputChannels": 2,
+          "videoQueuePeak": 1,
+          "audioAheadPeak": 0.499896333333929,
+          "decodeFps": 23.980144440471896,
+          "colorOutput": "browser-managed",
+          "presenter": "video",
+          "submittedFrames": 247,
+          "renderedFrames": 246,
+          "sourceTransfer": "pq",
+          "sourcePrimaries": "bt2020",
+          "videoFrameRate": 24
+        },
+        "media": {
+          "nodes": 9,
+          "context": "running",
+          "track": "live"
+        }
+      },
+      "processes": [
+        {
+          "cpu": {
+            "cumulativeCPUUsage": 82.145322,
+            "percentCPUUsage": 9.784873949579831,
+            "idleWakeupsPerSecond": 0
+          },
+          "pid": 73613,
+          "type": "Browser",
+          "creationTime": 1789201721934.985,
+          "memory": {
+            "workingSetSize": 131760,
+            "peakWorkingSetSize": 282112
+          },
+          "sandboxed": false
+        },
+        {
+          "cpu": {
+            "cumulativeCPUUsage": 14.134824,
+            "percentCPUUsage": 0,
+            "idleWakeupsPerSecond": 0
+          },
+          "pid": 73718,
+          "type": "GPU",
+          "creationTime": 1789201725494.272,
+          "serviceName": "GPU",
+          "memory": {
+            "workingSetSize": 62848,
+            "peakWorkingSetSize": 157136
+          },
+          "sandboxed": true
+        },
+        {
+          "cpu": {
+            "cumulativeCPUUsage": 0.403336,
+            "percentCPUUsage": 0,
+            "idleWakeupsPerSecond": 0
+          },
+          "pid": 73719,
+          "type": "Utility",
+          "creationTime": 1789201725501.957,
+          "serviceName": "network.mojom.NetworkService",
+          "name": "Network Service",
+          "memory": {
+            "workingSetSize": 30112,
+            "peakWorkingSetSize": 49456
+          },
+          "sandboxed": true
+        },
+        {
+          "cpu": {
+            "cumulativeCPUUsage": 74.883517,
+            "percentCPUUsage": 7.419354838709677,
+            "idleWakeupsPerSecond": 0
+          },
+          "pid": 73744,
+          "type": "Tab",
+          "creationTime": 1789201725969.518,
+          "memory": {
+            "workingSetSize": 205984,
+            "peakWorkingSetSize": 706064
+          },
+          "sandboxed": false
+        },
+        {
+          "cpu": {
+            "cumulativeCPUUsage": 0.836298,
+            "percentCPUUsage": 0.1183431952662722,
+            "idleWakeupsPerSecond": 0
+          },
+          "pid": 73770,
+          "type": "Utility",
+          "creationTime": 1789201727508.473,
+          "serviceName": "audio.mojom.AudioService",
+          "name": "Audio Service",
+          "memory": {
+            "workingSetSize": 25936,
+            "peakWorkingSetSize": 42256
+          },
+          "sandboxed": true
+        },
+        {
+          "cpu": {
+            "cumulativeCPUUsage": 0.507923,
+            "percentCPUUsage": 0,
+            "idleWakeupsPerSecond": 0
+          },
+          "pid": 73771,
+          "type": "Utility",
+          "creationTime": 1789201727509.853,
+          "serviceName": "video_capture.mojom.VideoCaptureService",
+          "name": "Video Capture",
+          "memory": {
+            "workingSetSize": 25312,
+            "peakWorkingSetSize": 54448
+          },
+          "sandboxed": false
+        }
+      ]
+    },
+    {
+      "at": 1789201872503,
+      "runtime": {
+        "state": {
+          "status": "playing",
+          "source": {
+            "engine": "compat",
+            "resourceId": "f9b2020c-87f4-4c13-b36c-d45cb21bf8c9",
+            "id": "37f9f5e13d171181eeda762c680ab9b7:electron-file",
+            "title": "Arcane.2021.S01E02.1080p.NF.WEB-DL.H265.10bit.HDR.DDP5.1-YingWEB.mkv",
+            "startTime": 55.91435900000596,
+            "autoplay": true
+          },
+          "duration": 2431.136,
+          "currentTime": 71.29640800000357,
+          "rate": 1
+        },
+        "clock": {
+          "currentTime": 71.53289200000297,
+          "duration": 2431.136,
+          "volume": 1,
+          "muted": false,
+          "rate": 1,
+          "paused": false,
+          "seeking": false,
+          "ended": false,
+          "buffered": [
+            [
+              71.53289200000297,
+              71.67999999999999
+            ]
+          ]
+        },
+        "presentation": {
+          "engine": "compat",
+          "backend": "webcodecs",
+          "firstFrame": true,
+          "buffering": false,
+          "width": 1920,
+          "height": 1080,
+          "videoCodec": "hevc",
+          "decodeThreads": 0,
+          "audioOutputChannels": 2,
+          "videoQueuePeak": 1,
+          "audioAheadPeak": 0.499896333333929,
+          "decodeFps": 29.62215737377208,
+          "colorOutput": "browser-managed",
+          "presenter": "video",
+          "submittedFrames": 368,
+          "renderedFrames": 368,
+          "sourceTransfer": "pq",
+          "sourcePrimaries": "bt2020",
+          "videoFrameRate": 24
+        },
+        "media": {
+          "nodes": 9,
+          "context": "running",
+          "track": "live"
+        }
+      },
+      "processes": [
+        {
+          "cpu": {
+            "cumulativeCPUUsage": 86.499769,
+            "percentCPUUsage": 0.6514272844997466,
+            "idleWakeupsPerSecond": 0
+          },
+          "pid": 73613,
+          "type": "Browser",
+          "creationTime": 1789201721934.985,
+          "memory": {
+            "workingSetSize": 138752,
+            "peakWorkingSetSize": 282112
+          },
+          "sandboxed": false
+        },
+        {
+          "cpu": {
+            "cumulativeCPUUsage": 14.96154,
+            "percentCPUUsage": 1.49856717424285,
+            "idleWakeupsPerSecond": 169
+          },
+          "pid": 73718,
+          "type": "GPU",
+          "creationTime": 1789201725494.272,
+          "serviceName": "GPU",
+          "memory": {
+            "workingSetSize": 58960,
+            "peakWorkingSetSize": 157136
+          },
+          "sandboxed": true
+        },
+        {
+          "cpu": {
+            "cumulativeCPUUsage": 0.412688,
+            "percentCPUUsage": 0,
+            "idleWakeupsPerSecond": 0
+          },
+          "pid": 73719,
+          "type": "Utility",
+          "creationTime": 1789201725501.957,
+          "serviceName": "network.mojom.NetworkService",
+          "name": "Network Service",
+          "memory": {
+            "workingSetSize": 30048,
+            "peakWorkingSetSize": 49456
+          },
+          "sandboxed": true
+        },
+        {
+          "cpu": {
+            "cumulativeCPUUsage": 78.614155,
+            "percentCPUUsage": 15.737226277372264,
+            "idleWakeupsPerSecond": 0
+          },
+          "pid": 73744,
+          "type": "Tab",
+          "creationTime": 1789201725969.518,
+          "memory": {
+            "workingSetSize": 417280,
+            "peakWorkingSetSize": 706064
+          },
+          "sandboxed": false
+        },
+        {
+          "cpu": {
+            "cumulativeCPUUsage": 0.882532,
+            "percentCPUUsage": 0.07174887892376682,
+            "idleWakeupsPerSecond": 0
+          },
+          "pid": 73770,
+          "type": "Utility",
+          "creationTime": 1789201727508.473,
+          "serviceName": "audio.mojom.AudioService",
+          "name": "Audio Service",
+          "memory": {
+            "workingSetSize": 25968,
+            "peakWorkingSetSize": 42256
+          },
+          "sandboxed": true
+        },
+        {
+          "cpu": {
+            "cumulativeCPUUsage": 0.509224,
+            "percentCPUUsage": 0,
+            "idleWakeupsPerSecond": 0
+          },
+          "pid": 73771,
+          "type": "Utility",
+          "creationTime": 1789201727509.853,
+          "serviceName": "video_capture.mojom.VideoCaptureService",
+          "name": "Video Capture",
+          "memory": {
+            "workingSetSize": 23424,
+            "peakWorkingSetSize": 54448
+          },
+          "sandboxed": false
+        }
+      ]
+    },
+    {
+      "at": 1789201877878,
+      "runtime": {
+        "state": {
+          "status": "playing",
+          "source": {
+            "engine": "compat",
+            "resourceId": "f9b2020c-87f4-4c13-b36c-d45cb21bf8c9",
+            "id": "37f9f5e13d171181eeda762c680ab9b7:electron-file",
+            "title": "Arcane.2021.S01E02.1080p.NF.WEB-DL.H265.10bit.HDR.DDP5.1-YingWEB.mkv",
+            "startTime": 55.91435900000596,
+            "autoplay": true
+          },
+          "duration": 2431.136,
+          "currentTime": 76.07367333333451,
+          "rate": 1
+        },
+        "clock": {
+          "currentTime": 76.32113500000774,
+          "duration": 2431.136,
+          "volume": 1,
+          "muted": false,
+          "rate": 1,
+          "paused": false,
+          "seeking": false,
+          "ended": false,
+          "buffered": [
+            [
+              76.32113500000774,
+              76.8
+            ]
+          ]
+        },
+        "presentation": {
+          "engine": "compat",
+          "backend": "webcodecs",
+          "firstFrame": true,
+          "buffering": false,
+          "width": 1920,
+          "height": 1080,
+          "videoCodec": "hevc",
+          "decodeThreads": 0,
+          "audioOutputChannels": 2,
+          "videoQueuePeak": 1,
+          "audioAheadPeak": 0.4998983333279625,
+          "droppedFrames": 1,
+          "decodeFps": 24.02104243314853,
+          "colorOutput": "browser-managed",
+          "presenter": "video",
+          "submittedFrames": 490,
+          "renderedFrames": 489,
+          "sourceTransfer": "pq",
+          "sourcePrimaries": "bt2020",
+          "videoFrameRate": 24
+        },
+        "media": {
+          "nodes": 9,
+          "context": "running",
+          "track": "live"
+        }
+      },
+      "processes": [
+        {
+          "cpu": {
+            "cumulativeCPUUsage": 91.483363,
+            "percentCPUUsage": 12.854018589393112,
+            "idleWakeupsPerSecond": 0
+          },
+          "pid": 73613,
+          "type": "Browser",
+          "creationTime": 1789201721934.985,
+          "memory": {
+            "workingSetSize": 148448,
+            "peakWorkingSetSize": 282112
+          },
+          "sandboxed": false
+        },
+        {
+          "cpu": {
+            "cumulativeCPUUsage": 15.61181,
+            "percentCPUUsage": 2.071197411003236,
+            "idleWakeupsPerSecond": 539
+          },
+          "pid": 73718,
+          "type": "GPU",
+          "creationTime": 1789201725494.272,
+          "serviceName": "GPU",
+          "memory": {
+            "workingSetSize": 60016,
+            "peakWorkingSetSize": 157136
+          },
+          "sandboxed": true
+        },
+        {
+          "cpu": {
+            "cumulativeCPUUsage": 0.417216,
+            "percentCPUUsage": 0,
+            "idleWakeupsPerSecond": 0
+          },
+          "pid": 73719,
+          "type": "Utility",
+          "creationTime": 1789201725501.957,
+          "serviceName": "network.mojom.NetworkService",
+          "name": "Network Service",
+          "memory": {
+            "workingSetSize": 30960,
+            "peakWorkingSetSize": 49456
+          },
+          "sandboxed": true
+        },
+        {
+          "cpu": {
+            "cumulativeCPUUsage": 82.542628,
+            "percentCPUUsage": 11.08166576527853,
+            "idleWakeupsPerSecond": 0
+          },
+          "pid": 73744,
+          "type": "Tab",
+          "creationTime": 1789201725969.518,
+          "memory": {
+            "workingSetSize": 249584,
+            "peakWorkingSetSize": 706064
+          },
+          "sandboxed": false
+        },
+        {
+          "cpu": {
+            "cumulativeCPUUsage": 0.923184,
+            "percentCPUUsage": 0,
+            "idleWakeupsPerSecond": 0
+          },
+          "pid": 73770,
+          "type": "Utility",
+          "creationTime": 1789201727508.473,
+          "serviceName": "audio.mojom.AudioService",
+          "name": "Audio Service",
+          "memory": {
+            "workingSetSize": 25968,
+            "peakWorkingSetSize": 42256
+          },
+          "sandboxed": true
+        },
+        {
+          "cpu": {
+            "cumulativeCPUUsage": 0.509699,
+            "percentCPUUsage": 0,
+            "idleWakeupsPerSecond": 0
+          },
+          "pid": 73771,
+          "type": "Utility",
+          "creationTime": 1789201727509.853,
+          "serviceName": "video_capture.mojom.VideoCaptureService",
+          "name": "Video Capture",
+          "memory": {
+            "workingSetSize": 23424,
+            "peakWorkingSetSize": 54448
+          },
+          "sandboxed": false
+        }
+      ]
+    },
+    {
+      "at": 1789201882941,
+      "runtime": {
+        "state": {
+          "status": "playing",
+          "source": {
+            "engine": "compat",
+            "resourceId": "f9b2020c-87f4-4c13-b36c-d45cb21bf8c9",
+            "id": "37f9f5e13d171181eeda762c680ab9b7:electron-file",
+            "title": "Arcane.2021.S01E02.1080p.NF.WEB-DL.H265.10bit.HDR.DDP5.1-YingWEB.mkv",
+            "startTime": 55.91435900000596,
+            "autoplay": true
+          },
+          "duration": 2431.136,
+          "currentTime": 81.24115733333392,
+          "rate": 1
+        },
+        "clock": {
+          "currentTime": 81.4756379999988,
+          "duration": 2431.136,
+          "volume": 1,
+          "muted": false,
+          "rate": 1,
+          "paused": false,
+          "seeking": false,
+          "ended": false,
+          "buffered": [
+            [
+              81.4756379999988,
+              81.952
+            ]
+          ]
+        },
+        "presentation": {
+          "engine": "compat",
+          "backend": "webcodecs",
+          "firstFrame": true,
+          "buffering": false,
+          "width": 1920,
+          "height": 1080,
+          "videoCodec": "hevc",
+          "decodeThreads": 0,
+          "audioOutputChannels": 2,
+          "videoQueuePeak": 1,
+          "audioAheadPeak": 0.4998983333279625,
+          "droppedFrames": 1,
+          "decodeFps": 23.182010759396466,
+          "colorOutput": "browser-managed",
+          "presenter": "video",
+          "submittedFrames": 614,
+          "renderedFrames": 613,
+          "sourceTransfer": "pq",
+          "sourcePrimaries": "bt2020",
+          "videoFrameRate": 24
+        },
+        "media": {
+          "nodes": 9,
+          "context": "running",
+          "track": "live"
+        }
+      },
+      "processes": [
+        {
+          "cpu": {
+            "cumulativeCPUUsage": 96.071402,
+            "percentCPUUsage": 1.576571617307057,
+            "idleWakeupsPerSecond": 0
+          },
+          "pid": 73613,
+          "type": "Browser",
+          "creationTime": 1789201721934.985,
+          "memory": {
+            "workingSetSize": 146416,
+            "peakWorkingSetSize": 282112
+          },
+          "sandboxed": false
+        },
+        {
+          "cpu": {
+            "cumulativeCPUUsage": 16.338348,
+            "percentCPUUsage": 0.20778364116094986,
+            "idleWakeupsPerSecond": 330
+          },
+          "pid": 73718,
+          "type": "GPU",
+          "creationTime": 1789201725494.272,
+          "serviceName": "GPU",
+          "memory": {
+            "workingSetSize": 60016,
+            "peakWorkingSetSize": 157136
+          },
+          "sandboxed": true
+        },
+        {
+          "cpu": {
+            "cumulativeCPUUsage": 0.422759,
+            "percentCPUUsage": 0,
+            "idleWakeupsPerSecond": 0
+          },
+          "pid": 73719,
+          "type": "Utility",
+          "creationTime": 1789201725501.957,
+          "serviceName": "network.mojom.NetworkService",
+          "name": "Network Service",
+          "memory": {
+            "workingSetSize": 29360,
+            "peakWorkingSetSize": 49456
+          },
+          "sandboxed": true
+        },
+        {
+          "cpu": {
+            "cumulativeCPUUsage": 86.035072,
+            "percentCPUUsage": 1.667764602547211,
+            "idleWakeupsPerSecond": 110
+          },
+          "pid": 73744,
+          "type": "Tab",
+          "creationTime": 1789201725969.518,
+          "memory": {
+            "workingSetSize": 268128,
+            "peakWorkingSetSize": 706064
+          },
+          "sandboxed": false
+        },
+        {
+          "cpu": {
+            "cumulativeCPUUsage": 0.964875,
+            "percentCPUUsage": 0.038419319429198684,
+            "idleWakeupsPerSecond": 0
+          },
+          "pid": 73770,
+          "type": "Utility",
+          "creationTime": 1789201727508.473,
+          "serviceName": "audio.mojom.AudioService",
+          "name": "Audio Service",
+          "memory": {
+            "workingSetSize": 25568,
+            "peakWorkingSetSize": 42256
+          },
+          "sandboxed": true
+        },
+        {
+          "cpu": {
+            "cumulativeCPUUsage": 0.510298,
+            "percentCPUUsage": 0,
+            "idleWakeupsPerSecond": 0
+          },
+          "pid": 73771,
+          "type": "Utility",
+          "creationTime": 1789201727509.853,
+          "serviceName": "video_capture.mojom.VideoCaptureService",
+          "name": "Video Capture",
+          "memory": {
+            "workingSetSize": 23232,
+            "peakWorkingSetSize": 54448
+          },
+          "sandboxed": false
+        }
+      ]
+    },
+    {
+      "at": 1789201888127,
+      "runtime": {
+        "state": {
+          "status": "playing",
+          "source": {
+            "engine": "compat",
+            "resourceId": "f9b2020c-87f4-4c13-b36c-d45cb21bf8c9",
+            "id": "37f9f5e13d171181eeda762c680ab9b7:electron-file",
+            "title": "Arcane.2021.S01E02.1080p.NF.WEB-DL.H265.10bit.HDR.DDP5.1-YingWEB.mkv",
+            "startTime": 55.91435900000596,
+            "autoplay": true
+          },
+          "duration": 2431.136,
+          "currentTime": 85.83766199999343,
+          "rate": 1
+        },
+        "clock": {
+          "currentTime": 86.03336733334643,
+          "duration": 2431.136,
+          "volume": 1,
+          "muted": false,
+          "rate": 1,
+          "paused": false,
+          "seeking": false,
+          "ended": false,
+          "buffered": [
+            [
+              86.03336733334643,
+              86.496
+            ]
+          ]
+        },
+        "presentation": {
+          "engine": "compat",
+          "backend": "webcodecs",
+          "firstFrame": true,
+          "buffering": false,
+          "width": 1920,
+          "height": 1080,
+          "videoCodec": "hevc",
+          "decodeThreads": 0,
+          "audioOutputChannels": 2,
+          "videoQueuePeak": 1,
+          "audioAheadPeak": 0.4998983333279625,
+          "droppedFrames": 3,
+          "decodeFps": 23.988869164741875,
+          "colorOutput": "browser-managed",
+          "presenter": "video",
+          "submittedFrames": 721,
+          "renderedFrames": 721,
+          "sourceTransfer": "pq",
+          "sourcePrimaries": "bt2020",
+          "videoFrameRate": 24
+        },
+        "media": {
+          "nodes": 8,
+          "context": "running",
+          "track": "live"
+        }
+      },
+      "processes": [
+        {
+          "cpu": {
+            "cumulativeCPUUsage": 99.905112,
+            "percentCPUUsage": 8.594563331405435,
+            "idleWakeupsPerSecond": 0
+          },
+          "pid": 73613,
+          "type": "Browser",
+          "creationTime": 1789201721934.985,
+          "memory": {
+            "workingSetSize": 167360,
+            "peakWorkingSetSize": 282112
+          },
+          "sandboxed": false
+        },
+        {
+          "cpu": {
+            "cumulativeCPUUsage": 16.887717,
+            "percentCPUUsage": 1.4010209869540557,
+            "idleWakeupsPerSecond": 567
+          },
+          "pid": 73718,
+          "type": "GPU",
+          "creationTime": 1789201725494.272,
+          "serviceName": "GPU",
+          "memory": {
+            "workingSetSize": 57776,
+            "peakWorkingSetSize": 157136
+          },
+          "sandboxed": true
+        },
+        {
+          "cpu": {
+            "cumulativeCPUUsage": 0.42587,
+            "percentCPUUsage": 0,
+            "idleWakeupsPerSecond": 0
+          },
+          "pid": 73719,
+          "type": "Utility",
+          "creationTime": 1789201725501.957,
+          "serviceName": "network.mojom.NetworkService",
+          "name": "Network Service",
+          "memory": {
+            "workingSetSize": 28240,
+            "peakWorkingSetSize": 49456
+          },
+          "sandboxed": true
+        },
+        {
+          "cpu": {
+            "cumulativeCPUUsage": 88.903829,
+            "percentCPUUsage": 6.053962900505902,
+            "idleWakeupsPerSecond": 0
+          },
+          "pid": 73744,
+          "type": "Tab",
+          "creationTime": 1789201725969.518,
+          "memory": {
+            "workingSetSize": 223920,
+            "peakWorkingSetSize": 706064
+          },
+          "sandboxed": false
+        },
+        {
+          "cpu": {
+            "cumulativeCPUUsage": 1.00373,
+            "percentCPUUsage": 0,
+            "idleWakeupsPerSecond": 0
+          },
+          "pid": 73770,
+          "type": "Utility",
+          "creationTime": 1789201727508.473,
+          "serviceName": "audio.mojom.AudioService",
+          "name": "Audio Service",
+          "memory": {
+            "workingSetSize": 25600,
+            "peakWorkingSetSize": 42256
+          },
+          "sandboxed": true
+        },
+        {
+          "cpu": {
+            "cumulativeCPUUsage": 0.512626,
+            "percentCPUUsage": 0,
+            "idleWakeupsPerSecond": 0
+          },
+          "pid": 73771,
+          "type": "Utility",
+          "creationTime": 1789201727509.853,
+          "serviceName": "video_capture.mojom.VideoCaptureService",
+          "name": "Video Capture",
+          "memory": {
+            "workingSetSize": 24928,
+            "peakWorkingSetSize": 54448
+          },
+          "sandboxed": false
+        }
+      ]
+    },
+    {
+      "at": 1789201893138,
+      "runtime": {
+        "state": {
+          "status": "playing",
+          "source": {
+            "engine": "compat",
+            "resourceId": "f9b2020c-87f4-4c13-b36c-d45cb21bf8c9",
+            "id": "37f9f5e13d171181eeda762c680ab9b7:electron-file",
+            "title": "Arcane.2021.S01E02.1080p.NF.WEB-DL.H265.10bit.HDR.DDP5.1-YingWEB.mkv",
+            "startTime": 55.91435900000596,
+            "autoplay": true
+          },
+          "duration": 2431.136,
+          "currentTime": 90.78761066667619,
+          "rate": 1
+        },
+        "clock": {
+          "currentTime": 91.0447736666774,
+          "duration": 2431.136,
+          "volume": 1,
+          "muted": false,
+          "rate": 1,
+          "paused": false,
+          "seeking": false,
+          "ended": false,
+          "buffered": [
+            [
+              91.0447736666774,
+              91.52
+            ]
+          ]
+        },
+        "presentation": {
+          "engine": "compat",
+          "backend": "webcodecs",
+          "firstFrame": true,
+          "buffering": false,
+          "width": 1920,
+          "height": 1080,
+          "videoCodec": "hevc",
+          "decodeThreads": 0,
+          "audioOutputChannels": 2,
+          "videoQueuePeak": 1,
+          "audioAheadPeak": 0.4998983333279625,
+          "droppedFrames": 3,
+          "decodeFps": 23.95027922036137,
+          "colorOutput": "browser-managed",
+          "presenter": "video",
+          "submittedFrames": 841,
+          "renderedFrames": 841,
+          "sourceTransfer": "pq",
+          "sourcePrimaries": "bt2020",
+          "videoFrameRate": 24
+        },
+        "media": {
+          "nodes": 9,
+          "context": "running",
+          "track": "live"
+        }
+      },
+      "processes": [
+        {
+          "cpu": {
+            "cumulativeCPUUsage": 104.594375,
+            "percentCPUUsage": 7.551020408163265,
+            "idleWakeupsPerSecond": 0
+          },
+          "pid": 73613,
+          "type": "Browser",
+          "creationTime": 1789201721934.985,
+          "memory": {
+            "workingSetSize": 147328,
+            "peakWorkingSetSize": 282112
+          },
+          "sandboxed": false
+        },
+        {
+          "cpu": {
+            "cumulativeCPUUsage": 17.545352,
+            "percentCPUUsage": 0,
+            "idleWakeupsPerSecond": 0
+          },
+          "pid": 73718,
+          "type": "GPU",
+          "creationTime": 1789201725494.272,
+          "serviceName": "GPU",
+          "memory": {
+            "workingSetSize": 58064,
+            "peakWorkingSetSize": 157136
+          },
+          "sandboxed": true
+        },
+        {
+          "cpu": {
+            "cumulativeCPUUsage": 0.429811,
+            "percentCPUUsage": 0,
+            "idleWakeupsPerSecond": 0
+          },
+          "pid": 73719,
+          "type": "Utility",
+          "creationTime": 1789201725501.957,
+          "serviceName": "network.mojom.NetworkService",
+          "name": "Network Service",
+          "memory": {
+            "workingSetSize": 28144,
+            "peakWorkingSetSize": 49456
+          },
+          "sandboxed": true
+        },
+        {
+          "cpu": {
+            "cumulativeCPUUsage": 92.303017,
+            "percentCPUUsage": 0.9595015576323987,
+            "idleWakeupsPerSecond": 0
+          },
+          "pid": 73744,
+          "type": "Tab",
+          "creationTime": 1789201725969.518,
+          "memory": {
+            "workingSetSize": 253168,
+            "peakWorkingSetSize": 706064
+          },
+          "sandboxed": false
+        },
+        {
+          "cpu": {
+            "cumulativeCPUUsage": 1.044454,
+            "percentCPUUsage": 0,
+            "idleWakeupsPerSecond": 0
+          },
+          "pid": 73770,
+          "type": "Utility",
+          "creationTime": 1789201727508.473,
+          "serviceName": "audio.mojom.AudioService",
+          "name": "Audio Service",
+          "memory": {
+            "workingSetSize": 25584,
+            "peakWorkingSetSize": 42256
+          },
+          "sandboxed": true
+        },
+        {
+          "cpu": {
+            "cumulativeCPUUsage": 0.514377,
+            "percentCPUUsage": 0,
+            "idleWakeupsPerSecond": 0
+          },
+          "pid": 73771,
+          "type": "Utility",
+          "creationTime": 1789201727509.853,
+          "serviceName": "video_capture.mojom.VideoCaptureService",
+          "name": "Video Capture",
+          "memory": {
+            "workingSetSize": 25008,
+            "peakWorkingSetSize": 54448
+          },
+          "sandboxed": false
+        }
+      ]
+    },
+    {
+      "at": 1789201898146,
+      "runtime": {
+        "state": {
+          "status": "playing",
+          "source": {
+            "engine": "compat",
+            "resourceId": "f9b2020c-87f4-4c13-b36c-d45cb21bf8c9",
+            "id": "37f9f5e13d171181eeda762c680ab9b7:electron-file",
+            "title": "Arcane.2021.S01E02.1080p.NF.WEB-DL.H265.10bit.HDR.DDP5.1-YingWEB.mkv",
+            "startTime": 55.91435900000596,
+            "autoplay": true
+          },
+          "duration": 2431.136,
+          "currentTime": 95.83864933334347,
+          "rate": 1
+        },
+        "clock": {
+          "currentTime": 96.051279666678,
+          "duration": 2431.136,
+          "volume": 1,
+          "muted": false,
+          "rate": 1,
+          "paused": false,
+          "seeking": false,
+          "ended": false,
+          "buffered": [
+            [
+              96.051279666678,
+              96.544
+            ]
+          ]
+        },
+        "presentation": {
+          "engine": "compat",
+          "backend": "webcodecs",
+          "firstFrame": true,
+          "buffering": false,
+          "width": 1920,
+          "height": 1080,
+          "videoCodec": "hevc",
+          "decodeThreads": 0,
+          "audioOutputChannels": 2,
+          "videoQueuePeak": 1,
+          "audioAheadPeak": 0.4998983333279625,
+          "droppedFrames": 7,
+          "decodeFps": 24.038268924310902,
+          "colorOutput": "browser-managed",
+          "presenter": "video",
+          "submittedFrames": 957,
+          "renderedFrames": 957,
+          "sourceTransfer": "pq",
+          "sourcePrimaries": "bt2020",
+          "videoFrameRate": 24
+        },
+        "media": {
+          "nodes": 9,
+          "context": "running",
+          "track": "live"
+        }
+      },
+      "processes": [
+        {
+          "cpu": {
+            "cumulativeCPUUsage": 109.232304,
+            "percentCPUUsage": 13.184143222506393,
+            "idleWakeupsPerSecond": 0
+          },
+          "pid": 73613,
+          "type": "Browser",
+          "creationTime": 1789201721934.985,
+          "memory": {
+            "workingSetSize": 168848,
+            "peakWorkingSetSize": 282112
+          },
+          "sandboxed": false
+        },
+        {
+          "cpu": {
+            "cumulativeCPUUsage": 18.16717,
+            "percentCPUUsage": 0.06305170239596469,
+            "idleWakeupsPerSecond": 1261
+          },
+          "pid": 73718,
+          "type": "GPU",
+          "creationTime": 1789201725494.272,
+          "serviceName": "GPU",
+          "memory": {
+            "workingSetSize": 57808,
+            "peakWorkingSetSize": 157136
+          },
+          "sandboxed": true
+        },
+        {
+          "cpu": {
+            "cumulativeCPUUsage": 0.435725,
+            "percentCPUUsage": 0,
+            "idleWakeupsPerSecond": 0
+          },
+          "pid": 73719,
+          "type": "Utility",
+          "creationTime": 1789201725501.957,
+          "serviceName": "network.mojom.NetworkService",
+          "name": "Network Service",
+          "memory": {
+            "workingSetSize": 31024,
+            "peakWorkingSetSize": 49456
+          },
+          "sandboxed": true
+        },
+        {
+          "cpu": {
+            "cumulativeCPUUsage": 95.821149,
+            "percentCPUUsage": 3.4465408805031443,
+            "idleWakeupsPerSecond": 0
+          },
+          "pid": 73744,
+          "type": "Tab",
+          "creationTime": 1789201725969.518,
+          "memory": {
+            "workingSetSize": 265056,
+            "peakWorkingSetSize": 706064
+          },
+          "sandboxed": false
+        },
+        {
+          "cpu": {
+            "cumulativeCPUUsage": 1.084699,
+            "percentCPUUsage": 0,
+            "idleWakeupsPerSecond": 0
+          },
+          "pid": 73770,
+          "type": "Utility",
+          "creationTime": 1789201727508.473,
+          "serviceName": "audio.mojom.AudioService",
+          "name": "Audio Service",
+          "memory": {
+            "workingSetSize": 25024,
+            "peakWorkingSetSize": 42256
+          },
+          "sandboxed": true
+        },
+        {
+          "cpu": {
+            "cumulativeCPUUsage": 0.516524,
+            "percentCPUUsage": 0,
+            "idleWakeupsPerSecond": 0
+          },
+          "pid": 73771,
+          "type": "Utility",
+          "creationTime": 1789201727509.853,
+          "serviceName": "video_capture.mojom.VideoCaptureService",
+          "name": "Video Capture",
+          "memory": {
+            "workingSetSize": 25008,
+            "peakWorkingSetSize": 54448
+          },
+          "sandboxed": false
+        }
+      ]
+    },
+    {
+      "at": 1789201903160,
+      "runtime": {
+        "state": {
+          "status": "playing",
+          "source": {
+            "engine": "compat",
+            "resourceId": "f9b2020c-87f4-4c13-b36c-d45cb21bf8c9",
+            "id": "37f9f5e13d171181eeda762c680ab9b7:electron-file",
+            "title": "Arcane.2021.S01E02.1080p.NF.WEB-DL.H265.10bit.HDR.DDP5.1-YingWEB.mkv",
+            "startTime": 55.91435900000596,
+            "autoplay": true
+          },
+          "duration": 2431.136,
+          "currentTime": 101.03808233334524,
+          "rate": 1
+        },
+        "clock": {
+          "currentTime": 101.0676809999976,
+          "duration": 2431.136,
+          "volume": 1,
+          "muted": false,
+          "rate": 1,
+          "paused": false,
+          "seeking": false,
+          "ended": false,
+          "buffered": [
+            [
+              101.0676809999976,
+              101.536
+            ]
+          ]
+        },
+        "presentation": {
+          "engine": "compat",
+          "backend": "webcodecs",
+          "firstFrame": true,
+          "buffering": false,
+          "width": 1920,
+          "height": 1080,
+          "videoCodec": "hevc",
+          "decodeThreads": 0,
+          "audioOutputChannels": 2,
+          "videoQueuePeak": 1,
+          "audioAheadPeak": 0.4998983333279625,
+          "droppedFrames": 7,
+          "decodeFps": 24.009892075546574,
+          "colorOutput": "browser-managed",
+          "presenter": "video",
+          "submittedFrames": 1078,
+          "renderedFrames": 1077,
+          "sourceTransfer": "pq",
+          "sourcePrimaries": "bt2020",
+          "videoFrameRate": 24
+        },
+        "media": {
+          "nodes": 9,
+          "context": "running",
+          "track": "live"
+        }
+      },
+      "processes": [
+        {
+          "cpu": {
+            "cumulativeCPUUsage": 114.970745,
+            "percentCPUUsage": 12.62210796915167,
+            "idleWakeupsPerSecond": 0
+          },
+          "pid": 73613,
+          "type": "Browser",
+          "creationTime": 1789201721934.985,
+          "memory": {
+            "workingSetSize": 171264,
+            "peakWorkingSetSize": 282112
+          },
+          "sandboxed": false
+        },
+        {
+          "cpu": {
+            "cumulativeCPUUsage": 18.815453,
+            "percentCPUUsage": 0,
+            "idleWakeupsPerSecond": 0
+          },
+          "pid": 73718,
+          "type": "GPU",
+          "creationTime": 1789201725494.272,
+          "serviceName": "GPU",
+          "memory": {
+            "workingSetSize": 57616,
+            "peakWorkingSetSize": 157136
+          },
+          "sandboxed": true
+        },
+        {
+          "cpu": {
+            "cumulativeCPUUsage": 0.439155,
+            "percentCPUUsage": 0,
+            "idleWakeupsPerSecond": 0
+          },
+          "pid": 73719,
+          "type": "Utility",
+          "creationTime": 1789201725501.957,
+          "serviceName": "network.mojom.NetworkService",
+          "name": "Network Service",
+          "memory": {
+            "workingSetSize": 29072,
+            "peakWorkingSetSize": 49456
+          },
+          "sandboxed": true
+        },
+        {
+          "cpu": {
+            "cumulativeCPUUsage": 99.626758,
+            "percentCPUUsage": 7.656675749318801,
+            "idleWakeupsPerSecond": 0
+          },
+          "pid": 73744,
+          "type": "Tab",
+          "creationTime": 1789201725969.518,
+          "memory": {
+            "workingSetSize": 299328,
+            "peakWorkingSetSize": 706064
+          },
+          "sandboxed": false
+        },
+        {
+          "cpu": {
+            "cumulativeCPUUsage": 1.124436,
+            "percentCPUUsage": 0,
+            "idleWakeupsPerSecond": 0
+          },
+          "pid": 73770,
+          "type": "Utility",
+          "creationTime": 1789201727508.473,
+          "serviceName": "audio.mojom.AudioService",
+          "name": "Audio Service",
+          "memory": {
+            "workingSetSize": 25040,
+            "peakWorkingSetSize": 42256
+          },
+          "sandboxed": true
+        },
+        {
+          "cpu": {
+            "cumulativeCPUUsage": 0.516713,
+            "percentCPUUsage": 0,
+            "idleWakeupsPerSecond": 0
+          },
+          "pid": 73771,
+          "type": "Utility",
+          "creationTime": 1789201727509.853,
+          "serviceName": "video_capture.mojom.VideoCaptureService",
+          "name": "Video Capture",
+          "memory": {
+            "workingSetSize": 23248,
+            "peakWorkingSetSize": 54448
+          },
+          "sandboxed": false
+        }
+      ]
+    },
+    {
+      "at": 1789201908171,
+      "runtime": {
+        "state": {
+          "status": "playing",
+          "source": {
+            "engine": "compat",
+            "resourceId": "f9b2020c-87f4-4c13-b36c-d45cb21bf8c9",
+            "id": "37f9f5e13d171181eeda762c680ab9b7:electron-file",
+            "title": "Arcane.2021.S01E02.1080p.NF.WEB-DL.H265.10bit.HDR.DDP5.1-YingWEB.mkv",
+            "startTime": 55.91435900000596,
+            "autoplay": true
+          },
+          "duration": 2431.136,
+          "currentTime": 105.97095733333512,
+          "rate": 1
+        },
+        "clock": {
+          "currentTime": 106.07637200001192,
+          "duration": 2431.136,
+          "volume": 1,
+          "muted": false,
+          "rate": 1,
+          "paused": false,
+          "seeking": false,
+          "ended": false,
+          "buffered": [
+            [
+              106.07637200001192,
+              106.56
+            ]
+          ]
+        },
+        "presentation": {
+          "engine": "compat",
+          "backend": "webcodecs",
+          "firstFrame": true,
+          "buffering": false,
+          "width": 1920,
+          "height": 1080,
+          "videoCodec": "hevc",
+          "decodeThreads": 0,
+          "audioOutputChannels": 2,
+          "videoQueuePeak": 1,
+          "audioAheadPeak": 0.4998983333279625,
+          "droppedFrames": 7,
+          "decodeFps": 24.0230621397114,
+          "colorOutput": "browser-managed",
+          "presenter": "video",
+          "submittedFrames": 1198,
+          "renderedFrames": 1198,
+          "sourceTransfer": "pq",
+          "sourcePrimaries": "bt2020",
+          "videoFrameRate": 24
+        },
+        "media": {
+          "nodes": 9,
+          "context": "running",
+          "track": "live"
+        }
+      },
+      "processes": [
+        {
+          "cpu": {
+            "cumulativeCPUUsage": 120.031596,
+            "percentCPUUsage": 15.804195804195805,
+            "idleWakeupsPerSecond": 0
+          },
+          "pid": 73613,
+          "type": "Browser",
+          "creationTime": 1789201721934.985,
+          "memory": {
+            "workingSetSize": 164672,
+            "peakWorkingSetSize": 282112
+          },
+          "sandboxed": false
+        },
+        {
+          "cpu": {
+            "cumulativeCPUUsage": 19.441717,
+            "percentCPUUsage": 0,
+            "idleWakeupsPerSecond": 0
+          },
+          "pid": 73718,
+          "type": "GPU",
+          "creationTime": 1789201725494.272,
+          "serviceName": "GPU",
+          "memory": {
+            "workingSetSize": 57088,
+            "peakWorkingSetSize": 157136
+          },
+          "sandboxed": true
+        },
+        {
+          "cpu": {
+            "cumulativeCPUUsage": 0.443543,
+            "percentCPUUsage": 0,
+            "idleWakeupsPerSecond": 0
+          },
+          "pid": 73719,
+          "type": "Utility",
+          "creationTime": 1789201725501.957,
+          "serviceName": "network.mojom.NetworkService",
+          "name": "Network Service",
+          "memory": {
+            "workingSetSize": 29344,
+            "peakWorkingSetSize": 49456
+          },
+          "sandboxed": true
+        },
+        {
+          "cpu": {
+            "cumulativeCPUUsage": 103.233431,
+            "percentCPUUsage": 0,
+            "idleWakeupsPerSecond": 0
+          },
+          "pid": 73744,
+          "type": "Tab",
+          "creationTime": 1789201725969.518,
+          "memory": {
+            "workingSetSize": 299568,
+            "peakWorkingSetSize": 706064
+          },
+          "sandboxed": false
+        },
+        {
+          "cpu": {
+            "cumulativeCPUUsage": 1.164667,
+            "percentCPUUsage": 0,
+            "idleWakeupsPerSecond": 0
+          },
+          "pid": 73770,
+          "type": "Utility",
+          "creationTime": 1789201727508.473,
+          "serviceName": "audio.mojom.AudioService",
+          "name": "Audio Service",
+          "memory": {
+            "workingSetSize": 25312,
+            "peakWorkingSetSize": 42256
+          },
+          "sandboxed": true
+        },
+        {
+          "cpu": {
+            "cumulativeCPUUsage": 0.517411,
+            "percentCPUUsage": 0,
+            "idleWakeupsPerSecond": 0
+          },
+          "pid": 73771,
+          "type": "Utility",
+          "creationTime": 1789201727509.853,
+          "serviceName": "video_capture.mojom.VideoCaptureService",
+          "name": "Video Capture",
+          "memory": {
+            "workingSetSize": 24704,
+            "peakWorkingSetSize": 54448
+          },
+          "sandboxed": false
+        }
+      ]
+    },
+    {
+      "at": 1789201913181,
+      "runtime": {
+        "state": {
+          "status": "playing",
+          "source": {
+            "engine": "compat",
+            "resourceId": "f9b2020c-87f4-4c13-b36c-d45cb21bf8c9",
+            "id": "37f9f5e13d171181eeda762c680ab9b7:electron-file",
+            "title": "Arcane.2021.S01E02.1080p.NF.WEB-DL.H265.10bit.HDR.DDP5.1-YingWEB.mkv",
+            "startTime": 55.91435900000596,
+            "autoplay": true
+          },
+          "duration": 2431.136,
+          "currentTime": 110.93866299999821,
+          "rate": 1
+        },
+        "clock": {
+          "currentTime": 111.08638333334227,
+          "duration": 2431.136,
+          "volume": 1,
+          "muted": false,
+          "rate": 1,
+          "paused": false,
+          "seeking": false,
+          "ended": false,
+          "buffered": [
+            [
+              111.08638333334227,
+              111.55199999999999
+            ]
+          ]
+        },
+        "presentation": {
+          "engine": "compat",
+          "backend": "webcodecs",
+          "firstFrame": true,
+          "buffering": false,
+          "width": 1920,
+          "height": 1080,
+          "videoCodec": "hevc",
+          "decodeThreads": 0,
+          "audioOutputChannels": 2,
+          "videoQueuePeak": 1,
+          "audioAheadPeak": 0.4999089999892732,
+          "droppedFrames": 13,
+          "decodeFps": 24.002400240024002,
+          "colorOutput": "browser-managed",
+          "presenter": "video",
+          "submittedFrames": 1312,
+          "renderedFrames": 1312,
+          "sourceTransfer": "pq",
+          "sourcePrimaries": "bt2020",
+          "videoFrameRate": 24
+        },
+        "media": {
+          "nodes": 8,
+          "context": "running",
+          "track": "live"
+        }
+      },
+      "processes": [
+        {
+          "cpu": {
+            "cumulativeCPUUsage": 125.164893,
+            "percentCPUUsage": 13.49002849002849,
+            "idleWakeupsPerSecond": 0
+          },
+          "pid": 73613,
+          "type": "Browser",
+          "creationTime": 1789201721934.985,
+          "memory": {
+            "workingSetSize": 148912,
+            "peakWorkingSetSize": 282112
+          },
+          "sandboxed": false
+        },
+        {
+          "cpu": {
+            "cumulativeCPUUsage": 20.017316,
+            "percentCPUUsage": 6.585014409221903,
+            "idleWakeupsPerSecond": 0
+          },
+          "pid": 73718,
+          "type": "GPU",
+          "creationTime": 1789201725494.272,
+          "serviceName": "GPU",
+          "memory": {
+            "workingSetSize": 55888,
+            "peakWorkingSetSize": 157136
+          },
+          "sandboxed": true
+        },
+        {
+          "cpu": {
+            "cumulativeCPUUsage": 0.446061,
+            "percentCPUUsage": 0,
+            "idleWakeupsPerSecond": 0
+          },
+          "pid": 73719,
+          "type": "Utility",
+          "creationTime": 1789201725501.957,
+          "serviceName": "network.mojom.NetworkService",
+          "name": "Network Service",
+          "memory": {
+            "workingSetSize": 26992,
+            "peakWorkingSetSize": 49456
+          },
+          "sandboxed": true
+        },
+        {
+          "cpu": {
+            "cumulativeCPUUsage": 107.065188,
+            "percentCPUUsage": 0,
+            "idleWakeupsPerSecond": 0
+          },
+          "pid": 73744,
+          "type": "Tab",
+          "creationTime": 1789201725969.518,
+          "memory": {
+            "workingSetSize": 454192,
+            "peakWorkingSetSize": 706064
+          },
+          "sandboxed": false
+        },
+        {
+          "cpu": {
+            "cumulativeCPUUsage": 1.203208,
+            "percentCPUUsage": 0,
+            "idleWakeupsPerSecond": 0
+          },
+          "pid": 73770,
+          "type": "Utility",
+          "creationTime": 1789201727508.473,
+          "serviceName": "audio.mojom.AudioService",
+          "name": "Audio Service",
+          "memory": {
+            "workingSetSize": 24720,
+            "peakWorkingSetSize": 42256
+          },
+          "sandboxed": true
+        },
+        {
+          "cpu": {
+            "cumulativeCPUUsage": 0.519345,
+            "percentCPUUsage": 0,
+            "idleWakeupsPerSecond": 0
+          },
+          "pid": 73771,
+          "type": "Utility",
+          "creationTime": 1789201727509.853,
+          "serviceName": "video_capture.mojom.VideoCaptureService",
+          "name": "Video Capture",
+          "memory": {
+            "workingSetSize": 23920,
+            "peakWorkingSetSize": 54448
+          },
+          "sandboxed": false
+        }
+      ]
+    },
+    {
+      "at": 1789201918188,
+      "runtime": {
+        "state": {
+          "status": "playing",
+          "source": {
+            "engine": "compat",
+            "resourceId": "f9b2020c-87f4-4c13-b36c-d45cb21bf8c9",
+            "id": "37f9f5e13d171181eeda762c680ab9b7:electron-file",
+            "title": "Arcane.2021.S01E02.1080p.NF.WEB-DL.H265.10bit.HDR.DDP5.1-YingWEB.mkv",
+            "startTime": 55.91435900000596,
+            "autoplay": true
+          },
+          "duration": 2431.136,
+          "currentTime": 115.88750233334167,
+          "rate": 1
+        },
+        "clock": {
+          "currentTime": 116.0945833333405,
+          "duration": 2431.136,
+          "volume": 1,
+          "muted": false,
+          "rate": 1,
+          "paused": false,
+          "seeking": false,
+          "ended": false,
+          "buffered": [
+            [
+              116.0945833333405,
+              116.576
+            ]
+          ]
+        },
+        "presentation": {
+          "engine": "compat",
+          "backend": "webcodecs",
+          "firstFrame": true,
+          "buffering": false,
+          "width": 1920,
+          "height": 1080,
+          "videoCodec": "hevc",
+          "decodeThreads": 0,
+          "audioOutputChannels": 2,
+          "videoQueuePeak": 1,
+          "audioAheadPeak": 0.4999089999892732,
+          "droppedFrames": 13,
+          "decodeFps": 24.02085009775886,
+          "colorOutput": "browser-managed",
+          "presenter": "video",
+          "submittedFrames": 1433,
+          "renderedFrames": 1432,
+          "sourceTransfer": "pq",
+          "sourcePrimaries": "bt2020",
+          "videoFrameRate": 24
+        },
+        "media": {
+          "nodes": 9,
+          "context": "running",
+          "track": "live"
+        }
+      },
+      "processes": [
+        {
+          "cpu": {
+            "cumulativeCPUUsage": 130.718715,
+            "percentCPUUsage": 11.542461005199307,
+            "idleWakeupsPerSecond": 0
+          },
+          "pid": 73613,
+          "type": "Browser",
+          "creationTime": 1789201721934.985,
+          "memory": {
+            "workingSetSize": 178320,
+            "peakWorkingSetSize": 282112
+          },
+          "sandboxed": false
+        },
+        {
+          "cpu": {
+            "cumulativeCPUUsage": 20.575308,
+            "percentCPUUsage": 0,
+            "idleWakeupsPerSecond": 0
+          },
+          "pid": 73718,
+          "type": "GPU",
+          "creationTime": 1789201725494.272,
+          "serviceName": "GPU",
+          "memory": {
+            "workingSetSize": 57536,
+            "peakWorkingSetSize": 157136
+          },
+          "sandboxed": true
+        },
+        {
+          "cpu": {
+            "cumulativeCPUUsage": 0.449304,
+            "percentCPUUsage": 0,
+            "idleWakeupsPerSecond": 0
+          },
+          "pid": 73719,
+          "type": "Utility",
+          "creationTime": 1789201725501.957,
+          "serviceName": "network.mojom.NetworkService",
+          "name": "Network Service",
+          "memory": {
+            "workingSetSize": 28384,
+            "peakWorkingSetSize": 49456
+          },
+          "sandboxed": true
+        },
+        {
+          "cpu": {
+            "cumulativeCPUUsage": 110.278627,
+            "percentCPUUsage": 13.89021479713604,
+            "idleWakeupsPerSecond": 0
+          },
+          "pid": 73744,
+          "type": "Tab",
+          "creationTime": 1789201725969.518,
+          "memory": {
+            "workingSetSize": 367232,
+            "peakWorkingSetSize": 706064
+          },
+          "sandboxed": false
+        },
+        {
+          "cpu": {
+            "cumulativeCPUUsage": 1.240457,
+            "percentCPUUsage": 0,
+            "idleWakeupsPerSecond": 0
+          },
+          "pid": 73770,
+          "type": "Utility",
+          "creationTime": 1789201727508.473,
+          "serviceName": "audio.mojom.AudioService",
+          "name": "Audio Service",
+          "memory": {
+            "workingSetSize": 24800,
+            "peakWorkingSetSize": 42256
+          },
+          "sandboxed": true
+        },
+        {
+          "cpu": {
+            "cumulativeCPUUsage": 0.519607,
+            "percentCPUUsage": 0,
+            "idleWakeupsPerSecond": 0
+          },
+          "pid": 73771,
+          "type": "Utility",
+          "creationTime": 1789201727509.853,
+          "serviceName": "video_capture.mojom.VideoCaptureService",
+          "name": "Video Capture",
+          "memory": {
+            "workingSetSize": 23248,
+            "peakWorkingSetSize": 54448
+          },
+          "sandboxed": false
+        }
+      ]
+    }
+  ],
+  "cycles": [
+    {
+      "cycle": 0,
+      "released": {
+        "destroyed": true,
+        "track": "ended",
+        "context": "closed",
+        "client": false,
+        "nodes": 0
+      },
+      "runtime": {
+        "state": {
+          "status": "playing",
+          "source": {
+            "engine": "compat",
+            "resourceId": "56954a31-356a-456f-b112-5ded0f01b382",
+            "id": "37f9f5e13d171181eeda762c680ab9b7:electron-file",
+            "title": "Arcane.2021.S01E02.1080p.NF.WEB-DL.H265.10bit.HDR.DDP5.1-YingWEB.mkv",
+            "startTime": 115.62169366666427,
+            "autoplay": true
+          },
+          "duration": 2431.136,
+          "currentTime": 116.90299733332677,
+          "rate": 1
+        },
+        "clock": {
+          "currentTime": 116.9444539999994,
+          "duration": 2431.136,
+          "volume": 1,
+          "muted": false,
+          "rate": 1,
+          "paused": false,
+          "seeking": false,
+          "ended": false,
+          "buffered": [
+            [
+              116.9444539999994,
+              117.408
+            ]
+          ]
+        },
+        "presentation": {
+          "engine": "compat",
+          "backend": "webcodecs",
+          "firstFrame": true,
+          "buffering": false,
+          "width": 1920,
+          "height": 1080,
+          "videoCodec": "hevc",
+          "decodeThreads": 0,
+          "audioOutputChannels": 2,
+          "videoQueuePeak": 1,
+          "audioAheadPeak": 0.4994233333345335,
+          "decodeFps": 0,
+          "colorOutput": "browser-managed",
+          "presenter": "video",
+          "submittedFrames": 33,
+          "renderedFrames": 33,
+          "sourceTransfer": "pq",
+          "sourcePrimaries": "bt2020",
+          "videoFrameRate": 24
+        },
+        "media": {
+          "nodes": 8,
+          "context": "running",
+          "track": "live"
+        }
+      },
+      "processes": [
+        {
+          "cpu": {
+            "cumulativeCPUUsage": 133.661339,
+            "percentCPUUsage": 11.10260336906585,
+            "idleWakeupsPerSecond": 0
+          },
+          "pid": 73613,
+          "type": "Browser",
+          "creationTime": 1789201721934.985,
+          "memory": {
+            "workingSetSize": 151360,
+            "peakWorkingSetSize": 287168
+          },
+          "sandboxed": false
+        },
+        {
+          "cpu": {
+            "cumulativeCPUUsage": 21.154002,
+            "percentCPUUsage": 0,
+            "idleWakeupsPerSecond": 0
+          },
+          "pid": 73718,
+          "type": "GPU",
+          "creationTime": 1789201725494.272,
+          "serviceName": "GPU",
+          "memory": {
+            "workingSetSize": 58544,
+            "peakWorkingSetSize": 157136
+          },
+          "sandboxed": true
+        },
+        {
+          "cpu": {
+            "cumulativeCPUUsage": 0.493599,
+            "percentCPUUsage": 0,
+            "idleWakeupsPerSecond": 0
+          },
+          "pid": 73719,
+          "type": "Utility",
+          "creationTime": 1789201725501.957,
+          "serviceName": "network.mojom.NetworkService",
+          "name": "Network Service",
+          "memory": {
+            "workingSetSize": 30672,
+            "peakWorkingSetSize": 49456
+          },
+          "sandboxed": true
+        },
+        {
+          "cpu": {
+            "cumulativeCPUUsage": 113.443292,
+            "percentCPUUsage": 12.528548123980425,
+            "idleWakeupsPerSecond": 0
+          },
+          "pid": 73744,
+          "type": "Tab",
+          "creationTime": 1789201725969.518,
+          "memory": {
+            "workingSetSize": 303328,
+            "peakWorkingSetSize": 706064
+          },
+          "sandboxed": false
+        },
+        {
+          "cpu": {
+            "cumulativeCPUUsage": 1.270933,
+            "percentCPUUsage": 0,
+            "idleWakeupsPerSecond": 0
+          },
+          "pid": 73770,
+          "type": "Utility",
+          "creationTime": 1789201727508.473,
+          "serviceName": "audio.mojom.AudioService",
+          "name": "Audio Service",
+          "memory": {
+            "workingSetSize": 26288,
+            "peakWorkingSetSize": 42256
+          },
+          "sandboxed": true
+        },
+        {
+          "cpu": {
+            "cumulativeCPUUsage": 0.521961,
+            "percentCPUUsage": 0,
+            "idleWakeupsPerSecond": 0
+          },
+          "pid": 73771,
+          "type": "Utility",
+          "creationTime": 1789201727509.853,
+          "serviceName": "video_capture.mojom.VideoCaptureService",
+          "name": "Video Capture",
+          "memory": {
+            "workingSetSize": 23264,
+            "peakWorkingSetSize": 54448
+          },
+          "sandboxed": false
+        }
+      ]
+    },
+    {
+      "cycle": 1,
+      "released": {
+        "destroyed": true,
+        "track": "ended",
+        "context": "closed",
+        "client": false,
+        "nodes": 0
+      },
+      "runtime": {
+        "state": {
+          "status": "playing",
+          "source": {
+            "engine": "compat",
+            "resourceId": "2f2b5803-11c6-4ef5-814c-3fc93d744480",
+            "id": "37f9f5e13d171181eeda762c680ab9b7:electron-file",
+            "title": "Arcane.2021.S01E02.1080p.NF.WEB-DL.H265.10bit.HDR.DDP5.1-YingWEB.mkv",
+            "startTime": 115.62169366666427,
+            "autoplay": true
+          },
+          "duration": 2431.136,
+          "currentTime": 116.15221633332617,
+          "rate": 1
+        },
+        "clock": {
+          "currentTime": 116.30882000000058,
+          "duration": 2431.136,
+          "volume": 1,
+          "muted": false,
+          "rate": 1,
+          "paused": false,
+          "seeking": false,
+          "ended": false,
+          "buffered": [
+            [
+              116.30882000000058,
+              116.8
+            ]
+          ]
+        },
+        "presentation": {
+          "engine": "compat",
+          "backend": "webcodecs",
+          "firstFrame": true,
+          "buffering": false,
+          "width": 1920,
+          "height": 1080,
+          "videoCodec": "hevc",
+          "decodeThreads": 0,
+          "audioOutputChannels": 2,
+          "videoQueuePeak": 1,
+          "audioAheadPeak": 0.49965033333810993,
+          "decodeFps": 0,
+          "colorOutput": "browser-managed",
+          "presenter": "video",
+          "submittedFrames": 18,
+          "renderedFrames": 17,
+          "sourceTransfer": "pq",
+          "sourcePrimaries": "bt2020",
+          "videoFrameRate": 24
+        },
+        "media": {
+          "nodes": 9,
+          "context": "running",
+          "track": "live"
+        }
+      },
+      "processes": [
+        {
+          "cpu": {
+            "cumulativeCPUUsage": 135.298616,
+            "percentCPUUsage": 11.401567542646381,
+            "idleWakeupsPerSecond": 0
+          },
+          "pid": 73613,
+          "type": "Browser",
+          "creationTime": 1789201721934.985,
+          "memory": {
+            "workingSetSize": 126528,
+            "peakWorkingSetSize": 287168
+          },
+          "sandboxed": false
+        },
+        {
+          "cpu": {
+            "cumulativeCPUUsage": 21.573388,
+            "percentCPUUsage": 0,
+            "idleWakeupsPerSecond": 0
+          },
+          "pid": 73718,
+          "type": "GPU",
+          "creationTime": 1789201725494.272,
+          "serviceName": "GPU",
+          "memory": {
+            "workingSetSize": 55968,
+            "peakWorkingSetSize": 157136
+          },
+          "sandboxed": true
+        },
+        {
+          "cpu": {
+            "cumulativeCPUUsage": 0.536582,
+            "percentCPUUsage": 0,
+            "idleWakeupsPerSecond": 0
+          },
+          "pid": 73719,
+          "type": "Utility",
+          "creationTime": 1789201725501.957,
+          "serviceName": "network.mojom.NetworkService",
+          "name": "Network Service",
+          "memory": {
+            "workingSetSize": 30704,
+            "peakWorkingSetSize": 49456
+          },
+          "sandboxed": true
+        },
+        {
+          "cpu": {
+            "cumulativeCPUUsage": 115.407,
+            "percentCPUUsage": 4.944700460829493,
+            "idleWakeupsPerSecond": 0
+          },
+          "pid": 73744,
+          "type": "Tab",
+          "creationTime": 1789201725969.518,
+          "memory": {
+            "workingSetSize": 211536,
+            "peakWorkingSetSize": 706064
+          },
+          "sandboxed": false
+        },
+        {
+          "cpu": {
+            "cumulativeCPUUsage": 1.290781,
+            "percentCPUUsage": 0,
+            "idleWakeupsPerSecond": 0
+          },
+          "pid": 73770,
+          "type": "Utility",
+          "creationTime": 1789201727508.473,
+          "serviceName": "audio.mojom.AudioService",
+          "name": "Audio Service",
+          "memory": {
+            "workingSetSize": 25648,
+            "peakWorkingSetSize": 42256
+          },
+          "sandboxed": true
+        },
+        {
+          "cpu": {
+            "cumulativeCPUUsage": 0.52521,
+            "percentCPUUsage": 0,
+            "idleWakeupsPerSecond": 0
+          },
+          "pid": 73771,
+          "type": "Utility",
+          "creationTime": 1789201727509.853,
+          "serviceName": "video_capture.mojom.VideoCaptureService",
+          "name": "Video Capture",
+          "memory": {
+            "workingSetSize": 25120,
+            "peakWorkingSetSize": 54448
+          },
+          "sandboxed": false
+        }
+      ]
+    },
+    {
+      "cycle": 2,
+      "released": {
+        "destroyed": true,
+        "track": "ended",
+        "context": "closed",
+        "client": false,
+        "nodes": 0
+      },
+      "runtime": {
+        "state": {
+          "status": "playing",
+          "source": {
+            "engine": "compat",
+            "resourceId": "724eee12-40f3-4853-a73a-55e007231d07",
+            "id": "37f9f5e13d171181eeda762c680ab9b7:electron-file",
+            "title": "Arcane.2021.S01E02.1080p.NF.WEB-DL.H265.10bit.HDR.DDP5.1-YingWEB.mkv",
+            "startTime": 115.62169366666427,
+            "autoplay": true
+          },
+          "duration": 2431.136,
+          "currentTime": 116.65579666665892,
+          "rate": 1
+        },
+        "clock": {
+          "currentTime": 116.83243566666427,
+          "duration": 2431.136,
+          "volume": 1,
+          "muted": false,
+          "rate": 1,
+          "paused": false,
+          "seeking": false,
+          "ended": false,
+          "buffered": [
+            [
+              116.83243566666427,
+              117.28
+            ]
+          ]
+        },
+        "presentation": {
+          "engine": "compat",
+          "backend": "webcodecs",
+          "firstFrame": true,
+          "buffering": false,
+          "width": 1920,
+          "height": 1080,
+          "videoCodec": "hevc",
+          "decodeThreads": 0,
+          "audioOutputChannels": 2,
+          "videoQueuePeak": 1,
+          "audioAheadPeak": 0.4983130000053677,
+          "droppedFrames": 3,
+          "decodeFps": 0,
+          "colorOutput": "browser-managed",
+          "presenter": "video",
+          "submittedFrames": 26,
+          "renderedFrames": 26,
+          "sourceTransfer": "pq",
+          "sourcePrimaries": "bt2020",
+          "videoFrameRate": 24
+        },
+        "media": {
+          "nodes": 8,
+          "context": "running",
+          "track": "live"
+        }
+      },
+      "processes": [
+        {
+          "cpu": {
+            "cumulativeCPUUsage": 137.051537,
+            "percentCPUUsage": 0.02793271211159725,
+            "idleWakeupsPerSecond": 3
+          },
+          "pid": 73613,
+          "type": "Browser",
+          "creationTime": 1789201721934.985,
+          "memory": {
+            "workingSetSize": 80592,
+            "peakWorkingSetSize": 287168
+          },
+          "sandboxed": false
+        },
+        {
+          "cpu": {
+            "cumulativeCPUUsage": 22.160529,
+            "percentCPUUsage": 0.12119424252206923,
+            "idleWakeupsPerSecond": 181
+          },
+          "pid": 73718,
+          "type": "GPU",
+          "creationTime": 1789201725494.272,
+          "serviceName": "GPU",
+          "memory": {
+            "workingSetSize": 48592,
+            "peakWorkingSetSize": 157136
+          },
+          "sandboxed": true
+        },
+        {
+          "cpu": {
+            "cumulativeCPUUsage": 0.588769,
+            "percentCPUUsage": 0.007786553807090495,
+            "idleWakeupsPerSecond": 1
+          },
+          "pid": 73719,
+          "type": "Utility",
+          "creationTime": 1789201725501.957,
+          "serviceName": "network.mojom.NetworkService",
+          "name": "Network Service",
+          "memory": {
+            "workingSetSize": 28256,
+            "peakWorkingSetSize": 49456
+          },
+          "sandboxed": true
+        },
+        {
+          "cpu": {
+            "cumulativeCPUUsage": 117.613886,
+            "percentCPUUsage": 0.2407136031292212,
+            "idleWakeupsPerSecond": 28
+          },
+          "pid": 73744,
+          "type": "Tab",
+          "creationTime": 1789201725969.518,
+          "memory": {
+            "workingSetSize": 140400,
+            "peakWorkingSetSize": 706064
+          },
+          "sandboxed": false
+        },
+        {
+          "cpu": {
+            "cumulativeCPUUsage": 1.320229,
+            "percentCPUUsage": 0.012132680320569902,
+            "idleWakeupsPerSecond": 5
+          },
+          "pid": 73770,
+          "type": "Utility",
+          "creationTime": 1789201727508.473,
+          "serviceName": "audio.mojom.AudioService",
+          "name": "Audio Service",
+          "memory": {
+            "workingSetSize": 21040,
+            "peakWorkingSetSize": 42256
+          },
+          "sandboxed": true
+        },
+        {
+          "cpu": {
+            "cumulativeCPUUsage": 0.527521,
+            "percentCPUUsage": 0,
+            "idleWakeupsPerSecond": 0
+          },
+          "pid": 73771,
+          "type": "Utility",
+          "creationTime": 1789201727509.853,
+          "serviceName": "video_capture.mojom.VideoCaptureService",
+          "name": "Video Capture",
+          "memory": {
+            "workingSetSize": 17488,
+            "peakWorkingSetSize": 54448
+          },
+          "sandboxed": false
+        }
+      ]
+    }
+  ]
+}
