@@ -1,0 +1,275 @@
+{
+  "stages": [
+    {
+      "label": "初始播放",
+      "snapshot": {
+        "currentTime": 2.022119000000596,
+        "duration": 6397.696,
+        "volume": 0.35,
+        "muted": false,
+        "rate": 1,
+        "paused": false,
+        "seeking": false,
+        "ended": false,
+        "buffered": [
+          [
+            2.022119000000596,
+            2.506666666666667
+          ]
+        ]
+      },
+      "decoding": {
+        "engine": "canvas",
+        "backend": "webcodecs",
+        "firstFrame": true,
+        "buffering": false,
+        "width": 3840,
+        "height": 2160,
+        "videoCodec": "hevc",
+        "decodeThreads": 0,
+        "audioOutputChannels": 2,
+        "renderedFrames": 49,
+        "videoQueuePeak": 1,
+        "audioAheadPeak": 0.4999366666565339,
+        "decodeFps": 9.970735890138672
+      },
+      "rendering": {
+        "submitted": 49,
+        "presented": 48,
+        "lastSubmittedPts": 2.002,
+        "presentationTime": 1.96,
+        "format": null,
+        "transfer": "pq",
+        "primaries": "bt2020",
+        "resets": 1
+      },
+      "output": {
+        "format": null,
+        "colorSpace": {
+          "fullRange": false,
+          "matrix": "bt2020-ncl",
+          "primaries": "bt2020",
+          "transfer": "pq"
+        }
+      },
+      "errors": [],
+      "videoPaused": false
+    },
+    {
+      "label": "连续播放",
+      "snapshot": {
+        "currentTime": 12.045601666669645,
+        "duration": 6397.696,
+        "volume": 0.35,
+        "muted": false,
+        "rate": 1,
+        "paused": false,
+        "seeking": false,
+        "ended": false,
+        "buffered": [
+          [
+            12.045601666669645,
+            12.522666666666668
+          ]
+        ]
+      },
+      "decoding": {
+        "engine": "canvas",
+        "backend": "webcodecs",
+        "firstFrame": true,
+        "buffering": false,
+        "width": 3840,
+        "height": 2160,
+        "videoCodec": "hevc",
+        "decodeThreads": 0,
+        "audioOutputChannels": 2,
+        "renderedFrames": 289,
+        "videoQueuePeak": 1,
+        "audioAheadPeak": 0.4999456666666662,
+        "decodeFps": 24.89655481508463
+      },
+      "rendering": {
+        "submitted": 289,
+        "presented": 289,
+        "lastSubmittedPts": 12.012,
+        "presentationTime": 12.012,
+        "format": null,
+        "transfer": "pq",
+        "primaries": "bt2020",
+        "resets": 1
+      },
+      "output": {
+        "format": null,
+        "colorSpace": {
+          "fullRange": false,
+          "matrix": "bt2020-ncl",
+          "primaries": "bt2020",
+          "transfer": "pq"
+        }
+      },
+      "errors": [],
+      "videoPaused": false
+    },
+    {
+      "label": "暂停 4 秒",
+      "snapshot": {
+        "currentTime": 12.056891333321412,
+        "duration": 6397.696,
+        "volume": 0.35,
+        "muted": false,
+        "rate": 1,
+        "paused": true,
+        "seeking": false,
+        "ended": false,
+        "buffered": [
+          [
+            12.056891333321412,
+            12.544
+          ]
+        ]
+      },
+      "decoding": {
+        "engine": "canvas",
+        "backend": "webcodecs",
+        "firstFrame": true,
+        "buffering": false,
+        "width": 3840,
+        "height": 2160,
+        "videoCodec": "hevc",
+        "decodeThreads": 0,
+        "audioOutputChannels": 2,
+        "renderedFrames": 289,
+        "videoQueuePeak": 1,
+        "audioAheadPeak": 0.4999456666666662,
+        "decodeFps": 0
+      },
+      "rendering": {
+        "submitted": 289,
+        "presented": 289,
+        "lastSubmittedPts": 12.012,
+        "presentationTime": 12.012,
+        "format": null,
+        "transfer": "pq",
+        "primaries": "bt2020",
+        "resets": 1
+      },
+      "output": {
+        "format": null,
+        "colorSpace": {
+          "fullRange": false,
+          "matrix": "bt2020-ncl",
+          "primaries": "bt2020",
+          "transfer": "pq"
+        }
+      },
+      "errors": [],
+      "videoPaused": false
+    },
+    {
+      "label": "暂停中跳转",
+      "snapshot": {
+        "currentTime": 60,
+        "duration": 6397.696,
+        "volume": 0.35,
+        "muted": false,
+        "rate": 1,
+        "paused": true,
+        "seeking": false,
+        "ended": false,
+        "buffered": []
+      },
+      "decoding": {
+        "engine": "canvas",
+        "backend": "webcodecs",
+        "firstFrame": true,
+        "buffering": false,
+        "width": 3840,
+        "height": 2160,
+        "videoCodec": "hevc",
+        "decodeThreads": 0,
+        "audioOutputChannels": 2,
+        "renderedFrames": 290,
+        "videoQueuePeak": 1,
+        "audioAheadPeak": 0.4999456666666662
+      },
+      "rendering": {
+        "submitted": 290,
+        "presented": 290,
+        "lastSubmittedPts": 59.977,
+        "presentationTime": 59.977,
+        "format": null,
+        "transfer": "pq",
+        "primaries": "bt2020",
+        "resets": 2
+      },
+      "output": {
+        "format": null,
+        "colorSpace": {
+          "fullRange": false,
+          "matrix": "bt2020-ncl",
+          "primaries": "bt2020",
+          "transfer": "pq"
+        }
+      },
+      "errors": [],
+      "videoPaused": false
+    },
+    {
+      "label": "1.5 倍速",
+      "snapshot": {
+        "currentTime": 68.3649441666613,
+        "duration": 6397.696,
+        "volume": 0.35,
+        "muted": false,
+        "rate": 1.5,
+        "paused": false,
+        "seeking": false,
+        "ended": false,
+        "buffered": [
+          [
+            68.3649441666613,
+            68.86458333333333
+          ]
+        ]
+      },
+      "decoding": {
+        "engine": "canvas",
+        "backend": "webcodecs",
+        "firstFrame": true,
+        "buffering": false,
+        "width": 3840,
+        "height": 2160,
+        "videoCodec": "hevc",
+        "decodeThreads": 0,
+        "audioOutputChannels": 2,
+        "renderedFrames": 491,
+        "videoQueuePeak": 1,
+        "audioAheadPeak": 0.4999456666666662,
+        "decodeFps": 35.98833977787765
+      },
+      "rendering": {
+        "submitted": 491,
+        "presented": 490,
+        "lastSubmittedPts": 68.318,
+        "presentationTime": 68.318,
+        "format": null,
+        "transfer": "pq",
+        "primaries": "bt2020",
+        "resets": 3
+      },
+      "output": {
+        "format": null,
+        "colorSpace": {
+          "fullRange": false,
+          "matrix": "bt2020-ncl",
+          "primaries": "bt2020",
+          "transfer": "pq"
+        }
+      },
+      "errors": [],
+      "videoPaused": false
+    }
+  ],
+  "errors": [],
+  "url": "http://127.0.0.1:57082/scripts/player-engine/tests/real-video.html"
+}

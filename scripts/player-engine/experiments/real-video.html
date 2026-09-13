@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="zh-CN">
+  <meta charset="UTF-8" /><title>真实文件 · video 呈现实验</title>
+  <style>
+    body {
+      background: #171717;
+      color: #eee;
+      font: 14px system-ui;
+      margin: 20px;
+    }
+    h1 {
+      font-size: 20px;
+    }
+    video {
+      display: block;
+      width: 100%;
+      height: 56vh;
+      background: #000;
+      object-fit: contain;
+    }
+    main {
+      max-width: 1200px;
+      margin: auto;
+    }
+    button,
+    input,
+    select {
+      margin: 5px;
+      padding: 6px;
+    }
+    #seek {
+      width: 70%;
+    }
+    pre {
+      font-size: 12px;
+      max-height: 230px;
+      overflow: auto;
+    }
+    p {
+      color: #ccc;
+    }
+  </style>
+  <main>
+    <h1>真实本地文件 · video 呈现实验</h1>
+    <p>
+      复用现有 Worker 解码、Web Audio、SoundTouch
+      与媒体时钟。仅替换呈现模块；未接入正式播放器。文件通过本地 File
+      读取，不上传。字幕、弹幕未接入本实验。
+    </p>
+    <input id="file" type="file" accept=".mp4,.mkv,.webm" /><label
+      ><input id="software" type="checkbox" />下次打开强制 HEVC 软解</label
+    >
+    <div id="status">选择真实视频开始，默认音量 35%。</div>
+    <video id="video" muted playsinline></video>
+    <button id="play">播放</button><button id="pause">暂停（停帧）</button
+    ><button id="back">后退 10 秒</button><button id="forward">前进 10 秒</button
+    ><button id="stop">关闭媒体</button>
+    <select id="rate">
+      <option value="1">1 倍速</option>
+      <option value="1.5">1.5 倍速</option>
+      <option value="2">2 倍速</option>
+      <option value="0.5">0.5 倍速</option></select
+    ><select id="audio"></select>
+    <div>
+      <input id="seek" type="range" min="0" max="1" step="0.1" value="0" /><span id="time"></span>
+    </div>
+    <button id="record">记录状态</button><button id="export">导出诊断</button>
+    <p>
+      内部 engine 仍标为 canvas，因为复用原适配器；实际画面来自 video。PQ 标签仅证明帧信息，HDR
+      高光、音画同步仍需观察。
+    </p>
+    <pre id="diagnostic"></pre>
+  </main>
+  <script type="module" src="/scripts/player-engine/experiments/real-video-page.ts"></script>
+</html>

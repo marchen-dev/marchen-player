@@ -49,3 +49,7 @@ MARCHEN_REFERENCE_FFMPEG="$(brew --prefix ffmpeg-full)/bin/ffmpeg" node scripts/
 ```
 
 可通过 MARCHEN_REFERENCE_PYTHON 指定参考 Python。PQ使用FFmpeg zscale；HLG使用Colour的BT.2100亮度相关EOTF后接FFmpeg tone-map，避免把zimg逐通道近似作为精确HLG参考。8组范围/位深对比固定容差3，不因失败放宽。输出包含实际GPU画布和独立参考图，均是合成色块。候选固定1000nit源峰值，完整播放器动态元数据及HDR输出另行验收。
+
+## 目录边界
+
+`tests/` 保留可重复运行的回归；`experiments/` 为历史 HDR/video spike，不进入发布门禁。`subtitle-session-regression.mjs` 只断言 Worker、Canvas 与已加载轨道资源复用，不再通过导入另一个 Vite 模块统计扫描次数。临时产物写入 test-results，根目录 .tmp 也已忽略。

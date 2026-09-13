@@ -1,6 +1,6 @@
 # 播放器部署与诊断
 
-开发分支使用 H5 / Canvas 双内核，没有 Node 转码服务器。`pnpm media:prepare` 从固定依赖
+开发分支使用 原生 H5 / compat 双内核，没有 Node 转码服务器。`pnpm media:prepare` 从固定依赖
 复制 HEVC 0.1.1、SoundTouch 2.1.1 的资源和许可证；提交 lockfile，部署完整构建目录。
 禁止单独替换其中一个 Worker 或 WASM 文件。资源路径保留版本号，更新后避免旧页面混用新资源。
 
@@ -43,3 +43,27 @@ WASM 线性内存不是进程 RSS；5 个 pthread Worker 和 768 MiB 上限按�
 
 当前验证范围以 `marchen/changes/rebuild-cross-platform-player-engine/evidence/` 为准；
 未取得目标机器、正式部署或 HDR 显示器证据的项目保持未验证。
+
+## compat 呈现迁移
+
+compat 通过 Worker 解码，再将 VideoFrame 交给唯一 VideoFramePresenter，经
+MediaStreamTrackGenerator → MediaStream → 独立静音 video 呈现。音频继续使用 Web Audio /
+SoundTouch，播放时钟、seek 和结束状态由适配器维护，不读取生成流 video.currentTime。
+暂停仅停止送帧并冻结音频与媒体时钟，不能调用兼容 video.pause()，以免浏览器改变 HDR 停帧输出。
+新轨道等待 loadstart 再送首帧，首帧/seek 必须收到当前代次 requestVideoFrameCallback 才算就绪。
+
+兼容呈现依赖 Chromium 的非标准 MediaStreamTrackGenerator 及 requestVideoFrameCallback；
+不具备这些能力时使用现有原生入口，对原生不能解码的文件明确报错，不回退 Canvas。
+Safari 的 VideoTrackGenerator 不能仅靠构造器换名适配；当前实现不声明其兼容内核支持。
+Electron 和各桌面浏览器的支持范围以本变更实际证据为准，不能由 API 存在推出 HDR 支持。
+
+源帧 PQ/HLG、色域与浏览器最终输出分别诊断。browser-managed 只代表浏览器负责输出，
+不保证 MediaStream 完整传递 HDR 元数据，也不保证所有显示器的 HDR 高光或专业色准。
+主画面不再进行 Canvas HDR 转 SDR；预览、历史缩略图的独立 Canvas SDR 映射与字幕 Canvas 保留。
+旧 canvas 设置读取为 compat，下次保存写入 compat。历史遥测 engine=canvas 表示旧主画面
+Canvas 管线，新 engine=compat 表示 video 管线，分析历史数据时不要直接当成相同呈现后端。
+
+迁移代码及证据见 `marchen/archive/2026-09-13-migrate-compat-video-presentation/`。
+旧 `add-canvas-hdr-output` 的主画面计划已被替代，其未完成项不代表已交付。
+
+Web 实际由 EdgeOne 托管，生产配置与门禁见 [Web 独立发布](./web-edgeone-release.md)。

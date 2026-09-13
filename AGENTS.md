@@ -52,7 +52,7 @@ pnpm format       # Prettier
 ### 播放器分层
 
 `player-loading` 负责识别、匹配、弹幕数据与 HISTORY 初始记录；`playback-core` 负责媒体会话；
-renderer 的 `services/player-runtime/` 组合 H5/Canvas 双内核、平台 Port、libass 字幕和 DOM 弹幕。
+renderer 的 `services/player-runtime/` 组合原生 H5/compat 双内核、平台 Port、libass 字幕和 DOM 弹幕。
 平台差异通过 Fullscreen、Playlist、Snapshot、SubtitleCatalog、SourceLifecycle Port 隔离。
 
 **状态机**：
@@ -97,7 +97,7 @@ Web 产物时必须在站点层配置同一路径反代。Electron 端直接使�
 ### 其他
 
 - **自定义协议**：`marchen://`，固定应用 origin 为 `marchen://app`，媒体采用可撤销的不透明租约；逻辑在 `src/main/lib/media-protocol.ts`，常量在 `@marchen/shared/constants/protocol.ts`
-- **播放器**：HTML5 Video + `@marchen/playback-core` + `@marchen/danmaku-engine` + `@jellyfin/libass-wasm`（ASS/SSA）；Canvas 使用 MediaBunny、WebCodecs、@suemor/libav-hevc@0.1.1 和官方 AC-3/E-AC-3/DTS 扩展；没有 Node FFmpeg/HLS 播放回退
+- **播放器**：HTML5 Video + `@marchen/playback-core` + `@marchen/danmaku-engine` + `@jellyfin/libass-wasm`（ASS/SSA）；兼容内核使用 MediaBunny、WebCodecs、@suemor/libav-hevc@0.1.1 和官方 AC-3/E-AC-3/DTS 扩展；兼容画面唯一经 VideoFramePresenter → MediaStream → 静音 video 输出，音频继续 Web Audio/SoundTouch；Canvas 仅用于预览/缩略图/字幕；没有 Node FFmpeg/HLS 或主画面 Canvas 播放回退
 - **UI**：shadcn/ui (Radix) + Tailwind 4 + next-themes，图标 `icon-[mingcute--xxx]`，动画 framer-motion（LazyMotion），模态框 ModalStackProvider
 - **路由**：React Router 7 HashRouter，`router/router.tsx` 定义 `/player`、`/history`，侧边栏由 `siderbarRoutes` 渲染，默认重定向 `/player`
 - **平台判断**：`isWeb = !window.electron`，见 `src/renderer/src/lib/utils.ts`
@@ -153,3 +153,7 @@ packages/{electron-ipc,shared,player-loading,playback-core,danmaku-engine}
 ## 双内核构建与部署
 
 `pnpm media:prepare` 从锁定发布包复制 WASM/Worker 与 AudioWorklet，禁止重新引入播放器本地 libav 补丁/编译链。开发与构建自动执行。部署要求见 `docs/player-engine-deployment.md`。COOP 为 same-origin，COEP 为 credentialless；不设置 CSP，协议 bypassCSP=false。所有平台验收以 change evidence 为准，不把短样片通过写成平台支持结论。
+
+## Web 发布入口
+
+Web 托管于 EdgeOne，配置在 edgeone.json，正式构建用 pnpm build:web:release，具体环境与回滚见 docs/web-edgeone-release.md。不要恢复 GitHub Actions SSH Web 部署。scripts/player-engine/experiments 是历史实验，不是产品回归；.tmp/test-results 为本地输出，不提交。

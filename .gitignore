@@ -18,3 +18,6 @@ src/renderer/public/wasm/libav/
 .cache/player-color-reference/
 
 src/renderer/public/audio/soundtouch/
+
+# 本地一次性排查输出
+.tmp/

@@ -33,3 +33,5 @@
 - 2026-08-30: [harden-danmaku-collision-engine](./archive/2026-08-30-harden-danmaku-collision-engine/) — 强化 DOM 弹幕碰撞与生命周期同步，并让速度、字号和显示区域调整不清屏
 - 2026-08-30: [redesign-app-settings-dialog](./archive/2026-08-30-redesign-app-settings-dialog/) — 将应用设置重构为三分类双栏弹窗，完善主题、入口与无障碍交互
 - 2026-09-07: [rebuild-cross-platform-player-engine](./archive/2026-09-07-rebuild-cross-platform-player-engine/) — 重建H5/Canvas双内核，接入HEVC软解并移除FFmpeg转码，保留待验收项
+- 2026-09-13: [migrate-compat-video-presentation](./archive/2026-09-13-migrate-compat-video-presentation/) — 兼容内核迁移至 video 呈现，修复字幕提取、Worker 隔离与弹层主题
+- 2026-09-13: [prepare-edgeone-web-release](./archive/2026-09-13-prepare-edgeone-web-release/) — 整理实验文件，接入 EdgeOne Web 发布门禁、字幕监控与上线说明
