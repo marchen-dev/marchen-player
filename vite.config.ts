@@ -99,8 +99,9 @@ const vite = ({ mode }: { mode: string }) => {
         authToken: env.SENTRY_AUTH_TOKEN,
         org: env.SENTRY_ORG,
         project: env.SENTRY_PROJECT,
-        assets: 'out/web/**/*.{js,mjs,cjs,map}',
-        mapsToDelete: 'out/web/**/*.map',
+        // Vite 可能生成 .dist-*.js；glob 默认跳过点开头文件，上传与清理必须同时覆盖。
+        assets: 'out/web/**/{*,.*}.{js,mjs,cjs,map}',
+        mapsToDelete: 'out/web/**/{*,.*}.map',
       }),
     ],
 

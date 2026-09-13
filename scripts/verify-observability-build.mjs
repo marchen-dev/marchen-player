@@ -1,5 +1,5 @@
 import { readdir, readFile, stat } from 'node:fs/promises'
-import { extname, resolve } from 'node:path'
+import { extname, relative, resolve } from 'node:path'
 
 const arguments_ = process.argv.slice(2)
 const valueOf = (flag) => {
@@ -30,7 +30,7 @@ try {
 
   const maps = files.filter((file) => file.endsWith('.map'))
   if (requireNoMaps && maps.length > 0) {
-    throw new Error(`Source Map files remain in distributable output (${maps.length})`)
+    throw new Error(`Source Map files remain in distributable output (${maps.length}): ${maps.map(file => relative(root, file)).join(', ')}`)
   }
 
   const textFiles = files.filter((file) =>
