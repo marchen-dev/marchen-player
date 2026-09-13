@@ -1,4 +1,4 @@
-name: Build, release and deploy Marchen
+name: Build and release Marchen Electron
 
 on:
   push:
@@ -98,13 +98,9 @@ jobs:
             dist/latest*.yml
           if-no-files-found: error
 
-  web-artifact:
-    uses: ./.github/workflows/deploy.yml
-    secrets: inherit
-
   coordinate-release:
-    name: Finalize Sentry, publish and deploy
-    needs: [electron-artifacts, web-artifact]
+    name: Finalize Sentry and publish Electron
+    needs: [electron-artifacts]
     runs-on: ubuntu-latest
     env:
       SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
@@ -126,32 +122,12 @@ jobs:
           pattern: electron-*
           path: dist
           merge-multiple: true
-      - uses: actions/download-artifact@v4
-        with:
-          name: web-dist
-          path: out/web
-
       - name: Set commits and finalize one Sentry release
         shell: bash
         run: |
           npx --yes @sentry/cli releases set-commits "$SENTRY_RELEASE" --auto
           npx --yes @sentry/cli releases finalize "$SENTRY_RELEASE"
           npx --yes @sentry/cli releases deploys "$SENTRY_RELEASE" new -e production
-
-      - name: Deploy verified Web artifact
-        shell: bash
-        env:
-          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
-          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
-          DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
-        run: |
-          tar -cvf build.tar -C out/web .
-          key_file="$(mktemp)"
-          trap 'rm -f "$key_file"' EXIT
-          printf '%s' "$DEPLOY_KEY" > "$key_file"
-          chmod 600 "$key_file"
-          scp -i "$key_file" -o StrictHostKeyChecking=no build.tar "$DEPLOY_USER@$DEPLOY_HOST:/opt/1panel/www/sites/marchen-play.suemor.com/index/"
-          ssh -i "$key_file" -o StrictHostKeyChecking=no "$DEPLOY_USER@$DEPLOY_HOST" "cd /opt/1panel/www/sites/marchen-play.suemor.com/index/ && tar -xvf build.tar && rm build.tar"
 
       - name: Generate changelog
         run: npx changelogithub@13.13.0

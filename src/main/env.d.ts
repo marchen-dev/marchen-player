@@ -5,7 +5,7 @@ declare const __MARCHEN_RELEASE__: string
 declare const __MARCHEN_DIST__: string
 declare const __MARCHEN_COMMIT__: string
 declare const __MARCHEN_VERSION__: string
-declare const __MARCHEN_ENVIRONMENT__: 'development' | 'production'
+declare const __MARCHEN_ENVIRONMENT__: 'development' | 'preview' | 'production'
 
 interface ImportMetaEnv {
   readonly VITE_MEDIA_GATEWAY_V2?: string

@@ -2,6 +2,7 @@ name: Build verified Web artifact
 
 on:
   workflow_call:
+  workflow_dispatch:
 
 jobs:
   build-web:
@@ -44,6 +45,8 @@ jobs:
         run: |
           pnpm typecheck
           pnpm lint
+          pnpm test:player-runtime
+          pnpm exec vitest run --config vitest.main.config.ts scripts/web/release.test.mjs src/main/build/telemetry-metadata.test.ts
           pnpm build:web
       - name: Verify Web bundle and Source Map removal
         run: node scripts/verify-observability-build.mjs --root out/web --target web --expected-release "$SENTRY_RELEASE" --expected-dist web --require-no-maps

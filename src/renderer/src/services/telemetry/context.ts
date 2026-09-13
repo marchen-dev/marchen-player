@@ -8,7 +8,7 @@ export interface TelemetryBuildInfo {
   dist: string
   commit: string
   version: string
-  environment: 'development' | 'production'
+  environment: 'development' | 'preview' | 'production'
 }
 
 export const getTelemetryBuildInfo = (): TelemetryBuildInfo => ({

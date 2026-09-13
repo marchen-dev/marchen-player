@@ -6,7 +6,7 @@ export interface CommonTelemetryProperties {
   dist: string
   version: string
   commit: string
-  environment: 'development' | 'production'
+  environment: 'development' | 'preview' | 'production'
   app_target: TelemetryTarget
   runtime: TelemetryRuntime
   platform: string

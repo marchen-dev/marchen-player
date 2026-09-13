@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import { createTelemetryDefine, resolveTelemetryBuildMetadata } from './telemetry-metadata'
 
@@ -52,4 +52,14 @@ describe('telemetry build metadata', () => {
     expect(createTelemetryDefine(metadata).__MARCHEN_TARGET__).toBe('"electron"')
     expect(createTelemetryDefine(metadata).__MARCHEN_RELEASE__).toBe('"Marchen@1.2.3+dev"')
   })
+})
+
+
+it('预览上报与生产隔离，开发模式仍保持 development', () => {
+  vi.stubEnv('MARCHEN_ENVIRONMENT', 'preview')
+  try {
+    const input = { target: 'web' as const, version: '1.0.0', commit: 'preview-sha', dist: 'web-preview' }
+    expect(resolveTelemetryBuildMetadata({ ...input, mode: 'production' })).toMatchObject({ environment: 'preview', dist: 'web-preview' })
+    expect(resolveTelemetryBuildMetadata({ ...input, mode: 'development' }).environment).toBe('development')
+  } finally { vi.unstubAllEnvs() }
 })

@@ -37,7 +37,9 @@
     "typecheck": "pnpm typecheck:node && pnpm typecheck:web",
     "typecheck:node": "tsc --noEmit -p tsconfig.node.json --composite false",
     "typecheck:web": "tsc --noEmit -p tsconfig.web.json --composite false",
-    "media:prepare": "node scripts/player-engine/prepare-libav.mjs && node scripts/player-engine/prepare-audio.mjs"
+    "media:prepare": "node scripts/player-engine/prepare-libav.mjs && node scripts/player-engine/prepare-audio.mjs",
+    "build:web:release": "node scripts/web/release-build.mjs",
+    "test:player-runtime": "vitest run --config vitest.player-runtime.config.ts"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^4.0.45",
