@@ -37,6 +37,15 @@ jobs:
           pnpm run typecheck
           pnpm run lint
 
+      - name: Test Web release metadata with deployment environment
+        env:
+          # 模拟发布脚本注入值，避免测试只在无发布变量的本地环境通过。
+          SENTRY_RELEASE: Marchen@0.0.0+ci-check
+          MARCHEN_COMMIT: ci-check
+          MARCHEN_DIST: web
+          MARCHEN_ENVIRONMENT: production
+        run: pnpm exec vitest run --config vitest.main.config.ts src/main/build/telemetry-metadata.test.ts scripts/web/release.test.mjs
+
       - name: Build project
         env:
           # PR 检查没有本地 .env；公开代理地址不依赖 secrets，fork PR 也可构建。

@@ -1,8 +1,29 @@
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { createTelemetryDefine, resolveTelemetryBuildMetadata } from './telemetry-metadata'
 
+// 发布脚本会注入真实版本和分发信息；每个用例从独立环境开始，再声明自己的覆盖值。
+beforeEach(() => {
+  for (const key of ['SENTRY_RELEASE', 'MARCHEN_DIST', 'MARCHEN_ENVIRONMENT', 'MARCHEN_COMMIT', 'GITHUB_SHA']) {
+    vi.stubEnv(key, undefined)
+  }
+})
+
+afterEach(() => vi.unstubAllEnvs())
+
 describe('telemetry build metadata', () => {
+  it('使用发布脚本注入的版本、提交、分发和环境', () => {
+    vi.stubEnv('SENTRY_RELEASE', 'Marchen@1.2.3+release-sha')
+    vi.stubEnv('MARCHEN_COMMIT', 'release-sha')
+    vi.stubEnv('MARCHEN_DIST', 'web-preview')
+    vi.stubEnv('MARCHEN_ENVIRONMENT', 'preview')
+
+    expect(resolveTelemetryBuildMetadata({ target: 'web', version: '1.2.3', mode: 'production' })).toEqual({
+      target: 'web', version: '1.2.3', commit: 'release-sha',
+      release: 'Marchen@1.2.3+release-sha', dist: 'web-preview', environment: 'preview',
+    })
+  })
+
   it('creates a stable web release and dist', () => {
     const metadata = resolveTelemetryBuildMetadata({
       target: 'web',
