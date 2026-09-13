@@ -20,7 +20,6 @@ const ROOT = './src/renderer'
 
 const vite = ({ mode }: { mode: string }) => {
   const env = loadEnv(mode, __dirname, '')
-  const apiProxyOrigin = new URL(env.VITE_API_URL).origin
   const telemetryDefine = createTelemetryDefine(
     resolveTelemetryBuildMetadata({ target: 'web', version: packageJson.version, mode }),
   )
@@ -58,10 +57,12 @@ const vite = ({ mode }: { mode: string }) => {
       },
       port: 1106,
       host: true,
+      // 上游尚未放行 localhost，仅本地 dev 使用代理，部署产物直接跨域请求。
       proxy: {
         '/api/v2': {
-          target: apiProxyOrigin,
+          target: new URL(env.VITE_API_URL).origin,
           changeOrigin: true,
+          followRedirects: true,
         },
       },
     },
@@ -69,12 +70,6 @@ const vite = ({ mode }: { mode: string }) => {
       headers: {
         'Cross-Origin-Opener-Policy': 'same-origin',
         'Cross-Origin-Embedder-Policy': 'credentialless',
-      },
-      proxy: {
-        '/api/v2': {
-          target: apiProxyOrigin,
-          changeOrigin: true,
-        },
       },
     },
     plugins: [

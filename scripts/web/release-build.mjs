@@ -12,7 +12,7 @@ try {
   const environment = process.env.MARCHEN_DEPLOY_ENV
   if (!['preview', 'production'].includes(environment)) throw new Error('MARCHEN_DEPLOY_ENV 必须是 preview 或 production')
   if (process.env.VITE_API_URL.replace(/\/$/, '') !== 'https://dandan-proxy.suemor.com/api/v2')
-    throw new Error('VITE_API_URL 与 EdgeOne 固定 API 上游不一致，请同步修改 edge-functions/api/v2')
+    throw new Error('VITE_API_URL 必须为 https://dandan-proxy.suemor.com/api/v2，Web 将直接请求该地址')
   const commit = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' }).trim()
   const pkg = JSON.parse(readFileSync(resolve(root, 'package.json'), 'utf8'))
   const release = `Marchen@${pkg.version}+${commit}`

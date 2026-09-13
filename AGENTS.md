@@ -91,8 +91,8 @@ idle → importing → hashing → matching → [waiting_user] → loading_danma
 
 **弹弹play 接口文档**：`https://api.dandanplay.net/swagger/v2/swagger.json`（需要新增/核对接口时通过 WebFetch 读取）。
 
-Web 端固定请求同源 `/api/v2`，`vite.config.ts` 在 dev/preview 时反代到 `VITE_API_URL`；部署静态
-Web 产物时必须在站点层配置同一路径反代。Electron 端直接使用 `VITE_API_URL`。
+Web 与 Electron 均直连 `VITE_API_URL`（`https://dandan-proxy.suemor.com/api/v2`），不部署同源 API 边缘代理；仅本地 Web dev 保留 Vite 代理（localhost 尚未获 CORS 许可）。
+Web 所在的正式、预览及开发 Origin 需由 API 服务允许 CORS，JSON POST 预检和弹幕重定向后的响应也须通过跨域检查。
 
 ### 其他
 

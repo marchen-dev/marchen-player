@@ -237,7 +237,6 @@ export const PlayerControls = ({
                       ? 'icon-[mingcute--fullscreen-exit-line]'
                       : 'icon-[mingcute--fullscreen-line]'
                   }
-                  active={fullscreen}
                   disabled={!onFullscreen}
                   compact
                   onClick={onFullscreen}

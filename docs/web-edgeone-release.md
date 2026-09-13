@@ -7,7 +7,7 @@
 1. 在控制台确认生产环境的关联分支和自动部署开关。不要把含未验证代码的分支直接关联生产；先建立或使用预览环境。当前截图没有展示这些值，因此不在文档中猜测分支名。
 2. Node 配置为 24.5.0（腾讯云构建文档列出的 24.x 预装版本），pnpm 固定 11.24.0。实际构建日志必须确认版本成功；若该项目运行环境不提供此版本，先在控制台选择可用的 Node 24，再同步 edgeone.json。不要退回 Node 22 忽略 engines。
 3. 安装命令为 `npx --yes pnpm@11.24.0 install --frozen-lockfile`；输出 `out/web`；构建命令为 `npx --yes pnpm@11.24.0 run build:web:release`。不要将命令退回普通 build:web 绕过检查。
-4. 仅提交源码、锁文件、运行资源准备脚本、函数与配置。不要上传整个工作目录。`.tmp`、out、dist、test-results 是本地输出；public/wasm/libav 与 audio/soundtouch 由 media:prepare 生成，许可证及随包源码保留。
+4. 仅提交源码、锁文件、运行资源准备脚本与配置。不要上传整个工作目录。`.tmp`、out、dist、test-results 是本地输出；public/wasm/libav 与 audio/soundtouch 由 media:prepare 生成，许可证及随包源码保留。
 
 ## 环境变量
 
@@ -16,22 +16,22 @@
 | 变量 | 用途 |
 | --- | --- |
 | MARCHEN_DEPLOY_ENV | 必填 preview 或 production，须与控制台目标环境一致 |
-| VITE_API_URL | `https://dandan-proxy.suemor.com/api/v2`，与固定 API 代理目标一致 |
+| VITE_API_URL | `https://dandan-proxy.suemor.com/api/v2`，Web 与 Electron 直连的 API 基址 |
 | VITE_SENTRY_DSN | 客户端 Sentry 项目配置 |
 | VITE_POSTHOG_KEY / VITE_POSTHOG_HOST | 产品事件采集 |
 | SENTRY_AUTH_TOKEN / SENTRY_ORG / SENTRY_PROJECT | 构建期 Source Map 上传；禁止添加 VITE_ 前缀 |
 
 release 为 `Marchen@版本+完整提交SHA`；生产 environment=production、dist=web，预览 environment=preview、dist=web-preview。告警和仪表盘筛选 production，预览事件不能作为正式 DAU/失败率。Git 提交必须存在；本地未提交工作不会由 EdgeOne 构建。
 
-构建入口先校验环境和 Node，然后依次执行类型检查、lint、运行时测试、发布入口/代理测试、Web 构建与 Source Map/资源门禁。凭据缺失或上传失败应阻断构建。构建成功不代表线上部署已成功，因此构建阶段不登记 Sentry production deploy。
+构建入口先校验环境和 Node，然后依次执行类型检查、lint、运行时测试、发布入口/API 配置测试、Web 构建与 Source Map/资源门禁。凭据缺失或上传失败应阻断构建。构建成功不代表线上部署已成功，因此构建阶段不登记 Sentry production deploy。
 
 ## API 与资源
 
-- `edge-functions/api/v2/[[path]].js` 处理 `/api/v2/*`，仅转发到固定代理上游，保留路径、查询及 POST 正文，不转发浏览器 Cookie。跟随官方弹幕分发的 302 跳转，最终响应状态原样返回，连接异常返回 502。函数使用当前 Makers 的 edge-functions 目录与默认导出入口。更换上游须同步函数、环境和文档。
+- Web 直接请求 `VITE_API_URL`（`https://dandan-proxy.suemor.com/api/v2`），不再部署同源 API 边缘函数，仅本地 Web dev 因 localhost 尚未获 CORS 许可保留 Vite 代理（含重定向跟随），preview 构建仍直连。上游须允许正式、预览和本地开发 Origin 的 CORS，包含 JSON POST 预检；弹幕 302 跳转后的分发地址也须允许跨域。新增域名需先配置并验证上游 CORS。
 - edgeone.json 全路径配置 COOP same-origin / COEP credentialless，保持当前播放器隔离策略。仍需实测平台在 200/304 与缓存命中时均返回一致头。
 - 初期使用 no-cache 重验证策略；不把无 hash 的 libass WASM 或 Worklet 设为一年 immutable。可后续对确定内容寻址的文件细分缓存。
 - 应用是 HashRouter，无需把所有缺失路径重写为 index.html；不存在的 Worker/WASM 应真实返回 404。
-- 线上检查 `.wasm` MIME 为 application/wasm，JS/MJS 为 JavaScript；API 返回 JSON，不是 SPA HTML。边缘函数及响应头不是 Vite preview 可以完整模拟的内容。
+- 线上检查 `.wasm` MIME 为 application/wasm，JS/MJS 为 JavaScript；API 返回 JSON，不是 SPA HTML。部署响应头需要在实际托管环境复验。
 
 ## 预览验收与生产发布
 
