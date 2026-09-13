@@ -36,3 +36,4 @@
 - 2026-09-07: [rebuild-cross-platform-player-engine](./archive/2026-09-07-rebuild-cross-platform-player-engine/) — 重建H5/Canvas双内核，接入HEVC软解并移除FFmpeg转码，保留待验收项
 - 2026-09-13: [migrate-compat-video-presentation](./archive/2026-09-13-migrate-compat-video-presentation/) — 兼容内核迁移至 video 呈现，修复字幕提取、Worker 隔离与弹层主题
 - 2026-09-13: [prepare-edgeone-web-release](./archive/2026-09-13-prepare-edgeone-web-release/) — 整理实验文件，接入 EdgeOne Web 发布门禁、字幕监控与上线说明
+- 2026-09-13: [renderer-danmaku-import](./archive/2026-09-13-renderer-danmaku-import/) — 统一 Renderer 弹幕文件导入，支持 Web 与 Electron 并校验去重

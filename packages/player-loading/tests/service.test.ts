@@ -28,6 +28,39 @@ describe('playerLoadingService', () => {
     service?.destroy()
   })
 
+  it('本地弹幕持久化结束时不能覆盖已经切换的视频', async () => {
+    const deps = createMockDeps()
+    service = new PlayerLoadingService(deps)
+    service.loadFromPath('/first.mkv')
+    await waitForStep(service, 'ready')
+
+    let finishWrite!: () => void
+    vi.mocked(deps.cache.set).mockImplementationOnce(
+      () =>
+        new Promise<void>((resolve) => {
+          finishWrite = resolve
+        }),
+    )
+    const pending = service.addLocalDanmaku({
+      type: 'local',
+      source: 'test.xml',
+      selected: true,
+      content: { count: 1, comments: [{ cid: 1, m: '测试', p: '1,1,#FFFFFF,1' }] },
+    })
+    vi.mocked(deps.importer.importFromPath).mockResolvedValueOnce(
+      createMockVideoInfo({ hash: 'second' }),
+    )
+    service.loadFromPath('/second.mkv')
+    await waitForStep(service, 'ready')
+    finishWrite()
+    await pending
+    expect(service.currentState.step).toBe('ready')
+    if (service.currentState.step === 'ready') {
+      expect(service.currentState.video.hash).toBe('second')
+      expect(service.currentState.danmaku.some((entry) => entry.source === 'test.xml')).toBe(false)
+    }
+  })
+
   describe('正常加载流程（精准匹配）', () => {
     it('应该依次经过 importing → matching → loading_danmaku → ready，并稳定停在 ready', async () => {
       const deps = createMockDeps()

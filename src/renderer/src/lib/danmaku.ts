@@ -43,6 +43,13 @@ export const danmakuPlatformMap = (danmaku?: DB_Danmaku) => {
     }
     case 'local': {
       mapName = '本地弹幕'
+      if (danmaku.source.startsWith('local-file:')) {
+        try {
+          mapName = decodeURIComponent(danmaku.source.slice(danmaku.source.indexOf('/') + 1))
+        } catch {
+          // 旧缓存或损坏的来源标识仍显示通用名称。
+        }
+      }
       break
     }
     default: {

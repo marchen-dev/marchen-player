@@ -145,6 +145,9 @@ export class PlayerLoadingService {
 
     const result = await addLocalDanmakuEntry(entry, state.danmaku, state.video, this.deps)
 
+    // 持久化期间切换了视频或状态时，保留原视频缓存，但不能恢复旧会话。
+    if (this.currentState !== state) return
+
     // 直接更新状态（不经过 pipeline event，因为这是同步操作）
     this.stateSubject.next({
       ...state,

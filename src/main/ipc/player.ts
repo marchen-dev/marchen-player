@@ -1,6 +1,5 @@
 import fs from 'node:fs'
 import path from 'node:path'
-import { parseBilibiliDanmaku } from '@main/lib/danmaku'
 
 import { createMediaLease, releaseMediaLease } from '@main/lib/media-protocol'
 import { showFileSelectionDialog } from '@main/modules/showDialog'
@@ -178,46 +177,5 @@ export const playerGroup = {
       }))
 
     return matchedFiles
-  }),
-
-  immportDanmakuFile: t.procedure.action(async () => {
-    if (isDialogOpen) {
-      return
-    }
-
-    isDialogOpen = true
-    try {
-      const filePath = await showFileSelectionDialog({
-        filters: [{ name: '弹幕文件', extensions: ['xml', 'json'] }],
-      })
-      if (!filePath) {
-        return
-      }
-      const extName = path.extname(filePath).toLowerCase()
-      if (extName !== '.xml' && extName !== '.json') {
-        return {
-          ok: 0,
-          message: '请选择正确的弹幕文件',
-        }
-      }
-      const fileData = fs.readFileSync(filePath, 'utf-8')
-      return {
-        ok: 1,
-        data: {
-          danmaku: await parseBilibiliDanmaku({
-            fileData,
-            type: extName,
-          }),
-          source: filePath,
-        },
-      }
-    } catch {
-      return {
-        ok: 0,
-        message: '解析弹幕文件失败',
-      }
-    } finally {
-      isDialogOpen = false
-    }
   }),
 }
