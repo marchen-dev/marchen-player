@@ -27,6 +27,7 @@
 - 2026-05-24: [fix-library-progress-display](./archive/2026-05-24-fix-library-progress-display/) — ctaLabel 走 lastWatched 指针、删 NEXT 徽章、Hero/Landscape 改用 lastWatched 集的单集进度
 - 2026-05-24: [detail-overlay-unified-scroll](./archive/2026-05-24-detail-overlay-unified-scroll/) — DetailOverlay 改为统一滚动容器，banner 与内容一起流式滚动消除 poster 半截被遮的视觉
 - 2026-08-29: [upgrade-latest-dependency-stack](./archive/2026-08-29-upgrade-latest-dependency-stack/) — 升级并验证 Node、Electron、构建链及应用依赖，建立最新优先技术基线
+- 2026-08-29: [fix-pnpm-linux-installer-builds](./archive/2026-08-29-fix-pnpm-linux-installer-builds/) — 批准 Linux x64 FFmpeg 与 FFprobe installer 构建脚本，恢复 pnpm 11 CI 依赖安装。
 - 2026-08-30: [replace-xgplayer-runtime](./archive/2026-08-30-replace-xgplayer-runtime/) — 以原生 video、自研播放核心和 DOM 弹幕替换 xgplayer，并完善桌面悬浮控制器
 - 2026-08-30: [unify-player-settings-sidebar](./archive/2026-08-30-unify-player-settings-sidebar/) — 统一播放器设置为固定深色毛玻璃侧栏，整合播放、弹幕、字幕和播放列表
 - 2026-08-30: [redesign-player-home](./archive/2026-08-30-redesign-player-home/) — 恢复播放器极简打开空态，并为播放器与影视库复用轻量视频拖拽提示
