@@ -4,7 +4,15 @@ import { ipcClient } from '@renderer/lib/client'
 import { cn, isMac, isWeb, isWindows } from '@renderer/lib/utils'
 import { useAtomValue } from 'jotai'
 
-export const PlayerWindowChrome = ({ onClose }: { onClose: () => void }) => {
+export const PlayerWindowChrome = ({
+  onClose,
+  visible = true,
+  onHoverChange,
+}: {
+  onClose: () => void
+  visible?: boolean
+  onHoverChange?: (hovered: boolean) => void
+}) => {
   const fullscreen = useWindowFullscreen()
   const windowState = useWindowState()
   const settingsPanelOpen = useAtomValue(playerSettingsPanelAtom).open
@@ -12,10 +20,15 @@ export const PlayerWindowChrome = ({ onClose }: { onClose: () => void }) => {
   return (
     <header
       data-player-window-chrome
+      inert={!visible}
+      aria-hidden={!visible}
+      onPointerEnter={() => onHoverChange?.(true)}
+      onPointerLeave={() => onHoverChange?.(false)}
       style={{ right: settingsPanelOpen ? 'var(--player-settings-width)' : 0 }}
       className={cn(
-        'pointer-events-none absolute top-0 left-0 z-40 h-20',
-        !isWeb && !fullscreen && 'drag-region',
+        'pointer-events-none absolute top-0 left-0 z-40 h-20 transition-opacity duration-200 motion-reduce:transition-none',
+        visible ? 'opacity-100' : 'opacity-0',
+        !isWeb && !fullscreen && visible && 'drag-region',
         'bg-gradient-to-b from-black/60 via-black/20 to-transparent px-4 text-white/70',
       )}
     >

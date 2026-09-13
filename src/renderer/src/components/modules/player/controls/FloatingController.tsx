@@ -180,6 +180,8 @@ export const FloatingController = ({
       <m.div
         ref={controllerRef}
         data-player-floating-controller
+        inert={!visible}
+        aria-hidden={!visible}
         role="group"
         aria-label="播放控制"
         drag

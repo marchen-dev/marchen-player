@@ -15,6 +15,7 @@ import { captureFeatureUsed } from '@renderer/services/telemetry/features'
 import { useAtomValue } from 'jotai'
 import { useCallback, useMemo, useRef, useState } from 'react'
 import { PlayerSettingsPanel } from '../setting/PlayerSettingsPanel'
+import { PlayerWindowChrome } from '../shell/PlayerWindowChrome'
 import { FloatingController } from './FloatingController'
 import { PlayerIconButton } from './PlayerIconButton'
 import { TimelineScrubber } from './TimelineScrubber'
@@ -24,6 +25,7 @@ import { formatTime } from './utils'
 import { VolumeSlider } from './VolumeSlider'
 
 export interface PlayerControlsProps {
+  onClose: () => void
   capabilities: PlayerCapabilities
   playlist?: readonly PlaylistEntry[]
   onSelectPlaylist?: (entry: PlaylistEntry) => void
@@ -38,6 +40,7 @@ export interface PlayerControlsProps {
 }
 
 export const PlayerControls = ({
+  onClose,
   capabilities,
   playlist,
   onSelectPlaylist,
@@ -64,6 +67,7 @@ export const PlayerControls = ({
   const [dragging, setDragging] = useState(false)
   const [seeking, setSeeking] = useState(false)
   const [hovered, setHovered] = useState(false)
+  const [chromeHovered, setChromeHovered] = useState(false)
   const [focused, setFocused] = useState(false)
   const settingsPanelOpen = useAtomValue(playerSettingsPanelAtom).open
   const { enableMiniProgress } = usePlayerSettingsValue()
@@ -72,7 +76,8 @@ export const PlayerControls = ({
   const currentTime = getCurrentTime(state)
   const duration = 'duration' in state ? state.duration : initialSnapshot.duration
   const rate = 'rate' in state ? state.rate : initialSnapshot.rate
-  const controllerLocked = dragging || seeking || focused || hovered || settingsPanelOpen
+  const controllerLocked =
+    dragging || seeking || focused || hovered || chromeHovered || settingsPanelOpen
   const { visible, markActivity } = useControllerVisibility({
     playing,
     locked: controllerLocked,
@@ -133,6 +138,7 @@ export const PlayerControls = ({
       <div
         ref={controlsRef}
         data-player-controls
+        data-controls-visible={visible}
         className="pointer-events-none absolute inset-0 z-40"
         onPointerDownCapture={() => setFocused(false)}
         onFocusCapture={(event) => {
@@ -144,6 +150,7 @@ export const PlayerControls = ({
           if (!event.currentTarget.contains(event.relatedTarget)) setFocused(false)
         }}
       >
+        <PlayerWindowChrome visible={visible} onClose={onClose} onHoverChange={setChromeHovered} />
         <FloatingController
           visible={visible}
           onDraggingChange={setDragging}

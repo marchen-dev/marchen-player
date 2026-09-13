@@ -46,6 +46,7 @@ export const useControllerVisibility = ({ playing, locked }: ControllerVisibilit
 
   useEffect(() => {
     if (!playing || locked) {
+      visibleRef.current = true
       setVisible(true)
       return
     }

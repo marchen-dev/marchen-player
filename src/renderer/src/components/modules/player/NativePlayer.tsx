@@ -83,7 +83,7 @@ export const NativePlayer = () => {
   const shell = (
     <PlayerShell rootRef={rootRef} title={title}>
       <PlayerPortalRoot>
-        <PlayerWindowChrome onClose={() => getPlayerLoadingService().cancel()} />
+        {!sessionReady && <PlayerWindowChrome onClose={() => getPlayerLoadingService().cancel()} />}
         <VideoSurface videoRef={setVideo} rotation={rotation} />
         <VideoSurface
           videoRef={setCompatVideo}
@@ -99,6 +99,7 @@ export const NativePlayer = () => {
         {sessionReady && (
           <>
             <PlayerControls
+              onClose={() => getPlayerLoadingService().cancel()}
               capabilities={ports.capabilities}
               onPreview={previewFrame}
               playlist={playlistActions.playlist}

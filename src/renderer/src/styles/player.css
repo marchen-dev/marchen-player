@@ -73,3 +73,9 @@
     transition: none;
   }
 }
+
+/* 控制栏是唯一隐藏状态来源；覆盖子层的 cursor-default，关闭播放器后自动失效。 */
+[data-player-root]:has([data-player-controls][data-controls-visible='false']),
+[data-player-root]:has([data-player-controls][data-controls-visible='false']) * {
+  cursor: none !important;
+}
