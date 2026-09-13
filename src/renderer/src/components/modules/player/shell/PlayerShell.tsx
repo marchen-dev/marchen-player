@@ -14,7 +14,8 @@ export const PlayerShell = ({ className, title, rootRef, children }: PlayerShell
     data-player-active
     aria-label={title ? `正在播放：${title}` : '视频播放器'}
     className={cn(
-      'fixed inset-0 isolate overflow-hidden bg-black text-white selection:bg-white/25',
+      // 播放器及其 portal 始终使用深色变量，避免浅色应用主题造成白底白字。
+      'dark fixed inset-0 isolate overflow-hidden bg-black text-white selection:bg-white/25',
       className,
     )}
   >

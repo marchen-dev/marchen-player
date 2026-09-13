@@ -1,5 +1,6 @@
 [data-player-root] {
-  --player-surface: rgb(43 43 51 / 58%);
+  /* 用底色保证复杂视频画面上的可读性，背景模糊仅作为材质增强。 */
+  --player-surface: rgb(43 43 51 / 86%);
   --player-surface-solid: rgb(25 31 37 / 96%);
   --player-fg: rgb(245 248 250 / 96%);
   --player-fg-muted: rgb(220 230 236 / 72%);
