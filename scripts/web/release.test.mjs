@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import { spawnSync } from 'node:child_process'
 import { readFileSync } from 'node:fs'
 import { it } from 'vitest'
-import { onRequest } from '../../functions/api/v2/[[path]].js'
+import onRequest from '../../edge-functions/api/v2/[[path]].js'
 
 it('缺少正式配置时在构建和上传之前失败，不输出秘密值', () => {
   const env = { ...process.env, SENTRY_AUTH_TOKEN: 'test-secret-never-print', VITE_SENTRY_DSN: '', VITE_POSTHOG_KEY: '' }
@@ -23,6 +23,8 @@ it('aPI 固定上游、保留查询与请求体，不转发 Cookie，错误状�
   const original = globalThis.fetch
   try {
     globalThis.fetch = async (url, init) => {
+      url = new URL(url)
+      assert.equal(init.redirect, 'follow')
       assert.equal(url.origin, 'https://dandan-proxy.suemor.com')
       assert.equal(url.pathname, '/api/v2/match')
       assert.equal(url.search, '?mode=test')

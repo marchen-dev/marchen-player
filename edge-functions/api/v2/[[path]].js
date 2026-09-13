@@ -1,5 +1,5 @@
 // 固定上游，不接受客户端指定目标；保留同源 API，避免依赖 Vite 开发代理。
-export async function onRequest({ request }) {
+export default async function onRequest({ request }) {
   if (!['GET', 'HEAD', 'POST', 'OPTIONS'].includes(request.method))
     return new Response(null, { status: 405 })
   const incoming = new URL(request.url)
@@ -15,12 +15,13 @@ export async function onRequest({ request }) {
   const controller = new AbortController()
   const timeout = setTimeout(() => controller.abort(), 15000)
   try {
-    const upstream = await fetch(target, {
+    const upstream = await fetch(target.href, {
       method: request.method,
       headers,
       body: ['GET', 'HEAD'].includes(request.method) ? undefined : request.body,
       signal: controller.signal,
-      redirect: 'error',
+      // 弹幕接口会 302 跳转到官方分发地址，必须跟随才能取得 JSON。
+      redirect: 'follow',
     })
     const responseHeaders = new Headers({ 'Cache-Control': 'no-store' })
     const contentType = upstream.headers.get('content-type')

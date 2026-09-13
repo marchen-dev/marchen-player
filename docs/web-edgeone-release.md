@@ -27,7 +27,7 @@ release 为 `Marchen@版本+完整提交SHA`；生产 environment=production、d
 
 ## API 与资源
 
-- `functions/api/v2/[[path]].js` 处理 `/api/v2/*`，仅转发到固定代理上游，保留路径、查询及 POST 正文，不转发浏览器 Cookie。上游非 2xx 状态原样返回，连接异常返回 502。更换上游须同步函数、环境和文档。
+- `edge-functions/api/v2/[[path]].js` 处理 `/api/v2/*`，仅转发到固定代理上游，保留路径、查询及 POST 正文，不转发浏览器 Cookie。跟随官方弹幕分发的 302 跳转，最终响应状态原样返回，连接异常返回 502。函数使用当前 Makers 的 edge-functions 目录与默认导出入口。更换上游须同步函数、环境和文档。
 - edgeone.json 全路径配置 COOP same-origin / COEP credentialless，保持当前播放器隔离策略。仍需实测平台在 200/304 与缓存命中时均返回一致头。
 - 初期使用 no-cache 重验证策略；不把无 hash 的 libass WASM 或 Worklet 设为一年 immutable。可后续对确定内容寻址的文件细分缓存。
 - 应用是 HashRouter，无需把所有缺失路径重写为 index.html；不存在的 Worker/WASM 应真实返回 404。
