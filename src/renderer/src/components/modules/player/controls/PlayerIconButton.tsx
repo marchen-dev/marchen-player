@@ -16,6 +16,7 @@ export const PlayerIconButton = ({
   active,
   compact,
   className,
+  onMouseDown,
   ...props
 }: PlayerIconButtonProps) => {
   const portalContainer = usePlayerPortalContainer()
@@ -37,6 +38,14 @@ export const PlayerIconButton = ({
             className,
           )}
           {...props}
+          onMouseDown={(event) => {
+            onMouseDown?.(event)
+            if (event.button !== 0 || event.defaultPrevented) return
+            // 鼠标点击不留按钮焦点，避免后续 Space 把旧焦点显示成键盘蓝框。
+            // Tab/Enter 等键盘路径仍使用原生焦点和 focus-visible 样式。
+            event.preventDefault()
+            if (document.activeElement instanceof HTMLElement) document.activeElement.blur()
+          }}
         >
           <i className={cn(icon, compact ? 'text-lg' : 'text-xl')} aria-hidden />
         </button>
