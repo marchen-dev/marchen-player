@@ -1,11 +1,12 @@
 import fs from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
-
 import tailwindcss from '@tailwindcss/vite'
+
 import react from '@vitejs/plugin-react'
 import { defineConfig, loadEnv } from 'vite'
 import { viteStaticCopy } from 'vite-plugin-static-copy'
+import { mediaIsolationPlugin } from './src/main/build/media-isolation'
 import { createSentryBuildPlugin } from './src/main/build/sentry-vite'
 import {
   createTelemetryDefine,
@@ -77,6 +78,7 @@ const vite = ({ mode }: { mode: string }) => {
       },
     },
     plugins: [
+      mediaIsolationPlugin(),
       tailwindcss(),
       react(),
       viteStaticCopy({
