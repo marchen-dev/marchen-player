@@ -117,7 +117,7 @@ jobs:
       - name: Resolve release name
         shell: bash
         run: echo "SENTRY_RELEASE=Marchen@$(node -p "require('./package.json').version")+$GITHUB_SHA" >> "$GITHUB_ENV"
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           pattern: electron-*
           path: dist
