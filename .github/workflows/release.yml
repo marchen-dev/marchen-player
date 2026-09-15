@@ -132,7 +132,7 @@ jobs:
       - name: Generate changelog
         run: npx changelogithub@13.13.0
       - name: Create GitHub prerelease
-        uses: softprops/action-gh-release@v2.2.1
+        uses: softprops/action-gh-release@v3.0.3
         with:
           draft: false
           prerelease: true
