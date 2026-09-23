@@ -13,7 +13,7 @@ const log = (event) =>
       version: app.getVersion(),
       pid: process.pid,
       time: new Date().toISOString(),
-    })  }\n`,
+    })}\n`,
   )
 let bridge
 app.whenReady().then(() => {
@@ -60,10 +60,9 @@ app.whenReady().then(() => {
     webPreferences: { sandbox: true, contextIsolation: true, nodeIntegration: false },
   })
   win.loadURL(
-    `data:text/html;charset=utf-8,${ 
-      encodeURIComponent(
-        `<html lang="zh"><body style="font:18px system-ui;padding:28px"><h2>Marchen 更新原型 ${app.getVersion()}</h2><p>测试应用，与正式播放器隔离。</p><p>通过应用菜单「检查更新」打开 Sparkle 原生窗口。</p></body></html>`,
-      )}`,
+    `data:text/html;charset=utf-8,${encodeURIComponent(
+      `<html lang="zh"><body style="font:18px system-ui;padding:28px"><h2>Marchen 更新原型 ${app.getVersion()}</h2><p>测试应用，与正式播放器隔离。</p><p>通过应用菜单「检查更新」打开 Sparkle 原生窗口。</p></body></html>`,
+    )}`,
   )
 })
 app.on('before-quit', () => log('before-quit'))
