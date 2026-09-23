@@ -29,6 +29,25 @@ export const bootstrap = () => {
 
     app.on('browser-window-created', (_, window) => {
       optimizer.watchWindowShortcuts(window)
+      // toolkit 仅在开发态处理 F12，打包版补上本地排错入口。
+      if (app.isPackaged) {
+        window.webContents.on('before-input-event', (event, input) => {
+          const isDevToolsShortcut =
+            input.code === 'F12' ||
+            (input.code === 'KeyI' &&
+              (process.platform === 'darwin'
+                ? input.meta && input.alt
+                : input.control && input.shift))
+          if (input.type !== 'keyDown' || !isDevToolsShortcut) return
+          event.preventDefault()
+          if (input.isAutoRepeat) return
+          if (window.webContents.isDevToolsOpened()) {
+            window.webContents.closeDevTools()
+          } else {
+            window.webContents.openDevTools({ mode: 'undocked' })
+          }
+        })
+      }
     })
 
     protocol.handle(MARCHEN_PROTOCOL, createApplicationProtocol(join(__dirname, '../renderer')))
