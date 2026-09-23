@@ -42,7 +42,7 @@ jobs:
           fetch-depth: 0
           lfs: true
       - run: git lfs checkout
-      - uses: pnpm/action-setup@v4.1.0
+      - uses: pnpm/action-setup@v6.1.0
       - uses: actions/setup-node@v4
         with:
           node-version: 24.x
@@ -158,7 +158,7 @@ jobs:
       - name: Read version-specific release notes
         shell: bash
         run: cp "docs/releases/$(node -p 'require("./package.json").version').md" release-notes.md
-      - uses: pnpm/action-setup@v4.1.0
+      - uses: pnpm/action-setup@v6.1.0
       - name: Install release validation tools
         run: pnpm install --frozen-lockfile --ignore-scripts
       - name: Validate release assets
