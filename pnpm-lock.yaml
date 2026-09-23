@@ -15,11 +15,11 @@ importers:
         specifier: ^4.0.51
         version: 4.0.51(zod@4.4.3)
       '@mediabunny/ac3':
-        specifier: 1.55.7
-        version: 1.55.7(mediabunny@1.55.7)
+        specifier: 1.59.0
+        version: 1.59.0(mediabunny@1.59.0)
       '@mediabunny/dts':
-        specifier: 1.55.7
-        version: 1.55.7(mediabunny@1.55.7)
+        specifier: 1.59.0
+        version: 1.59.0(mediabunny@1.59.0)
       '@sentry/electron':
         specifier: 7.17.0
         version: 7.17.0(@opentelemetry/core@2.10.0(@opentelemetry/api@1.9.1))(supports-color@7.2.0)
@@ -33,8 +33,8 @@ importers:
         specifier: ^7.0.84
         version: 7.0.84(zod@4.4.3)
       mediabunny:
-        specifier: 1.55.7
-        version: 1.55.7
+        specifier: 1.59.0
+        version: 1.59.0
       nanoid:
         specifier: ^6.0.1
         version: 6.0.1
@@ -1125,13 +1125,13 @@ packages:
     resolution: {integrity: sha512-9QOtNffcOF/c1seMCDnjckb3R9WHcG34tky+FHpNKKCW0wc/scYLwMtO+ptyGUfMW0/b/n4qRiALlaFHc9Oj7Q==}
     engines: {node: '>= 10.0.0'}
 
-  '@mediabunny/ac3@1.55.7':
-    resolution: {integrity: sha512-HZDafm+IJxxP6Fk2yuK8a99CA3nUjHuqiOz0vKat7h/snsEqs8Y13yVmX5+4orlyA3ICbYitG3owiNxEzzoevA==}
+  '@mediabunny/ac3@1.59.0':
+    resolution: {integrity: sha512-ezS6A/4o2LMjVOfjRGEuwI/45Y5+ZCbtI0GbPc+7Kls+xCpcuRdy6H+Rpr6Ugxs1cruTnJWP78pWRK8Hit6qlA==}
     peerDependencies:
       mediabunny: ^1.0.0
 
-  '@mediabunny/dts@1.55.7':
-    resolution: {integrity: sha512-xCgMc1SN4eBSpL32jfAIAjPeNglDSA6RgPFcvvPkpN53fII/X18NJL3CycpTfdJPICNHYPsUkV2f70hUvuCEVw==}
+  '@mediabunny/dts@1.59.0':
+    resolution: {integrity: sha512-DuJ1Uhwi/ki3s2iExJSx1NTKZ0DcSySWDZTGZke5e94AmlFbs9yt/JoY56P8/0kQoXX36ChLv7IvnfxS6Ag10w==}
     peerDependencies:
       mediabunny: ^1.0.0
 
@@ -4843,8 +4843,8 @@ packages:
   mdn-data@2.29.0:
     resolution: {integrity: sha512-pVxQFCcaYUEAH853+v7yoI/qzhxXSq1bTb9obMYGYAN1c3Hen+XDCEvr296XhstrwlSTNgOR7mCSD4JPjbJe5A==}
 
-  mediabunny@1.55.7:
-    resolution: {integrity: sha512-Sb/vI8frRiDPbPUwl3hz0n69NSe9yt4Nydcv5yxi8Rdgk0BgnujEGjZqE+uCTehFbafcqIu6gDAok8ln98dcqg==}
+  mediabunny@1.59.0:
+    resolution: {integrity: sha512-m+nhRFI9gRQaDP22GCZwwL1nTtoAJtzHB7XzZmlff4P17+F/i5wZnDu4cc09a4ae5x41Px/C/GWdiROQHVM4eQ==}
 
   meow@13.2.0:
     resolution: {integrity: sha512-pxQJQzB6djGPXh08dacEloMFopsOqGVRKFPYvPOt9XDZ1HasbgDZA74CJGreSU4G3Ak7EFJGoiH2auq+yXISgA==}
@@ -7069,13 +7069,13 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@mediabunny/ac3@1.55.7(mediabunny@1.55.7)':
+  '@mediabunny/ac3@1.59.0(mediabunny@1.59.0)':
     dependencies:
-      mediabunny: 1.55.7
+      mediabunny: 1.59.0
 
-  '@mediabunny/dts@1.55.7(mediabunny@1.55.7)':
+  '@mediabunny/dts@1.59.0(mediabunny@1.59.0)':
     dependencies:
-      mediabunny: 1.55.7
+      mediabunny: 1.59.0
 
   '@noble/hashes@1.4.0': {}
 
@@ -10932,7 +10932,7 @@ snapshots:
 
   mdn-data@2.29.0: {}
 
-  mediabunny@1.55.7:
+  mediabunny@1.59.0:
     dependencies:
       '@types/dom-mediacapture-transform': 0.1.12
       '@types/dom-webcodecs': 0.1.13

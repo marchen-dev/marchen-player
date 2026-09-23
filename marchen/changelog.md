@@ -37,3 +37,5 @@
 - 2026-09-13: [migrate-compat-video-presentation](./archive/2026-09-13-migrate-compat-video-presentation/) — 兼容内核迁移至 video 呈现，修复字幕提取、Worker 隔离与弹层主题
 - 2026-09-13: [prepare-edgeone-web-release](./archive/2026-09-13-prepare-edgeone-web-release/) — 整理实验文件，接入 EdgeOne Web 发布门禁、字幕监控与上线说明
 - 2026-09-13: [renderer-danmaku-import](./archive/2026-09-13-renderer-danmaku-import/) — 统一 Renderer 弹幕文件导入，支持 Web 与 Electron 并校验去重
+- 2026-09-23: [upgrade-mediabunny-1-59](./archive/2026-09-23-upgrade-mediabunny-1-59/) — Mediabunny及AC-3、DTS扩展升级至1.59.0，通过回归测试和双端构建
+- 2026-09-23: [fix-empty-subtitle-events](./archive/2026-09-23-fix-empty-subtitle-events/) — 修复内嵌 ASS/SSA 零时长空事件导致整轨字幕加载失败

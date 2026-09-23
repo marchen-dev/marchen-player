@@ -1,0 +1,20 @@
+{
+  "file": "Youjo Senki 2017 S01E03-[1080p][BDRIP][AV1.OPUS].mkv",
+  "verification": "真实文件解析和 ASS 事件重建；未验证 UI 渲染",
+  "results": [
+    {
+      "track": 3,
+      "title": "chs&jpn[Karapo]",
+      "events": 741,
+      "first": 0.48,
+      "last": 1419.98
+    },
+    {
+      "track": 4,
+      "title": "cht&jpn[Karapo]",
+      "events": 741,
+      "first": 0.48,
+      "last": 1419.98
+    }
+  ]
+}

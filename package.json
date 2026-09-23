@@ -44,13 +44,13 @@
   "dependencies": {
     "@ai-sdk/anthropic": "^4.0.45",
     "@ai-sdk/openai": "^4.0.51",
-    "@mediabunny/ac3": "1.55.7",
-    "@mediabunny/dts": "1.55.7",
+    "@mediabunny/ac3": "1.59.0",
+    "@mediabunny/dts": "1.59.0",
     "@sentry/electron": "7.17.0",
     "@soundtouchjs/audio-worklet": "2.1.1",
     "@suemor/libav-hevc": "0.1.1",
     "ai": "^7.0.84",
-    "mediabunny": "1.55.7",
+    "mediabunny": "1.59.0",
     "nanoid": "^6.0.1",
     "posthog-js": "1.422.5",
     "radix-ui": "^1.6.7"

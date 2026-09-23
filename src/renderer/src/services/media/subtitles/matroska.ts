@@ -206,10 +206,14 @@ export class MatroskaSubtitles {
           if (!hasTimestamp) throw new Error('字幕块缺少 Cluster 时间')
           let block: Element | undefined = field.id === 0xA3 ? field : undefined
           let duration = track.defaultDuration
+          let explicitDuration = false
           if (field.id === 0xA0) {
             for await (const item of reader.children(field)) {
               if (item.id === 0xA1) block = item
-              if (item.id === 0x9B) duration = Number(await reader.uint(item)) * this.timestampScale
+              if (item.id === 0x9B) {
+                duration = Number(await reader.uint(item)) * this.timestampScale
+                explicitDuration = true
+              }
             }
           }
           if (block) {
@@ -218,11 +222,12 @@ export class MatroskaSubtitles {
             if (number.value === BigInt(trackNumber)) {
               if (prefix.length < number.width + 3 || prefix[number.width + 2] & 6)
                 throw new Error('字幕块截断或使用不支持的 lacing')
-              if (!(duration > 0)) throw new Error('字幕块缺少有效时长')
               const relative = new DataView(prefix.buffer, prefix.byteOffset).getInt16(number.width)
               const start = (timestamp + relative) * this.timestampScale
               const payload = { ...block, start: block.start + number.width + 3 }
-              yield { start, end: start + duration, text: await reader.text(payload) }
+              const text = await reader.text(payload)
+              if (!skipEmptyEvent(track.codec, text, duration, explicitDuration))
+                yield { start, end: start + duration, text }
             }
           }
         }
@@ -288,7 +293,7 @@ export class MatroskaSubtitles {
         }
       }
       if (!targets.length) return null
-      const cues: SubtitleCue[] = []
+      const cues: (SubtitleCue | undefined)[] = []
       let next = 0
       let size = track.header.length
       const seen = new Set<number>()
@@ -316,14 +321,17 @@ export class MatroskaSubtitles {
             if (group.unknown) throw new Error('字幕索引块长度未知')
             let block: Element | undefined = group.id === 0xA3 ? group : undefined
             let duration = track.defaultDuration
+            let explicitDuration = false
             if (group.id === 0xA0) {
               for await (const item of reader.children(group)) {
                 if (item.id === 0xA1) block = item
-                if (item.id === 0x9B)
+                if (item.id === 0x9B) {
                   duration = Number(await reader.uint(item)) * this.timestampScale
+                  explicitDuration = true
+                }
               }
             }
-            if (!block || !(duration > 0)) throw new Error('字幕索引缺少文本块或时长')
+            if (!block) throw new Error('字幕索引缺少文本块')
             const prefix = await reader.bytes(block.start, Math.min(block.end, block.start + 11))
             const number = vint(prefix, 0)
             if (
@@ -335,6 +343,7 @@ export class MatroskaSubtitles {
             const text = await reader.text({ ...block, start: block.start + number.width + 3 })
             size += text.length
             if (size > 8 * 1024 * 1024) throw new Error('字幕文本超过预算')
+            if (skipEmptyEvent(track.codec, text, duration, explicitDuration)) continue
             const start = target.time * this.timestampScale
             cues[i] = { start, end: start + duration, text }
           }
@@ -342,12 +351,22 @@ export class MatroskaSubtitles {
       )
       const failed = results.find((result) => result.status === 'rejected')
       if (failed?.status === 'rejected') throw failed.reason
-      return cues
+      return cues.filter((cue): cue is SubtitleCue => cue !== undefined)
     } catch {
       signal?.throwIfAborted()
       return null
     }
   }
+}
+
+/** 零时长空 ASS/SSA 事件没有显示效果；缺失时长及有内容的异常事件仍须报错。 */
+function skipEmptyEvent(codec: string, text: string, duration: number, explicit: boolean) {
+  if (duration > 0) return false
+  if (explicit && duration === 0 && supportedCodecs.has(codec) && codec !== 'S_TEXT/UTF8') {
+    const fields = text.split(',')
+    if (fields.length === 9 && /^\d+$/.test(fields[0]) && fields[8] === '') return true
+  }
+  throw new Error('字幕块缺少有效时长')
 }
 
 async function skipElement(reader: Reader, element: Element) {

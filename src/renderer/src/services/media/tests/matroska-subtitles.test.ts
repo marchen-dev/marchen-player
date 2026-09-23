@@ -202,3 +202,50 @@ it('字幕索引直达 BlockGroup，结果与扫描一致，坏索引回退且�
   expect(await collect(make(9999))).toEqual(expected)
   expect(await collect(make(stamp.length, false))).toEqual(expected)
 })
+
+const emptyEventFixture = (codec: string, payload: string, duration?: number, indexed = false) => {
+  const info = e(0x1549A966, e(0x2AD7B1, uint(1000000)))
+  const tracks = e(0x1654AE6B, track(1, codec))
+  const stamp = e(0xE7, uint(10000))
+  const empty = e(0xA0, concat(
+    e(0xA1, concat(new Uint8Array([0x81, 0, 0, 0]), text(payload))),
+    ...(duration === undefined ? [] : [e(0x9B, uint(duration))]),
+  ))
+  const good = group(1, '1,0,Test,,0,0,0,,你好,世界')
+  const cluster = e(0x1F43B675, concat(stamp, empty, good))
+  // 未索引的坏块用来证明有效索引没有退回全扫描。
+  const unrelated = indexed
+    ? e(0x1F43B675, concat(stamp, e(0xA3, new Uint8Array([0x81, 0, 0, 6]))))
+    : new Uint8Array()
+  const fixed = (n: number) => new Uint8Array([n >> 16, n >> 8, n])
+  const index = (position: number) => e(0x1C53BB6B, concat(
+    ...[stamp.length, stamp.length + empty.length].map((relative, i) => e(0xBB, concat(
+      e(0xB3, uint(i === 0 ? 10000 : 9900)),
+      e(0xB7, concat(e(0xF7, uint(1)), e(0xF1, fixed(position)), e(0xF0, fixed(relative)))),
+    ))),
+  ))
+  const cues = indexed ? index(info.length + tracks.length + index(0).length + unrelated.length) : new Uint8Array()
+  return e(0x18538067, concat(info, tracks, cues, unrelated, cluster))
+}
+
+it.each(['S_TEXT/ASS', 'S_TEXT/SSA', 'S_ASS', 'S_SSA'])(
+  '%s 扫描和索引均跳过显式零时长空事件，保留后续文本和逗号', async (codec) => {
+    for (const indexed of [false, true]) {
+      const reader = await open(emptyEventFixture(codec, '16,0,Default,,0,0,0,,', 0, indexed))
+      const cues: SubtitleCue[] = []
+      for await (const cue of reader.cues(1)) cues.push(cue)
+      expect(cues).toEqual([{ start: 9.9, end: 11.4, text: '1,0,Test,,0,0,0,,你好,世界' }])
+    }
+  },
+)
+
+it.each([
+  ['S_TEXT/ASS', '16,0,Default,,0,0,0,,', undefined],
+  ['S_TEXT/ASS', '16,0,Default,,0,0,0,,正文', 0],
+  ['S_TEXT/ASS', '16,0,Default,,0,0,0,,,', 0],
+  ['S_TEXT/ASS', 'broken', 0],
+  ['S_TEXT/UTF8', '', 0],
+] as const)('不忽略异常事件 %s %s %s', async (codec, payload, duration) => {
+  const reader = await open(emptyEventFixture(codec, payload, duration))
+  await expect(reader.cues(1).next()).rejects.toThrow('字幕块缺少有效时长')
+})
