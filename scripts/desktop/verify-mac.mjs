@@ -2,6 +2,7 @@ import { execFileSync } from 'node:child_process'
 import { access } from 'node:fs/promises'
 import { join, resolve } from 'node:path'
 import { sparkleBuildVersion } from '../../packages/shared/src/update-policy.ts'
+import { verifyPackageResources } from './package-resources.mjs'
 const app = resolve(process.argv[2] || '')
 if (!app.endsWith('.app')) throw new Error('请提供提取后的最终 .app 路径')
 execFileSync('codesign', ['--verify', '--deep', '--strict', app], { stdio: 'inherit' })
@@ -34,13 +35,5 @@ if (architectures !== 'arm64') throw new Error('仅允许 ARM64 应用')
 const { createRequire } = await import('node:module')
 const require = createRequire(import.meta.url)
 const entries = require('@electron/asar').listPackage(join(app, 'Contents/Resources/app.asar'))
-for (const token of [
-  '/wasm/libav/0.1.1/',
-  '/audio/soundtouch/2.1.1/processor.js',
-  'subtitles-octopus-worker.wasm',
-]) {
-  if (!entries.some((name) => name.includes(token))) throw new Error(`安装包缺少资源：${token}`)
-}
-if (entries.some((name) => /\.map$|\/\.env(?:\.|$)/.test(name)))
-  throw new Error('安装包含构建敏感文件或 Source Map')
+verifyPackageResources(entries)
 console.log('最终 Mac 应用的签名、架构、更新和媒体资源检查通过')
