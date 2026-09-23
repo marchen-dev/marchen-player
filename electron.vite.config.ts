@@ -21,14 +21,15 @@ const metadata = resolveTelemetryBuildMetadata({
   mode: process.env.NODE_ENV ?? 'development',
 })
 const telemetryDefine = createTelemetryDefine(metadata)
+// 与 Web 发布一致，显式包含点号开头的 chunk，确保上传后也会删除其 map。
 const sentryPlugin = (output: 'main' | 'preload' | 'renderer') =>
   createSentryBuildPlugin({
     metadata,
     authToken: process.env.SENTRY_AUTH_TOKEN,
     org: process.env.SENTRY_ORG,
     project: process.env.SENTRY_PROJECT,
-    assets: `out/${output}/**/*.{js,mjs,cjs,map}`,
-    mapsToDelete: `out/${output}/**/*.map`,
+    assets: `out/${output}/**/{*,.*}.{js,mjs,cjs,map}`,
+    mapsToDelete: `out/${output}/**/{*,.*}.map`,
   })
 
 export default defineConfig({

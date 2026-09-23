@@ -130,7 +130,7 @@ describe('播放器 UI 回归', () => {
     expect(timelineTimeFromPointer(150, 100, 0, 120)).toBe(0)
   })
 
-  it('回放隔离高频画面层但保留播放器交互外壳', () => {
+  it.each(['\n', '\r\n'])('回放隔离高频画面层但保留播放器交互外壳（换行 %j）', (lineEnding) => {
     const shellSource = readFileSync(
       new URL('../../../components/modules/player/shell/PlayerShell.tsx', import.meta.url),
       'utf8',
@@ -146,8 +146,10 @@ describe('播放器 UI 回归', () => {
 
     expect(shellSource.match(/data-telemetry-replay-block/g)).toHaveLength(3)
     expect(danmakuSource).toContain('data-telemetry-replay-block')
-    expect(timelineSource).toContain('data-timeline-track\n        data-telemetry-replay-block')
-    expect(timelineSource).not.toContain('role="slider"\n      data-telemetry-replay-block')
+    // Windows checkout 可能使用 CRLF；属性边界不应依赖操作系统换行符。
+    const source = timelineSource.replace(/\r?\n/g, lineEnding)
+    expect(source).toMatch(/data-timeline-track\s+data-telemetry-replay-block/)
+    expect(source).not.toMatch(/role="slider"\s+data-telemetry-replay-block/)
   })
 
   it('统一设置面板打开目标标签，关闭时保留标签供下次恢复', () => {
