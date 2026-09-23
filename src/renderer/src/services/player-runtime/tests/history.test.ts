@@ -107,10 +107,10 @@ describe('playbackHistoryAdapter', () => {
     emit('seeked', mediaSnapshot({ currentTime: 40, paused: true }))
     emit('time-update', mediaSnapshot({ currentTime: 41 }))
     emit('time-update', mediaSnapshot({ currentTime: 42 }))
-    expect(update).toHaveBeenCalledTimes(1)
+    await vi.waitFor(() => expect(update).toHaveBeenCalledTimes(1))
     now = 2100
     emit('time-update', mediaSnapshot({ currentTime: 43 }))
-    expect(update).toHaveBeenCalledTimes(2)
+    await vi.waitFor(() => expect(update).toHaveBeenCalledTimes(2))
     adapter.dispose()
   })
 
@@ -223,4 +223,22 @@ it('协调器接管初始位置后，历史观察者不重复 seek', async () =>
   expect(media.seek).toHaveBeenCalledExactlyOnceWith(70)
   adapter.dispose()
   runtime.destroy()
+})
+
+it('更新前 flush 必须传播写入失败，不能把日志降级当作保存成功', async () => {
+  const { runtime, emit } = createRuntime()
+  const adapter = new PlaybackHistoryAdapter({
+    runtime,
+    hash: 'hash',
+    repository: {
+      get: vi.fn(async () => historyRecord({})),
+      update: vi.fn(async () => {
+        throw new Error('磁盘写入失败')
+      }),
+    },
+    markWatched: vi.fn(),
+    onError: vi.fn(),
+  })
+  emit('metadata', mediaSnapshot({ duration: 100 }))
+  await expect(adapter.flush()).rejects.toThrow('磁盘写入失败')
 })

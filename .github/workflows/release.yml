@@ -5,6 +5,9 @@ on:
     tags:
       - v*.*.*
 
+permissions:
+  contents: write
+
 jobs:
   electron-artifacts:
     name: Electron ${{ matrix.dist }}
@@ -13,14 +16,6 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: ubuntu-latest
-            dist: linux-x64
-            builder_target: linux
-            builder_arch: x64
-          - os: macos-latest
-            dist: darwin-x64
-            builder_target: mac
-            builder_arch: x64
           - os: macos-latest
             dist: darwin-arm64
             builder_target: mac
@@ -66,18 +61,56 @@ jobs:
         shell: bash
         run: echo "SENTRY_RELEASE=Marchen@$(node -p "require('./package.json').version")+$GITHUB_SHA" >> "$GITHUB_ENV"
 
+      - name: Verify release version and channel
+        shell: bash
+        run: |
+          node --input-type=module -e 'import {parseReleaseVersion} from "./packages/shared/src/update-policy.ts"; import {readFileSync,appendFileSync} from "node:fs"; const v=JSON.parse(readFileSync("package.json")).version; const {channel}=parseReleaseVersion(v); if(process.env.GITHUB_REF_NAME!==`v${v}`) throw Error("release tag/version mismatch"); appendFileSync(process.env.GITHUB_ENV, `RELEASE_CHANNEL=${channel}\n`)'
+
+      - name: Require version-specific release notes
+        shell: bash
+        run: |
+          VERSION=$(node -p 'require("./package.json").version')
+          test -s "docs/releases/$VERSION.md"
+          echo "MARCHEN_RELEASE_NOTES=$GITHUB_WORKSPACE/docs/releases/$VERSION.md" >> "$GITHUB_ENV"
+
       - name: Build Electron bundle and package
         shell: bash
         run: |
-          pnpm exec electron-vite build
+          pnpm build
+          pnpm test:main
+          pnpm test:player-runtime
+          if [ "${{ matrix.builder_target }}" = "mac" ]; then pnpm sparkle:build && pnpm sparkle:test-versions; fi
           pnpm exec electron-builder --${{ matrix.builder_target }} --${{ matrix.builder_arch }} --publish never
         env:
-          APPLE_ID: ${{ matrix.builder_target == 'mac' && secrets.APPLE_ID || '' }}
-          APPLE_APP_SPECIFIC_PASSWORD: ${{ matrix.builder_target == 'mac' && secrets.APPLE_APP_SPECIFIC_PASSWORD || '' }}
-          APPLE_TEAM_ID: ${{ matrix.builder_target == 'mac' && secrets.APPLE_TEAM_ID || '' }}
-          APPLE_APP_BUNDLE_ID: ${{ matrix.builder_target == 'mac' && secrets.APPLE_APP_BUNDLE_ID || '' }}
-          CSC_LINK: ${{ matrix.builder_target == 'mac' && secrets.CSC_LINK || '' }}
-          CSC_KEY_PASSWORD: ${{ matrix.builder_target == 'mac' && secrets.CSC_KEY_PASSWORD || '' }}
+          SPARKLE_ED_PUBLIC_KEY: ${{ secrets.SPARKLE_ED_PUBLIC_KEY }}
+
+      - name: Verify final Windows installer
+        if: matrix.builder_target == 'win'
+        shell: bash
+        run: |
+          for installer in dist/*.exe; do node scripts/desktop/verify-windows.mjs "$installer"; done
+
+      - name: Verify Mac application and build update feed
+        if: matrix.builder_target == 'mac'
+        shell: bash
+        env:
+          SPARKLE_ED_PUBLIC_KEY: ${{ secrets.SPARKLE_ED_PUBLIC_KEY }}
+          SPARKLE_ED_PRIVATE_KEY: ${{ secrets.SPARKLE_ED_PRIVATE_KEY }}
+          MARCHEN_RELEASE_TAG: ${{ github.ref_name }}
+          MARCHEN_DELTA_BASE_DIR: .tmp/delta-base
+        run: |
+          mkdir -p .tmp/mac-archive .tmp/delta-base
+          ditto -x -k "dist/Marchen-$(node -p 'require("./package.json").version')-arm64.zip" .tmp/mac-archive
+          node scripts/desktop/verify-mac.mjs '.tmp/mac-archive/Marchen.app'
+          mkdir -p .tmp/mac-dmg
+          hdiutil attach "dist/Marchen-$(node -p 'require("./package.json").version')-arm64.dmg" -readonly -nobrowse -mountpoint "$PWD/.tmp/mac-dmg"
+          trap 'hdiutil detach "$PWD/.tmp/mac-dmg"' EXIT
+          node scripts/desktop/verify-mac.mjs '.tmp/mac-dmg/Marchen.app'
+          hdiutil detach "$PWD/.tmp/mac-dmg"
+          trap - EXIT
+          # 首个 Sparkle 发行没有对应旧包时，全量更新即可；旧基线不上传。
+          node scripts/desktop/download-baselines.mjs
+          node scripts/desktop/appcast.mjs
 
       - name: Verify packaged observability boundary
         shell: bash
@@ -90,16 +123,16 @@ jobs:
             dist/*.exe
             dist/*.zip
             dist/*.dmg
-            dist/*.AppImage
-            dist/*.snap
-            dist/*.deb
-            dist/*.rpm
-            dist/*.tar.gz
-            dist/latest*.yml
+            dist/*.blockmap
+            dist/*.delta
+            dist/appcast-macos-arm64.xml
+            dist/latest.yml
+            dist/beta.yml
+            dist/alpha.yml
           if-no-files-found: error
 
   coordinate-release:
-    name: Finalize Sentry and publish Electron
+    name: Validate and stage Electron draft
     needs: [electron-artifacts]
     runs-on: ubuntu-latest
     env:
@@ -122,18 +155,40 @@ jobs:
           pattern: electron-*
           path: dist
           merge-multiple: true
+      - name: Read version-specific release notes
+        shell: bash
+        run: cp "docs/releases/$(node -p 'require("./package.json").version').md" release-notes.md
+      - uses: pnpm/action-setup@v4.1.0
+      - name: Install release validation tools
+        run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: Validate release assets
+        run: node scripts/desktop/verify-assets.mjs dist
       - name: Set commits and finalize one Sentry release
         shell: bash
         run: |
-          npx --yes @sentry/cli releases set-commits "$SENTRY_RELEASE" --auto
-          npx --yes @sentry/cli releases finalize "$SENTRY_RELEASE"
-          npx --yes @sentry/cli releases deploys "$SENTRY_RELEASE" new -e production
+          npx --yes @sentry/cli@2.58.6 releases set-commits "$SENTRY_RELEASE" --auto
+          npx --yes @sentry/cli@2.58.6 releases finalize "$SENTRY_RELEASE"
 
-      - name: Generate changelog
-        run: npx changelogithub@13.13.0
-      - name: Create GitHub prerelease
+      - name: Resolve prerelease flag
+        id: channel
+        shell: bash
+        run: |
+          node --input-type=module -e 'import {parseReleaseVersion} from "./packages/shared/src/update-policy.ts"; import {readFileSync,appendFileSync} from "node:fs"; const {channel}=parseReleaseVersion(JSON.parse(readFileSync("package.json")).version); appendFileSync(process.env.GITHUB_OUTPUT, `prerelease=${channel!=="stable"}\n`)'
+
+      - name: Refuse replacing an already published release
+        shell: bash
+        run: |
+          if gh release view "$GITHUB_REF_NAME" --json isDraft > release-state.json; then
+            node -e 'if (!require("./release-state.json").isDraft) throw Error("release already published; use a new version")'
+          fi
+
+      - name: Stage complete GitHub release
         uses: softprops/action-gh-release@v2.2.1
         with:
-          draft: false
-          prerelease: true
+          draft: true
+          prerelease: ${{ steps.channel.outputs.prerelease == 'true' }}
+          make_latest: false
           files: dist/*
+          body_path: release-notes.md
+
+      # 由维护者下载最终产物验收后公开；发布事件才更新客户端渠道。

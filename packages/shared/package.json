@@ -1,5 +1,6 @@
 {
   "name": "@marchen/shared",
+  "type": "module",
   "version": "0.0.1",
   "private": true,
   "exports": {
@@ -8,7 +9,9 @@
     "./lib/calc-file-hash": "./src/lib/calc-file-hash.ts",
     "./media": "./src/media/index.ts",
     "./telemetry/errors": "./src/telemetry/errors.ts",
-    "./types/renderer-handlers": "./src/types/renderer-handlers.ts"
+    "./types/renderer-handlers": "./src/types/renderer-handlers.ts",
+    "./types/update": "./src/types/update.ts",
+    "./update-policy": "./src/update-policy.ts"
   },
   "dependencies": {
     "spark-md5": "^3.0.2"

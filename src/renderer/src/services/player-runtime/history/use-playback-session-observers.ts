@@ -4,7 +4,9 @@ import type { PlayerRuntime } from '../runtime'
 import { usePlayerSettingsValue } from '@renderer/atoms/settings/player'
 import { db } from '@renderer/database/db'
 import { markEpisodeStarted, markEpisodeWatched } from '@renderer/database/lib/library-writer'
+import { ipcClient } from '@renderer/lib/client'
 import { useEffect, useMemo, useState } from 'react'
+import { registerUpdatePreparation } from '../update-preparation'
 import { PlaybackHistoryAdapter } from './playback-history-adapter'
 import { PlaybackSnapshotAdapter } from './playback-snapshot-adapter'
 import { resolvePlaylistNeighbors, subscribeAutomaticNext } from './playlist'
@@ -68,9 +70,25 @@ export const usePlaybackSessionObservers = ({
           onError: (error) => console.error('生成播放缩略图失败', error),
         })
       : null
+    const unregisterUpdate = registerUpdatePreparation(async () => {
+      runtime.commands.pause()
+      await history.flush()
+    })
+    let lastPlaying: boolean | undefined
+    const notifyPlaying = () => {
+      const playing = runtime.state.status === 'playing'
+      if (playing === lastPlaying) return
+      lastPlaying = playing
+      void ipcClient?.app.updatePlaybackState({ playing }).catch(console.error)
+    }
+    const unsubscribePlaying = runtime.subscribe(notifyPlaying)
+    notifyPlaying()
     history.start()
     snapshot?.start()
     return () => {
+      unregisterUpdate()
+      unsubscribePlaying()
+      void ipcClient?.app.updatePlaybackState({ playing: false }).catch(console.error)
       snapshot?.dispose()
       history.dispose()
     }

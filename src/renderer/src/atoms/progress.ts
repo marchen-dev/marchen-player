@@ -1,6 +1,5 @@
 import { atom } from 'jotai'
 
-export const updateProgressAtom = atom<{
-  progress: number
-  status: 'downloading' | 'installing'
-} | null>(null)
+export const desktopUpdateAtom = atom<
+  import('@marchen/shared/types/update').DesktopUpdateState | null
+>(null)

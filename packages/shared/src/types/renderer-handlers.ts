@@ -1,3 +1,4 @@
+import type { DesktopUpdateState } from './update'
 /**
  * Renderer 端事件处理器接口
  *
@@ -20,17 +21,14 @@ export const resolveAppSettingsSection = (value?: unknown): AppSettingsSection =
     : DEFAULT_APP_SETTINGS_SECTION
 
 export interface RendererHandlers {
+  desktopUpdate: (state: DesktopUpdateState) => void
+  prepareUpdate: (requestId: string) => void
+
   /** 打开应用设置，可选指定稳定分类 ID。 */
   showSetting: (section?: AppSettingsSection) => void
 
   /** 通知 renderer 导入动画文件（如通过系统文件关联或拖拽打开） */
   importAnime: (params?: { path: string }) => void
-
-  /** 推送更新日志文本，用于在 renderer 端显示更新成功提示 */
-  getReleaseNotes: (text: string) => void
-
-  /** 推送应用更新进度（下载/安装阶段） */
-  updateProgress: (params: { progress: number; status: 'downloading' | 'installing' }) => void
 
   /** 推送窗口状态变化事件（全屏、最大化等） */
   windowAction: (

@@ -28,6 +28,7 @@ export class PlaybackHistoryAdapter {
   private readonly saveIntervalMs: number
   private readonly onError: (error: unknown) => void
   private unsubscribe: (() => void) | null = null
+  private writes: Promise<unknown> = Promise.resolve()
   private restored = false
   private disposed = false
   private lastSavedAt = Number.NEGATIVE_INFINITY
@@ -55,6 +56,11 @@ export class PlaybackHistoryAdapter {
     this.unsubscribe?.()
     this.unsubscribe = null
     if (this.restored) void this.persist(this.options.runtime.state, true)
+  }
+
+  /** 更新退出必须等待真实写入，不能使用吞掉错误的后台保存路径。 */
+  async flush(): Promise<void> {
+    await this.persist(this.options.runtime.state, true, true)
   }
 
   private async restore(): Promise<void> {
@@ -109,7 +115,7 @@ export class PlaybackHistoryAdapter {
     }
   }
 
-  private async persist(state: PlaybackState, force: boolean): Promise<void> {
+  private async persist(state: PlaybackState, force: boolean, strict = false): Promise<void> {
     if (!hasTimeline(state)) return
     const now = this.now()
     if (!force && now - this.lastSavedAt < this.saveIntervalMs) return
@@ -117,13 +123,21 @@ export class PlaybackHistoryAdapter {
     const duration = finitePositive(state.duration)
     const progress = state.status === 'ended' ? duration : timelineProgress(state)
     try {
-      await this.options.repository.update(this.options.hash, {
-        progress,
-        duration,
-        updatedAt: new Date().toISOString(),
-      })
+      const write = this.writes
+        .catch(() => {})
+        .then(() =>
+          this.options.repository.update(this.options.hash, {
+            progress,
+            duration,
+            updatedAt: new Date().toISOString(),
+          }),
+        )
+      this.writes = write
+      const result = await write
+      if (strict && result === 0) throw new Error('播放历史记录不存在，无法确认保存')
     } catch (error) {
       this.onError(error)
+      if (strict) throw error
     }
   }
 

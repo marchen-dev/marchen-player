@@ -1,7 +1,8 @@
 import type { MenuItem, MenuItemConstructorOptions } from 'electron'
 import { Menu } from 'electron'
-
 import { isMacOS } from '../lib/env'
+
+import { checkForDesktopUpdates } from '../lib/update'
 import { clearData, createSettingWindow, importAnime } from '../windows/setting'
 
 export const registerAppMenu = () => {
@@ -16,6 +17,12 @@ export const registerAppMenu = () => {
           type: 'normal',
           label: `关于 Marchen Play`,
           click: () => createSettingWindow('about'),
+        },
+        {
+          label: '检查更新…',
+          click: () => {
+            void checkForDesktopUpdates()
+          },
         },
         { type: 'separator' },
         {

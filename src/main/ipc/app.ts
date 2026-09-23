@@ -1,12 +1,18 @@
-import { parseReleaseNotes } from '@main/lib/utils'
+import {
+  acknowledgeUpdateSave,
+  checkForDesktopUpdates,
+  downloadDesktopUpdate,
+  getInstalledUpdateNotice,
+  getUpdateState,
+  installDesktopUpdate,
+  openUpdateDownloadPage,
+  setUpdatePlaybackState,
+} from '@main/lib/update'
 import { getOrCreateTelemetryInstallId, telemetryAppSessionId } from '@main/telemetry/identity'
 import { getMainWindow } from '@main/windows/main'
 import { clearData } from '@main/windows/setting'
 import { tipc } from '@marchen/electron-ipc/main'
-import { version } from '@pkg'
 import { app, BrowserWindow, dialog } from 'electron'
-import Logger from 'electron-log'
-import updater from 'electron-updater'
 
 const t = tipc.create()
 
@@ -97,38 +103,18 @@ export const appGroup = {
       }
     }),
 
-  checkUpdate: t.procedure.action(async () => {
-    try {
-      const updateCheckResult = await updater.autoUpdater.checkForUpdates()
-      if (updateCheckResult?.updateInfo.version === version) {
-        return dialog.showMessageBox({
-          type: 'info',
-          message: '当前已是最新版本',
-        })
-      }
-
-      const releaseNotes = updateCheckResult?.updateInfo.releaseNotes
-      const releaseContent = parseReleaseNotes(releaseNotes)
-
-      dialog.showMessageBox({
-        type: 'info',
-        detail: releaseContent,
-        message: '发现新版本，正在下载更新...',
-      })
-      return releaseContent
-    } catch (error) {
-      Logger.error(['检查更新失败', error])
-      return dialog.showMessageBox({
-        type: 'warning',
-        detail: '请确保网络可以正常访问 Github',
-        message: '检查更新失败',
-      })
-    }
-  }),
-
-  installUpdate: t.procedure.action(async () => {
-    updater.autoUpdater.quitAndInstall()
-  }),
+  checkUpdate: t.procedure.action(() => checkForDesktopUpdates()),
+  getInstalledUpdate: t.procedure.action(() => getInstalledUpdateNotice()),
+  getUpdateState: t.procedure.action(async () => getUpdateState()),
+  downloadUpdate: t.procedure.action(() => downloadDesktopUpdate()),
+  installUpdate: t.procedure.action(() => installDesktopUpdate()),
+  openUpdateDownload: t.procedure.action(() => openUpdateDownloadPage()),
+  updateSaved: t.procedure
+    .input<{ id: string; success: boolean; message?: string }>()
+    .action(async ({ input }) => acknowledgeUpdateSave(input.id, input.success, input.message)),
+  updatePlaybackState: t.procedure
+    .input<{ playing: boolean }>()
+    .action(async ({ input }) => setUpdatePlaybackState(input.playing)),
 
   confirmationDialog: t.procedure.input<{ title: string }>().action(async ({ input }) => {
     const result = await dialog.showMessageBox({

@@ -1,3 +1,4 @@
+extends: ./scripts/desktop/builder-channels.cjs
 appId: com.suemor.Marchen
 productName: Marchen
 directories:
@@ -9,7 +10,7 @@ files:
   - 'out/renderer/**'
   - 'resources/**'
   - package.json
-  - '!out/**/*.map'
+  - '!**/*.map'
   - '!**/.vscode/*'
   - '!src/*'
   - '!resources/ffmpeg/**'
@@ -32,6 +33,8 @@ nsis:
   allowToChangeInstallationDirectory: true
   oneClick: false
 mac:
+  artifactName: ${productName}-${version}-${arch}.${ext}
+  identity: '-'
   minimumSystemVersion: 13.0.0
   entitlementsInherit: build/entitlements.mac.plist
   extendInfo:
@@ -41,27 +44,15 @@ mac:
   target:
     - target: dmg
       arch:
-        - x64
         - arm64
     - target: zip
       arch:
-        - x64
         - arm64
   fileAssociations:
     - ext: [mp4, m4v, mov, qt, mkv, mk3d, webm, ts, mts, m2ts, m2t]
       name: Video Files
       role: Editor
 dmg:
-  artifactName: ${productName}-${version}-${arch}.${ext}
-linux:
-  target:
-    - target: AppImage
-      arch:
-        - arm64
-        - x64
-  maintainer: github.com/suemor233
-  category: Utility
-appImage:
   artifactName: ${productName}-${version}-${arch}.${ext}
 npmRebuild: false
 publish:
@@ -71,7 +62,4 @@ publish:
 # publish:
 #   provider: generic
 #   url: http://localhost:3000
-afterSign: scripts/notarize.js
-releaseInfo:
-  releaseNotes: |
-    - 修复弹幕加载失败导致视频无法播放问题
+afterPack: scripts/desktop/after-pack.cjs

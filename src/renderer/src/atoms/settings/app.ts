@@ -6,7 +6,6 @@ const createAppDefaultSettings = () => {
   return {
     showPoster: false,
     launchAtLogin: false,
-    showUpdateNote: false,
     firstOpen: true,
   }
 }

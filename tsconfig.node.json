@@ -6,6 +6,7 @@
     "moduleResolution": "Bundler",
     "paths": {
       "@pkg": ["./package.json"],
+      "@marchen/sparkle-updater": ["./packages/sparkle-updater/src/index.ts"],
       "@main/*": ["./src/main/*"],
       "@marchen/electron-ipc/*": ["./packages/electron-ipc/src/*"],
       "@marchen/shared/*": ["./packages/shared/src/*"]

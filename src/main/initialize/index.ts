@@ -7,7 +7,6 @@ import { isDev, isWindows } from '../lib/env'
 import { quickLaunchViaVideo } from '../lib/utils'
 import { getMainWindow } from '../windows/main'
 import { getRendererHandlers } from '../windows/setting'
-import { enableHardwareDecodingOnLinux } from './flag'
 import { registerLog } from './log'
 import { registerAppMenu } from './menu'
 
@@ -16,7 +15,6 @@ export const initializeApp = () => {
   if (!isDev || process.env.MARCHEN_ALLOW_MULTIPLE_INSTANCES !== '1') {
     limitSingleInstance()
   }
-  enableHardwareDecodingOnLinux()
   registerIpc(router)
   registerAppMenu()
   registerLog()

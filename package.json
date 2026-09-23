@@ -1,7 +1,7 @@
 {
   "name": "Marchen",
   "type": "module",
-  "version": "0.1.0",
+  "version": "1.0.0-alpha.0",
   "private": true,
   "packageManager": "pnpm@11.24.0",
   "description": "Marchen player",
@@ -19,8 +19,7 @@
   },
   "scripts": {
     "build": "pnpm media:prepare && pnpm typecheck && electron-vite build",
-    "build:linux": "pnpm media:prepare && electron-vite build && electron-builder --linux --publish never",
-    "build:mac": "pnpm media:prepare && electron-vite build && electron-builder --mac --publish never",
+    "build:mac": "pnpm build && pnpm sparkle:build && electron-builder --mac --arm64 --publish never",
     "build:unpack": "pnpm build && electron-builder --dir",
     "build:web": "pnpm media:prepare && rm -rf out/web && vite build",
     "build:win": "pnpm build && electron-builder --win --publish never",
@@ -39,7 +38,9 @@
     "typecheck:web": "tsc --noEmit -p tsconfig.web.json --composite false",
     "media:prepare": "node scripts/player-engine/prepare-libav.mjs && node scripts/player-engine/prepare-audio.mjs",
     "build:web:release": "node scripts/web/release-build.mjs",
-    "test:player-runtime": "vitest run --config vitest.player-runtime.config.ts"
+    "test:player-runtime": "vitest run --config vitest.player-runtime.config.ts",
+    "sparkle:build": "node packages/sparkle-updater/scripts/build.mjs",
+    "sparkle:test-versions": "node packages/sparkle-updater/scripts/test-versions.mjs"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^4.0.45",
@@ -60,7 +61,7 @@
     "@electron-toolkit/preload": "^3.0.2",
     "@electron-toolkit/tsconfig": "^2.0.0",
     "@electron-toolkit/utils": "^4.0.0",
-    "@electron/notarize": "^3.1.1",
+    "@electron/asar": "3.4.1",
     "@eslint-react/eslint-plugin": "^5.18.6",
     "@fontsource/manrope": "^5.3.0",
     "@iconify-json/mingcute": "^1.2.8",
@@ -125,6 +126,7 @@
     "vite": "^8.2.2",
     "vite-plugin-static-copy": "^4.1.1",
     "xml2js": "^0.6.2",
+    "yaml": "2.9.0",
     "zod": "^4.3.6"
   },
   "simple-git-hooks": {

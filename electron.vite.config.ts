@@ -42,6 +42,7 @@ export default defineConfig({
     resolve: {
       alias: {
         '@main': resolve('src/main'),
+        '@marchen/sparkle-updater': resolve('packages/sparkle-updater/src/index.ts'),
         '@pkg': resolve('./package.json'),
         '@marchen/electron-ipc': resolve('packages/electron-ipc/src'),
         '@marchen/danmaku-engine': resolve('packages/danmaku-engine/src'),

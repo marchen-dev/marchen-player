@@ -1,14 +1,12 @@
-import type { useAppSettingsValue } from '@renderer/atoms/settings/app'
-import { updateProgressAtom } from '@renderer/atoms/progress'
-import { appSettingAtom } from '@renderer/atoms/settings/app'
+import { desktopUpdateAtom } from '@renderer/atoms/progress'
 import { jotaiStore } from '@renderer/atoms/store'
 import { windowFullscreenAtom, WindowState, windowStateAtom } from '@renderer/atoms/window'
 import { useSettingModal } from '@renderer/components/modules/settings/hooks'
 import { toast } from '@renderer/components/ui/toast/use-toast'
-import { handlers } from '@renderer/lib/client'
-import { getStorageNS } from '@renderer/lib/ns'
+import { handlers, ipcClient } from '@renderer/lib/client'
 import { RouteName } from '@renderer/router'
 import { getPlayerLoadingService } from '@renderer/services/player-loading/index'
+import { preparePlayerUpdate } from '@renderer/services/player-runtime/update-preparation'
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router'
 
@@ -17,6 +15,23 @@ export const IpcListener = () => {
   const navigation = useNavigate()
   useEffect(() => {
     const unlisten = [
+      handlers?.prepareUpdate.listen((id) => {
+        void preparePlayerUpdate()
+          .then(
+            () => ipcClient?.app.updateSaved({ id, success: true }),
+            () =>
+              ipcClient?.app.updateSaved({
+                id,
+                success: false,
+                message: '播放进度保存失败，请重试',
+              }),
+          )
+          .catch(console.error)
+      }),
+      handlers?.desktopUpdate.listen((state) => {
+        const old = jotaiStore.get(desktopUpdateAtom)
+        if (!old || state.revision > old.revision) jotaiStore.set(desktopUpdateAtom, state)
+      }),
       handlers?.showSetting.listen((section) => {
         // 防止关闭窗口过程中，再次打开窗口，导致窗口无法打开
         const timeoutId = setTimeout(() => {
@@ -29,34 +44,6 @@ export const IpcListener = () => {
         navigation(RouteName.PLAYER)
         // 通过 service 加载视频
         getPlayerLoadingService().loadFromPath(params?.path ?? '')
-      }),
-      handlers?.updateProgress.listen((params) => {
-        jotaiStore.set(updateProgressAtom, { progress: params.progress, status: params.status })
-      }),
-      handlers?.getReleaseNotes.listen((text) => {
-        try {
-          const appDataString = localStorage.getItem(getStorageNS('app'))
-          const appData = appDataString
-            ? (JSON.parse(appDataString) as ReturnType<typeof useAppSettingsValue>)
-            : null
-
-          if (appData?.showUpdateNote) {
-            toast({
-              title: '更新成功 🎉',
-              description: (
-                <div className="mt-2 space-y-2">
-                  {text.split('\n').map((line) => (
-                    <p key={line}>{line}</p>
-                  ))}
-                </div>
-              ),
-              duration: 10000,
-            })
-            jotaiStore.set(appSettingAtom, { ...appData, showUpdateNote: false })
-          }
-        } catch (error) {
-          console.error(error)
-        }
       }),
       handlers?.windowAction.listen((action) => {
         switch (action) {
@@ -80,6 +67,24 @@ export const IpcListener = () => {
       }),
     ]
 
+    void ipcClient?.app
+      .getInstalledUpdate()
+      .then((notice) => {
+        if (notice)
+          toast({
+            title: `已更新至 ${notice.version}`,
+            description: notice.notes || '当前已运行新版本。',
+            duration: 10000,
+          })
+      })
+      .catch(console.error)
+    void ipcClient?.app
+      .getUpdateState()
+      .then((state) => {
+        const old = jotaiStore.get(desktopUpdateAtom)
+        if (!old || state.revision > old.revision) jotaiStore.set(desktopUpdateAtom, state)
+      })
+      .catch(console.error)
     return () => {
       unlisten?.forEach((fn) => fn?.())
     }
