@@ -6,7 +6,7 @@ import { join } from 'node:path'
 import { expect, it } from 'vitest'
 import { createApplicationProtocol, createMediaLease } from './media-protocol'
 
-it('页面导航撤销旧媒体租约，同文档路由变化保留授权', async () => {
+it.each(['mkv', 'MOV', 'webm', 'm4v', 'm2ts', 'ts', 'ass'])('媒体租约支持 %s 并在页面导航时撤销', async (extension) => {
   const root = await mkdtemp(join(tmpdir(), 'marchen-protocol-'))
   const owner = Object.assign(new EventEmitter(), {
     id: 901,
@@ -14,7 +14,7 @@ it('页面导航撤销旧媒体租约，同文档路由变化保留授权', asyn
     getURL: () => 'marchen://app/index.html',
   })
   try {
-    const path = join(root, '片名 # %.mkv')
+    const path = join(root, `片名 # %.${extension}`)
     await writeFile(path, 'test-video')
     const lease = await createMediaLease(path, owner as unknown as WebContents)
     const handle = createApplicationProtocol(root)

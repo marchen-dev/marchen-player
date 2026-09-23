@@ -27,3 +27,15 @@ describe('用户授权的播放列表', () => {
     expect(getSelectedPathPlaylist('/other/1.mkv')).toBeNull()
   })
 })
+
+
+it('多容器批量导入保留视频、去重并自然排序，File 和路径规则一致', () => {
+  const names = ['10.webm', '2.MOV', '3.m4v', '4.ts', '5.m2ts', '6.mts', '7.qt', '8.mk3d', '9.m2t']
+  const selected = names.map((name) => new File(['video'], name))
+  const accepted = selectFileBatch([...selected, selected[0], new File(['text'], 'notes.txt')])
+  expect(accepted.map((file) => file.name)).toEqual([
+    '2.MOV', '3.m4v', '4.ts', '5.m2ts', '6.mts', '7.qt', '8.mk3d', '9.m2t', '10.webm',
+  ])
+  expect(selectPathBatch([...names, '10.webm', 'notes.txt'].map((name) => `/media/${name}`)))
+    .toEqual(accepted.map((file) => `/media/${file.name}`))
+})

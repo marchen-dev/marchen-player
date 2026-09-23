@@ -131,7 +131,7 @@ packages/{electron-ipc,shared,player-loading,playback-core,danmaku-engine}
 ### 规范要求
 
 - UI 与注释使用**中文**
-- 支持视频：mp4、mkv；hash 为 16MB 前缀 MD5
+- 视频入口格式以 `packages/shared/src/media/formats.ts` 为准（MP4/M4V、MOV/QT、MKV/MK3D、WebM、TS/MTS/M2TS/M2T），实际播放取决于容器和编码探测；hash 为 16MB 前缀 MD5
 - **注释**：积极写中文注释，解释意图、上下文、设计决策
 - **类型安全**：避免 `any`，优先 discriminated union / 泛型约束
 - **错误处理**：外部交互（API、文件、IPC）做降级，参考 player-loading 弹幕获取失败降级为无弹幕

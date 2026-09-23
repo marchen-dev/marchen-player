@@ -95,7 +95,7 @@ export default function Library() {
   const importDroppedVideo = useCallback(
     (file: File) => {
       if (!checkIsVideoType(file.name)) {
-        showFailedToast({ title: '格式错误', description: '请导入 mp4 或者 mkv 格式的动漫' })
+        showFailedToast({ title: '格式错误', description: '请选择 MP4、MKV、MOV、WebM 或 TS 等支持的视频文件' })
         return
       }
       navigate(RouteName.PLAYER)

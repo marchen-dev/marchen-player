@@ -1,3 +1,5 @@
+import { isVideoFile } from '@marchen/shared/media'
+
 /** 用户选择的文件只在当前页面持有；刷新后重新授权，不把 File 或临时 URL 写进列表历史。 */
 let files: File[] = []
 let paths: string[] = []
@@ -9,7 +11,7 @@ const basename = (path: string) => path.split(/[\\/]/).pop() || path
 
 export function selectFileBatch(selected: readonly File[]) {
   const accepted = [...new Set(selected)]
-    .filter((file) => /\.(?:mp4|mkv)$/i.test(file.name))
+    .filter((file) => isVideoFile(file.name))
     .sort((a, b) => compare(a.name, b.name))
   if (typeof window !== 'undefined' && window.electron)
     selectPathBatch(accepted.map((file) => window.api.showFilePath(file)))
@@ -18,7 +20,7 @@ export function selectFileBatch(selected: readonly File[]) {
 }
 export function selectPathBatch(selected: readonly string[]) {
   paths = [...new Set(selected)]
-    .filter((path) => /\.(?:mp4|mkv)$/i.test(path))
+    .filter(isVideoFile)
     .sort((a, b) => compare(basename(a), basename(b)))
   return [...paths]
 }

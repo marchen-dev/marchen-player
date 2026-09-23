@@ -5,6 +5,7 @@ import { createMediaLease, releaseMediaLease } from '@main/lib/media-protocol'
 import { showFileSelectionDialog } from '@main/modules/showDialog'
 import { tipc } from '@marchen/electron-ipc/main'
 import { calculateFileHashByBuffer } from '@marchen/shared/lib/calc-file-hash'
+import { isVideoFile, VIDEO_EXTENSIONS } from '@marchen/shared/media'
 import { dialog } from 'electron'
 import naturalCompare from 'string-natural-compare'
 
@@ -74,16 +75,14 @@ export const playerGroup = {
     try {
       const result = await dialog.showOpenDialog({
         properties: ['openFile', 'multiSelections'],
-        filters: [{ name: '视频文件', extensions: ['mp4', 'mkv'] }],
+        filters: [{ name: '视频文件', extensions: [...VIDEO_EXTENSIONS] }],
       })
 
       if (result.canceled) {
         return
       }
 
-      return result.filePaths.filter((file) =>
-        ['.mp4', '.mkv'].includes(path.extname(file).toLowerCase()),
-      )
+      return result.filePaths.filter(isVideoFile)
     } finally {
       isDialogOpen = false
     }
@@ -91,8 +90,8 @@ export const playerGroup = {
 
   getAnimeInSamePath: t.procedure.input<{ path: string }>().action(async ({ input }) => {
     const selectedFilePath = input.path
-    const selectedFileExtname = path.extname(selectedFilePath)
-    if (selectedFileExtname !== '.mp4' && selectedFileExtname !== '.mkv') {
+    const selectedFileExtname = path.extname(selectedFilePath).toLowerCase()
+    if (!isVideoFile(selectedFilePath)) {
       return []
     }
 

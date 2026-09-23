@@ -1,4 +1,5 @@
 import type { ChangeEvent, FC } from 'react'
+import { VIDEO_FILE_ACCEPT } from '@marchen/shared/media'
 import { VideoProvider } from '@renderer/components/modules/player/loading/PlayerProvider'
 import { NativePlayer } from '@renderer/components/modules/player/NativePlayer'
 import { PlaybackFailure } from '@renderer/components/modules/player/shell/PlaybackFailure'
@@ -37,7 +38,7 @@ export default function VideoPlayer() {
   const importFile = useCallback(
     (file: File | undefined, source: 'click' | 'drop') => {
       if (!file || !checkIsVideoType(file.name)) {
-        return showFailedToast({ title: '格式错误', description: '请导入 mp4 或者 mkv 格式的动漫' })
+        return showFailedToast({ title: '格式错误', description: '请选择 MP4、MKV、MOV、WebM 或 TS 等支持的视频文件' })
       }
       markNextPlayerImportSource(source)
       service.loadFromFile(file)
@@ -92,7 +93,7 @@ export default function VideoPlayer() {
           <input
             type="file"
             multiple
-            accept="video/mp4, video/x-matroska"
+            accept={VIDEO_FILE_ACCEPT}
             ref={fileInputRef}
             onChange={handleInputChange}
             className="hidden"

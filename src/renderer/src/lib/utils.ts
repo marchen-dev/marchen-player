@@ -49,10 +49,7 @@ export const isMac = getOS() === 'macOS' && window.electron
 export const isWindows = getOS() === 'Windows' && window.electron
 export const isWeb = !window.electron
 
-export const checkIsVideoType = (videoName: string) => {
-  const videoSuffix = videoName?.split('.').pop()?.toLowerCase()
-  return videoSuffix === 'mp4' || videoSuffix === 'mkv'
-}
+export { isVideoFile as checkIsVideoType } from '@marchen/shared/media'
 
 export const isChromiumBased = (): boolean => {
   const userAgent = navigator.userAgent.toLowerCase()

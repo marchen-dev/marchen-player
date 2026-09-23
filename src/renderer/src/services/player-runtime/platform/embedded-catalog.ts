@@ -9,7 +9,7 @@ export async function listEmbeddedSubtitles(
   source: DurableMediaSource,
   signal = new AbortController().signal,
 ): Promise<SubtitleTrackDescriptor[]> {
-  if (!source.name.toLowerCase().endsWith('.mkv')) return []
+  if (!/\.(?:mkv|mk3d|webm)$/i.test(source.name)) return []
   const resource = await openPlaybackResource(source, signal)
   const lease = resource.acquire()
   try {

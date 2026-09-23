@@ -2,6 +2,7 @@ import type { WebContents } from 'electron'
 import { randomUUID } from 'node:crypto'
 import { realpath, stat } from 'node:fs/promises'
 import { extname, resolve, sep } from 'node:path'
+import { isVideoFile } from '@marchen/shared/media'
 import { fileRangeResponse } from './file-range-response'
 import { fromFilename } from './mime-utils'
 
@@ -32,7 +33,7 @@ export function releaseMediaLeases(owner: number) {
 }
 export async function createMediaLease(path: string, owner: WebContents) {
   if (owner.isDestroyed() || !isApplicationUrl(owner.getURL())) throw new Error('媒体请求来源无效')
-  if (!['.mp4', '.mkv', '.ass', '.ssa', '.srt', '.vtt'].includes(extname(path).toLowerCase()))
+  if (!isVideoFile(path) && !['.ass', '.ssa', '.srt', '.vtt'].includes(extname(path).toLowerCase()))
     throw new Error('不支持的媒体文件类型')
   if (!owners.has(owner.id)) {
     owners.add(owner.id)

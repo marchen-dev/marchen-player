@@ -1,0 +1,89 @@
+{
+  "scope": "一秒生成样片：容器/视频轨探测，未验证解码画面或完整播放",
+  "results": [
+    {
+      "ext": "mp4",
+      "source": "web-blob",
+      "format": "MP4",
+      "codec": "avc",
+      "duration": 1
+    },
+    {
+      "ext": "mp4",
+      "source": "electron-range",
+      "format": "MP4",
+      "codec": "avc",
+      "duration": 1
+    },
+    {
+      "ext": "mov",
+      "source": "web-blob",
+      "format": "QuickTime File Format",
+      "codec": "avc",
+      "duration": 1
+    },
+    {
+      "ext": "mov",
+      "source": "electron-range",
+      "format": "QuickTime File Format",
+      "codec": "avc",
+      "duration": 1
+    },
+    {
+      "ext": "mkv",
+      "source": "web-blob",
+      "format": "Matroska",
+      "codec": "avc",
+      "duration": 1
+    },
+    {
+      "ext": "mkv",
+      "source": "electron-range",
+      "format": "Matroska",
+      "codec": "avc",
+      "duration": 1
+    },
+    {
+      "ext": "ts",
+      "source": "web-blob",
+      "format": "MPEG Transport Stream",
+      "codec": "avc",
+      "duration": 2.6
+    },
+    {
+      "ext": "ts",
+      "source": "electron-range",
+      "format": "MPEG Transport Stream",
+      "codec": "avc",
+      "duration": 2.6
+    },
+    {
+      "ext": "m2ts",
+      "source": "web-blob",
+      "format": "MPEG Transport Stream",
+      "codec": "avc",
+      "duration": 2.6
+    },
+    {
+      "ext": "m2ts",
+      "source": "electron-range",
+      "format": "MPEG Transport Stream",
+      "codec": "avc",
+      "duration": 2.6
+    },
+    {
+      "ext": "webm",
+      "source": "web-blob",
+      "format": "WebM",
+      "codec": "vp9",
+      "duration": 1
+    },
+    {
+      "ext": "webm",
+      "source": "electron-range",
+      "format": "WebM",
+      "codec": "vp9",
+      "duration": 1
+    }
+  ]
+}

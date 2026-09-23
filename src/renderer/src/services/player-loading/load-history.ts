@@ -1,6 +1,7 @@
 import type { DB_History } from '@renderer/database/schemas/history'
 import type { PlayerLoadingService } from '@renderer/services/player-loading'
 import { calculateFileHash } from '@marchen/shared/lib/calc-file-hash'
+import { VIDEO_FILE_ACCEPT } from '@marchen/shared/media'
 import { db } from '@renderer/database/db'
 import { markNextPlayerImportSource } from '@renderer/services/telemetry/player-loading-observer'
 
@@ -64,7 +65,7 @@ function selectHistoricalFile() {
   return new Promise<File | null>((resolve) => {
     const input = document.createElement('input')
     input.type = 'file'
-    input.accept = '.mp4,.mkv'
+    input.accept = VIDEO_FILE_ACCEPT
     input.addEventListener('change', () => resolve(input.files?.[0] ?? null), { once: true })
     input.addEventListener('cancel', () => resolve(null), { once: true })
     input.click()
