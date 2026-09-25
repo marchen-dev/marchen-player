@@ -8,8 +8,12 @@
 import type { LoadingState, StepName } from '@marchen/player-loading'
 import type { FC } from 'react'
 import { VISIBLE_STEPS } from '@marchen/player-loading'
+import { Button } from '@renderer/components/ui/button'
 import { cn } from '@renderer/lib/utils'
-import { usePlayerLoadingState } from '@renderer/services/player-loading/hooks'
+import {
+  usePlayerLoadingService,
+  usePlayerLoadingState,
+} from '@renderer/services/player-loading/hooks'
 
 const stepLabels: Record<(typeof VISIBLE_STEPS)[number], string> = {
   importing: '视频导入',
@@ -21,6 +25,9 @@ const stepLabels: Record<(typeof VISIBLE_STEPS)[number], string> = {
 
 export const LoadingDanmuTimeLine = () => {
   const state = usePlayerLoadingState()
+  const service = usePlayerLoadingService()
+  const failed = state.step === 'match_failed'
+  const canSkip = failed || state.step === 'matching' || state.step === 'loading_danmaku'
   return (
     <div className="flex h-full flex-col items-center justify-center gap-4">
       <div className="flex items-center">
@@ -36,6 +43,23 @@ export const LoadingDanmuTimeLine = () => {
         ))}
       </div>
       <StepDescription state={state} />
+      {canSkip && (
+        <div className="flex items-center gap-2">
+          <Button variant={failed ? 'default' : 'secondary'} onClick={() => service.skipDanmaku()}>
+            直接播放
+          </Button>
+          {failed && (
+            <>
+              <Button variant="secondary" onClick={() => service.retryMatch()}>
+                重试匹配
+              </Button>
+              <Button variant="ghost" onClick={() => service.manualMatch()}>
+                手动匹配
+              </Button>
+            </>
+          )}
+        </div>
+      )}
     </div>
   )
 }
@@ -49,7 +73,11 @@ interface StepItemProps {
 }
 
 const StepItem: FC<StepItemProps> = ({ title, index, isLast, currentStep }) => {
-  const currentIndex = VISIBLE_STEPS.indexOf(currentStep as any)
+  const currentIndex = VISIBLE_STEPS.findIndex(
+    (step) =>
+      step ===
+      (currentStep === 'match_failed' || currentStep === 'waiting_user' ? 'matching' : currentStep),
+  )
   const isCompleted = currentIndex > index
   const isActive = currentIndex === index
 
@@ -68,7 +96,7 @@ const StepItem: FC<StepItemProps> = ({ title, index, isLast, currentStep }) => {
           {isCompleted ? (
             <i className="icon-[mingcute--check-line] text-xs" />
           ) : isActive ? (
-            <span className="size-2 animate-pulse rounded-full bg-primary" />
+            <span className="bg-primary size-2 animate-pulse rounded-full" />
           ) : null}
         </div>
         {/* 步骤标题 */}
@@ -101,11 +129,15 @@ function getStepDescription(state: LoadingState): string {
       return '正在导入视频...'
     case 'hashing':
     case 'matching':
-      return 'video' in state && state.video ? (('name' in state.video && state.video.name) || '') : ''
+      return 'video' in state && state.video
+        ? ('name' in state.video && state.video.name) || ''
+        : ''
     case 'loading_danmaku':
       return `${state.match.animeTitle} - ${state.match.episodeTitle}`
     case 'ready':
       return `${state.match.animeTitle} - ${state.match.episodeTitle} · ${state.mergedComments.length} 条弹幕`
+    case 'match_failed':
+      return `匹配失败：${state.error.message}`
     case 'error':
       return state.error.message
     default:
@@ -118,10 +150,15 @@ const StepDescription: FC<{ state: LoadingState }> = ({ state }) => {
   if (!text) return null
 
   return (
-    <p className={cn(
-      'max-w-md truncate text-center text-sm animate-in fade-in',
-      state.step === 'error' ? 'text-destructive' : 'text-muted-foreground',
-    )}>
+    <p
+      role={state.step === 'match_failed' ? 'alert' : 'status'}
+      className={cn(
+        'animate-in fade-in max-w-md truncate text-center text-sm',
+        state.step === 'error' || state.step === 'match_failed'
+          ? 'text-destructive'
+          : 'text-muted-foreground',
+      )}
+    >
       {text}
     </p>
   )

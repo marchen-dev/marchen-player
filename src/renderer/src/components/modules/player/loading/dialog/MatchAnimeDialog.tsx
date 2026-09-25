@@ -40,7 +40,7 @@ export const MatchAnimeDialog: FC<MatchAnimeDialogProps> = (props) => {
     if (matchData && !matchData.isMatched) {
       showMatchAnimeDialog(true)
     }
-  }, [matchData])
+  }, [isLoading, matchData])
 
   const accordionData = useMemo(() => {
     if (searchData) {
@@ -146,7 +146,7 @@ export const MatchAnimeDialog: FC<MatchAnimeDialogProps> = (props) => {
                 }}
               >
                 <i className="icon-[mingcute--xls-line] mr-1 text-lg" />
-                <span>不加载弹幕</span>
+                <span>直接播放</span>
               </Button>
             </div>
           </Show>

@@ -47,6 +47,7 @@ describe('playerLoadingService', () => {
       selected: true,
       content: { count: 1, comments: [{ cid: 1, m: '测试', p: '1,1,#FFFFFF,1' }] },
     })
+    await vi.waitFor(() => expect(finishWrite).toBeTypeOf('function'))
     vi.mocked(deps.importer.importFromPath).mockResolvedValueOnce(
       createMockVideoInfo({ hash: 'second' }),
     )
@@ -75,6 +76,7 @@ describe('playerLoadingService', () => {
       expect(finalState).toHaveProperty('video')
       expect(finalState).toHaveProperty('match')
       expect(finalState).toHaveProperty('danmaku')
+      expect(finalState).toMatchObject({ matchOrigin: 'auto' })
       expect(deps.importer.importFromPath).toHaveBeenCalledWith('/test/video.mkv')
       expect(deps.api.getDanmu).toHaveBeenCalled()
       expect(deps.history.save).toHaveBeenCalled()
@@ -91,6 +93,33 @@ describe('playerLoadingService', () => {
 
       await waitForStep(service, 'ready')
       expect(deps.importer.importFromFile).toHaveBeenCalledWith(mockFile)
+    })
+
+    it('恢复历史匹配不标记为自动匹配', async () => {
+      const deps = createMockDeps()
+      vi.mocked(deps.history.get).mockResolvedValue({
+        hash: 'test',
+        animeId: 1,
+        episodeId: 2,
+        animeTitle: '历史动漫',
+        episodeTitle: '第 2 话',
+      })
+      service = new PlayerLoadingService(deps)
+      service.loadFromPath('/test/video.mkv')
+      expect(await waitForStep(service, 'ready')).toMatchObject({
+        matchOrigin: 'history',
+        match: { animeTitle: '历史动漫' },
+      })
+      expect(deps.api.match).not.toHaveBeenCalled()
+    })
+
+    it('成功返回零条弹幕不标记为加载失败', async () => {
+      const deps = createMockDeps()
+      vi.mocked(deps.api.getDanmu).mockResolvedValue({ count: 0, comments: [] })
+      service = new PlayerLoadingService(deps)
+      service.loadFromPath('/test/video.mkv')
+      const state = await waitForStep(service, 'ready')
+      expect(state.step === 'ready' && state.danmakuLoadFailed).toBeFalsy()
     })
   })
 
@@ -128,6 +157,7 @@ describe('playerLoadingService', () => {
       const finalState = await waitForStep(service, 'ready')
       expect(finalState.step).toBe('ready')
       expect((finalState as any).match.episodeId).toBe(2001)
+      expect(finalState).toMatchObject({ matchOrigin: 'manual' })
     })
   })
 

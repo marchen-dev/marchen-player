@@ -21,10 +21,11 @@ export function createRematchPipeline(
   match: MatchedVideo,
   video: VideoInfo,
   deps: ServiceDeps,
+  previous: DanmakuEntry[] = [],
 ): Observable<PipelineEvent> {
   return concat(
     // 进入 reloading 状态
-    of<PipelineEvent>({ type: 'reloading' }),
+    of<PipelineEvent>({ type: 'reloading', target: match }),
 
     // 获取新弹幕（强制刷新，不使用缓存）
     defer(async () => {
@@ -38,15 +39,15 @@ export function createRematchPipeline(
 
       // 保留已有的 local 弹幕
       const existingCache = await deps.cache.get(hash)
-      const localDanmaku = existingCache?.filter((d) => d.type === 'local') ?? []
+      const existing = previous.length ? previous : (existingCache ?? [])
+      const localDanmaku = existing.filter((d) => d.type === 'local')
+      const selected =
+        existing.find((d) => d.type === 'auto' && d.source === 'dandanplay')?.selected ?? true
 
       const danmaku: DanmakuEntry[] = [
-        { type: 'auto', source: 'dandanplay', content: commentsData, selected: true },
+        { type: 'auto', source: 'dandanplay', content: commentsData, selected },
         ...localDanmaku,
       ]
-
-      // 更新缓存
-      await deps.cache.set(hash, danmaku)
 
       // 更新历史记录
       await deps.history.save({
@@ -58,6 +59,7 @@ export function createRematchPipeline(
         danmaku,
       })
 
+      await deps.cache.set(hash, danmaku)
       const mergedComments = mergeDanmakuEntries(danmaku)
 
       return { type: 'reloaded' as const, match, danmaku, mergedComments }

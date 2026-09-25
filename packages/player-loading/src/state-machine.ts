@@ -25,13 +25,21 @@ export function reduce(state: LoadingState, event: PipelineEvent): LoadingState 
     case 'hashed':
       return { step: 'matching', video: event.video }
 
+    case 'matchFailed':
+      return { step: 'match_failed', video: event.video, error: { message: event.message } }
+
     case 'matched': {
       // 精准匹配成功或用户手动选择后，进入加载弹幕阶段
       // 可以从 matching（自动匹配）或 waiting_user（用户选择）状态转入
       if (state.step !== 'matching' && state.step !== 'waiting_user') return state
       const video = 'video' in state ? state.video : undefined
       if (!video) return state
-      return { step: 'loading_danmaku', video, match: event.match }
+      return {
+        step: 'loading_danmaku',
+        video,
+        match: event.match,
+        matchOrigin: event.matchOrigin ?? 'manual',
+      }
     }
 
     case 'waitingUser': {
@@ -46,6 +54,9 @@ export function reduce(state: LoadingState, event: PipelineEvent): LoadingState 
         step: 'ready',
         video: state.video,
         match: state.match,
+        matchOrigin: state.matchOrigin,
+        danmakuLoadFailed: event.danmakuLoadFailed,
+        danmakuStatus: event.danmakuLoadFailed ? 'failed' : 'loaded',
         danmaku: event.danmaku,
         mergedComments: event.mergedComments,
       }
@@ -58,11 +69,17 @@ export function reduce(state: LoadingState, event: PipelineEvent): LoadingState 
     }
 
     case 'skipped':
-      if (state.step !== 'waiting_user') return state
+      if (!['matching', 'loading_danmaku', 'waiting_user', 'match_failed'].includes(state.step))
+        return state
       return {
         step: 'ready',
         video: event.video,
-        match: { episodeId: 0, animeTitle: '', episodeTitle: '', animeId: 0 },
+        match:
+          state.step === 'loading_danmaku'
+            ? state.match
+            : { episodeId: 0, animeTitle: '', episodeTitle: '', animeId: 0 },
+        matchOrigin: state.step === 'loading_danmaku' ? state.matchOrigin : undefined,
+        danmakuStatus: 'skipped',
         danmaku: event.danmaku,
         mergedComments: event.mergedComments,
       }
@@ -70,7 +87,7 @@ export function reduce(state: LoadingState, event: PipelineEvent): LoadingState 
     case 'reloading': {
       // ready 数据重新加载弹幕
       if (state.step !== 'ready') return state
-      return { ...state, step: 'reloading' }
+      return { ...state, step: 'reloading', recovery: { target: event.target ?? state.match } }
     }
 
     case 'reloaded': {
@@ -80,10 +97,18 @@ export function reduce(state: LoadingState, event: PipelineEvent): LoadingState 
         ...state,
         step: 'ready',
         match: event.match,
+        matchOrigin: event.match === state.match ? state.matchOrigin : 'manual',
+        danmakuLoadFailed: false,
+        danmakuStatus: 'loaded',
+        recovery: undefined,
         danmaku: event.danmaku,
         mergedComments: event.mergedComments,
       }
     }
+
+    case 'reloadFailed':
+      if (state.step !== 'reloading') return state
+      return { ...state, step: 'ready', recovery: { target: event.target, message: event.message } }
 
     case 'error':
       return { step: 'error', error: { message: event.message, previousStep: event.previousStep } }

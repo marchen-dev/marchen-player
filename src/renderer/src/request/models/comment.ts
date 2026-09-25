@@ -1,4 +1,6 @@
-export interface CommentsModel {
+import type { ReponseBaseModel } from './base'
+
+export interface CommentsModel extends ReponseBaseModel {
   count: number
   comments: CommentModel[]
 }

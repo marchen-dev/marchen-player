@@ -31,6 +31,7 @@ export type {
   // 状态
   LoadingState,
   MatchedVideo,
+  MatchFailedState,
   MatchingState,
   MatchResult,
   // 事件

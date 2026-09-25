@@ -32,7 +32,7 @@ export class IndexedDBHistoryStore implements HistoryStore {
 
       // 异步获取动漫封面和新番状态，不阻塞播放
       if (entry.animeId) {
-        this.updateBangumiData(primaryKey, entry.animeId, entry.episodeId, hash, historyData)
+        this.updateBangumiData(primaryKey, entry.animeId, entry.episodeId, hash)
       }
       return
     }
@@ -60,7 +60,6 @@ export class IndexedDBHistoryStore implements HistoryStore {
     animeId: number,
     episodeId: number | undefined,
     fileHash: string,
-    historyData: any,
   ): Promise<void> {
     try {
       const [bangumiDetail, bangumiShin] = await Promise.all([
@@ -68,11 +67,17 @@ export class IndexedDBHistoryStore implements HistoryStore {
         apiClient.bangumi.getBangumiShin(),
       ])
 
-      Object.assign(historyData, {
-        cover: bangumiDetail.bangumi.imageUrl,
-        newBangumi: bangumiShin.bangumiList.some((item) => item.animeId === +animeId),
+      // 封面请求可能晚于重新匹配：只补充仍属于同一剧集的元数据，绝不回写旧弹幕/进度。
+      const updated = await db.transaction('rw', db.history, async () => {
+        const current = await db.history.get(primaryKey)
+        if (current?.animeId !== animeId || current.episodeId !== episodeId) return false
+        await db.history.update(primaryKey, {
+          cover: bangumiDetail.bangumi.imageUrl,
+          newBangumi: bangumiShin.bangumiList.some((item) => item.animeId === +animeId),
+        })
+        return true
       })
-      await db.history.update(primaryKey, historyData)
+      if (!updated) return
 
       // 写入 library 表
       if (episodeId) {

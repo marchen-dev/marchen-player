@@ -8,10 +8,7 @@ import type { LoadingState } from '../../src/types'
 import { filter, firstValueFrom, take, timeout } from 'rxjs'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { PlayerLoadingService } from '../../src/service'
-import {
-  createMockDanmakuEntries,
-  createMockDeps,
-} from '../helpers/mock-ports'
+import { createMockDanmakuEntries, createMockDeps } from '../helpers/mock-ports'
 
 function waitForStep(service: PlayerLoadingService, step: string): Promise<LoadingState> {
   return firstValueFrom(
@@ -33,6 +30,7 @@ describe('load Pipeline - 缓存策略', () => {
   it('有缓存且非新番时应该使用缓存，不调用 API', async () => {
     const cachedDanmaku = createMockDanmakuEntries()
     const deps = createMockDeps({
+      history: { get: vi.fn().mockResolvedValue({ hash: 'abc123hash', animeId: 100, episodeId: 1001 }), save: vi.fn().mockResolvedValue(undefined) },
       cache: {
         get: vi.fn().mockResolvedValue(cachedDanmaku),
         isStale: vi.fn().mockResolvedValue(false),
@@ -53,6 +51,7 @@ describe('load Pipeline - 缓存策略', () => {
   it('新番时应该忽略缓存，重新请求', async () => {
     const cachedDanmaku = createMockDanmakuEntries()
     const deps = createMockDeps({
+      history: { get: vi.fn().mockResolvedValue({ hash: 'abc123hash', animeId: 100, episodeId: 1001 }), save: vi.fn().mockResolvedValue(undefined) },
       cache: {
         get: vi.fn().mockResolvedValue(cachedDanmaku),
         isStale: vi.fn().mockResolvedValue(true), // 新番
@@ -98,7 +97,7 @@ describe('load Pipeline - 错误处理', () => {
     service?.destroy()
   })
 
-  it('aPI 匹配失败时应该进入 error 状态', async () => {
+  it('aPI 匹配失败保留视频并进入可恢复状态', async () => {
     const deps = createMockDeps({
       api: {
         match: vi.fn().mockRejectedValue(new Error('网络错误')),
@@ -108,9 +107,9 @@ describe('load Pipeline - 错误处理', () => {
     service = new PlayerLoadingService(deps)
 
     service.loadFromPath('/test.mkv')
-    const state = await waitForStep(service, 'error')
+    const state = await waitForStep(service, 'match_failed')
 
-    expect(state.step).toBe('error')
+    expect(state.step).toBe('match_failed')
     expect((state as any).error.message).toBe('网络错误')
   })
 
@@ -133,5 +132,10 @@ describe('load Pipeline - 错误处理', () => {
     expect(state.step).toBe('ready')
     // 弹幕应该为空（降级）
     expect((state as any).mergedComments).toEqual([])
+    expect(state).toMatchObject({
+      matchOrigin: 'auto',
+      danmakuLoadFailed: true,
+      match: { animeTitle: 'A', episodeTitle: 'E1' },
+    })
   })
 })

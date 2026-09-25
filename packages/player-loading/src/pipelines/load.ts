@@ -76,6 +76,7 @@ export function executeMatch(video: VideoInfo, deps: ServiceDeps): Observable<Pi
     if (history?.episodeId && history?.animeId) {
       return {
         type: 'matched' as const,
+        matchOrigin: 'history' as const,
         match: {
           episodeId: history.episodeId,
           animeTitle: history.animeTitle || '',
@@ -97,6 +98,7 @@ export function executeMatch(video: VideoInfo, deps: ServiceDeps): Observable<Pi
       const m = result.matches[0]
       return {
         type: 'matched' as const,
+        matchOrigin: 'auto' as const,
         match: {
           episodeId: m.episodeId,
           animeTitle: m.animeTitle || '',
@@ -115,6 +117,21 @@ export function executeMatch(video: VideoInfo, deps: ServiceDeps): Observable<Pi
   }) as Observable<PipelineEvent>
 }
 
+/** 只有历史确认属于同一剧集的在线缓存才能沿用，本地来源始终保留。 */
+export async function getAvailableDanmaku(
+  video: VideoInfo,
+  deps: ServiceDeps,
+  match?: MatchedVideo,
+): Promise<DanmakuEntry[]> {
+  const [cached, history] = await Promise.all([
+    deps.cache.get(video.hash),
+    deps.history.get(video.hash),
+  ])
+  const sameMatch =
+    match && history?.episodeId === match.episodeId && history?.animeId === match.animeId
+  return (cached ?? history?.danmaku ?? []).filter((entry) => entry.type === 'local' || sameMatch)
+}
+
 /**
  * 执行弹幕加载逻辑
  * 优先使用缓存，新番或无缓存时重新请求
@@ -130,9 +147,9 @@ export function executeFetchDanmaku(
 
     // 检查缓存
     if (!forceRefresh) {
-      const cached = await deps.cache.get(hash)
+      const cached = await getAvailableDanmaku(video, deps, match)
       const isStale = await deps.cache.isStale(hash)
-      if (cached && !isStale) {
+      if (cached.some((entry) => entry.type === 'auto') && !isStale) {
         const mergedComments = mergeDanmakuEntries(cached)
         return { type: 'danmakuLoaded' as const, danmaku: cached, mergedComments }
       }
@@ -148,14 +165,13 @@ export function executeFetchDanmaku(
     // 保留已有的 local 弹幕
     const existingCache = await deps.cache.get(hash)
     const localDanmaku = existingCache?.filter((d) => d.type === 'local') ?? []
+    const selected =
+      existingCache?.find((d) => d.type === 'auto' && d.source === 'dandanplay')?.selected ?? true
 
     const danmaku: DanmakuEntry[] = [
-      { type: 'auto', source: 'dandanplay', content: commentsData, selected: true },
+      { type: 'auto', source: 'dandanplay', content: commentsData, selected },
       ...localDanmaku,
     ]
-
-    // 写入缓存
-    await deps.cache.set(hash, danmaku)
 
     const mergedComments = mergeDanmakuEntries(danmaku)
     return { type: 'danmakuLoaded' as const, danmaku, mergedComments }
@@ -193,6 +209,7 @@ export function executeFinish(
       animeId: match.animeId,
       danmaku,
     })
+    await deps.cache.set(video.hash, danmaku)
     return { type: 'danmakuLoaded' as const, danmaku, mergedComments }
   }) as Observable<PipelineEvent>
 }

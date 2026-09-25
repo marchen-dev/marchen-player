@@ -35,11 +35,34 @@ const apiFetch = ofetch.create({
   // },
 })
 
-export const Get = <T = object>(url: string, params?: object): Promise<T> =>
-  apiFetch(url, { query: params })
+/** 加载流程自行呈现可恢复错误，取消请求不触发全局错误提示。 */
+export interface RequestControl {
+  signal?: AbortSignal
+  silent?: boolean
+}
 
-export const Post = <T = object>(url: string, data?: object): Promise<T> =>
-  apiFetch(url, { method: 'POST', body: data })
+export const Get = <T = object>(
+  url: string,
+  params?: object,
+  control?: RequestControl,
+): Promise<T> =>
+  apiFetch(url, {
+    query: params,
+    signal: control?.signal,
+    ...(control?.silent ? { onResponseError: () => {} } : {}),
+  })
+
+export const Post = <T = object>(
+  url: string,
+  data?: object,
+  control?: RequestControl,
+): Promise<T> =>
+  apiFetch(url, {
+    method: 'POST',
+    body: data,
+    signal: control?.signal,
+    ...(control?.silent ? { onResponseError: () => {} } : {}),
+  })
 
 export const Delete = <T = object>(url: string, params?: object): Promise<T> =>
   apiFetch(url, { method: 'DELETE', query: params })

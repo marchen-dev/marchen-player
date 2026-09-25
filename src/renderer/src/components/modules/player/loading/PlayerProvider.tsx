@@ -13,6 +13,7 @@ import {
   usePlayerLoadingService,
 } from '@renderer/services/player-loading/hooks'
 import { captureFeatureUsed } from '@renderer/services/telemetry/features'
+import { useRef } from 'react'
 
 import { useLoadingHistoricalAnime } from './hooks'
 
@@ -48,6 +49,7 @@ export const VideoProvider: FC<PropsWithChildren> = ({ children }) => {
  */
 const WaitingUserDialog: FC = () => {
   const service = usePlayerLoadingService()
+  const completedRef = useRef(false)
   const state = usePlayerLoadingSelector((s) => (s.step === 'waiting_user' ? s : null))
 
   if (!state || state.step !== 'waiting_user') return null
@@ -56,6 +58,7 @@ const WaitingUserDialog: FC = () => {
     <MatchAnimeDialog
       matchData={state.matchData}
       onSelected={(params) => {
+        completedRef.current = true
         if (!params) {
           captureFeatureUsed('danmaku_match', 'skip')
           service.skipDanmaku()
@@ -64,7 +67,10 @@ const WaitingUserDialog: FC = () => {
         captureFeatureUsed('danmaku_match', 'select')
         service.selectMatch(params)
       }}
-      onClosed={() => service.cancel()}
+      onClosed={() => {
+        // 跳过可能仍在等待本地缓存；用用户意图区分关闭，不能靠异步状态判断。
+        if (!completedRef.current && service.currentState.step === 'waiting_user') service.cancel()
+      }}
       isLoading
     />
   )

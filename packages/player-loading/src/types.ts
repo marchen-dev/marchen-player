@@ -95,6 +95,7 @@ export type LoadingState =
   | ImportingState
   | HashingState
   | MatchingState
+  | MatchFailedState
   | WaitingUserState
   | LoadingDanmakuState
   | ReadyState
@@ -125,13 +126,29 @@ export interface WaitingUserState {
   matchData: MatchResult
 }
 
-export interface LoadingDanmakuState {
+/** 在线匹配失败仍保留已经导入的视频，允许直接播放或原地重试。 */
+export interface MatchFailedState {
+  step: 'match_failed'
+  video: VideoInfo
+  error: { message: string }
+}
+
+/** 仅用于本次加载的反馈，不写入历史记录。 */
+interface MatchFeedback {
+  matchOrigin?: 'auto' | 'history' | 'manual'
+  danmakuLoadFailed?: boolean
+  danmakuStatus?: 'loaded' | 'skipped' | 'failed'
+  /** 恢复失败不能覆盖当前匹配；保留本次目标供再次重试。 */
+  recovery?: { target: MatchedVideo; message?: string }
+}
+
+export interface LoadingDanmakuState extends MatchFeedback {
   step: 'loading_danmaku'
   video: VideoInfo
   match: MatchedVideo
 }
 
-export interface ReadyState {
+export interface ReadyState extends MatchFeedback {
   step: 'ready'
   video: VideoInfo
   match: MatchedVideo
@@ -139,7 +156,7 @@ export interface ReadyState {
   mergedComments: CommentModel[]
 }
 
-export interface ReloadingState {
+export interface ReloadingState extends MatchFeedback {
   step: 'reloading'
   video: VideoInfo
   match: MatchedVideo
@@ -176,6 +193,9 @@ export type Command =
   | { type: 'loadFromPath'; path: string }
   | { type: 'selectMatch'; match: MatchedVideo }
   | { type: 'skipDanmaku' }
+  | { type: 'retryMatch' }
+  | { type: 'manualMatch' }
+  | { type: 'retryDanmaku' }
   | { type: 'rematch'; match: MatchedVideo }
   | { type: 'addLocalDanmaku'; data: DanmakuEntry }
   | { type: 'cancel' }
@@ -188,12 +208,19 @@ export type PipelineEvent =
   | { type: 'started' }
   | { type: 'imported'; video: Partial<VideoInfo> }
   | { type: 'hashed'; video: VideoInfo }
-  | { type: 'matched'; match: MatchedVideo }
+  | { type: 'matched'; match: MatchedVideo; matchOrigin?: MatchFeedback['matchOrigin'] }
   | { type: 'waitingUser'; matchData: MatchResult; video: VideoInfo }
-  | { type: 'danmakuLoaded'; danmaku: DanmakuEntry[]; mergedComments: CommentModel[] }
+  | { type: 'matchFailed'; video: VideoInfo; message: string }
+  | {
+      type: 'danmakuLoaded'
+      danmaku: DanmakuEntry[]
+      mergedComments: CommentModel[]
+      danmakuLoadFailed?: boolean
+    }
   | { type: 'ready' }
   | { type: 'skipped'; video: VideoInfo; danmaku: DanmakuEntry[]; mergedComments: CommentModel[] }
-  | { type: 'reloading' }
+  | { type: 'reloading'; target?: MatchedVideo }
+  | { type: 'reloadFailed'; target: MatchedVideo; message: string }
   | {
       type: 'reloaded'
       match: MatchedVideo
@@ -210,11 +237,14 @@ export type PipelineEvent =
 /** 弹幕 API 接口 */
 export interface DanmakuAPI {
   /** 通过文件 hash/size/name 匹配动漫 */
-  match: (params: { hash: string; size: number; name: string }) => Promise<MatchResult>
+  match: (
+    params: { hash: string; size: number; name: string },
+    signal?: AbortSignal,
+  ) => Promise<MatchResult>
   /** 获取弹幕（withRelated=true 包含第三方源） */
   getDanmu: (
     episodeId: number,
-    opts: { withRelated: boolean; chConvert: number },
+    opts: { withRelated: boolean; chConvert: number; signal?: AbortSignal },
   ) => Promise<CommentsData>
 }
 
