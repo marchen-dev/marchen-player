@@ -1,0 +1,136 @@
+{
+  "title": "匹配与弹幕加载恢复验收",
+  "plan": [
+    {
+      "id": "wait-direct-play",
+      "name": "请求等待时直接播放"
+    },
+    {
+      "id": "match-recovery",
+      "name": "匹配失败后仍可继续观看"
+    },
+    {
+      "id": "danmaku-retry",
+      "name": "弹幕失败自动播放并可重试"
+    },
+    {
+      "id": "playback-continuity",
+      "name": "播放中恢复不重开视频"
+    },
+    {
+      "id": "opening-danmaku",
+      "name": "默认等待保留开头弹幕"
+    }
+  ],
+  "cases": [
+    {
+      "id": "wait-direct-play",
+      "name": "请求等待时直接播放",
+      "status": "passed",
+      "observation": "Web 和 Electron 在匹配、弹幕等待期间显示直接播放按钮，按钮下方无说明文案；点击后无需等网络完成即可播放，迟到结果不再接入。键盘 Tab/Enter 可操作，浅色和深色页面已查看。",
+      "evidence": [
+        {
+          "path": "assets/waiting.png",
+          "type": "image",
+          "text": "Web 加载步骤下方的直接播放按钮"
+        },
+        {
+          "path": "assets/waiting-dark.png",
+          "type": "image",
+          "text": "Web 深色主题"
+        },
+        {
+          "path": "assets/electron-waiting.png",
+          "type": "image",
+          "text": "Electron 等待界面"
+        }
+      ]
+    },
+    {
+      "id": "match-recovery",
+      "name": "匹配失败后仍可继续观看",
+      "status": "passed",
+      "observation": "匹配接口返回业务失败时显示直接播放、重试匹配和手动匹配。重试后成功播放；无匹配结果弹窗内直接播放，即使缓存读取延迟 600ms，关闭动画也不会取消播放。",
+      "evidence": [
+        {
+          "path": "assets/match-failed.png",
+          "type": "image",
+          "text": "匹配失败与三个恢复入口"
+        }
+      ]
+    },
+    {
+      "id": "danmaku-retry",
+      "name": "弹幕失败自动播放并可重试",
+      "status": "passed",
+      "observation": "首次弹幕失败后自动播放，播放器 Toast 提供重试。Web DOM 全屏与 Electron 原生全屏均可操作；Toast 消失后，弹幕设置仍保留重试入口。",
+      "evidence": [
+        {
+          "path": "assets/danmaku-failed.png",
+          "type": "image",
+          "text": "Web 全屏失败提示与重试"
+        },
+        {
+          "path": "assets/settings-retry.png",
+          "type": "image",
+          "text": "弹幕设置中的常驻恢复入口"
+        },
+        {
+          "path": "assets/electron-danmaku-failed.png",
+          "type": "image",
+          "text": "Electron 原生全屏失败提示"
+        }
+      ]
+    },
+    {
+      "id": "playback-continuity",
+      "name": "播放中恢复不重开视频",
+      "status": "passed",
+      "observation": "在 10 秒暂停后重试，视频节点和媒体来源保持、loadedmetadata 未再次触发，进度与暂停状态不变。重新匹配失败保留原匹配与弹幕、持续播放；再次重试使用失败目标。恢复后 10.5 秒弹幕按当前时间出现，不补发过去的第 0/1 秒内容。",
+      "evidence": [
+        {
+          "path": "assets/retry-paused.png",
+          "type": "image",
+          "text": "Web 暂停在 10 秒重试后"
+        },
+        {
+          "path": "assets/hot-danmaku.png",
+          "type": "image",
+          "text": "Web 当前时间接入弹幕"
+        },
+        {
+          "path": "assets/electron-hot-danmaku.png",
+          "type": "image",
+          "text": "Electron 当前时间接入弹幕"
+        }
+      ]
+    },
+    {
+      "id": "opening-danmaku",
+      "name": "默认等待保留开头弹幕",
+      "status": "passed",
+      "observation": "不点击直接播放时，即使请求延迟，系统仍等弹幕就绪才挂载播放器。Web 和 Electron 页面均实际观察到第 0 秒与第 1 秒弹幕。",
+      "evidence": [
+        {
+          "path": "assets/opening-danmaku.png",
+          "type": "image",
+          "text": "Web 开头弹幕"
+        },
+        {
+          "path": "assets/electron-opening-danmaku.png",
+          "type": "image",
+          "text": "Electron 开头弹幕"
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "verdict": "passed",
+    "conclusion": "桌面 Web 与 Electron 的受控场景均通过，等待人工签核。"
+  },
+  "commit": "working-tree@a396b154ee779953dec1a77d9f737ee1b8e6557f",
+  "surfaces": [
+    "Chrome 桌面 Web（浅色、深色、DOM 全屏）",
+    "macOS ARM64 Electron 44 开发实例（独立用户目录、原生全屏）"
+  ]
+}

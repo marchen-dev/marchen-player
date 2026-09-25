@@ -71,7 +71,7 @@ Marchen 的本地兼容播放正在实现 FFmpeg 与 Dynamic HLS，但分片时�
 - src/renderer/src/services/player-runtime/：runtime、回退、平台、字幕、弹幕与历史组合。
 - src/renderer/src/components/modules/player/NativePlayer.tsx：当前 video 宿主。
 - src/main/modules/ffmpeg/、src/main/modules/media-gateway/：共享媒体工具及待替换的播放生产链。
-- marchen/changes/generalize-media-compat-playback/、marchen/changes/add-ffmpeg-compat-playback/：相关 open change，采用新方向前须调和规划。
+- 原 generalize-media-compat-playback / add-ffmpeg-compat-playback 规划已被替代并于 2026-09-25 清理；后续方向见[双端播放内核重建](../archive/2026-09-07-rebuild-cross-platform-player-engine/proposal.md)，历史实验保留于该归档的 historical-evidence/。
 - marchen/archive/2026-08-30-replace-xgplayer-runtime/：当前运行时分层背景。
 - 外部源码：用户提供的 mediabunny 克隆，提交 c67c5e4，重点 packages/server/src/video-decoder.ts、video-sample.ts、src/sample.ts、src/custom-coder.ts、src/media-sink.ts。
 - https://mediabunny.dev/guide/extensions/server

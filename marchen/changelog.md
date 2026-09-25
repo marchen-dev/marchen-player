@@ -39,3 +39,11 @@
 - 2026-09-13: [renderer-danmaku-import](./archive/2026-09-13-renderer-danmaku-import/) — 统一 Renderer 弹幕文件导入，支持 Web 与 Electron 并校验去重
 - 2026-09-23: [upgrade-mediabunny-1-59](./archive/2026-09-23-upgrade-mediabunny-1-59/) — Mediabunny及AC-3、DTS扩展升级至1.59.0，通过回归测试和双端构建
 - 2026-09-23: [fix-empty-subtitle-events](./archive/2026-09-23-fix-empty-subtitle-events/) — 修复内嵌 ASS/SSA 零时长空事件导致整轨字幕加载失败
+- 2026-09-25: [add-loading-playback-recovery](./archive/2026-09-25-add-loading-playback-recovery/) — 新增匹配与弹幕等待时直接播放、失败恢复及不中断视频的弹幕重试
+- 2026-09-25: [show-matched-anime-title](./archive/2026-09-25-show-matched-anime-title/) — 新增动漫匹配提示、弹幕数量与设置详情，并添加 MingCute 弹幕快捷开关
+- 2026-09-25: [integrate-native-sparkle-updates](./archive/2026-09-25-integrate-native-sparkle-updates/) — 归档原生 Sparkle 与分渠道更新，保留实机更新和验收缺口
+- 2026-09-25: [expand-video-container-import](./archive/2026-09-25-expand-video-container-import/) — 扩展双端视频容器导入格式，保留编码播放与安装验证边界
+- 2026-09-25: 清理已替代的 add-canvas-hdr-output 规划，实验移入 [video 呈现迁移](./archive/2026-09-13-migrate-compat-video-presentation/historical-evidence/add-canvas-hdr-output/)。
+- 2026-09-25: 清理已替代的 generalize-media-compat-playback 规划，实验移入 [双端内核重建](./archive/2026-09-07-rebuild-cross-platform-player-engine/historical-evidence/generalize-media-compat-playback/)。
+- 2026-09-25: [rebuild-observability-stack](./archive/2026-09-25-rebuild-observability-stack/) — 归档 Sentry/PostHog 可观测体系重建，保留待签核状态
+- 2026-09-25: 清理已替代的 add-ffmpeg-compat-playback 规划，后续以 [双端内核重建](./archive/2026-09-07-rebuild-cross-platform-player-engine/proposal.md) 为准。

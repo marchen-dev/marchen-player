@@ -7,6 +7,7 @@
 Marchen Player：本地动漫视频弹幕播放器，拖入视频自动匹配弹幕。Electron + React，同时支持 Web。后端 API 代理弹弹play。
 
 - **技术栈**：Electron 44 + React 19 + TypeScript + Vite + Tailwind 4
+- **运行环境**：Node.js 24.x
 - **包管理**：pnpm 11（`corepack enable`），ES Module，AGPL-3.0
 
 ## 常用命令
@@ -17,11 +18,15 @@ pnpm dev:web      # Web 开发（端口 1106）
 pnpm build        # 构建 Electron（含 typecheck）
 pnpm build:web    # 构建 Web
 pnpm typecheck    # 类型检查（node + web）
+pnpm test:main    # 主进程与桌面发布相关测试
+pnpm test:player-runtime # 播放运行时及相关服务测试
 pnpm lint[:fix]   # ESLint
 pnpm format       # Prettier
 ```
 
 首次需 `cp .env.example .env`。
+
+`pnpm bump` 会交互选择版本、提交、打标签并推送，不是只修改版本号；执行前按 `docs/desktop-release.md` 完成发版准备。
 
 ## 架构
 
@@ -44,6 +49,7 @@ pnpm format       # Prettier
 | `@marchen/player-loading` | 视频识别、匹配和弹幕加载状态机（RxJS，纯 TS） |
 | `@marchen/playback-core`  | 媒体会话、时钟和播放命令（纯 TS）             |
 | `@marchen/danmaku-engine` | DOM 弹幕调度、轨道和节点池（纯 TS）           |
+| `@marchen/sparkle-updater` | macOS Sparkle 原生更新桥接                    |
 
 ### IPC 通信
 
@@ -85,6 +91,13 @@ idle → importing → hashing → matching → [waiting_user] → loading_danma
 - `danmaku`: `Array<{ type: 'auto'|'local', source, selected?, content: CommentsData }>`
 - `subtitles` 保存 defaultId/timeOffset 和轨道 tags；内嵌轨道保存稳定 UID/codec，外挂字幕保存路径或受预算限制的文本内容，不持久化临时 URL。
 
+### 字幕渲染与设置
+
+- `services/player-runtime/subtitles/LibassSubtitleAdapter`（文件 `libass-subtitle-adapter.ts`）是 libass 渲染生命周期入口；内置回退字体为 `notoSansSC-medium.woff2`（Noto Sans SC Medium），可加载媒体内附带的字体。
+- Electron 自动发现视频同目录、文件名前缀匹配的 `.ass` / `.ssa` / `.srt` / `.vtt` 外挂字幕；Web 需要用户选择文件，不能自动扫描本地目录。
+- 字幕大小保存在 `playerSettingAtom.subtitleScale`，是全局持久化偏好，默认 100%，范围 50%～200%，步进 5%；不存入单视频 HISTORY。
+- 字号缩放由 `services/player-runtime/subtitles/font-scale.ts` 处理：始终基于原始字幕生成内存副本，调整样式和行内绝对字号，保留相对字号指令及定位坐标；禁止覆盖原字幕文件或累积缩放结果。
+
 ### API 请求
 
 `ofetch` 封装于 `request/ofetch.ts`，API 模块在 `request/api/`（match、comment、bangumi、search），类型在 `request/models/`。基础 URL 由 `VITE_API_URL` 配置。
@@ -115,7 +128,7 @@ src/
     ├── atoms/            # Jotai
     ├── hooks/  services/  request/  database/  router/  providers/  initialize/  lib/
 
-packages/{electron-ipc,shared,player-loading,playback-core,danmaku-engine}
+packages/{electron-ipc,shared,player-loading,playback-core,danmaku-engine,sparkle-updater}
 ```
 
 ## 路径别名
@@ -146,13 +159,23 @@ packages/{electron-ipc,shared,player-loading,playback-core,danmaku-engine}
 
 | 变量                                                                                 | 说明                                                            |
 | ------------------------------------------------------------------------------------ | --------------------------------------------------------------- |
-| `VITE_API_URL`                                                                       | 弹弹play API 代理（如 `https://dandi-proxy.suemor.com/api/v2`） |
+| `VITE_API_URL`                                                                       | 弹弹play API 代理（如 `https://dandan-proxy.suemor.com/api/v2`） |
 | `VITE_SENTRY_DSN`                                                                    | Sentry DSN                                                      |
-| `APPLE_ID` / `APPLE_APP_SPECIFIC_PASSWORD` / `APPLE_TEAM_ID` / `APPLE_APP_BUNDLE_ID` | macOS 公证                                                      |
+| `SPARKLE_ED_PUBLIC_KEY` / `SPARKLE_ED_PRIVATE_KEY` | Sparkle 更新验签公钥与签名私钥；私钥仅用于发行，不打入客户端 |
+| `SENTRY_AUTH_TOKEN` / `SENTRY_ORG` / `SENTRY_PROJECT` | CI 上传 source map 和管理 Sentry Release |
+| `VITE_POSTHOG_KEY` / `VITE_POSTHOG_HOST` | PostHog 客户端配置 |
 
 ## 双内核构建与部署
 
 `pnpm media:prepare` 从锁定发布包复制 WASM/Worker 与 AudioWorklet，禁止重新引入播放器本地 libav 补丁/编译链。开发与构建自动执行。部署要求见 `docs/player-engine-deployment.md`。COOP 为 same-origin，COEP 为 credentialless；不设置 CSP，协议 bypassCSP=false。所有平台验收以 change evidence 为准，不把短样片通过写成平台支持结论。
+
+## 桌面发布入口
+
+仅发布 macOS 13+ ARM64 和 Windows x64，不再生成 Linux 或 Intel Mac 新包。Mac 当前使用 ad-hoc 签名、不做 Apple 公证；Apple 开发者账号变量不是当前发行流程的必要配置。
+
+Mac 使用 `@marchen/sparkle-updater` 与 Sparkle 原生更新窗口，Windows 使用 `electron-updater`。按安装版本自动选择稳定 / Beta / Alpha 渠道，只升级到允许渠道内的更高版本。标签构建仅创建 Draft；公开 Release 后由 `.github/workflows/update-channels.yml` 同步渠道元数据。禁止覆盖已公开版本的标签或安装包。
+
+具体版本命名、密钥配置、渠道规则及验收流程见 `docs/desktop-release.md`；更新说明位于 `docs/releases/<version>.md`。
 
 ## Web 发布入口
 
