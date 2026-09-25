@@ -4,9 +4,12 @@ import legacyWorkerUrl from '@jellyfin/libass-wasm/dist/js/subtitles-octopus-wor
 import workerUrl from '@jellyfin/libass-wasm/dist/js/subtitles-octopus-worker.js?url'
 import NotoSansSC from '@renderer/styles/fonts/notoSansSC-medium.woff2?url'
 
+import { normalizeSubtitleScale, scaleAssFontSize } from './font-scale'
+
 export interface LibassInstance {
   timeOffset: number
   setTrackByUrl: (url: string) => void
+  setTrack: (content: string) => void
   freeTrack: () => void
   resize: (width: number, height: number) => void
   setCurrentTime: (time: number) => void
@@ -18,6 +21,7 @@ export interface LibassInstance {
 interface LibassOptions {
   canvas: HTMLCanvasElement
   subUrl: string
+  subContent?: string
   fonts: string[]
   fallbackFont: string
   workerUrl: string
@@ -54,6 +58,8 @@ export class LibassSubtitleAdapter {
   private generation = 0
   private timeOffset = 0
   private fonts: readonly string[] = []
+  private originalContent: string | undefined
+  private fontScale = 100
   private lastTime = NaN
   private lastPaused?: boolean
   private lastRate?: number
@@ -65,7 +71,7 @@ export class LibassSubtitleAdapter {
     private readonly createInstance: LibassInstanceFactory = createDefaultInstance,
   ) {}
 
-  setTrack(url: string, release?: () => void, fonts: readonly string[] = []): boolean {
+  setTrack(url: string, release?: () => void, fonts: readonly string[] = [], content?: string): boolean {
     if (this.disposed) {
       release?.()
       return false
@@ -78,6 +84,7 @@ export class LibassSubtitleAdapter {
       this.dropInstance()
     }
     this.releaseCurrentTrack()
+    this.originalContent = content
     this.fonts = [...fonts]
     this.releaseTrack = release ?? null
     try {
@@ -85,7 +92,8 @@ export class LibassSubtitleAdapter {
         const generation = ++this.generation
         const instance = this.createInstance({
           canvas: this.canvas,
-          subUrl: url,
+          subUrl: content === undefined ? url : '',
+          subContent: content === undefined ? undefined : scaleAssFontSize(content, this.fontScale),
           fonts: [NotoSansSC, ...fonts],
           fallbackFont: NotoSansSC,
           workerUrl,
@@ -106,7 +114,8 @@ export class LibassSubtitleAdapter {
         this.instance = instance
       } else {
         this.instance.freeTrack()
-        this.instance.setTrackByUrl(url)
+        if (content === undefined) this.instance.setTrackByUrl(url)
+        else this.instance.setTrack(scaleAssFontSize(content, this.fontScale))
       }
       this.sync(true)
       return this.instance !== null
@@ -120,6 +129,17 @@ export class LibassSubtitleAdapter {
     if (this.disposed) return
     this.withInstance((instance) => instance.freeTrack())
     this.releaseCurrentTrack()
+  }
+
+  setFontScale(percentage: number): void {
+    const scale = normalizeSubtitleScale(percentage)
+    if (scale === this.fontScale) return
+    this.fontScale = scale
+    if (this.originalContent !== undefined) {
+      const content = scaleAssFontSize(this.originalContent, scale)
+      this.withInstance((instance) => instance.setTrack(content))
+      this.sync(true)
+    }
   }
 
   setTimeOffset(offset: number): void {
@@ -192,6 +212,7 @@ export class LibassSubtitleAdapter {
   private releaseCurrentTrack(): void {
     const release = this.releaseTrack
     this.releaseTrack = null
+    this.originalContent = undefined
     release?.()
   }
 }

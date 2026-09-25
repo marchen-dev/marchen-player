@@ -7,6 +7,7 @@ import type {
   SubtitleTrackDescriptor,
 } from '@renderer/services/player-runtime'
 import type { PropsWithChildren } from 'react'
+import { usePlayerSettingsValue } from '@renderer/atoms/settings/player'
 import { db } from '@renderer/database/db'
 import { captureFeatureUsed } from '@renderer/services/telemetry/features'
 import { reportSubtitleFailure } from '@renderer/services/telemetry/subtitles'
@@ -49,6 +50,7 @@ export const NativeSubtitleProvider = ({
   fallbackState,
   children,
 }: NativeSubtitleProviderProps) => {
+  const { subtitleScale } = usePlayerSettingsValue()
   const requestRef = useRef<AbortController | null>(null)
   const adapterRef = useRef<LibassSubtitleAdapter | null>(null)
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
@@ -59,6 +61,10 @@ export const NativeSubtitleProvider = ({
   const [timeOffset, setTimeOffset] = useState(0)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    readyAdapter?.setFontScale(subtitleScale)
+  }, [readyAdapter, subtitleScale])
 
   const persistSelection = useCallback(
     async (option: SubtitleTrackOption | null, resolved?: ResolvedSubtitleTrack) => {
@@ -115,8 +121,18 @@ export const NativeSubtitleProvider = ({
           resolved.release?.()
           return
         }
+        let content: string
+        try {
+          const response = await fetch(resolved.url, { signal: request.signal })
+          if (!response.ok) throw new Error(`字幕读取失败：${response.status}`)
+          content = await response.text()
+          request.signal.throwIfAborted()
+        } catch (cause) {
+          resolved.release?.()
+          throw cause
+        }
         trackResolved = true
-        if (!adapter.setTrack(resolved.url, resolved.release, resolved.fonts)) return
+        if (!adapter.setTrack(resolved.url, resolved.release, resolved.fonts, content)) return
         setError(resolved.warning ?? null)
         setSelectedId(option.id)
         if (shouldPersist) await persistSelection(option, resolved)

@@ -6,6 +6,7 @@ import {
   danmakuFontSizeList,
 } from '@renderer/components/modules/settings/views/player/list'
 import { normalizeEnginePreference } from '@renderer/services/player-runtime/engine-policy'
+import { normalizeSubtitleScale } from '@renderer/services/player-runtime/subtitles/font-scale'
 import { useAtom, useAtomValue } from 'jotai'
 
 import { createSettingATom } from './helper'
@@ -17,6 +18,7 @@ const getSelectedDefaultValue = (list: SelectOption[]) => {
 const createPlayerDefaultSettings = () => {
   return {
     enginePreference: 'auto' as EnginePreference,
+    subtitleScale: 100,
     enableTraditionalToSimplified: false,
     enableAutomaticEpisodeSwitching: false,
     enableDanmaku: true,
@@ -33,6 +35,7 @@ const playerSettingAtom = createSettingATom('player', createPlayerDefaultSetting
   ...createPlayerDefaultSettings(),
   ...settings,
   enginePreference: normalizeEnginePreference(settings?.enginePreference),
+  subtitleScale: normalizeSubtitleScale(settings?.subtitleScale),
 }))
 
 export { playerSettingAtom }

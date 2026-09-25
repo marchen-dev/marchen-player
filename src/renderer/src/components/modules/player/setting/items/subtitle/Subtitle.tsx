@@ -1,3 +1,4 @@
+import { usePlayerSettings } from '@renderer/atoms/settings/player'
 import { FieldLayout } from '@renderer/components/modules/settings/views/Layout'
 import { Button } from '@renderer/components/ui/button'
 import {
@@ -13,6 +14,7 @@ import { useNativeSubtitles, usePlayerPortalContainer } from '@renderer/services
 import { SettingContainer } from '../../Container'
 
 export const Subtitle = () => {
+  const [settings, setSettings] = usePlayerSettings()
   const {
     tracks,
     selectedId,
@@ -60,6 +62,34 @@ export const Subtitle = () => {
             </SelectGroup>
           </SelectContent>
         </Select>
+      </FieldLayout>
+
+      <FieldLayout title={`字幕大小：${settings.subtitleScale}%`}>
+        <div className="flex items-center gap-3">
+          <input
+            type="range"
+            min={50}
+            max={200}
+            step={5}
+            value={settings.subtitleScale}
+            aria-label="字幕大小"
+            aria-valuetext={`${settings.subtitleScale}%`}
+            className="min-w-0 flex-1 accent-[var(--player-settings-accent)]"
+            onChange={(event) => {
+              const subtitleScale = event.currentTarget.valueAsNumber
+              setSettings((previous) => ({ ...previous, subtitleScale }))
+            }}
+          />
+          <Button
+            type="button"
+            variant="outline"
+            disabled={settings.subtitleScale === 100}
+            className="border-white/11 bg-white/8 text-white hover:bg-white/14 hover:text-white"
+            onClick={() => setSettings((previous) => ({ ...previous, subtitleScale: 100 }))}
+          >
+            重置
+          </Button>
+        </div>
       </FieldLayout>
 
       <Button

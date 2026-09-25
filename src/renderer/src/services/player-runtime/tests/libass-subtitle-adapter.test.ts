@@ -6,6 +6,7 @@ import { LibassSubtitleAdapter } from '../subtitles/libass-subtitle-adapter'
 const createFakeInstance = (): LibassInstance => ({
   timeOffset: 0,
   setTrackByUrl: vi.fn(),
+  setTrack: vi.fn(),
   freeTrack: vi.fn(),
   resize: vi.fn(),
   setCurrentTime: vi.fn(),
@@ -29,6 +30,31 @@ const clock: PlaybackClock = { now: () => snapshot.currentTime, snapshot: () => 
 const canvas = { width: 1920, height: 1080 } as HTMLCanvasElement
 
 describe('libassSubtitleAdapter', () => {
+  it('缩放从原文计算、暂停时刷新、换轨沿用，关闭后不会重新显示', () => {
+    const instance = createFakeInstance()
+    const factory = vi.fn(() => instance)
+    const release = vi.fn()
+    const adapter = new LibassSubtitleAdapter(canvas, clock, vi.fn(), factory)
+    const content = '[V4+ Styles]\nFormat: Name, Fontsize\nStyle: Default,40'
+    adapter.setFontScale(150)
+    adapter.setTrack('a.ass', release, [], content)
+    expect(factory).toHaveBeenCalledWith(expect.objectContaining({ subContent: content.replace('40', '60') }))
+    adapter.setFontScale(200)
+    expect(instance.setTrack).toHaveBeenLastCalledWith(content.replace('40', '80'))
+    expect(instance.setCurrentTime).toHaveBeenLastCalledWith(10)
+    expect(release).not.toHaveBeenCalled()
+    adapter.setFontScale(100)
+    expect(instance.setTrack).toHaveBeenLastCalledWith(content)
+    adapter.setFontScale(150)
+    adapter.setTrack('b.ass', undefined, [], content.replace('40', '20'))
+    expect(instance.setTrack).toHaveBeenLastCalledWith(content.replace('40', '30'))
+    expect(release).toHaveBeenCalledOnce()
+    adapter.close()
+    vi.mocked(instance.setTrack).mockClear()
+    adapter.setFontScale(100)
+    expect(instance.setTrack).not.toHaveBeenCalled()
+  })
+
   it('创建、换轨、偏移、关闭、resize 和 dispose 均委托给单一实例', () => {
     const instance = createFakeInstance()
     const createInstance = vi.fn(() => instance)
