@@ -19,6 +19,7 @@ import { captureFeatureUsed } from '@renderer/services/telemetry/features'
 import { useAtomValue } from 'jotai'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { PlayerControls } from './controls'
+import { MatchResultToast } from './loading/MatchResultToast'
 import {
   DanmakuSurface,
   InteractionSurface,
@@ -83,6 +84,7 @@ export const NativePlayer = () => {
   const shell = (
     <PlayerShell rootRef={rootRef} title={title}>
       <PlayerPortalRoot>
+        <MatchResultToast />
         {!sessionReady && <PlayerWindowChrome onClose={() => getPlayerLoadingService().cancel()} />}
         <VideoSurface videoRef={setVideo} rotation={rotation} />
         <VideoSurface

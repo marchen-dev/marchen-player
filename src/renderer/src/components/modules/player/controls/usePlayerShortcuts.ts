@@ -6,6 +6,7 @@ interface PlayerShortcutActions {
   seekBy: (offset: number) => void
   changeVolume: (offset: number) => void
   toggleMuted: () => void
+  toggleDanmaku?: () => void
   toggleFullscreen?: () => void
   exitFullscreen?: () => void
 }
@@ -32,6 +33,15 @@ export const usePlayerShortcuts = ({ rootRef, blocked, actions }: PlayerShortcut
       else if (key === 'arrowup') actions.changeVolume(0.05)
       else if (key === 'arrowdown') actions.changeVolume(-0.05)
       else if (key === 'm') actions.toggleMuted()
+      else if (
+        key === 'd' &&
+        actions.toggleDanmaku &&
+        !event.ctrlKey &&
+        !event.metaKey &&
+        !event.altKey &&
+        !event.isComposing
+      )
+        actions.toggleDanmaku()
       else if (key === 'f' && actions.toggleFullscreen) actions.toggleFullscreen()
       else if (key === 'escape' && actions.exitFullscreen) actions.exitFullscreen()
       else handled = false

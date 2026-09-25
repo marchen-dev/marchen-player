@@ -1,8 +1,9 @@
 import type { PlayerCapabilities, PlaylistEntry } from '@renderer/services/player-runtime'
 import type { PlayerRotation } from '../setting/PlayerSettingsPanel'
 import { playerSettingsPanelAtom, showPlayerSettingsPanel } from '@renderer/atoms/player'
-import { usePlayerSettingsValue } from '@renderer/atoms/settings/player'
+import { usePlayerSettings } from '@renderer/atoms/settings/player'
 import { TooltipProvider } from '@renderer/components/ui/Tooltip'
+import { usePlayerLoadingSelector } from '@renderer/services/player-loading/hooks'
 import {
   resolvePlayerControlAvailability,
   useNativeDanmaku,
@@ -70,7 +71,18 @@ export const PlayerControls = ({
   const [chromeHovered, setChromeHovered] = useState(false)
   const [focused, setFocused] = useState(false)
   const settingsPanelOpen = useAtomValue(playerSettingsPanelAtom).open
-  const { enableMiniProgress } = usePlayerSettingsValue()
+  const [{ enableMiniProgress, enableDanmaku }, setPlayerSettings] = usePlayerSettings()
+  const hasDanmaku = usePlayerLoadingSelector(
+    (loading) =>
+      (loading.step === 'ready' || loading.step === 'reloading') &&
+      loading.mergedComments.length > 0,
+  )
+  const toggleDanmaku = useCallback(() => {
+    if (!hasDanmaku) return
+    setPlayerSettings((current) => {
+      return { ...current, enableDanmaku: !current.enableDanmaku }
+    })
+  }, [hasDanmaku, setPlayerSettings])
 
   const playing = state.status === 'playing'
   const currentTime = getCurrentTime(state)
@@ -121,10 +133,20 @@ export const PlayerControls = ({
       seekBy,
       changeVolume,
       toggleMuted,
+      toggleDanmaku,
       toggleFullscreen: onFullscreen,
       exitFullscreen: onExitFullscreen,
     }),
-    [changeVolume, commands, onExitFullscreen, onFullscreen, playing, seekBy, toggleMuted],
+    [
+      changeVolume,
+      commands,
+      onExitFullscreen,
+      onFullscreen,
+      playing,
+      seekBy,
+      toggleMuted,
+      toggleDanmaku,
+    ],
   )
 
   usePlayerShortcuts({
@@ -223,6 +245,20 @@ export const PlayerControls = ({
           }
           tools={
             <>
+              <PlayerIconButton
+                label={!hasDanmaku ? '暂无弹幕' : enableDanmaku ? '关闭弹幕（D）' : '开启弹幕（D）'}
+                icon={
+                  enableDanmaku
+                    ? 'icon-[mingcute--danmaku-on-line]'
+                    : 'icon-[mingcute--danmaku-off-line]'
+                }
+                aria-pressed={hasDanmaku && enableDanmaku}
+                aria-disabled={!hasDanmaku}
+                aria-keyshortcuts="D"
+                className={!hasDanmaku ? 'opacity-35' : !enableDanmaku ? 'opacity-70' : undefined}
+                compact
+                onClick={toggleDanmaku}
+              />
               <PlayerIconButton
                 label="设置"
                 icon="icon-[mingcute--settings-3-line]"

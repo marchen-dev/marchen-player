@@ -5,7 +5,7 @@ import { usePlayerPortalContainer } from '@renderer/services/player-runtime'
 
 export interface PlayerIconButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   label: string
-  icon: string
+  icon?: string
   active?: boolean
   compact?: boolean
 }
@@ -13,6 +13,7 @@ export interface PlayerIconButtonProps extends ButtonHTMLAttributes<HTMLButtonEl
 export const PlayerIconButton = ({
   label,
   icon,
+  children,
   active,
   compact,
   className,
@@ -47,7 +48,7 @@ export const PlayerIconButton = ({
             if (document.activeElement instanceof HTMLElement) document.activeElement.blur()
           }}
         >
-          <i className={cn(icon, compact ? 'text-lg' : 'text-xl')} aria-hidden />
+          {children ?? <i className={cn(icon, compact ? 'text-lg' : 'text-xl')} aria-hidden />}
         </button>
       </TooltipTrigger>
       <TooltipContent
