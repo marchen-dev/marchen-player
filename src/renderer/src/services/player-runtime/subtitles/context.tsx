@@ -29,7 +29,6 @@ interface NativeSubtitleContextValue {
   loadingOperation: 'catalog' | 'track' | 'import'
   pendingId: string | null
   cancelLoading: () => void
-  retryCatalog: () => void
   error: string | null
   selectTrack: (id: string) => Promise<void>
   importTrack: () => Promise<void>
@@ -65,7 +64,6 @@ export const NativeSubtitleProvider = ({
   // 用户换轨、取消或导入后，初始化和旧请求不能再覆盖当前意图。
   const intentRef = useRef(0)
   const catalogRequestRef = useRef<AbortController | null>(null)
-  const [catalogRevision, setCatalogRevision] = useState(0)
   const adapterRef = useRef<LibassSubtitleAdapter | null>(null)
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
   const releaseAdapterRef = useRef<(() => void) | null>(null)
@@ -363,7 +361,7 @@ export const NativeSubtitleProvider = ({
       initializeAbort.abort()
       requestRef.current?.abort()
     }
-  }, [activateTrack, catalog, hash, readyAdapter, source, catalogRevision])
+  }, [activateTrack, catalog, hash, readyAdapter, source])
 
   const selectTrack = useCallback(
     async (id: string) => {
@@ -397,11 +395,6 @@ export const NativeSubtitleProvider = ({
     setLoading(false)
     setPendingId(null)
     setError(null)
-  }, [])
-
-  const retryCatalog = useCallback(() => {
-    intentRef.current++
-    setCatalogRevision((value) => value + 1)
   }, [])
 
   const importTrack = useCallback(async () => {
@@ -461,7 +454,6 @@ export const NativeSubtitleProvider = ({
       loading,
       pendingId,
       cancelLoading,
-      retryCatalog,
       error,
       selectTrack,
       importTrack,
@@ -475,7 +467,6 @@ export const NativeSubtitleProvider = ({
       loading,
       pendingId,
       cancelLoading,
-      retryCatalog,
       selectTrack,
       selectedId,
       timeOffset,

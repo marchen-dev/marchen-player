@@ -24,7 +24,6 @@ export const Subtitle = () => {
     loading,
     pendingId,
     cancelLoading,
-    retryCatalog,
     error,
     selectTrack,
     importTrack,
@@ -126,12 +125,6 @@ export const Subtitle = () => {
             取消读取
           </Button>
         </div>
-      )}
-
-      {embeddedSupported && !loading && !tracks.length && (
-        <Button type="button" variant="ghost" onClick={retryCatalog}>
-          重新读取轨道
-        </Button>
       )}
 
       {error && (
