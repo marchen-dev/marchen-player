@@ -73,6 +73,15 @@ const vite = ({ mode }: { mode: string }) => {
       },
     },
     plugins: [
+      {
+        name: 'marchen-web-indexing',
+        // 只有正式部署可被索引；开发和未声明环境的本地构建也保守禁用。
+        // 仅在 Web 构建注册，避免向共享 HTML 写入永久 noindex。
+        transformIndexHtml: () =>
+          env.MARCHEN_DEPLOY_ENV === 'production'
+            ? []
+            : [{ tag: 'meta', attrs: { name: 'robots', content: 'noindex' }, injectTo: 'head' }],
+      },
       mediaIsolationPlugin(),
       tailwindcss(),
       react(),

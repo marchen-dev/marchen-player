@@ -27,6 +27,9 @@ release 为 `Marchen@版本+完整提交SHA`；生产 environment=production、d
 
 ## API 与资源
 
+- 共享 HTML 提供品牌元信息和分享卡片，正式地址固定为 `https://marchen-play.suemor.com/`。仅 `MARCHEN_DEPLOY_ENV=production` 的 Web 构建允许索引，preview 和未声明环境会注入 `noindex`；发布前核对 HTML，避免把预览产物直接复用到生产。不要用 robots.txt 阻止抓取这些页面，否则搜索引擎无法读取 noindex。
+- 分享封面为 `src/renderer/public/og-image.png`（1200×630），修改品牌后可用 `node scripts/web/generate-social-card.mjs` 重新生成；需要本机 Chrome，或通过 `CHROME_EXECUTABLE_PATH` 指定浏览器。字体和图标来自仓库及已安装依赖，构建不启动浏览器。部署后检查 `/og-image.png` 返回 PNG，分享平台缓存可能延迟更新。
+
 - Web 直接请求 `VITE_API_URL`（`https://dandan-proxy.suemor.com/api/v2`），不再部署同源 API 边缘函数，仅本地 Web dev 因 localhost 尚未获 CORS 许可保留 Vite 代理（含重定向跟随），preview 构建仍直连。上游须允许正式、预览和本地开发 Origin 的 CORS，包含 JSON POST 预检；弹幕 302 跳转后的分发地址也须允许跨域。新增域名需先配置并验证上游 CORS。
 - edgeone.json 全路径配置 COOP same-origin / COEP credentialless，保持当前播放器隔离策略。仍需实测平台在 200/304 与缓存命中时均返回一致头。
 - 初期使用 no-cache 重验证策略；不把无 hash 的 libass WASM 或 Worklet 设为一年 immutable。可后续对确定内容寻址的文件细分缓存。
