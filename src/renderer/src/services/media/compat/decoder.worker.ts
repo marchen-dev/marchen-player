@@ -1,6 +1,7 @@
 import type { AudioSample, VideoSample } from 'mediabunny'
 import type { HevcDiagnostics } from '../hevc-decoder'
 import type { CompatReply, CompatRequest } from './protocol'
+import { RemoteMediaError } from '@marchen/shared/media/remote'
 import { registerAc3Decoder } from '@mediabunny/ac3'
 import { registerDtsDecoder } from '@mediabunny/dts'
 import {
@@ -79,10 +80,27 @@ globalThis.onmessage = async ({ data: request }: MessageEvent<CompatRequest>) =>
         descriptor.kind === 'file'
           ? new BlobSource(descriptor.file, { maxCacheSize: 32 * 1024 * 1024 })
           : await (async () => {
-              const range = await openRangeSource(descriptor.url)
+              // 内部远程租约仍保留网络错误语义，避免误触发解码回退。
+              const networkRead = async <T>(action: () => Promise<T>): Promise<T> => {
+                try {
+                  return await action()
+                } catch (error) {
+                  if (descriptor.remote)
+                    throw new RemoteMediaError('access', '视频读取失败，请重试或更换链接')
+                  throw error
+                }
+              }
+              const range = await networkRead(() => openRangeSource(descriptor.url))
               return new CustomSource({
                 getSize: () => range.size,
-                read: (s, e) => range.read(s, e),
+                // 远程读取不能沿用逐小块读取的默认策略；顺序解码应提前合并网络请求。
+                prefetchProfile: descriptor.remote ? 'network' : 'none',
+                read: (s, e) => networkRead(() => range.read(s, e)),
+                dispose: () => {
+                  if ('close' in range && typeof range.close === 'function') range.close()
+                },
+                // 后台预读没有调用者；失败交由下一次实际读取重试并报告。
+                handleUnhandledError: () => {},
                 maxCacheSize: 32 * 1024 * 1024,
               })
             })()
@@ -233,6 +251,7 @@ globalThis.onmessage = async ({ data: request }: MessageEvent<CompatRequest>) =>
     send({
       ...token,
       type: 'error',
+      network: error instanceof RemoteMediaError,
       message: error instanceof Error ? error.message : '媒体 Worker 失败',
     })
   }

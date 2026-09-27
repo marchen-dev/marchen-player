@@ -1,4 +1,4 @@
-import type { DurableMediaSource, PersistentMediaSource } from '@marchen/shared/media'
+import type { CommentModel, CommentsData, DanmakuEntry } from '@marchen/shared/danmaku'
 
 /**
  * @marchen/player-loading 类型定义
@@ -11,30 +11,13 @@ import type { DurableMediaSource, PersistentMediaSource } from '@marchen/shared/
 // 基础数据类型
 // ============================================================
 
-/** 弹幕评论条目 */
-export interface CommentModel {
-  cid: number
-  m: string
-  p: string
-}
-
-/** 弹幕数据（API 返回格式） */
-export interface CommentsData {
-  count: number
-  comments: CommentModel[]
-}
-
-/** 弹幕缓存条目（存储在 IndexedDB 中） */
-export interface DanmakuEntry {
-  type: 'auto' | 'local'
-  source: string
-  selected?: boolean
-  content: CommentsData
-}
+import type { DurableMediaSource, PersistentMediaSource } from '@marchen/shared/media'
+export type { CommentModel, CommentsData, DanmakuEntry } from '@marchen/shared/danmaku'
 
 /** 视频信息（导入后获得） */
 export interface VideoInfo {
   source: DurableMediaSource
+  matchHash?: string
   hash: string
   size: number
   name: string
@@ -76,14 +59,16 @@ export interface HistoryEntry {
 
 /** 媒体来源在加载时写入一次，后续弹幕更新不重写来源。 */
 export const getPersistentMediaSource = (video: VideoInfo): PersistentMediaSource =>
-  video.source.kind === 'web-file'
-    ? {
-        kind: 'web-file',
-        name: video.name,
-        size: video.size,
-        lastModified: video.source.file.lastModified,
-      }
-    : { kind: 'electron-file', path: video.source.path, name: video.name, size: video.size }
+  video.source.kind === 'remote-url'
+    ? video.source
+    : video.source.kind === 'web-file'
+      ? {
+          kind: 'web-file',
+          name: video.name,
+          size: video.size,
+          lastModified: video.source.file.lastModified,
+        }
+      : { kind: 'electron-file', path: video.source.path, name: video.name, size: video.size }
 
 // ============================================================
 // 状态机：LoadingState（discriminated union）
@@ -167,6 +152,7 @@ export interface ReloadingState extends MatchFeedback {
 export interface ErrorState {
   step: 'error'
   error: { message: string; previousStep: string }
+  remoteRequest?: { url: string; recordId?: string }
 }
 
 // ============================================================
@@ -191,6 +177,7 @@ export const VISIBLE_STEPS = [
 export type Command =
   | { type: 'loadFromFile'; file: File }
   | { type: 'loadFromPath'; path: string }
+  | { type: 'loadFromUrl'; url: string; recordId?: string }
   | { type: 'selectMatch'; match: MatchedVideo }
   | { type: 'skipDanmaku' }
   | { type: 'retryMatch' }
@@ -227,7 +214,12 @@ export type PipelineEvent =
       danmaku: DanmakuEntry[]
       mergedComments: CommentModel[]
     }
-  | { type: 'error'; message: string; previousStep: string }
+  | {
+      type: 'error'
+      message: string
+      previousStep: string
+      remoteRequest?: { url: string; recordId?: string }
+    }
   | { type: 'cancelled' }
 
 // ============================================================
@@ -250,6 +242,8 @@ export interface DanmakuAPI {
 
 /** 弹幕缓存接口 */
 export interface DanmakuCache {
+  /** 用户来源提交必须可回滚；守卫在事务内检查，错误向调用方传播。 */
+  commit?: (hash: string, data: DanmakuEntry[], isCurrent: () => boolean) => Promise<void>
   /** 获取缓存的弹幕数据 */
   get: (hash: string) => Promise<DanmakuEntry[] | null>
   /** 写入弹幕缓存 */
@@ -262,6 +256,9 @@ export interface DanmakuCache {
 
 /** 视频导入器接口（Electron/Web 各有实现） */
 export interface VideoImporter {
+  /** 释放加载会话持有的临时导入资源引用；播放层独立管理自己的引用。 */
+  releaseImportedVideo?: (video: VideoInfo) => void
+  importFromUrl?: (url: string, recordId?: string, signal?: AbortSignal) => Promise<VideoInfo>
   /** 从 File 对象导入（拖拽/点击选择） */
   importFromFile: (file: File) => Promise<VideoInfo>
   /** 从文件路径导入（IPC/历史记录） */

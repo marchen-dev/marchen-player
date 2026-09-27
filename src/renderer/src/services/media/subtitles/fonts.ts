@@ -14,6 +14,7 @@ export async function loadSubtitleFonts(
   source: SubtitleSource,
   signal?: AbortSignal,
 ): Promise<SubtitleFonts> {
+  signal?.throwIfAborted()
   const urls: string[] = []
   const close = () => {
     for (const url of urls.splice(0)) URL.revokeObjectURL(url)
@@ -50,10 +51,12 @@ export async function loadSubtitleFonts(
     })
     const tags = await input.getMetadataTags()
     signal?.throwIfAborted()
+    const files = Object.values(tags.raw ?? {}).filter(
+      (file): file is AttachedFile => file instanceof AttachedFile,
+    )
     let bytes = 0
     let rejected = false
-    for (const file of Object.values(tags.raw ?? {})) {
-      if (!(file instanceof AttachedFile)) continue
+    for (const file of files) {
       if (
         !/\.(?:ttf|otf|ttc|woff2?)$/i.test(file.name ?? '') &&
         !/font|opentype/i.test(file.mimeType ?? '')

@@ -17,10 +17,19 @@ export interface WebDurableMediaSource extends DurableMediaIdentity {
   file: File
 }
 
-export type DurableMediaSource = ElectronDurableMediaSource | WebDurableMediaSource
-export type SerializableDurableMediaSource = ElectronDurableMediaSource
+/** 记录键与内容指纹分离，地址中的签名只用于访问。 */
+export interface RemoteMediaSource extends DurableMediaIdentity {
+  kind: 'remote-url'
+  url: string
+  fingerprint?: { algorithm: 'md5-prefix-16m'; value: string }
+}
+
+export type DurableMediaSource =
+  ElectronDurableMediaSource | WebDurableMediaSource | RemoteMediaSource
+export type SerializableDurableMediaSource = ElectronDurableMediaSource | RemoteMediaSource
 
 /** HISTORY 中只保存来源元信息；File 与临时播放 URL 不进入持久化层。 */
 export type PersistentMediaSource =
+  | RemoteMediaSource
   | { kind: 'electron-file'; path: string; name: string; size: number }
   | { kind: 'web-file'; name: string; size: number; lastModified?: number }

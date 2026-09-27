@@ -25,7 +25,7 @@ export const useOpenAppSettings = () => {
       present({
         id: 'SETTING',
         title: '设置',
-        description: '管理 Marchen 的应用偏好、AI 服务与版本信息',
+        description: '管理 Marchen 的应用偏好、AI 服务、实验功能与版本信息',
         returnFocusRef,
         overlay: false,
         CustomModalComponent: AppSettingsDialogShell,

@@ -1,13 +1,9 @@
 import type { BrowserOptions } from '@sentry/react'
+import { redactMediaAddresses } from '@marchen/shared/media/redact'
 import { SENTRY_DSN } from '@renderer/lib/env'
 import * as Sentry from '@sentry/react'
 import { useEffect } from 'react'
-import {
-  createRoutesFromChildren,
-  matchRoutes,
-  useLocation,
-  useNavigationType,
-} from 'react-router'
+import { createRoutesFromChildren, matchRoutes, useLocation, useNavigationType } from 'react-router'
 
 export const isNoisyGatewayMediaRequest = (url: string): boolean => {
   try {
@@ -30,6 +26,11 @@ export const createRendererSentryOptions = (): BrowserOptions => ({
   dist: __MARCHEN_DIST__,
   environment: __MARCHEN_ENVIRONMENT__,
   enableLogs: true,
+  beforeSendLog: (log) => redactMediaAddresses(log),
+  beforeSendSpan: (span) => redactMediaAddresses(span),
+  beforeSend: (event) => redactMediaAddresses(event),
+  beforeSendTransaction: (event) => redactMediaAddresses(event),
+  beforeBreadcrumb: (event) => redactMediaAddresses(event),
   sendDefaultPii: true,
   tracesSampleRate: 1,
   // 当前代理没有声明接受 sentry-trace/baggage，只记录客户端 span，不跨域传播。
@@ -49,6 +50,7 @@ export const createRendererSentryOptions = (): BrowserOptions => ({
     }),
     Sentry.httpClientIntegration(),
     Sentry.replayIntegration({
+      beforeAddRecordingEvent: (event) => redactMediaAddresses(event),
       maskAllText: false,
       blockAllMedia: false,
       block: ['[data-telemetry-replay-block]'],

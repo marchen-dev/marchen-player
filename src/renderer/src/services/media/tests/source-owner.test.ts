@@ -49,3 +49,28 @@ it('web Blob 与媒体库 Input 共享相同文件，越界与短读明确失败
   await expect(lease.source.read(0, 5)).rejects.toThrow('越界')
   lease.release()
 })
+
+it('远程元数据使用有界预读，关闭 owner 会取消在途网络读取', async () => {
+  let requestSignal: AbortSignal | undefined
+  const read = vi.fn((_start: number, _end: number, signal?: AbortSignal) => {
+    requestSignal = signal
+    return new Promise<Uint8Array>((_resolve, reject) =>
+      signal?.addEventListener('abort', () => reject(signal.reason), { once: true }),
+    )
+  })
+  const owner = new MediaSourceOwner({
+    kind: 'electron',
+    remote: true,
+    source: { size: 64 * 1024 * 1024, read },
+    release: vi.fn(),
+  })
+  const lease = owner.acquire()
+  const result = Promise.allSettled([lease.input.getFormat()])
+  await vi.waitFor(() => expect(read).toHaveBeenCalled())
+  const [start, end] = read.mock.calls[0]
+  expect(end - start).toBeGreaterThan(1024)
+  expect(end - start).toBeLessThanOrEqual(32 * 1024 * 1024)
+  owner.close()
+  expect(requestSignal?.aborted).toBe(true)
+  expect((await result)[0].status).toBe('rejected')
+})

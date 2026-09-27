@@ -1,8 +1,13 @@
 import type { PlayerCapabilities } from '@renderer/services/player-runtime'
 import { playerEngineStateAtom } from '@renderer/atoms/player-engine'
+import {
+  usePlayerLoadingService,
+  usePlayerLoadingState,
+} from '@renderer/services/player-loading/hooks'
 import { usePlaybackViewModel } from '@renderer/services/player-runtime'
 import { getCompatSupport } from '@renderer/services/player-runtime/compat-support'
 import { useAtomValue } from 'jotai'
+import { openRemoteVideoDialog } from '../loading/RemoteVideoDialog'
 import { PlaybackFailure } from './PlaybackFailure'
 
 export const PlayerCompatibilityNotice = ({
@@ -11,10 +16,23 @@ export const PlayerCompatibilityNotice = ({
   capabilities: PlayerCapabilities
   onExit: () => void
 }) => {
+  const loading = usePlayerLoadingState()
+  const service = usePlayerLoadingService()
   const state = usePlaybackViewModel()
   const engine = useAtomValue(playerEngineStateAtom)
   const support = getCompatSupport()
   if (engine?.switching) return null
+  const source = 'video' in loading ? loading.video.source : undefined
+  if (source?.kind === 'remote-url' && (state.status === 'error' || engine?.error))
+    return (
+      <PlaybackFailure
+        description="网络视频播放失败，请检查链接或重试。"
+        detail={state.status === 'error' ? state.error.message : engine?.error}
+        onExit={onExit}
+        onRetry={() => service.loadFromUrl(source.url, source.hash)}
+        onChangeSource={() => openRemoteVideoDialog(source.url, source.hash)}
+      />
+    )
   if (state.status !== 'error') {
     if (!engine?.error || (state.status !== 'idle' && state.status !== 'loading')) return null
     return (

@@ -1,3 +1,4 @@
+import type { LinkProgress } from '../danmaku'
 import type { DesktopUpdateState } from './update'
 /**
  * Renderer 端事件处理器接口
@@ -8,7 +9,7 @@ import type { DesktopUpdateState } from './update'
  *
  * 事件流向：main → renderer（单向推送）
  */
-export const APP_SETTINGS_SECTIONS = ['general', 'ai', 'about'] as const
+export const APP_SETTINGS_SECTIONS = ['general', 'ai', 'labs', 'about'] as const
 
 export type AppSettingsSection = (typeof APP_SETTINGS_SECTIONS)[number]
 
@@ -21,6 +22,7 @@ export const resolveAppSettingsSection = (value?: unknown): AppSettingsSection =
     : DEFAULT_APP_SETTINGS_SECTION
 
 export interface RendererHandlers {
+  danmakuImportProgress: (progress: LinkProgress) => void
   desktopUpdate: (state: DesktopUpdateState) => void
   prepareUpdate: (requestId: string) => void
 

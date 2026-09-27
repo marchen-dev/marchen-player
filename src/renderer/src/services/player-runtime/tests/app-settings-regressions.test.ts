@@ -10,8 +10,8 @@ const readRendererSource = (path: string) =>
   readFileSync(new URL(`../../../${path}`, import.meta.url), 'utf8')
 
 describe('应用设置重构回归', () => {
-  it('只暴露三个稳定分类 ID，并安全回退到通用', () => {
-    expect(APP_SETTINGS_SECTIONS).toEqual(['general', 'ai', 'about'])
+  it('只暴露四个稳定分类 ID，并安全回退到通用', () => {
+    expect(APP_SETTINGS_SECTIONS).toEqual(['general', 'ai', 'labs', 'about'])
     expect(DEFAULT_APP_SETTINGS_SECTION).toBe('general')
     expect(resolveAppSettingsSection()).toBe('general')
     expect(resolveAppSettingsSection('about')).toBe('about')
@@ -23,6 +23,7 @@ describe('应用设置重构回归', () => {
     const source = readRendererSource('components/modules/settings/tabs.tsx')
     expect(source).toContain("id: 'general'")
     expect(source).toContain("id: 'ai'")
+    expect(source).toContain("id: 'labs'")
     expect(source).toContain("id: 'about'")
     expect(source).not.toContain('PlayerView')
     expect(source).not.toContain('component: <')

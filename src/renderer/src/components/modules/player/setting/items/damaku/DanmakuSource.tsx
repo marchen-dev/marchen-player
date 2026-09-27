@@ -7,6 +7,7 @@ import { Button } from '@renderer/components/ui/button'
 import { Checkbox } from '@renderer/components/ui/checkbox'
 import { Label } from '@renderer/components/ui/label'
 import { Popover, PopoverContent, PopoverTrigger } from '@renderer/components/ui/popover'
+import { useToast } from '@renderer/components/ui/toast'
 import { db } from '@renderer/database/db'
 import { useConfirmationDialog } from '@renderer/hooks/use-dialog'
 import { danmakuPlatformMap, mostDanmakuPlatform } from '@renderer/lib/danmaku'
@@ -55,15 +56,17 @@ export const DanmakuSource = memo(() => {
 })
 
 const SourceList = memo(() => {
+  const { toast } = useToast()
   const { danmaku } = useDanmakuSourceConfig()
   const video = useAtomValue(videoAtom)
   const handleCheckDanmaku = debounce(
-    async (params: { checked: CheckboxPrimitive.CheckedState; source: string }) => {
+    async (params: { checked: CheckboxPrimitive.CheckedState; source: string; session: number }) => {
       const { checked, source } = params
       if (checked === 'indeterminate') return
 
       const service = getPlayerLoadingService()
-      await service.setDanmakuSourceSelected(source, checked)
+      try { await service.setDanmakuSourceSelected(source, checked, params.session) }
+      catch (error) { toast({ title: error instanceof Error ? error.message : '保存弹幕来源失败' }); return }
       const state = service.currentState
       if (state.step !== 'ready') return
 
@@ -85,13 +88,13 @@ const SourceList = memo(() => {
           id={item.source}
           checked={item.selected}
           className="border-white/40 bg-white/6 text-white focus-visible:ring-[var(--player-settings-focus)] focus-visible:ring-offset-0 data-[state=checked]:border-[var(--player-settings-accent)] data-[state=checked]:bg-[var(--player-settings-accent)]"
-          onCheckedChange={(checked) => handleCheckDanmaku({ checked, source: item.source })}
+          onCheckedChange={(checked) => handleCheckDanmaku({ checked, source: item.source, session: getPlayerLoadingService().sessionId })}
         />
         <Label htmlFor={item.source}>
           {danmakuPlatform}
-          {item.type === 'local' && (
+          {item.type !== 'auto' && (
             <Badge className="ml-2 border-0 bg-white/12 py-0 text-white" variant="secondary">
-              本地弹幕文件
+              {item.type === 'link' ? '链接弹幕' : '本地弹幕文件'}
             </Badge>
           )}
         </Label>

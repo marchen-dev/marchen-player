@@ -194,3 +194,43 @@ describe('playerRuntime', () => {
     expect(errors).toHaveBeenCalledOnce()
   })
 })
+
+it('远程视频启动超过 8 秒时继续等待，收到真实数据后才完成', async () => {
+  vi.useFakeTimers()
+  const video = new FakeVideo()
+  const adapter = new HtmlVideoMediaAdapter(video as unknown as HTMLVideoElement, true)
+  try {
+    const ready = vi.fn()
+    const waiting = adapter.waitForPlayableData().then(ready)
+    await vi.advanceTimersByTimeAsync(9_000)
+    expect(ready).not.toHaveBeenCalled()
+    video.readyState = 2
+    video.dispatchEvent(new Event('loadeddata'))
+    await waiting
+    expect(ready).toHaveBeenCalledOnce()
+  } finally {
+    adapter.destroy()
+    vi.useRealTimers()
+  }
+})
+
+it('远程启动耗尽预算时返回来源错误，关闭时立即取消等待', async () => {
+  vi.useFakeTimers()
+  const adapter = new HtmlVideoMediaAdapter(new FakeVideo() as unknown as HTMLVideoElement, true)
+  try {
+    const waiting = expect(adapter.waitForPlayableData()).rejects.toMatchObject({
+      name: 'RemoteMediaError',
+      code: 'access',
+    })
+    await vi.advanceTimersByTimeAsync(45_000)
+    await waiting
+    const cancelled = expect(adapter.waitForPlayableData()).rejects.toMatchObject({
+      name: 'AbortError',
+    })
+    adapter.destroy()
+    await cancelled
+  } finally {
+    adapter.destroy()
+    vi.useRealTimers()
+  }
+})

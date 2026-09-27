@@ -40,7 +40,7 @@ export function createRematchPipeline(
       // 保留已有的 local 弹幕
       const existingCache = await deps.cache.get(hash)
       const existing = previous.length ? previous : (existingCache ?? [])
-      const localDanmaku = existing.filter((d) => d.type === 'local')
+      const localDanmaku = existing.filter((d) => d.type !== 'auto')
       const selected =
         existing.find((d) => d.type === 'auto' && d.source === 'dandanplay')?.selected ?? true
 

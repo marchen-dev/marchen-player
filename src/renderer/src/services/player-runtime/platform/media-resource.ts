@@ -1,16 +1,36 @@
 import type { DurableMediaSource } from '@marchen/shared/media'
 import type { CompatResource } from '../../media/compat/media-adapter'
+import { RemoteMediaError } from '@marchen/shared/media/remote'
 import { openRangeSource } from '../../media/range-source'
+import { takeRemoteImport } from '../../media/remote-handoff'
+import { openRemoteSource } from '../../media/remote-source'
 import { MediaSourceOwner } from '../../media/source-owner'
 
 /** 原生 URL 与 兼容读取描述共用一份平台授权；关闭内核不提前撤销其他消费者的租约。 */
-export async function openPlaybackResource(source: DurableMediaSource, signal: AbortSignal) {
+export async function openPlaybackResource(
+  source: DurableMediaSource,
+  signal: AbortSignal,
+  reuseImport = false,
+) {
   signal.throwIfAborted()
   let release: () => void
   let url: string
   let owner: MediaSourceOwner
   let compatSource: CompatResource['source']
-  if (source.kind === 'web-file') {
+  if (source.kind === 'remote-url') {
+    // 只有主播放会话可以领取导入资源，缩略图等短任务不能提前消费并释放它。
+    const range =
+      (reuseImport ? takeRemoteImport(source, signal) : undefined) ??
+      (await openRemoteSource(source.url, signal))
+    if (range.size !== source.size) {
+      range.close()
+      throw new RemoteMediaError('changed', '视频内容已变化，请重新打开')
+    }
+    url = range.nativeUrl
+    release = range.close
+    owner = new MediaSourceOwner({ kind: 'electron', source: range, release, remote: true })
+    compatSource = { kind: 'url', url, remote: true }
+  } else if (source.kind === 'web-file') {
     url = URL.createObjectURL(source.file)
     release = () => URL.revokeObjectURL(url)
     owner = new MediaSourceOwner({ kind: 'web', file: source.file })

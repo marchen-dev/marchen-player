@@ -287,7 +287,12 @@ export class MatroskaSubtitles {
         }
         for (const position of positions) {
           if (position.track !== track.number) continue
-          if (![time, position.cluster, position.relative].every((value) => Number.isSafeInteger(value) && value >= 0)) return null
+          if (
+            ![time, position.cluster, position.relative].every(
+              (value) => Number.isSafeInteger(value) && value >= 0,
+            )
+          )
+            return null
           targets.push({ time, cluster: position.cluster, relative: position.relative })
           if (targets.length > 100000) return null
         }

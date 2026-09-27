@@ -9,6 +9,7 @@ import type {
 import type { SoundTouchNode } from '@soundtouchjs/audio-worklet'
 import type { CompatReply, CompatSource } from './protocol'
 import type { VideoFramePresenter } from './video-frame-presenter'
+import { RemoteMediaError } from '@marchen/shared/media/remote'
 import { Subject } from 'rxjs'
 import { closeAudioStretch, createAudioStretch } from './audio-stretch'
 import { CompatDecoderClient } from './client'
@@ -567,7 +568,7 @@ export class CompatMediaAdapter implements MediaPort {
       type: 'error',
       sessionId: this.sessionId,
       error: {
-        code: 'decode',
+        code: error instanceof RemoteMediaError ? 'network' : 'decode',
         message: error instanceof Error ? error.message : '兼容播放失败',
         recoverable: true,
       },

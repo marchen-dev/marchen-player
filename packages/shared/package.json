@@ -11,7 +11,8 @@
     "./telemetry/errors": "./src/telemetry/errors.ts",
     "./types/renderer-handlers": "./src/types/renderer-handlers.ts",
     "./types/update": "./src/types/update.ts",
-    "./update-policy": "./src/update-policy.ts"
+    "./update-policy": "./src/update-policy.ts",
+    "./danmaku": "./src/danmaku/index.ts"
   },
   "dependencies": {
     "spark-md5": "^3.0.2"

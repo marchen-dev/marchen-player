@@ -4,6 +4,8 @@ import type { ComponentType } from 'react'
 import { AboutView } from './views/about/About'
 import { AIView } from './views/ai/AIView'
 import { GeneralView } from './views/general/General'
+import { LabsView } from './views/labs/Labs'
+
 export interface SettingTabModel {
   id: AppSettingsSection
   label: string
@@ -26,6 +28,13 @@ export const settingTabs: SettingTabModel[] = [
     description: '配置用于智能功能的模型服务商',
     icon: 'icon-[mingcute--sparkles-2-line]',
     component: AIView,
+  },
+  {
+    id: 'labs',
+    label: '实验室',
+    description: '抢先体验仍在开发中的功能',
+    icon: 'icon-[mingcute--flask-line]',
+    component: LabsView,
   },
   {
     id: 'about',

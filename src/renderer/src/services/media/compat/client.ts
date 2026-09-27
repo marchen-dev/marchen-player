@@ -1,4 +1,5 @@
 import type { CompatReply, CompatRequest } from './protocol'
+import { RemoteMediaError } from '@marchen/shared/media/remote'
 
 type Command = CompatRequest extends infer Request
   ? Request extends CompatRequest
@@ -42,7 +43,10 @@ export class CompatDecoderClient {
       }
       this.pending.delete(data.id)
       clearTimeout(pending.timer)
-      if (data.type === 'error') pending.reject(new Error(data.message))
+      if (data.type === 'error')
+        pending.reject(
+          data.network ? new RemoteMediaError('access', data.message) : new Error(data.message),
+        )
       else pending.resolve(data)
     }
     this.worker.onerror = (event) => this.close(new Error(event.message || '媒体 Worker 启动失败'))

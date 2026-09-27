@@ -50,3 +50,5 @@ it('同大小不同内容不恢复旧影片进度', async () => {
   ).toBe('error')
   expect(service.loadFromFile).not.toHaveBeenCalled()
 })
+
+vi.mock('@renderer/lib/utils', () => ({ isWeb: true }))

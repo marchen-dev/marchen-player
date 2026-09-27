@@ -5,6 +5,7 @@ export type {
   DurableMediaSource,
   ElectronDurableMediaSource,
   PersistentMediaSource,
+  RemoteMediaSource,
   SerializableDurableMediaSource,
   WebDurableMediaSource,
 } from './source'

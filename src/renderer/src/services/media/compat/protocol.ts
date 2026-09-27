@@ -1,7 +1,8 @@
 import type { MediaAudioTrack } from '@marchen/playback-core'
 import type { HevcDiagnostics } from '../hevc-decoder'
 
-export type CompatSource = { kind: 'file'; file: File } | { kind: 'url'; url: string }
+export type CompatSource =
+  { kind: 'file'; file: File } | { kind: 'url'; url: string; remote?: boolean }
 export type CompatRequest = { id: number; generation: number } & (
   | {
       type: 'open'
@@ -46,5 +47,5 @@ export type CompatReply = { id: number; generation: number } & (
       duration: number
     }
   | { type: 'seeked' }
-  | { type: 'error'; message: string }
+  | { type: 'error'; message: string; network?: boolean }
 )

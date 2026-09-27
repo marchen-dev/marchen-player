@@ -1,9 +1,16 @@
 import type { ChangeEvent, FC } from 'react'
 import { VIDEO_FILE_ACCEPT } from '@marchen/shared/media'
+import { useLabsSettingsValue } from '@renderer/atoms/settings/labs'
+import { BetaBadge } from '@renderer/components/common/BetaBadge'
 import { VideoProvider } from '@renderer/components/modules/player/loading/PlayerProvider'
+import {
+  openRemoteVideoDialog,
+  RemoteVideoDialog,
+} from '@renderer/components/modules/player/loading/RemoteVideoDialog'
 import { NativePlayer } from '@renderer/components/modules/player/NativePlayer'
 import { PlaybackFailure } from '@renderer/components/modules/player/shell/PlaybackFailure'
 import { VideoDropZone } from '@renderer/components/modules/shared/VideoDropZone'
+import { Button } from '@renderer/components/ui/button'
 import { usePageHeader } from '@renderer/hooks/use-page-header'
 import { usePlayAnimeFailedToast } from '@renderer/hooks/use-toast'
 import { ipcClient } from '@renderer/lib/client'
@@ -14,7 +21,7 @@ import {
   usePlayerLoadingService,
 } from '@renderer/services/player-loading/hooks'
 import { markNextPlayerImportSource } from '@renderer/services/telemetry/player-loading-observer'
-import { AnimatePresence, m } from 'framer-motion'
+import { AnimatePresence } from 'framer-motion'
 import { useCallback, useMemo, useRef } from 'react'
 
 const PLAYER_HEADER = { title: '视频播放', actions: null }
@@ -23,11 +30,17 @@ export default function VideoPlayer() {
   const service = usePlayerLoadingService()
   const { showFailedToast } = usePlayAnimeFailedToast()
   const fileInputRef = useRef<HTMLInputElement | null>(null)
+  // 实验室开关只控制新建入口；失败重试、更换链接和历史远程记录不受影响
+  const { remoteUrlPlayback } = useLabsSettingsValue()
 
   usePageHeader(PLAYER_HEADER)
 
   const preparedVideo = usePlayerLoadingSelector((state) =>
     state.step === 'ready' || state.step === 'reloading' ? state.video : null,
+  )
+
+  const remoteRequest = usePlayerLoadingSelector((state) =>
+    state.step === 'error' ? state.remoteRequest : undefined,
   )
 
   const loadError = usePlayerLoadingSelector((state) =>
@@ -38,7 +51,10 @@ export default function VideoPlayer() {
   const importFile = useCallback(
     (file: File | undefined, source: 'click' | 'drop') => {
       if (!file || !checkIsVideoType(file.name)) {
-        return showFailedToast({ title: '格式错误', description: '请选择 MP4、MKV、MOV、WebM 或 TS 等支持的视频文件' })
+        return showFailedToast({
+          title: '格式错误',
+          description: '请选择 MP4、MKV、MOV、WebM 或 TS 等支持的视频文件',
+        })
       }
       markNextPlayerImportSource(source)
       service.loadFromFile(file)
@@ -70,48 +86,76 @@ export default function VideoPlayer() {
       loadError ? (
         <PlaybackFailure
           key="load-error"
-          description="视频打开失败，请检查文件是否可访问，或重新选择视频。"
+          description={
+            remoteRequest
+              ? '视频链接无法打开，请重试或更换链接。'
+              : '视频打开失败，请检查文件是否可访问，或重新选择视频。'
+          }
+          onRetry={
+            remoteRequest && !isWeb
+              ? () => service.loadFromUrl(remoteRequest.url, remoteRequest.recordId)
+              : undefined
+          }
+          onChangeSource={
+            remoteRequest && !isWeb
+              ? () => openRemoteVideoDialog(remoteRequest.url, remoteRequest.recordId)
+              : undefined
+          }
           detail={loadError}
           onExit={() => service.cancel()}
         />
       ) : preparedVideo ? (
         <NativePlayer key={preparedVideo.hash} />
       ) : (
-        <DragTips key="empty-player" onClick={manualImport} />
+        <div key="empty-player" className="flex flex-col items-center gap-5">
+          <DragTips onClick={manualImport} />
+          {!isWeb && remoteUrlPlayback && (
+            <Button
+              variant="secondary"
+              className="gap-2 bg-neutral-200/60 hover:bg-neutral-200/90 dark:bg-neutral-800 dark:hover:bg-neutral-700"
+              onClick={() => openRemoteVideoDialog()}
+            >
+              通过 URL 播放
+              <BetaBadge />
+            </Button>
+          )}
+        </div>
       ),
-    [preparedVideo, manualImport, loadError, service],
+    [preparedVideo, manualImport, loadError, remoteRequest, service, remoteUrlPlayback],
   )
 
   return (
-    <VideoProvider>
-      <VideoDropZone
-        onFileDrop={(_file, files) => importFile(selectFileBatch(files)[0], 'drop')}
-        className={cn('flex size-full items-center justify-center')}
-      >
-        <AnimatePresence>{content}</AnimatePresence>
-        {!preparedVideo && (
-          <input
-            type="file"
-            multiple
-            accept={VIDEO_FILE_ACCEPT}
-            ref={fileInputRef}
-            onChange={handleInputChange}
-            className="hidden"
-          />
-        )}
-      </VideoDropZone>
-    </VideoProvider>
+    <>
+      {!isWeb && <RemoteVideoDialog />}
+      <VideoProvider>
+        <VideoDropZone
+          onFileDrop={(_file, files) => importFile(selectFileBatch(files)[0], 'drop')}
+          className={cn('flex size-full items-center justify-center')}
+        >
+          <AnimatePresence>{content}</AnimatePresence>
+          {!preparedVideo && (
+            <input
+              type="file"
+              multiple
+              accept={VIDEO_FILE_ACCEPT}
+              ref={fileInputRef}
+              onChange={handleInputChange}
+              className="hidden"
+            />
+          )}
+        </VideoDropZone>
+      </VideoProvider>
+    </>
   )
 }
 
 const DragTips: FC<{ onClick: () => void }> = ({ onClick }) => (
-  <m.div
-    className="flex flex-col items-center gap-2 p-12 text-gray-500"
+  <button
+    type="button"
+    className="text-muted-foreground hover:text-foreground active:text-foreground/80 focus-visible:ring-ring flex cursor-default flex-col items-center gap-2 rounded-md px-6 py-2 transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
     onClick={onClick}
-    whileHover={{ scale: 1.04 }}
-    whileTap={{ scale: 1 }}
   >
-    <i className="icon-[mingcute--video-line] text-6xl" />
+    <i aria-hidden="true" className="icon-[mingcute--video-line] text-6xl" />
     <p className="text-xl select-none">点击或拖拽动漫到此处播放</p>
-  </m.div>
+  </button>
 )

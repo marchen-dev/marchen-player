@@ -1,6 +1,7 @@
 import type { DB_History } from '@renderer/database/schemas/history'
 import { videoAtom } from '@renderer/atoms/player'
 import { db } from '@renderer/database/db'
+import { usePlayerLoadingSelector } from '@renderer/services/player-loading/hooks'
 import { useQuery } from '@tanstack/react-query'
 import { useAtomValue } from 'jotai'
 import { createContext, use } from 'react'
@@ -11,6 +12,11 @@ const DanmakuSourceContext = createContext<DB_History | null>(null)
 
 export const DanmakuSourceProvider = ({ children }: React.PropsWithChildren) => {
   const { hash } = useAtomValue(videoAtom)
+  const activeDanmaku = usePlayerLoadingSelector((state) =>
+    (state.step === 'ready' || state.step === 'reloading') && state.video.hash === hash
+      ? state.danmaku
+      : undefined,
+  )
   const { data, error, isPending } = useQuery({
     queryKey: [danmakuSourceQueryKey, hash],
     queryFn: () => db.history.get(hash),
@@ -26,7 +32,11 @@ export const DanmakuSourceProvider = ({ children }: React.PropsWithChildren) => 
   if (!data) {
     return <p className="text-sm text-[var(--player-settings-muted)]">暂无弹幕来源记录。</p>
   }
-  return <DanmakuSourceContext value={data}>{children}</DanmakuSourceContext>
+  return (
+    <DanmakuSourceContext value={{ ...data, danmaku: activeDanmaku ?? data.danmaku }}>
+      {children}
+    </DanmakuSourceContext>
+  )
 }
 
 export const useDanmakuSourceConfig = () => {

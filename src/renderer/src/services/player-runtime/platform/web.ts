@@ -20,7 +20,7 @@ export const createWebPlayerPorts = (): PlayerPorts => {
     fullscreen: createBrowserFullscreenPort(),
     sourceLifecycle,
     playlist: {
-      list: async () => getWebPlaylist(),
+      list: async (source) => (source.kind === 'remote-url' ? [] : getWebPlaylist()),
       play: (entry) => {
         if (entry.file)
           void import('../../player-loading').then(({ getPlayerLoadingService }) =>

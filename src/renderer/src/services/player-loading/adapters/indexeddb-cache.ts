@@ -9,6 +9,20 @@ import type { DanmakuCache, DanmakuEntry } from '@marchen/player-loading'
 import { db } from '@renderer/database/db'
 
 export class IndexedDBCache implements DanmakuCache {
+  async commit(hash: string, data: DanmakuEntry[], isCurrent: () => boolean): Promise<void> {
+    await db.transaction('rw', db.history, async () => {
+      const check = () => {
+        if (!isCurrent()) throw new Error('视频已切换或操作已取消')
+      }
+      check()
+      const existing = await db.history.get(hash)
+      check()
+      if (!existing) throw new Error('播放记录尚未保存，无法添加弹幕')
+      await db.history.update(hash, { danmaku: data })
+      check()
+    })
+  }
+
   async get(hash: string): Promise<DanmakuEntry[] | null> {
     const history = await db.history.get(hash)
     return history?.danmaku ?? null

@@ -48,6 +48,19 @@ export class LoadingOperations {
     }
     return {
       ...deps,
+      importer: {
+        ...deps.importer,
+        importFromFile: (file) => deps.importer.importFromFile(file),
+        importFromPath: (path) => deps.importer.importFromPath(path),
+        importFromUrl: async (url, recordId) => {
+          check()
+          if (!deps.importer.importFromUrl) throw new Error('当前环境不支持网络视频')
+          const result = await deps.importer.importFromUrl(url, recordId, signal)
+          if (signal.aborted) deps.importer.releaseImportedVideo?.(result)
+          check()
+          return result
+        },
+      },
       api: {
         match: async (params) => {
           check()

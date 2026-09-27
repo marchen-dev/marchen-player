@@ -102,6 +102,13 @@ const createElectronSubtitleCatalogPort = (): SubtitleCatalogPort => {
 
   return {
     list: async (source, signal) => {
+      if (source.kind === 'remote-url') {
+        nearbyTracks.clear()
+        return [
+          ...(await listEmbeddedSubtitles(source, signal)),
+          ...[...externalTracks.values()].map(({ track }) => track),
+        ]
+      }
       if (source.kind !== 'electron-file') return []
       const [tracks, nearbyFiles] = await Promise.all([
         listEmbeddedSubtitles(source, signal),

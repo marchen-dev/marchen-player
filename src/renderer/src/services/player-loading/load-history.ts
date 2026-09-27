@@ -3,6 +3,7 @@ import type { PlayerLoadingService } from '@renderer/services/player-loading'
 import { calculateFileHash } from '@marchen/shared/lib/calc-file-hash'
 import { VIDEO_FILE_ACCEPT } from '@marchen/shared/media'
 import { db } from '@renderer/database/db'
+import { isWeb } from '@renderer/lib/utils'
 import { markNextPlayerImportSource } from '@renderer/services/telemetry/player-loading-observer'
 
 export type HistoricalVideoLoadResult =
@@ -19,7 +20,7 @@ interface HistoryReader {
 interface HistoricalVideoLoaderDeps {
   history?: HistoryReader
   service: Pick<PlayerLoadingService, 'loadFromPath'> &
-    Partial<Pick<PlayerLoadingService, 'loadFromFile'>>
+    Partial<Pick<PlayerLoadingService, 'loadFromFile' | 'loadFromUrl'>>
   selectFile?: () => Promise<File | null>
 }
 
@@ -34,6 +35,12 @@ export async function loadHistoricalVideo(
   try {
     const record = await history.get(hash)
     if (!record) return { status: 'missing-record' }
+    if (record.source?.kind === 'remote-url') {
+      if (isWeb) throw new Error('网页版不支持远程视频，请使用桌面版')
+      if (!service.loadFromUrl) throw new Error('当前加载器不支持网络视频')
+      service.loadFromUrl(record.source.url, hash)
+      return { status: 'loaded', path: record.source.name }
+    }
     if (record.source?.kind === 'web-file') {
       let file: File | null = null
       try {

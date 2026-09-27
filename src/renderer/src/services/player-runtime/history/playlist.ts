@@ -39,7 +39,7 @@ export const subscribeAutomaticNext = (
 }
 
 export const samePlaylistSource = (entry: PlaylistEntry, source?: DurableMediaSource) => {
-  if (!source) return false
+  if (!source || source.kind === 'remote-url') return false
   if (source.kind === 'web-file') return entry.file === source.file
   if (!entry.path) return false
   if (entry.fileHash && entry.fileHash === source.hash) return true

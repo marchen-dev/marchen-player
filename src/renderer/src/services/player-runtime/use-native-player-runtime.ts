@@ -1,6 +1,7 @@
 import type { MediaAudioTrack, PlaybackMediaRestoreState } from '@marchen/playback-core'
 import type { EnginePreference, PlayerEngine } from './engine-policy'
 import type { PlaybackResource } from './platform/media-resource'
+import { REMOTE_LIMITS, RemoteMediaError } from '@marchen/shared/media/remote'
 import { playerEngineStateAtom } from '@renderer/atoms/player-engine'
 import { playerSettingAtom } from '@renderer/atoms/settings/player'
 import { jotaiStore } from '@renderer/atoms/store'
@@ -51,7 +52,7 @@ export const useNativePlayerRuntime = (
     const adapter = new DualMediaAdapter(
       (engine) =>
         engine === 'native'
-          ? new HtmlVideoMediaAdapter(video)
+          ? new HtmlVideoMediaAdapter(video, preparedRef.current?.source.kind === 'remote-url')
           : new CompatMediaAdapter(new VideoFramePresenter(compatVideo), async (id) => {
               const resource = bindingRef.current?.resource
               if (!resource || resource.id !== id) throw new Error('媒体来源已关闭')
@@ -191,7 +192,11 @@ export const useNativePlayerRuntime = (
           firstFrame =
             state.currentTime <= 0 && runtime.presentation?.firstFrame
               ? Promise.resolve()
-              : waitForBrowserFirstFrame(video, { deadlineMs: 8000, signal })
+              : waitForBrowserFirstFrame(video, {
+                  deadlineMs:
+                    media.source.kind === 'remote-url' ? REMOTE_LIMITS.playbackTimeout : 8000,
+                  signal,
+                })
           void firstFrame.catch(() => {})
           if (state.currentTime > 0)
             runtime.restoreCommands(() => runtime.commands.seek(state.currentTime))
@@ -216,7 +221,7 @@ export const useNativePlayerRuntime = (
         failedRestore = { ...state }
         // 手动失败还会尝试恢复旧内核，此处不结束整次观看汇总。
         runtime.fail({
-          code: 'decode',
+          code: error instanceof RemoteMediaError ? 'network' : 'decode',
           message: error instanceof Error ? error.message : '内核启动失败',
           recoverable: true,
         })
@@ -474,10 +479,11 @@ export const useNativePlayerRuntime = (
     })
 
     void (async () => {
-      resource = await openPlaybackResource(media.source, controller.signal)
+      resource = await openPlaybackResource(media.source, controller.signal, true)
       controller.signal.throwIfAborted()
       current.resource = resource
-      void resource.metadata.readVideoFrameRate()
+      // 远程文件先取得首帧，再进行可选的帧率采样，避免争抢启动带宽。
+      if (media.source.kind !== 'remote-url') void resource.metadata.readVideoFrameRate()
       const [description, primaryAudio, history] = await Promise.all([
         resource.metadata.describe(),
         resource.input.getPrimaryAudioTrack(),
@@ -524,6 +530,7 @@ export const useNativePlayerRuntime = (
             ? 'native-incompatible'
             : 'native-trial',
       )
+      if (media.source.kind === 'remote-url') void resource.metadata.readVideoFrameRate()
       publish()
     })()
       .catch((error) => {
@@ -534,7 +541,12 @@ export const useNativePlayerRuntime = (
           return
         publish({ error: error instanceof Error ? error.message : '媒体读取失败' })
         runtime.fail({
-          code: resource ? 'decode' : 'source-unavailable',
+          code:
+            error instanceof RemoteMediaError
+              ? 'network'
+              : resource
+                ? 'decode'
+                : 'source-unavailable',
           message: error instanceof Error ? error.message : '媒体读取失败',
           recoverable: true,
         })

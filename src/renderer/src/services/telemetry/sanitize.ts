@@ -1,3 +1,4 @@
+import { redactMediaAddresses } from '@marchen/shared/media/redact'
 export interface SanitizeTelemetryOptions {
   maxDepth?: number
   maxStringLength?: number
@@ -17,7 +18,7 @@ export const sanitizeTelemetryString = (
   value: string,
   maxLength = 8_192,
 ): SanitizedTelemetryValue => {
-  const withoutGatewayToken = value
+  const withoutGatewayToken = redactMediaAddresses(value)
     .replace(GATEWAY_TOKEN, '$1[Filtered]')
     .replace(/marchen:\/\/media\/[^\s"'<>?#]+/gi, 'marchen://media/[Filtered]')
     .replace(/blob:[^\s"'<>]+/gi, 'blob:[Filtered]')

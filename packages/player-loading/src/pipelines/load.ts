@@ -86,9 +86,12 @@ export function executeMatch(video: VideoInfo, deps: ServiceDeps): Observable<Pi
       }
     }
 
+    if (video.source.kind === 'remote-url' && !video.matchHash)
+      return { type: 'waitingUser' as const, video, matchData: { isMatched: false, matches: [] } }
+
     // 调 API 匹配
     const result = await deps.api.match({
-      hash: video.hash,
+      hash: video.matchHash ?? video.hash,
       size: video.size,
       name: video.name,
     })
@@ -129,7 +132,7 @@ export async function getAvailableDanmaku(
   ])
   const sameMatch =
     match && history?.episodeId === match.episodeId && history?.animeId === match.animeId
-  return (cached ?? history?.danmaku ?? []).filter((entry) => entry.type === 'local' || sameMatch)
+  return (cached ?? history?.danmaku ?? []).filter((entry) => entry.type !== 'auto' || sameMatch)
 }
 
 /**
@@ -164,7 +167,7 @@ export function executeFetchDanmaku(
 
     // 保留已有的 local 弹幕
     const existingCache = await deps.cache.get(hash)
-    const localDanmaku = existingCache?.filter((d) => d.type === 'local') ?? []
+    const localDanmaku = existingCache?.filter((d) => d.type !== 'auto') ?? []
     const selected =
       existingCache?.find((d) => d.type === 'auto' && d.source === 'dandanplay')?.selected ?? true
 

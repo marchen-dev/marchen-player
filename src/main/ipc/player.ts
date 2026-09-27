@@ -1,7 +1,11 @@
 import fs from 'node:fs'
 import path from 'node:path'
 
-import { createMediaLease, releaseMediaLease } from '@main/lib/media-protocol'
+import {
+  createMediaLease,
+  createRemoteMediaLease,
+  releaseMediaLease,
+} from '@main/lib/media-protocol'
 import { showFileSelectionDialog } from '@main/modules/showDialog'
 import { tipc } from '@marchen/electron-ipc/main'
 import { calculateFileHashByBuffer } from '@marchen/shared/lib/calc-file-hash'
@@ -14,6 +18,9 @@ const t = tipc.create()
 let isDialogOpen = false
 
 export const playerGroup = {
+  createRemoteMediaLease: t.procedure
+    .input<{ url: string; id: string }>()
+    .action(({ input, context }) => createRemoteMediaLease(input.url, input.id, context.sender)),
   createMediaLease: t.procedure
     .input<{ path: string }>()
     .action(({ input, context }) => createMediaLease(input.path, context.sender)),

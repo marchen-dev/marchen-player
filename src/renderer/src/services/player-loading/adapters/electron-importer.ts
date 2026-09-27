@@ -1,3 +1,4 @@
+import type { VideoImporter, VideoInfo } from '@marchen/player-loading'
 /**
  * VideoImporter adapter (Electron)：通过 IPC 获取视频文件信息
  *
@@ -5,11 +6,14 @@
  * 包括文件 hash 计算、播放列表获取等。
  */
 
-import type { VideoImporter, VideoInfo } from '@marchen/player-loading'
 import { calculateFileHash } from '@marchen/shared/lib/calc-file-hash'
 import { ipcClient } from '@renderer/lib/client'
+import { releaseRemoteImport } from '@renderer/services/media/remote-handoff'
+import { importRemoteVideo } from './remote-importer'
 
 export class ElectronImporter implements VideoImporter {
+  importFromUrl = importRemoteVideo
+  releaseImportedVideo = (video: VideoInfo) => releaseRemoteImport(video.source)
   /**
    * 从 File 对象导入（Electron 环境下的拖拽导入）
    * 通过 window.api.showFilePath 获取真实路径，再走 IPC 流程

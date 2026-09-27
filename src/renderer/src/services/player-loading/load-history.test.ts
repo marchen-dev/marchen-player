@@ -82,3 +82,24 @@ function history(overrides: Partial<DB_History> = {}): DB_History {
     ...overrides,
   }
 }
+
+vi.mock('@renderer/lib/utils', () => ({ isWeb: true }))
+
+it('web 旧远程历史不再发起网络视频加载', async () => {
+  const record = history()
+  record.source = {
+    kind: 'remote-url',
+    hash: record.hash,
+    name: 'a.mkv',
+    size: 32,
+    url: 'https://example.com/a.mkv',
+  }
+  const loadFromUrl = vi.fn()
+  const result = await loadHistoricalVideo(record.hash, {
+    history: { get: async () => record },
+    service: { loadFromPath: vi.fn(), loadFromUrl },
+  })
+  expect(result.status).toBe('error')
+  if (result.status === 'error') expect(String(result.error)).toContain('网页版不支持远程视频')
+  expect(loadFromUrl).not.toHaveBeenCalled()
+})

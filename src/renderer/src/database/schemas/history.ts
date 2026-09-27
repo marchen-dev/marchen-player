@@ -1,10 +1,12 @@
 import type { MediaAudioTrack } from '@marchen/playback-core'
-import type { CommentsModel } from '@renderer/request/models/comment'
+import type { DanmakuEntry } from '@marchen/shared/danmaku'
+import type { RemoteMediaSource } from '@marchen/shared/media'
 
 export interface DB_History {
   audioTrack?: MediaAudioTrack
   hash: string
   source?:
+    | RemoteMediaSource
     | {
         kind: 'web-file'
         name: string
@@ -42,11 +44,4 @@ interface DB_Subtitles {
   }>
 }
 
-export interface DB_Danmaku {
-  // 'auto': 通过 API (withRelated=true) 自动获取的弹幕
-  // 'local': 用户通过本地文件导入的弹幕
-  type: 'auto' | 'local'
-  source: string
-  selected?: boolean
-  content: CommentsModel
-}
+export type DB_Danmaku = DanmakuEntry

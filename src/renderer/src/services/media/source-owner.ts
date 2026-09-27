@@ -3,7 +3,8 @@ import { ALL_FORMATS, BlobSource, CustomSource, Input } from 'mediabunny'
 import { MediaMetadata } from './metadata'
 
 export type SharedMediaSource =
-  { kind: 'web'; file: File } | { kind: 'electron'; source: SubtitleSource; release: () => void }
+  | { kind: 'web'; file: File }
+  | { kind: 'electron'; source: SubtitleSource; release: () => void; remote?: boolean }
 
 export interface MediaSourceLease {
   readonly input: Input
@@ -42,6 +43,8 @@ export class MediaSourceOwner {
           ? new BlobSource(descriptor.file, { maxCacheSize: 32 * 1024 * 1024 })
           : new CustomSource({
               getSize: () => this.source.size,
+              prefetchProfile: descriptor.remote ? 'network' : 'none',
+              handleUnhandledError: () => {},
               maxCacheSize: 32 * 1024 * 1024,
               read: (start, end) => this.read(start, end, this.controller.signal),
             }),

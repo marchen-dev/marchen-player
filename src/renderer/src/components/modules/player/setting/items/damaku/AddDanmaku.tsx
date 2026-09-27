@@ -1,3 +1,5 @@
+import type { DB_History } from '@renderer/database/schemas/history'
+import { videoAtom } from '@renderer/atoms/player'
 /**
  * 本地弹幕文件导入组件
  *
@@ -5,18 +7,18 @@
  * service 内部会更新播放器渲染和 IndexedDB 缓存。
  */
 
-import type { DB_History } from '@renderer/database/schemas/history'
-import { videoAtom } from '@renderer/atoms/player'
 import { Button } from '@renderer/components/ui/button'
 import { Label } from '@renderer/components/ui/label'
 import { useToast } from '@renderer/components/ui/toast'
 import { localDanmakuIdentity, readLocalDanmaku } from '@renderer/lib/local-danmaku'
 import queryClient from '@renderer/lib/query-client'
+import { isWeb } from '@renderer/lib/utils'
 import { getPlayerLoadingService } from '@renderer/services/player-loading/index'
 import { useAtomValue } from 'jotai'
 import { useRef, useState } from 'react'
-
 import { danmakuSourceQueryKey } from '../../danmaku-source-context'
+
+import { LinkDanmaku } from './LinkDanmaku'
 
 export const AddDanmaku = () => {
   const { hash } = useAtomValue(videoAtom)
@@ -90,6 +92,7 @@ export const AddDanmaku = () => {
           {importing ? '正在导入…' : '点击导入弹幕文件'}
         </Button>
       </div>
+      {!isWeb && <LinkDanmaku />}
     </div>
   )
 }

@@ -14,6 +14,7 @@ import { reportSubtitleFailure } from '@renderer/services/telemetry/subtitles'
 import { createContext, use, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { LibassSubtitleAdapter } from './libass-subtitle-adapter'
 import { allocateExternalHistoryId, selectPreferredSubtitleTrack } from './preferences'
+import { supportsEmbeddedSubtitles } from './source-policy'
 
 export interface SubtitleTrackOption extends SubtitleTrackDescriptor {
   historyId: number
@@ -24,6 +25,11 @@ interface NativeSubtitleContextValue {
   selectedId: string
   timeOffset: number
   loading: boolean
+  embeddedSupported: boolean
+  loadingOperation: 'catalog' | 'track' | 'import'
+  pendingId: string | null
+  cancelLoading: () => void
+  retryCatalog: () => void
   error: string | null
   selectTrack: (id: string) => Promise<void>
   importTrack: () => Promise<void>
@@ -51,7 +57,15 @@ export const NativeSubtitleProvider = ({
   children,
 }: NativeSubtitleProviderProps) => {
   const { subtitleScale } = usePlayerSettingsValue()
+  const embeddedSupported = supportsEmbeddedSubtitles(source)
+  const [loadingOperation, setLoadingOperation] = useState<'catalog' | 'track' | 'import'>(
+    'catalog',
+  )
   const requestRef = useRef<AbortController | null>(null)
+  // 用户换轨、取消或导入后，初始化和旧请求不能再覆盖当前意图。
+  const intentRef = useRef(0)
+  const catalogRequestRef = useRef<AbortController | null>(null)
+  const [catalogRevision, setCatalogRevision] = useState(0)
   const adapterRef = useRef<LibassSubtitleAdapter | null>(null)
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
   const releaseAdapterRef = useRef<(() => void) | null>(null)
@@ -60,6 +74,7 @@ export const NativeSubtitleProvider = ({
   const [selectedId, setSelectedId] = useState('off')
   const [timeOffset, setTimeOffset] = useState(0)
   const [loading, setLoading] = useState(true)
+  const [pendingId, setPendingId] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
@@ -68,7 +83,9 @@ export const NativeSubtitleProvider = ({
 
   const persistSelection = useCallback(
     async (option: SubtitleTrackOption | null, resolved?: ResolvedSubtitleTrack) => {
+      const intent = intentRef.current
       const history = await db.history.get(hash)
+      if (intent !== intentRef.current) return
       const previous = history?.subtitles ?? { defaultId: -1, timeOffset: 0, tags: [] }
       const tags = [...previous.tags]
       if (option) {
@@ -106,17 +123,22 @@ export const NativeSubtitleProvider = ({
   )
 
   const activateTrack = useCallback(
-    async (option: SubtitleTrackOption, shouldPersist = true) => {
+    async (option: SubtitleTrackOption, shouldPersist = true, prepared?: ResolvedSubtitleTrack) => {
       const adapter = adapterRef.current
-      if (!adapter) return
+      if (!adapter) {
+        prepared?.release?.()
+        return
+      }
       requestRef.current?.abort()
       const request = new AbortController()
       requestRef.current = request
+      setLoadingOperation('track')
+      setPendingId(option.id)
       setLoading(true)
       setError(null)
       let trackResolved = false
       try {
-        const resolved = await catalog.resolve(source, option, request.signal)
+        const resolved = prepared ?? (await catalog.resolve(source, option, request.signal))
         if (request.signal.aborted) {
           resolved.release?.()
           return
@@ -143,7 +165,10 @@ export const NativeSubtitleProvider = ({
         setSelectedId('off')
         setError(cause instanceof Error ? cause.message : '字幕加载失败')
       } finally {
-        if (!request.signal.aborted) setLoading(false)
+        if (!request.signal.aborted && requestRef.current === request) {
+          setLoading(false)
+          setPendingId(null)
+        }
       }
     },
     [catalog, persistSelection, source],
@@ -240,10 +265,13 @@ export const NativeSubtitleProvider = ({
   useEffect(() => {
     let cancelled = false
     const initializeAbort = new AbortController()
+    catalogRequestRef.current = initializeAbort
+    const initialIntent = intentRef.current
     const initialize = async () => {
       const adapter = readyAdapter
       if (!adapter || adapter !== adapterRef.current) return
       adapter.close()
+      setLoadingOperation('catalog')
       setTracks([])
       setSelectedId('off')
       setLoading(true)
@@ -272,6 +300,7 @@ export const NativeSubtitleProvider = ({
           if (tag.origin !== 'external' || options.some((option) => option.historyId === tag.id))
             continue
           try {
+            setLoadingOperation('track')
             const resolved = await catalog.restoreExternal(
               tag.path,
               tag.title,
@@ -290,10 +319,14 @@ export const NativeSubtitleProvider = ({
         }
         if (cancelled) return
 
+        setTracks((current) => [
+          ...options,
+          ...current.filter((track) => !options.some((item) => item.id === track.id)),
+        ])
+        if (initialIntent !== intentRef.current) return
         const offset = history?.subtitles?.timeOffset ?? 0
         adapter.setTimeOffset(offset)
         setTimeOffset(offset)
-        setTracks(options)
 
         const defaultId = history?.subtitles?.defaultId
         if (defaultId === -1) {
@@ -315,13 +348,13 @@ export const NativeSubtitleProvider = ({
         )
         if (preferred) await activateTrack(preferred)
       } catch (cause) {
-        if (!cancelled) {
+        if (!cancelled && initialIntent === intentRef.current) {
           adapter.close()
           reportSubtitleFailure('catalog', cause)
           setError(cause instanceof Error ? cause.message : '字幕初始化失败')
         }
       } finally {
-        if (!cancelled) setLoading(false)
+        if (!cancelled && initialIntent === intentRef.current) setLoading(false)
       }
     }
     void initialize()
@@ -330,15 +363,17 @@ export const NativeSubtitleProvider = ({
       initializeAbort.abort()
       requestRef.current?.abort()
     }
-  }, [activateTrack, catalog, hash, readyAdapter, source])
+  }, [activateTrack, catalog, hash, readyAdapter, source, catalogRevision])
 
   const selectTrack = useCallback(
     async (id: string) => {
       const adapter = adapterRef.current
       if (!adapter) return
+      intentRef.current++
       if (id === 'off') {
         requestRef.current?.abort()
         setLoading(false)
+        setPendingId(null)
         captureFeatureUsed('subtitle', 'disable')
         adapter.close()
         setSelectedId('off')
@@ -355,23 +390,50 @@ export const NativeSubtitleProvider = ({
     [activateTrack, persistSelection, tracks],
   )
 
+  const cancelLoading = useCallback(() => {
+    intentRef.current++
+    catalogRequestRef.current?.abort()
+    requestRef.current?.abort()
+    setLoading(false)
+    setPendingId(null)
+    setError(null)
+  }, [])
+
+  const retryCatalog = useCallback(() => {
+    intentRef.current++
+    setCatalogRevision((value) => value + 1)
+  }, [])
+
   const importTrack = useCallback(async () => {
+    const intent = ++intentRef.current
+    setLoadingOperation('import')
+    requestRef.current?.abort()
+    setPendingId(null)
     setLoading(true)
     setError(null)
     try {
       const imported = await catalog.importExternal()
       if (!imported) return
+      if (intent !== intentRef.current) {
+        imported.release?.()
+        return
+      }
       captureFeatureUsed('subtitle', 'import', 'external')
       const history = await db.history.get(hash)
+      if (intent !== intentRef.current) {
+        imported.release?.()
+        return
+      }
       const historyId = allocateExternalHistoryId(history?.subtitles?.tags ?? [], new Set())
       const option: SubtitleTrackOption = { ...imported, historyId }
       setTracks((items) => [...items, option])
-      await activateTrack(option)
+      await activateTrack(option, true, imported)
     } catch (cause) {
+      if (intent !== intentRef.current) return
       reportSubtitleFailure('import', cause)
       setError(cause instanceof Error ? cause.message : '字幕导入失败')
     } finally {
-      setLoading(false)
+      if (intent === intentRef.current) setLoading(false)
     }
   }, [activateTrack, catalog, hash])
 
@@ -392,15 +454,34 @@ export const NativeSubtitleProvider = ({
   const value = useMemo(
     () => ({
       tracks,
+      embeddedSupported,
+      loadingOperation,
       selectedId,
       timeOffset,
       loading,
+      pendingId,
+      cancelLoading,
+      retryCatalog,
       error,
       selectTrack,
       importTrack,
       setTimeOffset: updateTimeOffset,
     }),
-    [error, importTrack, loading, selectTrack, selectedId, timeOffset, tracks, updateTimeOffset],
+    [
+      embeddedSupported,
+      loadingOperation,
+      error,
+      importTrack,
+      loading,
+      pendingId,
+      cancelLoading,
+      retryCatalog,
+      selectTrack,
+      selectedId,
+      timeOffset,
+      tracks,
+      updateTimeOffset,
+    ],
   )
 
   fallbackState?.bindSubtitle({

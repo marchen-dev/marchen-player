@@ -17,9 +17,14 @@ export const Subtitle = () => {
   const [settings, setSettings] = usePlayerSettings()
   const {
     tracks,
+    embeddedSupported,
+    loadingOperation,
     selectedId,
     timeOffset,
     loading,
+    pendingId,
+    cancelLoading,
+    retryCatalog,
     error,
     selectTrack,
     importTrack,
@@ -29,12 +34,9 @@ export const Subtitle = () => {
 
   return (
     <SettingContainer>
+      {!embeddedSupported && <p className="text-sm text-white/60">远程视频暂不支持内嵌字幕</p>}
       <FieldLayout title="字幕轨道">
-        <Select
-          value={selectedId}
-          disabled={loading}
-          onValueChange={(value) => void selectTrack(value)}
-        >
+        <Select value={pendingId ?? selectedId} onValueChange={(value) => void selectTrack(value)}>
           <SelectTrigger
             aria-label="字幕轨道"
             className="w-56 border-white/11 bg-white/8 text-white focus:ring-[var(--player-settings-focus)] focus:ring-offset-0"
@@ -53,6 +55,7 @@ export const Subtitle = () => {
                 <SelectItem
                   key={track.id}
                   value={track.id}
+                  disabled={track.supported === false}
                   className="focus:bg-white/14 focus:text-white"
                 >
                   {track.title}
@@ -95,7 +98,6 @@ export const Subtitle = () => {
       <Button
         type="button"
         variant="outline"
-        disabled={loading}
         className="border-white/11 bg-white/8 text-white hover:bg-white/14 hover:text-white"
         onClick={() => void importTrack()}
       >
@@ -115,10 +117,21 @@ export const Subtitle = () => {
         />
       </FieldLayout>
 
-      {loading && (
-        <p role="status" className="text-sm text-white/60">
-          正在读取字幕…
-        </p>
+      {loading && (embeddedSupported || loadingOperation !== 'catalog') && (
+        <div className="flex items-center justify-between gap-3">
+          <p role="status" className="text-sm text-white/60">
+            {loadingOperation === 'catalog' ? '正在读取字幕轨道…' : '正在读取字幕…'}
+          </p>
+          <Button type="button" variant="ghost" onClick={cancelLoading}>
+            取消读取
+          </Button>
+        </div>
+      )}
+
+      {embeddedSupported && !loading && !tracks.length && (
+        <Button type="button" variant="ghost" onClick={retryCatalog}>
+          重新读取轨道
+        </Button>
       )}
 
       {error && (

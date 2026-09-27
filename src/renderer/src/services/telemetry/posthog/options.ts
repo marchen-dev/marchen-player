@@ -1,6 +1,9 @@
+import type { CaptureResult } from 'posthog-js'
+import { redactMediaAddresses } from '@marchen/shared/media/redact'
 import { POSTHOG_HOST } from '@renderer/lib/env'
 
 export const createPostHogOptions = () => ({
+  before_send: (event: CaptureResult | null) => redactMediaAddresses(event),
   api_host: POSTHOG_HOST,
   defaults: '2026-08-30' as const,
   autocapture: true,

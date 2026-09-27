@@ -8,7 +8,11 @@ import type { LoadingState } from '../../src/types'
 import { filter, firstValueFrom, take, timeout } from 'rxjs'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { PlayerLoadingService } from '../../src/service'
-import { createMockDanmakuEntries, createMockDeps } from '../helpers/mock-ports'
+import {
+  createMockDanmakuEntries,
+  createMockDeps,
+  createMockVideoInfo,
+} from '../helpers/mock-ports'
 
 function waitForStep(service: PlayerLoadingService, step: string): Promise<LoadingState> {
   return firstValueFrom(
@@ -30,7 +34,10 @@ describe('load Pipeline - 缓存策略', () => {
   it('有缓存且非新番时应该使用缓存，不调用 API', async () => {
     const cachedDanmaku = createMockDanmakuEntries()
     const deps = createMockDeps({
-      history: { get: vi.fn().mockResolvedValue({ hash: 'abc123hash', animeId: 100, episodeId: 1001 }), save: vi.fn().mockResolvedValue(undefined) },
+      history: {
+        get: vi.fn().mockResolvedValue({ hash: 'abc123hash', animeId: 100, episodeId: 1001 }),
+        save: vi.fn().mockResolvedValue(undefined),
+      },
       cache: {
         get: vi.fn().mockResolvedValue(cachedDanmaku),
         isStale: vi.fn().mockResolvedValue(false),
@@ -51,7 +58,10 @@ describe('load Pipeline - 缓存策略', () => {
   it('新番时应该忽略缓存，重新请求', async () => {
     const cachedDanmaku = createMockDanmakuEntries()
     const deps = createMockDeps({
-      history: { get: vi.fn().mockResolvedValue({ hash: 'abc123hash', animeId: 100, episodeId: 1001 }), save: vi.fn().mockResolvedValue(undefined) },
+      history: {
+        get: vi.fn().mockResolvedValue({ hash: 'abc123hash', animeId: 100, episodeId: 1001 }),
+        save: vi.fn().mockResolvedValue(undefined),
+      },
       cache: {
         get: vi.fn().mockResolvedValue(cachedDanmaku),
         isStale: vi.fn().mockResolvedValue(true), // 新番
@@ -138,4 +148,40 @@ describe('load Pipeline - 错误处理', () => {
       match: { animeTitle: 'A', episodeTitle: 'E1' },
     })
   })
+})
+
+describe('网络视频匹配身份', () => {
+  it.each([undefined, '0123456789abcdef0123456789abcdef'])(
+    '只提交真实前缀 hash：%s',
+    async (matchHash) => {
+      const deps = createMockDeps()
+      deps.importer.importFromUrl = vi.fn(async () =>
+        createMockVideoInfo({
+          hash: 'remote:record',
+          matchHash,
+          source: {
+            kind: 'remote-url',
+            hash: 'remote:record',
+            name: 'video.mp4',
+            size: 100,
+            url: 'https://example.com/video',
+          },
+        }),
+      )
+      const service = new PlayerLoadingService(deps)
+      try {
+        const done = waitForStep(service, matchHash ? 'ready' : 'waiting_user')
+        service.loadFromUrl('https://example.com/video')
+        await done
+        if (matchHash)
+          expect(deps.api.match).toHaveBeenCalledWith(
+            expect.objectContaining({ hash: matchHash }),
+            expect.any(AbortSignal),
+          )
+        else expect(deps.api.match).not.toHaveBeenCalled()
+      } finally {
+        service.destroy()
+      }
+    },
+  )
 })

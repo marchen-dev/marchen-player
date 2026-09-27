@@ -1,4 +1,5 @@
 import type { VideoImporter, VideoInfo } from '@marchen/player-loading'
+import { calculateFileHash } from '@marchen/shared/lib/calc-file-hash'
 /**
  * VideoImporter adapter (Web)：浏览器环境的视频导入
  *
@@ -6,10 +7,12 @@ import type { VideoImporter, VideoInfo } from '@marchen/player-loading'
  * 不支持 importFromPath（Web 无法直接访问文件系统）。
  */
 
-import { calculateFileHash } from '@marchen/shared/lib/calc-file-hash'
 import { rememberWebFile } from '../file-playlist'
 
 export class WebImporter implements VideoImporter {
+  async importFromUrl(): Promise<VideoInfo> {
+    throw new Error('网页版不支持远程视频，请使用桌面版')
+  }
   /**
    * 从 File 对象导入（浏览器拖拽/点击选择）
    */

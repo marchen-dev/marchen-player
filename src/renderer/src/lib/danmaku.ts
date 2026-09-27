@@ -1,5 +1,6 @@
 import type { DB_Danmaku } from '@renderer/database/schemas/history'
 import type { CommentModel } from '@renderer/request/models/comment'
+import { mergeSources } from '@marchen/shared/danmaku'
 
 /**
  * 将32位整数表示的颜色转换成十六进制颜色格式
@@ -39,6 +40,10 @@ export const danmakuPlatformMap = (danmaku?: DB_Danmaku) => {
   switch (danmaku.type) {
     case 'auto': {
       mapName = '弹弹play'
+      break
+    }
+    case 'link': {
+      mapName = danmaku.title
       break
     }
     case 'local': {
@@ -107,12 +112,4 @@ export const parseDanmakuData = (params: { danmuData?: CommentModel[]; duration:
 /**
  * 合并所有选中的弹幕源为一个 CommentModel 数组
  */
-export const mergeDanmaku = (danmakuData: DB_Danmaku[] | undefined) => {
-  if (!danmakuData) {
-    return
-  }
-  return danmakuData
-    .filter((danmaku) => danmaku.selected)
-    .map((danmaku) => danmaku?.content)
-    .flatMap((danmaku) => danmaku.comments)
-}
+export const mergeDanmaku = (entries: DB_Danmaku[] | undefined) => entries && mergeSources(entries)

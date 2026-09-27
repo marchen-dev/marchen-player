@@ -5,7 +5,7 @@
  * 不包含副作用，所有异步操作在 pipeline 中处理。
  */
 
-import type { DanmakuEntry, LoadingState, PipelineEvent } from './types'
+import type { LoadingState, PipelineEvent } from './types'
 
 /** 初始状态 */
 export const INITIAL_STATE: LoadingState = { step: 'idle' }
@@ -111,7 +111,11 @@ export function reduce(state: LoadingState, event: PipelineEvent): LoadingState 
       return { ...state, step: 'ready', recovery: { target: event.target, message: event.message } }
 
     case 'error':
-      return { step: 'error', error: { message: event.message, previousStep: event.previousStep } }
+      return {
+        step: 'error',
+        error: { message: event.message, previousStep: event.previousStep },
+        remoteRequest: event.remoteRequest,
+      }
 
     case 'cancelled':
       return INITIAL_STATE
@@ -124,6 +128,4 @@ export function reduce(state: LoadingState, event: PipelineEvent): LoadingState 
 /**
  * 合并弹幕：将所有 selected 的弹幕源合并为一个 CommentModel 数组
  */
-export function mergeDanmakuEntries(entries: DanmakuEntry[]) {
-  return entries.filter((entry) => entry.selected).flatMap((entry) => entry.content.comments)
-}
+export { mergeSources as mergeDanmakuEntries } from '@marchen/shared/danmaku'

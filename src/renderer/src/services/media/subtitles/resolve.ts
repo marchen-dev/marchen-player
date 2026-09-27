@@ -1,4 +1,5 @@
 import type { SubtitleCue, SubtitleSource } from './matroska'
+import { measureSubtitleRead } from './diagnostics'
 import { loadSubtitleFonts } from './fonts'
 import { assDialogue, MatroskaSubtitles } from './matroska'
 import { textSubtitlesToAss } from './text'
@@ -12,8 +13,10 @@ export async function resolveEmbeddedSubtitle(
 ) {
   // 字体与字幕正文独立准备；任一失败后等待另一任务收尾，避免字体 URL 泄漏。
   const [textResult, fontResult] = await Promise.allSettled([
-    readSubtitleContent(source, number, signal, expected),
-    loadSubtitleFonts(source, signal),
+    measureSubtitleRead('text', source, false, (measured) =>
+      readSubtitleContent(measured, number, signal, expected),
+    ),
+    measureSubtitleRead('fonts', source, false, (measured) => loadSubtitleFonts(measured, signal)),
   ])
   if (textResult.status === 'rejected') {
     if (fontResult.status === 'fulfilled') fontResult.value.close()

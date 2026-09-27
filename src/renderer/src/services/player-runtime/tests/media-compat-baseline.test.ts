@@ -78,3 +78,5 @@ describe('媒体兼容改造前的播放链路基线', () => {
     })
   })
 })
+
+vi.mock('@renderer/lib/utils', () => ({ isWeb: true }))

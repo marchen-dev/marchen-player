@@ -1,3 +1,4 @@
+import { redactMediaAddresses } from '@marchen/shared/media/redact'
 import * as Sentry from '@sentry/electron/main'
 
 import { isTelemetryEnabled, SENTRY_DSN } from '../lib/env'
@@ -26,6 +27,11 @@ export const initializeMainTelemetry = async (): Promise<void> => {
     dist: __MARCHEN_DIST__,
     environment: __MARCHEN_ENVIRONMENT__,
     enableLogs: true,
+    beforeSendLog: (log) => redactMediaAddresses(log),
+    beforeSendSpan: (span) => redactMediaAddresses(span),
+    beforeSend: (event) => redactMediaAddresses(event),
+    beforeSendTransaction: (event) => redactMediaAddresses(event),
+    beforeBreadcrumb: (event) => redactMediaAddresses(event),
     sendDefaultPii: true,
     tracesSampleRate: 1,
   })

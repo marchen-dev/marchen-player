@@ -1,7 +1,9 @@
 import type { DurableMediaSource } from '@marchen/shared/media'
 import type { SubtitleTrackDescriptor } from './ports'
+import { measureSubtitleRead } from '../../media/subtitles/diagnostics'
 import { MatroskaSubtitles } from '../../media/subtitles/matroska'
 import { resolveEmbeddedSubtitle } from '../../media/subtitles/resolve'
+import { supportsEmbeddedSubtitles } from '../subtitles/source-policy'
 import { openPlaybackResource } from './media-resource'
 
 /** 两端使用相同的容器轨道编号；每次借用独立读取租约，不释放播放中的来源。 */
@@ -9,11 +11,13 @@ export async function listEmbeddedSubtitles(
   source: DurableMediaSource,
   signal = new AbortController().signal,
 ): Promise<SubtitleTrackDescriptor[]> {
-  if (!/\.(?:mkv|mk3d|webm)$/i.test(source.name)) return []
+  if (!supportsEmbeddedSubtitles(source) || !/\.(?:mkv|mk3d|webm)$/i.test(source.name)) return []
   const resource = await openPlaybackResource(source, signal)
   const lease = resource.acquire()
   try {
-    const reader = await MatroskaSubtitles.open(lease.source, signal)
+    const reader = await measureSubtitleRead('catalog', lease.source, false, (measured) =>
+      MatroskaSubtitles.open(measured, signal),
+    )
     return reader.tracks.map((track) => ({
       id: `embedded:${track.number}`,
       title: (track.title || `内嵌字幕 ${track.number}`) + (track.supported ? '' : '（暂不支持）'),
@@ -33,6 +37,7 @@ export async function resolveEmbeddedTrack(
   track: SubtitleTrackDescriptor,
   signal = new AbortController().signal,
 ) {
+  if (!supportsEmbeddedSubtitles(source)) throw new Error('远程视频暂不支持内嵌字幕')
   const resource = await openPlaybackResource(source, signal)
   const lease = resource.acquire()
   try {

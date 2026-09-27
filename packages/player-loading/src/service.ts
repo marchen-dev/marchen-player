@@ -21,7 +21,8 @@ import type {
   ServiceDeps,
   VideoInfo,
 } from './types'
-import { BehaviorSubject, concat, defer, EMPTY, of, Subject } from 'rxjs'
+import { validateOffset } from '@marchen/shared/danmaku'
+import { BehaviorSubject, concat, defer, EMPTY, firstValueFrom, of, Subject } from 'rxjs'
 import { catchError, filter, map, switchMap, takeUntil } from 'rxjs/operators'
 
 import { LoadingOperations } from './operation'
@@ -31,7 +32,7 @@ import {
   executeMatch,
   getAvailableDanmaku,
 } from './pipelines/load'
-import { addLocalDanmakuEntry, createRematchPipeline } from './pipelines/rematch'
+import { createRematchPipeline } from './pipelines/rematch'
 import { INITIAL_STATE, mergeDanmakuEntries, reduce } from './state-machine'
 import { getPersistentMediaSource } from './types'
 
@@ -64,6 +65,8 @@ export class PlayerLoadingService {
       .pipe(
         filter((cmd) => this.canExecute(cmd)),
         switchMap((cmd) => {
+          if (['loadFromUrl', 'loadFromFile', 'loadFromPath', 'cancel'].includes(cmd.type))
+            this.session++
           const state = this.currentState
           const operationDeps = this.operations.start(this.deps)
           this.activeDeps = operationDeps
@@ -73,6 +76,8 @@ export class PlayerLoadingService {
                 type: 'error',
                 message: err instanceof Error ? err.message : '加载失败',
                 previousStep: this.currentState.step,
+                remoteRequest:
+                  cmd.type === 'loadFromUrl' ? { url: cmd.url, recordId: cmd.recordId } : undefined,
               }),
             ),
           )
@@ -80,16 +85,32 @@ export class PlayerLoadingService {
         takeUntil(this.destroy$),
       )
       .subscribe((event) => {
-        this.stateSubject.next(reduce(this.stateSubject.value, event))
+        const previous = this.currentState
+        const next = reduce(previous, event)
+        if (
+          'video' in previous &&
+          previous.video?.hash &&
+          (!('video' in next) || next.video?.source !== previous.video.source)
+        )
+          this.deps.importer.releaseImportedVideo?.(previous.video as VideoInfo)
+        this.stateSubject.next(next)
       })
   }
 
+  private session = 0
+  /** 不用 hash 代替媒体会话，同一个文件重开也要隔离旧请求。 */
+  get sessionId() {
+    return this.session
+  }
+  private sourceWrites: Promise<void> = Promise.resolve()
+  private sourceWriteCount = 0
   private operations = new LoadingOperations()
   private activeDeps?: ServiceDeps
 
   private canExecute(cmd: Command): boolean {
     const state = this.currentState
     switch (cmd.type) {
+      case 'loadFromUrl':
       case 'loadFromFile':
       case 'loadFromPath':
       case 'cancel':
@@ -118,6 +139,7 @@ export class PlayerLoadingService {
     deps: ServiceDeps,
   ): Observable<PipelineEvent> {
     switch (cmd.type) {
+      case 'loadFromUrl':
       case 'loadFromFile':
       case 'loadFromPath':
         return this.executeFullLoad(cmd, deps)
@@ -178,6 +200,10 @@ export class PlayerLoadingService {
   // 公开 API：命令式方法
   // ============================================================
 
+  loadFromUrl(url: string, recordId?: string): void {
+    this.command$.next({ type: 'loadFromUrl', url, recordId })
+  }
+
   /** 从 File 对象加载（拖拽/点击选择） */
   loadFromFile(file: File): void {
     this.command$.next({ type: 'loadFromFile', file })
@@ -210,63 +236,106 @@ export class PlayerLoadingService {
 
   /** 仅重试当前剧集或上次失败的重新匹配目标。 */
   retryDanmaku(): void {
-    this.command$.next({ type: 'retryDanmaku' })
+    this.afterSourceWrites({ type: 'retryDanmaku' })
   }
 
   /** 对当前 ready 数据重新匹配弹幕库 */
   rematch(match: MatchedVideo): void {
-    this.command$.next({ type: 'rematch', match })
+    this.afterSourceWrites({ type: 'rematch', match })
   }
 
-  /** 为当前 ready 数据添加本地弹幕 */
+  /** 重新匹配必须等已开始的来源事务落盘，避免旧数组覆盖新来源。 */
+  private afterSourceWrites(command: Command) {
+    const session = this.session
+    if (!this.sourceWriteCount) {
+      this.command$.next(command)
+      return
+    }
+    void this.sourceWrites.then(() => {
+      if (session === this.session) this.afterSourceWrites(command)
+    })
+  }
+
+  async mutateDanmaku(
+    update: (entries: DanmakuEntry[]) => DanmakuEntry[],
+    expectedSession = this.session,
+    signal?: AbortSignal,
+  ): Promise<void> {
+    this.sourceWriteCount++
+    const isCurrent = () => this.session === expectedSession && !signal?.aborted
+    const pending = this.sourceWrites
+      .then(async () => {
+        if (!isCurrent()) throw new Error('视频已切换或操作已取消')
+        if (this.currentState.step === 'reloading') {
+          await firstValueFrom(this.state$.pipe(filter((state) => state.step !== 'reloading')))
+        }
+        if (!isCurrent()) throw new Error('视频已切换或操作已取消')
+        const state = this.currentState
+        if (state.step !== 'ready') throw new Error('请先打开视频')
+        const danmaku = update(state.danmaku)
+        if (this.deps.cache.commit) {
+          await this.deps.cache.commit(state.video.hash, danmaku, isCurrent)
+        } else {
+          // 非持久化 Port 的兼容路径；产品 IndexedDB 实现使用上面的事务提交。
+          await this.deps.cache.set(state.video.hash, danmaku)
+        }
+        if (!isCurrent()) return
+        const current = this.currentState
+        if (current.step !== 'ready' || current.video !== state.video) return
+        this.stateSubject.next({
+          ...current,
+          danmaku,
+          mergedComments: mergeDanmakuEntries(danmaku),
+        })
+      })
+      .finally(() => {
+        this.sourceWriteCount--
+      })
+    this.sourceWrites = pending.catch(() => {})
+    return pending
+  }
+
   async addLocalDanmaku(entry: DanmakuEntry): Promise<void> {
-    const state = this.currentState
-    if (state.step !== 'ready') return
-
-    const result = await addLocalDanmakuEntry(
-      entry,
-      state.danmaku,
-      state.video,
-      this.activeDeps ?? this.deps,
-    )
-
-    // 持久化期间切换了视频或状态时，保留原视频缓存，但不能恢复旧会话。
-    if (this.currentState !== state) return
-
-    // 直接更新状态（不经过 pipeline event，因为这是同步操作）
-    this.stateSubject.next({
-      ...state,
-      danmaku: result.danmaku,
-      mergedComments: result.mergedComments,
-    })
+    if (this.currentState.step !== 'ready') return
+    return this.mutateDanmaku((entries) => [...entries, entry])
   }
 
-  /** 切换当前弹幕源是否参与合并，并发布新的 ready 数据。 */
-  async setDanmakuSourceSelected(source: string, selected: boolean): Promise<void> {
-    const state = this.currentState
-    if (state.step !== 'ready') return
+  async addLinkDanmaku(
+    entry: Extract<DanmakuEntry, { type: 'link' }>,
+    session: number,
+    signal: AbortSignal,
+  ): Promise<void> {
+    validateOffset(entry.offsetSeconds)
+    return this.mutateDanmaku(
+      (entries) => {
+        if (entries.some((item) => item.source === entry.source))
+          throw new Error('已经添加过该来源')
+        return [...entries, entry]
+      },
+      session,
+      signal,
+    )
+  }
 
-    let changed = false
-    const danmaku = state.danmaku.map((entry) => {
-      if (entry.source !== source || entry.selected === selected) return entry
-      changed = true
-      return { ...entry, selected }
-    })
-    if (!changed) return
+  async setDanmakuSourceSelected(
+    source: string,
+    selected: boolean,
+    session = this.session,
+  ): Promise<void> {
+    return this.mutateDanmaku(
+      (entries) =>
+        entries.map((entry) => (entry.source === source ? { ...entry, selected } : entry)),
+      session,
+    )
+  }
 
-    const deps = this.activeDeps ?? this.deps
-    await deps.cache.set(state.video.hash, danmaku)
-    await deps.history.save({
-      hash: state.video.hash,
-      danmaku,
-    })
-
-    if (this.currentState !== state) return
-    this.stateSubject.next({
-      ...state,
-      danmaku,
-      mergedComments: mergeDanmakuEntries(danmaku),
-    })
+  async setDanmakuSourceOffset(source: string, offset: number): Promise<void> {
+    const offsetSeconds = validateOffset(offset)
+    return this.mutateDanmaku((entries) =>
+      entries.map((entry) =>
+        entry.type === 'link' && entry.source === source ? { ...entry, offsetSeconds } : entry,
+      ),
+    )
   }
 
   /** 取消当前加载 */
@@ -276,6 +345,9 @@ export class PlayerLoadingService {
 
   /** 销毁 service（释放所有订阅） */
   destroy(): void {
+    const state = this.currentState
+    if ('video' in state && state.video?.hash)
+      this.deps.importer.releaseImportedVideo?.(state.video as VideoInfo)
     this.operations.cancel()
     this.destroy$.next()
     this.destroy$.complete()
@@ -293,7 +365,7 @@ export class PlayerLoadingService {
    * 通过闭包传递中间数据，不依赖 this.currentState 的时序
    */
   private executeFullLoad(
-    cmd: Extract<Command, { type: 'loadFromFile' | 'loadFromPath' }>,
+    cmd: Extract<Command, { type: 'loadFromFile' | 'loadFromPath' | 'loadFromUrl' }>,
     deps: ServiceDeps,
   ): Observable<PipelineEvent> {
     let video: VideoInfo
@@ -301,9 +373,11 @@ export class PlayerLoadingService {
       of<PipelineEvent>({ type: 'started' }),
       defer(async () => {
         video =
-          cmd.type === 'loadFromFile'
-            ? await deps.importer.importFromFile(cmd.file)
-            : await deps.importer.importFromPath(cmd.path)
+          cmd.type === 'loadFromUrl'
+            ? await deps.importer.importFromUrl!(cmd.url, cmd.recordId)
+            : cmd.type === 'loadFromFile'
+              ? await deps.importer.importFromFile(cmd.file)
+              : await deps.importer.importFromPath(cmd.path)
         return { type: 'hashed' as const, video }
       }),
       defer(() => this.matchAndLoad(video, deps)),

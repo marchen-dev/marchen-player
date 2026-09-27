@@ -2,6 +2,7 @@ interface PlaybackFailureProps {
   description: string
   detail?: string
   onExit: () => void
+  onChangeSource?: () => void
   onRetry?: () => void
   retryLabel?: string
 }
@@ -12,6 +13,7 @@ export const PlaybackFailure = ({
   detail,
   onExit,
   onRetry,
+  onChangeSource,
   retryLabel,
 }: PlaybackFailureProps) => (
   <div
@@ -30,6 +32,15 @@ export const PlaybackFailure = ({
         </details>
       )}
       <div className="mt-6 flex justify-center gap-3">
+        {onChangeSource && (
+          <button
+            type="button"
+            className="min-h-11 rounded-lg border border-white/15 px-4 text-sm text-white"
+            onClick={onChangeSource}
+          >
+            更换链接
+          </button>
+        )}
         {onRetry && (
           <button
             type="button"

@@ -28,6 +28,44 @@ describe('playerLoadingService', () => {
     service?.destroy()
   })
 
+  it('跳过匹配保留导入资源，取消和销毁释放尚未领取的资源', async () => {
+    const deps = createMockDeps()
+    const video = createMockVideoInfo()
+    deps.importer.importFromUrl = vi.fn(async () => video)
+    deps.importer.releaseImportedVideo = vi.fn()
+    vi.mocked(deps.api.match).mockImplementation(() => new Promise(() => {}))
+    service = new PlayerLoadingService(deps)
+    service.loadFromUrl('https://example.com/a.mkv')
+    await waitForStep(service, 'matching')
+    service.skipDanmaku()
+    await waitForStep(service, 'ready')
+    expect(deps.importer.releaseImportedVideo).not.toHaveBeenCalled()
+    service.cancel()
+    expect(deps.importer.releaseImportedVideo).toHaveBeenCalledExactlyOnceWith(video)
+  })
+
+  it('被取消的导入迟到返回时也会释放资源', async () => {
+    const deps = createMockDeps()
+    const video = createMockVideoInfo()
+    let finish!: (value: typeof video) => void
+    deps.importer.importFromUrl = vi.fn(
+      () =>
+        new Promise((resolve) => {
+          finish = resolve
+        }),
+    )
+    deps.importer.releaseImportedVideo = vi.fn()
+    service = new PlayerLoadingService(deps)
+    service.loadFromUrl('https://example.com/a.mkv')
+    await vi.waitFor(() => expect(finish).toBeTypeOf('function'))
+    service.cancel()
+    finish(video)
+    await vi.waitFor(() =>
+      expect(deps.importer.releaseImportedVideo).toHaveBeenCalledExactlyOnceWith(video),
+    )
+    expect(service.currentState.step).toBe('idle')
+  })
+
   it('本地弹幕持久化结束时不能覆盖已经切换的视频', async () => {
     const deps = createMockDeps()
     service = new PlayerLoadingService(deps)

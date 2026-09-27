@@ -6,6 +6,7 @@ import type {
   PlaybackMediaSnapshot,
   PlaybackSource,
 } from '@marchen/playback-core'
+import { REMOTE_LIMITS, RemoteMediaError } from '@marchen/shared/media/remote'
 import { Subject } from 'rxjs'
 import { DecodeRate } from '../../media/decode-rate'
 
@@ -39,9 +40,14 @@ export class HtmlVideoMediaAdapter implements MediaPort {
 
   readonly events$ = this.eventSubject.asObservable()
 
-  constructor(private readonly video: HTMLVideoElement) {
+  constructor(
+    private readonly video: HTMLVideoElement,
+    private readonly remote = false,
+  ) {
     video.playsInline = true
     video.preload = 'metadata'
+    // 与范围探测一致使用匿名跨域模式，允许网络画面用于截图。
+    video.crossOrigin = 'anonymous'
   }
 
   setSource(source: PlaybackSource | null, sessionId: number): void {
@@ -98,7 +104,9 @@ export class HtmlVideoMediaAdapter implements MediaPort {
     return this.transportReady
   }
 
-  waitForPlayableData(timeoutMs = 8_000): Promise<void> {
+  waitForPlayableData(
+    timeoutMs = this.remote ? REMOTE_LIMITS.playbackTimeout : 8_000,
+  ): Promise<void> {
     // HAVE_CURRENT_DATA=2；使用数值避免 Node 单测环境需要 DOM 全局量。
     if (this.video.readyState >= 2) return Promise.resolve()
     const signal = this.sourceController.signal
@@ -125,7 +133,11 @@ export class HtmlVideoMediaAdapter implements MediaPort {
       const timer = setTimeout(
         () => {
           cleanup()
-          reject(new Error(`等待媒体可播数据超过 ${timeoutMs}ms`))
+          reject(
+            this.remote
+              ? new RemoteMediaError('access', '等待网络视频数据超时，请检查网络或重试')
+              : new Error(`等待媒体可播数据超过 ${timeoutMs}ms`),
+          )
         },
         Math.max(1, timeoutMs),
       )
