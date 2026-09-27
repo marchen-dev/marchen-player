@@ -6,22 +6,28 @@
 
 Marchen Player：本地动漫视频弹幕播放器，拖入视频自动匹配弹幕。Electron + React，同时支持 Web。后端 API 代理弹弹play。
 
-- **技术栈**：Electron 41 + React 19 + TypeScript + Vite + Tailwind 4
-- **包管理**：pnpm 10（`corepack enable`），ES Module，AGPL-3.0
+- **技术栈**：Electron 44 + React 19 + TypeScript + Vite + Tailwind 4
+- **运行环境**：Node.js 24.x
+- **包管理**：pnpm 11（`corepack enable`），ES Module，AGPL-3.0
 
 ## 常用命令
 
 ```bash
-pnpm dev          # Electron 开发（HMR）
-pnpm dev:web      # Web 开发（端口 1106）
-pnpm build        # 构建 Electron（含 typecheck）
-pnpm build:web    # 构建 Web
-pnpm typecheck    # 类型检查（node + web）
-pnpm lint[:fix]   # ESLint
-pnpm format       # Prettier
+pnpm dev                 # Electron 开发（HMR）
+pnpm dev:web             # Web 开发（端口 1106）
+pnpm build               # 构建 Electron（含 typecheck）
+pnpm build:web           # 构建 Web
+pnpm build:web:release   # Web 正式构建（EdgeOne）
+pnpm typecheck           # 类型检查（node + web）
+pnpm test:main           # 主进程与桌面发布相关测试
+pnpm test:player-runtime # 播放运行时及相关服务测试
+pnpm lint[:fix]          # ESLint
+pnpm format              # Prettier
 ```
 
 首次需 `cp .env.example .env`。
+
+`pnpm bump` 会交互选择版本、提交、打标签并推送，不是只修改版本号；执行前按 `docs/desktop-release.md` 完成发版准备，未经用户明确要求不要执行。
 
 ## 架构
 
@@ -29,7 +35,7 @@ pnpm format       # Prettier
 
 标准 Electron 三层 + 纯 Web 构建：
 
-- **Main** (`src/main/`)：窗口、文件系统、FFmpeg、自定义协议
+- **Main** (`src/main/`)：窗口、文件系统、受控媒体租约、自定义协议、更新、遥测
 - **Preload** (`src/preload/`)：桥接
 - **Renderer** (`src/renderer/src/`)：React 前端，同时为 Web 版本
 
@@ -37,25 +43,27 @@ pnpm format       # Prettier
 
 ### Monorepo（pnpm workspace）
 
-| 包 | 说明 |
-|----|------|
-| `@marchen/electron-ipc` | 类型安全 IPC 封装 |
-| `@marchen/shared` | main/renderer 共享常量与类型 |
-| `@marchen/player-loading` | 视频识别、匹配和弹幕加载状态机（RxJS，纯 TS） |
-| `@marchen/playback-core` | 媒体会话、时钟和播放命令（纯 TS） |
-| `@marchen/danmaku-engine` | DOM 弹幕调度、轨道和节点池（纯 TS） |
+| 包                         | 说明                                          |
+| -------------------------- | --------------------------------------------- |
+| `@marchen/electron-ipc`    | 类型安全 IPC 封装                             |
+| `@marchen/shared`          | main/renderer 共享常量与类型                  |
+| `@marchen/player-loading`  | 视频识别、匹配和弹幕加载状态机（RxJS，纯 TS） |
+| `@marchen/playback-core`   | 媒体会话、时钟和播放命令（纯 TS）             |
+| `@marchen/danmaku-engine`  | DOM 弹幕调度、轨道和节点池（纯 TS）           |
+| `@marchen/sparkle-updater` | macOS Sparkle 原生更新桥接                    |
 
 ### IPC 通信
 
-`@marchen/electron-ipc`：`defineGroup` + `handler` 定义于 `src/main/tipc/`（app/player/setting/utils），渲染端通过 `ipcClient?.group.method()` 调用。事件用 `createEmitter` / `createListener`。Web 环境 `ipcClient` 为 null，必须可选链。
+`@marchen/electron-ipc`：`defineGroup` + `handler` 定义于 `src/main/ipc/`（app / danmaku / player / setting，汇总于 `ipc/index.ts` 的 `router`），渲染端通过 `ipcClient?.group.method()` 调用。事件用 `createEmitter` / `createListener`。Web 环境 `ipcClient` 为 null，必须可选链。
 
 ### 播放器分层
 
 `player-loading` 负责识别、匹配、弹幕数据与 HISTORY 初始记录；`playback-core` 负责媒体会话；
-renderer 的 `services/player-runtime/` 组合 HTMLVideoElement、平台 Port、libass 字幕和 DOM 弹幕。
+renderer 的 `services/player-runtime/` 组合原生 H5 / compat 双内核、平台 Port、libass 字幕和 DOM 弹幕。
 平台差异通过 Fullscreen、Playlist、Snapshot、SubtitleCatalog、SourceLifecycle Port 隔离。
 
 **状态机**：
+
 ```
 idle → importing → hashing → matching → [waiting_user] → loading_danmaku → ready
                                                                   ready ↔ reloading
@@ -68,21 +76,30 @@ idle → importing → hashing → matching → [waiting_user] → loading_danma
 
 ### 状态管理
 
-| 方案 | 用途 |
-|------|------|
-| Jotai | 全局 UI 状态（`atoms/`，自定义 store `jotaiStore` 支持组件外访问） |
-| TanStack Query | 服务端数据（gcTime=10min, staleTime=5min） |
-| Dexie (IndexedDB) | 持久化（`database/`，当前 v3） |
-| RxJS | player-loading 状态机 |
+| 方案              | 用途                                                               |
+| ----------------- | ------------------------------------------------------------------ |
+| Jotai             | 全局 UI 状态（`atoms/`，自定义 store `jotaiStore` 支持组件外访问） |
+| TanStack Query    | 服务端数据（gcTime=10min, staleTime=5min）                         |
+| Dexie (IndexedDB) | 持久化（`database/`，`MARCHEN_PLAYER_DB`，当前 v1）                |
+| RxJS              | player-loading 状态机                                              |
 
 关键 atom：`videoAtom`、`playerSettingSheetAtom`，设置类在 `atoms/settings/`。
 
-### 数据库 HISTORY 表
+### 数据库
 
-主键 `hash`，字段：path、animeId、episodeId、animeTitle、episodeTitle、progress、duration、cover、thumbnail、danmaku、newBangumi、subtitles、updatedAt。
+两张表：`history`（主键 `hash`）与 `library`（主键 `animeId`，影视库，仅 Electron 有数据）。schema 在 `database/schemas/`，写入时经 `persistence/media-path.ts` 校验，禁止持久化临时媒体路径。
+
+**HISTORY**：媒体来源 `source` 区分 Electron 路径与 Web 文件元信息（不保存 File / blob URL），音轨偏好保存在 `audioTrack`；其余字段：animeId、episodeId、animeTitle、episodeTitle、progress、duration、cover、thumbnail、danmaku、newBangumi、subtitles、updatedAt。
 
 - `danmaku`: `Array<{ type: 'auto'|'local', source, selected?, content: CommentsData }>`
-- `subtitles`: `{ defaultId, timeOffset?, tags: Array<{ id, path, index?, title, language? }> }`
+- `subtitles` 保存 defaultId / timeOffset 和轨道 tags；内嵌轨道保存稳定 UID / codec，外挂字幕保存路径或受预算限制的文本内容，不持久化临时 URL。
+
+### 字幕渲染与设置
+
+- `services/player-runtime/subtitles/LibassSubtitleAdapter`（文件 `libass-subtitle-adapter.ts`）是 libass 渲染生命周期入口；内置回退字体为 `notoSansSC-medium.woff2`（Noto Sans SC Medium），可加载媒体内附带的字体。
+- Electron 自动发现视频同目录、文件名前缀匹配的 `.ass` / `.ssa` / `.srt` / `.vtt` 外挂字幕；Web 需要用户选择文件，不能自动扫描本地目录。
+- 字幕大小保存在 `playerSettingAtom.subtitleScale`，是全局持久化偏好，默认 100%，范围 50%～200%，步进 5%；不存入单视频 HISTORY。
+- 字号缩放由 `services/player-runtime/subtitles/font-scale.ts` 处理：始终基于原始字幕生成内存副本，调整样式和行内绝对字号，保留相对字号指令及定位坐标；禁止覆盖原字幕文件或累积缩放结果。
 
 ### API 请求
 
@@ -90,31 +107,34 @@ idle → importing → hashing → matching → [waiting_user] → loading_danma
 
 **弹弹play 接口文档**：`https://api.dandanplay.net/swagger/v2/swagger.json`（需要新增/核对接口时通过 WebFetch 读取）。
 
-Web 端固定请求同源 `/api/v2`，`vite.config.ts` 在 dev/preview 时反代到 `VITE_API_URL`；部署静态
-Web 产物时必须在站点层配置同一路径反代。Electron 端直接使用 `VITE_API_URL`。
+Web 与 Electron 均直连 `VITE_API_URL`（`https://dandan-proxy.suemor.com/api/v2`），不部署同源 API 边缘代理；仅本地 Web dev 保留 Vite 代理（localhost 尚未获 CORS 许可）。
+Web 所在的正式、预览及开发 Origin 需由 API 服务允许 CORS，JSON POST 预检和弹幕重定向后的响应也须通过跨域检查。
 
 ### 其他
 
-- **自定义协议**：`marchen://`，逻辑在 `src/main/lib/protocols.ts`，常量在 `@marchen/shared/constants/protocol.ts`
-- **播放器**：HTML5 Video + `@marchen/playback-core` + `@marchen/danmaku-engine` + `@jellyfin/libass-wasm`（ASS/SSA）；HEVC 软解与 EAC-3 转码属于后续 FFmpeg 兼容变更
+- **自定义协议**：`marchen://`，固定应用 origin 为 `marchen://app`，媒体采用可撤销的不透明租约；逻辑在 `src/main/lib/media-protocol.ts`，常量在 `@marchen/shared/constants/protocol.ts`
+- **播放器**：HTML5 Video + `@marchen/playback-core` + `@marchen/danmaku-engine` + `@jellyfin/libass-wasm`（ASS/SSA）；兼容内核使用 MediaBunny、WebCodecs、`@suemor/libav-hevc@0.1.1` 和官方 AC-3 / E-AC-3 / DTS 扩展；兼容画面唯一经 VideoFramePresenter → MediaStream → 静音 video 输出，音频继续 Web Audio / SoundTouch；Canvas 仅用于预览 / 缩略图 / 字幕；没有 Node FFmpeg / HLS 或主画面 Canvas 播放回退
 - **UI**：shadcn/ui (Radix) + Tailwind 4 + next-themes，图标 `icon-[mingcute--xxx]`，动画 framer-motion（LazyMotion），模态框 ModalStackProvider
-- **路由**：React Router 7 HashRouter，`router/router.tsx` 定义 `/player`、`/history`，侧边栏由 `siderbarRoutes` 渲染，默认重定向 `/player`
+- **路由**：React Router 7 HashRouter，`router/router.tsx` 定义 `/player`、`/library`（影视库，Web 下隐藏并重定向到 `/player`），侧边栏由 `siderbarRoutes` 渲染，默认重定向 `/player`
 - **平台判断**：`isWeb = !window.electron`，见 `src/renderer/src/lib/utils.ts`
-- **错误监控**：Sentry，DSN 由 `VITE_SENTRY_DSN` 配置
+- **可观测性**：Sentry（`VITE_SENTRY_DSN`）+ PostHog，main 在 `src/main/telemetry/`，renderer 在 `services/telemetry/`；开发态默认不上报（`VITE_TELEMETRY_DEBUG`），排障见 `docs/observability-runbook.md`
 
 ## 目录结构
 
 ```
 src/
-├── main/                 # Electron 主进程（index、ipc、initialize、lib、windows、modules、constants、types）
+├── main/                 # Electron 主进程（bootstrap、index、ipc、initialize、lib、services、telemetry、windows、modules、constants）
 ├── preload/              # 预加载
 └── renderer/src/         # React 前端 / Web
     ├── components/{ui,modules/{player,settings,shared,app},layout,icons,common}
-    ├── page/{player,history}
+    ├── page/{player,library}
+    ├── services/{player-runtime,player-loading,danmaku,media,telemetry}
     ├── atoms/            # Jotai
-    ├── hooks/  services/  request/  database/  router/  providers/  initialize/  lib/
+    ├── hooks/  request/  database/  router/  providers/  initialize/  constants/  lib/
 
-packages/{electron-ipc,shared,player-loading,playback-core,danmaku-engine}
+packages/{electron-ipc,shared,player-loading,playback-core,danmaku-engine,sparkle-updater}
+marchen/                  # 变更规划（changes / archive / ideas），配合 /marchen:* 技能使用
+docs/                     # 发布、部署、可观测性文档
 ```
 
 ## 路径别名
@@ -130,19 +150,43 @@ packages/{electron-ipc,shared,player-loading,playback-core,danmaku-engine}
 ### 规范要求
 
 - UI 与注释使用**中文**
-- 支持视频：mp4、mkv；hash 为 16MB 前缀 MD5
+- 视频入口格式以 `packages/shared/src/media/formats.ts` 为准（MP4/M4V、MOV/QT、MKV/MK3D、WebM、TS/MTS/M2TS/M2T），实际播放取决于容器和编码探测；hash 为 16MB 前缀 MD5
 - **注释**：积极写中文注释，解释意图、上下文、设计决策
 - **类型安全**：避免 `any`，优先 discriminated union / 泛型约束
 - **错误处理**：外部交互（API、文件、IPC）做降级，参考 player-loading 弹幕获取失败降级为无弹幕
 - **关注点分离**：遵循 Port / Service / Pipeline / Adapter 分层
-- **响应式**：异步流优先用 RxJS operator，避免命令式嵌套回调
+- **异步流**：优先用 RxJS operator，避免命令式嵌套回调
 - **平台兼容**：考虑 Electron 与 Web 双端，Electron 专属逻辑用 `isWeb` 或 `ipcClient?.` 隔离
+- **端形态范围**：当前仅要求 Electron 与 Web 桌面端；无需适配手机、平板触控或移动端响应式布局，除非产品需求后续明确提出
+- **指针样式**：交互元素默认保持系统箭头指针，不主动使用 `pointer`、`grab` 或 `grabbing`；确有产品需求时再局部例外
 - **UI 预览**：使用 Chrome DevTools MCP（attach 模式，`.mcp.json` 配 `--browserUrl=http://127.0.0.1:9222`）。`pnpm dev` 启动 Electron 后，`isDev` 下主进程暴露 9222 调试端口。attach 后用 `list_pages` 选主窗口 target。9222 被占用时改端口并同步更新 `src/main/index.ts` 与 `.mcp.json`
 
 ## 环境变量
 
-| 变量 | 说明 |
-|------|------|
-| `VITE_API_URL` | 弹弹play API 代理（如 `https://dandi-proxy.suemor.com/api/v2`） |
-| `VITE_SENTRY_DSN` | Sentry DSN |
-| `APPLE_ID` / `APPLE_APP_SPECIFIC_PASSWORD` / `APPLE_TEAM_ID` / `APPLE_APP_BUNDLE_ID` | macOS 公证 |
+完整列表见 `.env.example`，常用项：
+
+| 变量                                                  | 说明                                                             |
+| ----------------------------------------------------- | ---------------------------------------------------------------- |
+| `VITE_API_URL`                                        | 弹弹play API 代理（如 `https://dandan-proxy.suemor.com/api/v2`） |
+| `VITE_SENTRY_DSN`                                     | Sentry DSN                                                       |
+| `VITE_POSTHOG_KEY` / `VITE_POSTHOG_HOST`              | PostHog 客户端配置                                               |
+| `VITE_TELEMETRY_DEBUG`                                | 开发态是否上报遥测，默认 false                                   |
+| `SENTRY_AUTH_TOKEN` / `SENTRY_ORG` / `SENTRY_PROJECT` | CI 上传 source map 和管理 Sentry Release（严禁加 `VITE_` 前缀）  |
+| `SPARKLE_ED_PUBLIC_KEY` / `SPARKLE_ED_PRIVATE_KEY`    | Sparkle 更新验签公钥与签名私钥；私钥仅用于发行，不打入客户端     |
+| `MARCHEN_DEPLOY_ENV`                                  | EdgeOne 正式构建必填（preview / production）                     |
+
+## 双内核构建与部署
+
+`pnpm media:prepare` 从锁定发布包复制 WASM / Worker 与 AudioWorklet，禁止重新引入播放器本地 libav 补丁 / 编译链。开发与构建自动执行。部署要求见 `docs/player-engine-deployment.md`。COOP 为 same-origin，COEP 为 credentialless；不设置 CSP，协议 bypassCSP=false。所有平台验收以 change evidence 为准，不把短样片通过写成平台支持结论。
+
+## 桌面发布入口
+
+仅发布 macOS 13+ ARM64 和 Windows x64，不再生成 Linux 或 Intel Mac 新包。Mac 当前使用 ad-hoc 签名、不做 Apple 公证；`.env.example` 中的 Apple 开发者账号变量不是当前发行流程的必要配置。
+
+Mac 使用 `@marchen/sparkle-updater` 与 Sparkle 原生更新窗口，Windows 使用 `electron-updater`。按安装版本自动选择稳定 / Beta / Alpha 渠道，只升级到允许渠道内的更高版本。标签构建仅创建 Draft；公开 Release 后由 `.github/workflows/update-channels.yml` 同步渠道元数据。禁止覆盖已公开版本的标签或安装包。
+
+具体版本命名、密钥配置、渠道规则及验收流程见 `docs/desktop-release.md`；更新说明位于 `docs/releases/<version>.md`。
+
+## Web 发布入口
+
+Web 托管于 EdgeOne，配置在 `edgeone.json`，正式构建用 `pnpm build:web:release`，具体环境与回滚见 `docs/web-edgeone-release.md`。不要恢复 GitHub Actions SSH Web 部署。`scripts/player-engine/experiments` 是历史实验，不是产品回归；`.tmp/test-results` 为本地输出，不提交。

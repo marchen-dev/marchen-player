@@ -1,1 +1,4 @@
 marchen/**/acceptance/** linguist-generated=true
+
+# Marchen 单文件验收页是冻结的生成产物，不计入 GitHub 语言统计
+marchen/archive/**/acceptance/index.html linguist-generated

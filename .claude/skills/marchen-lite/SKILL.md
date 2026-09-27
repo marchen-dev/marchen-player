@@ -18,6 +18,10 @@ marchen idea show <name> --json
 
 把完整 Idea 作为 tasks 的探索背景。只使用用户显式指定的 Idea，不通过模糊语义匹配自动消费其他 Idea。任一指定 Idea 不存在或损坏时先停止。
 
+**自动验收配置**
+
+进入流程及收尾前执行 `marchen config get acceptance.enabled --json`，根据 `value` 判断是否启用自动验收。命令失败时报告错误并停止，不自行读取配置兜底。关闭不代表验收通过，不免除正常检查，也不修改已有证据或人的决定。
+
 **流程**
 
 1. **确定变更名称**
@@ -118,7 +122,7 @@ marchen idea show <name> --json
 
 7. **全部完成 → 一道题**
 
-   所有任务完成后，用 **AskUserQuestion** 只问一次：
+   所有任务完成后重新查询自动验收配置，用 **AskUserQuestion** 只问一次。关闭时仅提供「直接归档」「先不动」，不展示验收选项；开启时提供以下四项：
 
    > "全部任务已完成 (N/N)，下一步？"
    > - 验收再归档
@@ -128,11 +132,11 @@ marchen idea show <name> --json
 
    **验收再归档：** 执行 `marchen-acceptance` 全文。等到 `decision.status` 为 accepted 再归档；若人点了「让 AI 修改」（`rejected`）则不归档，按待修改项修并开新轮。归档前 `marchen acceptance stop`。
 
-   **直接归档：** 不要创建 `acceptance/`。读取 tasks.md 背景段生成一句话摘要，执行 `marchen archive <name> --summary "<摘要>" --json`。不要再问「尚未验收」。
+   **直接归档：** 归档前用 `marchen acceptance stop <name>` 清理已有服务，保留已有验收记录随变更归档。不要创建 `acceptance/`。读取 tasks.md 背景段生成一句话摘要，执行 `marchen archive <name> --summary "<摘要>" --json`。不要再问「尚未验收」。
 
    **只验收：** 执行 acceptance，不要 archive。
 
-   **先不动：** 显示后续可用 `/marchen:acceptance <name>` 或 `/marchen:archive <name>`。
+   **先不动：** 关闭时仅提示 `/marchen:archive <name>`；开启时显示后续可用 `/marchen:acceptance <name>` 或 `/marchen:archive <name>`。
 
 **护栏**
 
