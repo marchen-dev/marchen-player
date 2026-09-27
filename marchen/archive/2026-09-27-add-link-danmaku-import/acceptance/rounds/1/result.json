@@ -1,0 +1,126 @@
+{
+  "title": "Electron 从链接添加弹幕",
+  "plan": [
+    {
+      "id": "link-input",
+      "name": "设置内的通用链接导入"
+    },
+    {
+      "id": "playback",
+      "name": "导入后弹幕实际显示且视频继续播放"
+    },
+    {
+      "id": "source-control",
+      "name": "来源勾选、偏移和重开恢复"
+    },
+    {
+      "id": "cancel",
+      "name": "取消导入不污染当前视频"
+    },
+    {
+      "id": "web",
+      "name": "Web 保留文件导入"
+    }
+  ],
+  "cases": [
+    {
+      "id": "link-input",
+      "name": "设置内的通用链接导入",
+      "status": "passed",
+      "observation": "Electron 弹幕设置中出现通用视频链接、时间偏移与添加按钮；真实接口完成 46/46 分段，导入 16429 条，跳过无效记录 0 条。",
+      "evidence": [
+        {
+          "path": "assets/loading.png",
+          "type": "image",
+          "text": "loading.png"
+        },
+        {
+          "path": "assets/success.png",
+          "type": "image",
+          "text": "success.png"
+        }
+      ]
+    },
+    {
+      "id": "playback",
+      "name": "导入后弹幕实际显示且视频继续播放",
+      "status": "passed",
+      "observation": "测试图视频持续播放，导入前后媒体时钟从 0.12 秒前进到 5.28 秒，视频地址及播放状态保持；已核验实际可见弹幕节点并截图。",
+      "evidence": [
+        {
+          "path": "assets/visible.png",
+          "type": "image",
+          "text": "visible.png"
+        }
+      ]
+    },
+    {
+      "id": "source-control",
+      "name": "来源勾选、偏移和重开恢复",
+      "status": "passed",
+      "observation": "链接来源显示标题与条数；关闭/开启勾选会移除/恢复弹幕；+2 秒偏移保存成功，同视频重开保留偏移，重复链接提示已经添加。",
+      "evidence": [
+        {
+          "path": "assets/source-disabled.png",
+          "type": "image",
+          "text": "source-disabled.png"
+        },
+        {
+          "path": "assets/source-selected.png",
+          "type": "image",
+          "text": "source-selected.png"
+        },
+        {
+          "path": "assets/offset.png",
+          "type": "image",
+          "text": "offset.png"
+        },
+        {
+          "path": "assets/duplicate.png",
+          "type": "image",
+          "text": "duplicate.png"
+        },
+        {
+          "path": "assets/restored.png",
+          "type": "image",
+          "text": "restored.png"
+        }
+      ]
+    },
+    {
+      "id": "cancel",
+      "name": "取消导入不污染当前视频",
+      "status": "passed",
+      "observation": "另一片源的导入被取消，等待 6 秒后仍没有新增链接来源，原视频保持可操作。",
+      "evidence": [
+        {
+          "path": "assets/cancelled.png",
+          "type": "image",
+          "text": "cancelled.png"
+        }
+      ]
+    },
+    {
+      "id": "web",
+      "name": "Web 保留文件导入",
+      "status": "passed",
+      "observation": "桌面 Chrome 不显示链接导入入口，实际通过文件输入导入 XML，成功形成 local 来源。",
+      "evidence": [
+        {
+          "path": "assets/web-file.png",
+          "type": "image",
+          "text": "web-file.png"
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "verdict": "passed",
+    "conclusion": "macOS Electron 真实链接导入和桌面 Chrome 回归通过，等待人工签核。首版仅提供 Electron 链接导入，不代表所有平台或所有历史弹幕均已验证。"
+  },
+  "commit": "working-tree@bc32272f7ddc7c9ba88f547f4c5bd4f8cefbd7f6",
+  "surfaces": [
+    "macOS Electron 独立测试用户目录",
+    "桌面 Chrome Web 1280×900"
+  ]
+}

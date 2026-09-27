@@ -1,0 +1,1 @@
+当前分支 main，工作区已有 HTTP 直链、字幕策略、SEO 及流程技能改动。链接功能采用独立 main/danmaku 模块和 IPC 分组；交叉文件为 player-loading 类型/加载/服务、HISTORY 类型、IPC 索引。IndexedDBCache 将弹幕存于 HISTORY.danmaku；LoadingOperations 的旧流程吞掉写入失败，新用户来源提交需要可失败且可取消的事务接口。未清理或覆盖其他变更。

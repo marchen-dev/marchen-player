@@ -1,0 +1,470 @@
+[
+  {
+    "clock": {
+      "currentTime": 26.519303999992847,
+      "duration": 1421.72,
+      "volume": 1,
+      "muted": false,
+      "rate": 1,
+      "paused": false,
+      "seeking": false,
+      "ended": false,
+      "buffered": [
+        [
+          26.519303999992847,
+          26.98691666666667
+        ]
+      ]
+    },
+    "presentation": {
+      "engine": "compat",
+      "backend": "webcodecs",
+      "firstFrame": true,
+      "buffering": false,
+      "width": 3840,
+      "height": 2160,
+      "videoCodec": "hevc",
+      "decodeThreads": 0,
+      "audioOutputChannels": 2,
+      "videoQueuePeak": 1,
+      "audioAheadPeak": 0.49191833332618273,
+      "decodeFps": 36.82813669638335,
+      "colorOutput": "browser-managed",
+      "presenter": "video",
+      "submittedFrames": 16,
+      "renderedFrames": 16,
+      "sourceTransfer": "bt709",
+      "sourcePrimaries": "bt709",
+      "videoFrameRate": 23.976023976023978
+    }
+  },
+  {
+    "clock": {
+      "currentTime": 27.525907999997017,
+      "duration": 1421.72,
+      "volume": 1,
+      "muted": false,
+      "rate": 1,
+      "paused": false,
+      "seeking": false,
+      "ended": false,
+      "buffered": [
+        [
+          27.525907999997017,
+          28.010916666666667
+        ]
+      ]
+    },
+    "presentation": {
+      "engine": "compat",
+      "backend": "webcodecs",
+      "firstFrame": true,
+      "buffering": false,
+      "width": 3840,
+      "height": 2160,
+      "videoCodec": "hevc",
+      "decodeThreads": 0,
+      "audioOutputChannels": 2,
+      "videoQueuePeak": 1,
+      "audioAheadPeak": 0.4995116666696511,
+      "decodeFps": 4.005672031583352,
+      "colorOutput": "browser-managed",
+      "presenter": "video",
+      "submittedFrames": 40,
+      "renderedFrames": 40,
+      "sourceTransfer": "bt709",
+      "sourcePrimaries": "bt709",
+      "videoFrameRate": 23.976023976023978
+    }
+  },
+  {
+    "clock": {
+      "currentTime": 28.535686000006557,
+      "duration": 1421.72,
+      "volume": 1,
+      "muted": false,
+      "rate": 1,
+      "paused": false,
+      "seeking": false,
+      "ended": false,
+      "buffered": [
+        [
+          28.535686000006557,
+          29.013583333333333
+        ]
+      ]
+    },
+    "presentation": {
+      "engine": "compat",
+      "backend": "webcodecs",
+      "firstFrame": true,
+      "buffering": false,
+      "width": 3840,
+      "height": 2160,
+      "videoCodec": "hevc",
+      "decodeThreads": 0,
+      "audioOutputChannels": 2,
+      "videoQueuePeak": 1,
+      "audioAheadPeak": 0.4995116666696511,
+      "decodeFps": 24.96654483021026,
+      "colorOutput": "browser-managed",
+      "presenter": "video",
+      "submittedFrames": 65,
+      "renderedFrames": 64,
+      "sourceTransfer": "bt709",
+      "sourcePrimaries": "bt709",
+      "videoFrameRate": 23.976023976023978
+    }
+  },
+  {
+    "clock": {
+      "currentTime": 29.540650666655935,
+      "duration": 1421.72,
+      "volume": 1,
+      "muted": false,
+      "rate": 1,
+      "paused": false,
+      "seeking": false,
+      "ended": false,
+      "buffered": [
+        [
+          29.540650666655935,
+          30.01625
+        ]
+      ]
+    },
+    "presentation": {
+      "engine": "compat",
+      "backend": "webcodecs",
+      "firstFrame": true,
+      "buffering": false,
+      "width": 3840,
+      "height": 2160,
+      "videoCodec": "hevc",
+      "decodeThreads": 0,
+      "audioOutputChannels": 2,
+      "videoQueuePeak": 1,
+      "audioAheadPeak": 0.4995116666696511,
+      "decodeFps": 19.996200721612603,
+      "colorOutput": "browser-managed",
+      "presenter": "video",
+      "submittedFrames": 89,
+      "renderedFrames": 89,
+      "sourceTransfer": "bt709",
+      "sourcePrimaries": "bt709",
+      "videoFrameRate": 23.976023976023978
+    }
+  },
+  {
+    "clock": {
+      "currentTime": 30.54369333333691,
+      "duration": 1421.72,
+      "volume": 1,
+      "muted": false,
+      "rate": 1,
+      "paused": false,
+      "seeking": false,
+      "ended": false,
+      "buffered": [
+        [
+          30.54369333333691,
+          31.01891666666667
+        ]
+      ]
+    },
+    "presentation": {
+      "engine": "compat",
+      "backend": "webcodecs",
+      "firstFrame": true,
+      "buffering": false,
+      "width": 3840,
+      "height": 2160,
+      "videoCodec": "hevc",
+      "decodeThreads": 0,
+      "audioOutputChannels": 2,
+      "videoQueuePeak": 1,
+      "audioAheadPeak": 0.49964866667143326,
+      "decodeFps": 24.998000160031896,
+      "colorOutput": "browser-managed",
+      "presenter": "video",
+      "submittedFrames": 113,
+      "renderedFrames": 113,
+      "sourceTransfer": "bt709",
+      "sourcePrimaries": "bt709",
+      "videoFrameRate": 23.976023976023978
+    }
+  },
+  {
+    "clock": {
+      "currentTime": 31.55144433332737,
+      "duration": 1421.72,
+      "volume": 1,
+      "muted": false,
+      "rate": 1,
+      "paused": false,
+      "seeking": false,
+      "ended": false,
+      "buffered": [
+        [
+          31.55144433332737,
+          32.02158333333333
+        ]
+      ]
+    },
+    "presentation": {
+      "engine": "compat",
+      "backend": "webcodecs",
+      "firstFrame": true,
+      "buffering": false,
+      "width": 3840,
+      "height": 2160,
+      "videoCodec": "hevc",
+      "decodeThreads": 0,
+      "audioOutputChannels": 2,
+      "videoQueuePeak": 1,
+      "audioAheadPeak": 0.4998216666583275,
+      "decodeFps": 23.982732432534217,
+      "colorOutput": "browser-managed",
+      "presenter": "video",
+      "submittedFrames": 137,
+      "renderedFrames": 137,
+      "sourceTransfer": "bt709",
+      "sourcePrimaries": "bt709",
+      "videoFrameRate": 23.976023976023978
+    }
+  },
+  {
+    "clock": {
+      "currentTime": 32.55680433332797,
+      "duration": 1421.72,
+      "volume": 1,
+      "muted": false,
+      "rate": 1,
+      "paused": false,
+      "seeking": false,
+      "ended": false,
+      "buffered": [
+        [
+          32.55680433332797,
+          33.024249999999995
+        ]
+      ]
+    },
+    "presentation": {
+      "engine": "compat",
+      "backend": "webcodecs",
+      "firstFrame": true,
+      "buffering": false,
+      "width": 3840,
+      "height": 2160,
+      "videoCodec": "hevc",
+      "decodeThreads": 0,
+      "audioOutputChannels": 2,
+      "videoQueuePeak": 1,
+      "audioAheadPeak": 0.4998216666583275,
+      "decodeFps": 20.96865186567329,
+      "colorOutput": "browser-managed",
+      "presenter": "video",
+      "submittedFrames": 161,
+      "renderedFrames": 161,
+      "sourceTransfer": "bt709",
+      "sourcePrimaries": "bt709",
+      "videoFrameRate": 23.976023976023978
+    }
+  },
+  {
+    "clock": {
+      "currentTime": 33.56082699999881,
+      "duration": 1421.72,
+      "volume": 1,
+      "muted": false,
+      "rate": 1,
+      "paused": false,
+      "seeking": false,
+      "ended": false,
+      "buffered": [
+        [
+          33.56082699999881,
+          34.048249999999996
+        ]
+      ]
+    },
+    "presentation": {
+      "engine": "compat",
+      "backend": "webcodecs",
+      "firstFrame": true,
+      "buffering": false,
+      "width": 3840,
+      "height": 2160,
+      "videoCodec": "hevc",
+      "decodeThreads": 0,
+      "audioOutputChannels": 2,
+      "videoQueuePeak": 1,
+      "audioAheadPeak": 0.4998716666642835,
+      "decodeFps": 24.811810421737086,
+      "colorOutput": "browser-managed",
+      "presenter": "video",
+      "submittedFrames": 185,
+      "renderedFrames": 185,
+      "sourceTransfer": "bt709",
+      "sourcePrimaries": "bt709",
+      "videoFrameRate": 23.976023976023978
+    }
+  },
+  {
+    "clock": {
+      "currentTime": 34.56530566665772,
+      "duration": 1421.72,
+      "volume": 1,
+      "muted": false,
+      "rate": 1,
+      "paused": false,
+      "seeking": false,
+      "ended": false,
+      "buffered": [
+        [
+          34.56530566665772,
+          35.02958333333333
+        ]
+      ]
+    },
+    "presentation": {
+      "engine": "compat",
+      "backend": "webcodecs",
+      "firstFrame": true,
+      "buffering": false,
+      "width": 3840,
+      "height": 2160,
+      "videoCodec": "hevc",
+      "decodeThreads": 0,
+      "audioOutputChannels": 2,
+      "videoQueuePeak": 1,
+      "audioAheadPeak": 0.4998716666642835,
+      "decodeFps": 23.960106423005634,
+      "colorOutput": "browser-managed",
+      "presenter": "video",
+      "submittedFrames": 209,
+      "renderedFrames": 209,
+      "sourceTransfer": "bt709",
+      "sourcePrimaries": "bt709",
+      "videoFrameRate": 23.976023976023978
+    }
+  },
+  {
+    "clock": {
+      "currentTime": 35.56842766666726,
+      "duration": 1421.72,
+      "volume": 1,
+      "muted": false,
+      "rate": 1,
+      "paused": false,
+      "seeking": false,
+      "ended": false,
+      "buffered": [
+        [
+          35.56842766666726,
+          36.05358333333333
+        ]
+      ]
+    },
+    "presentation": {
+      "engine": "compat",
+      "backend": "webcodecs",
+      "firstFrame": true,
+      "buffering": false,
+      "width": 3840,
+      "height": 2160,
+      "videoCodec": "hevc",
+      "decodeThreads": 0,
+      "audioOutputChannels": 2,
+      "videoQueuePeak": 1,
+      "audioAheadPeak": 0.4998716666642835,
+      "decodeFps": 23.99078753750552,
+      "colorOutput": "browser-managed",
+      "presenter": "video",
+      "submittedFrames": 233,
+      "renderedFrames": 233,
+      "sourceTransfer": "bt709",
+      "sourcePrimaries": "bt709",
+      "videoFrameRate": 23.976023976023978
+    }
+  },
+  {
+    "clock": {
+      "currentTime": 36.57015399999642,
+      "duration": 1421.72,
+      "volume": 1,
+      "muted": false,
+      "rate": 1,
+      "paused": false,
+      "seeking": false,
+      "ended": false,
+      "buffered": [
+        [
+          36.57015399999642,
+          37.05625
+        ]
+      ]
+    },
+    "presentation": {
+      "engine": "compat",
+      "backend": "webcodecs",
+      "firstFrame": true,
+      "buffering": false,
+      "width": 3840,
+      "height": 2160,
+      "videoCodec": "hevc",
+      "decodeThreads": 0,
+      "audioOutputChannels": 2,
+      "videoQueuePeak": 1,
+      "audioAheadPeak": 0.4998716666642835,
+      "decodeFps": 24.008931322520667,
+      "colorOutput": "browser-managed",
+      "presenter": "video",
+      "submittedFrames": 257,
+      "renderedFrames": 257,
+      "sourceTransfer": "bt709",
+      "sourcePrimaries": "bt709",
+      "videoFrameRate": 23.976023976023978
+    }
+  },
+  {
+    "clock": {
+      "currentTime": 37.57401200000059,
+      "duration": 1421.72,
+      "volume": 1,
+      "muted": false,
+      "rate": 1,
+      "paused": false,
+      "seeking": false,
+      "ended": false,
+      "buffered": [
+        [
+          37.57401200000059,
+          38.05891666666666
+        ]
+      ]
+    },
+    "presentation": {
+      "engine": "compat",
+      "backend": "webcodecs",
+      "firstFrame": true,
+      "buffering": false,
+      "width": 3840,
+      "height": 2160,
+      "videoCodec": "hevc",
+      "decodeThreads": 0,
+      "audioOutputChannels": 2,
+      "videoQueuePeak": 1,
+      "audioAheadPeak": 0.4998716666642835,
+      "decodeFps": 24.994501209763648,
+      "colorOutput": "browser-managed",
+      "presenter": "video",
+      "submittedFrames": 281,
+      "renderedFrames": 281,
+      "sourceTransfer": "bt709",
+      "sourcePrimaries": "bt709",
+      "videoFrameRate": 23.976023976023978
+    }
+  }
+]

@@ -1,0 +1,292 @@
+{
+  "dependency": "@jellyfin/libass-wasm@4.2.4",
+  "original": [
+    {
+      "_index": 0,
+      "Start": 1000,
+      "Duration": 9000,
+      "ReadOrder": 0,
+      "Layer": 0,
+      "Style": 1,
+      "Name": "",
+      "MarginL": 0,
+      "MarginR": 0,
+      "MarginV": 0,
+      "Effect": "",
+      "Text": "First subtitle"
+    },
+    {
+      "_index": 1,
+      "Start": 3000,
+      "Duration": 5000,
+      "ReadOrder": 1,
+      "Layer": 1,
+      "Style": 1,
+      "Name": "",
+      "MarginL": 0,
+      "MarginR": 0,
+      "MarginV": 0,
+      "Effect": "",
+      "Text": "{\\an8\\t(0,1000,\\fs44)}Animated overlap"
+    },
+    {
+      "_index": 2,
+      "Start": 12000,
+      "Duration": 4000,
+      "ReadOrder": 2,
+      "Layer": 0,
+      "Style": 1,
+      "Name": "",
+      "MarginL": 0,
+      "MarginR": 0,
+      "MarginV": 0,
+      "Effect": "",
+      "Text": "Last subtitle"
+    }
+  ],
+  "styles": [
+    {
+      "_index": 0,
+      "Name": "Default",
+      "FontName": "Arial",
+      "FontSize": 18,
+      "PrimaryColour": -256,
+      "SecondaryColour": 16776960,
+      "OutlineColour": 0,
+      "BackColour": 128,
+      "Bold": 200,
+      "Italic": 0,
+      "Underline": 0,
+      "StrikeOut": 0,
+      "ScaleX": 1,
+      "ScaleY": 1,
+      "Spacing": 0,
+      "Angle": 0,
+      "BorderStyle": 1,
+      "Outline": 2,
+      "Shadow": 3,
+      "Alignment": 2,
+      "MarginL": 20,
+      "MarginR": 20,
+      "MarginV": 20,
+      "Encoding": 0,
+      "treat_fontname_as_pattern": 0,
+      "Blur": 0,
+      "Justify": 0
+    },
+    {
+      "_index": 1,
+      "Name": "Default",
+      "FontName": "Arial",
+      "FontSize": 32,
+      "PrimaryColour": -256,
+      "SecondaryColour": -16777216,
+      "OutlineColour": 0,
+      "BackColour": 0,
+      "Bold": 0,
+      "Italic": 0,
+      "Underline": 0,
+      "StrikeOut": 0,
+      "ScaleX": 1,
+      "ScaleY": 1,
+      "Spacing": 0,
+      "Angle": 0,
+      "BorderStyle": 1,
+      "Outline": 2,
+      "Shadow": 0,
+      "Alignment": 2,
+      "MarginL": 10,
+      "MarginR": 10,
+      "MarginV": 20,
+      "Encoding": 1,
+      "treat_fontname_as_pattern": 0,
+      "Blur": 0,
+      "Justify": 0
+    }
+  ],
+  "appended": [
+    {
+      "_index": 0,
+      "Start": 1000,
+      "Duration": 9000,
+      "ReadOrder": 0,
+      "Layer": 0,
+      "Style": 1,
+      "Name": "",
+      "MarginL": 0,
+      "MarginR": 0,
+      "MarginV": 0,
+      "Effect": "",
+      "Text": "First subtitle"
+    },
+    {
+      "_index": 1,
+      "Start": 3000,
+      "Duration": 5000,
+      "ReadOrder": 1,
+      "Layer": 1,
+      "Style": 1,
+      "Name": "",
+      "MarginL": 0,
+      "MarginR": 0,
+      "MarginV": 0,
+      "Effect": "",
+      "Text": "{\\an8\\t(0,1000,\\fs44)}Animated overlap"
+    }
+  ],
+  "removed": [
+    {
+      "_index": 0,
+      "Start": 1000,
+      "Duration": 9000,
+      "ReadOrder": 0,
+      "Layer": 0,
+      "Style": 1,
+      "Name": "≀",
+      "MarginL": 0,
+      "MarginR": 0,
+      "MarginV": 0,
+      "Effect": "",
+      "Text": "First subtitle"
+    },
+    {
+      "_index": 1,
+      "Start": 3000,
+      "Duration": 5000,
+      "ReadOrder": 1,
+      "Layer": 1,
+      "Style": 1,
+      "Name": "",
+      "MarginL": 0,
+      "MarginR": 0,
+      "MarginV": 0,
+      "Effect": "",
+      "Text": "{\\an8\\t(0,1000,\\fs44)}Animated overlap"
+    },
+    {
+      "_index": 2,
+      "Start": 12000,
+      "Duration": 4000,
+      "ReadOrder": 2,
+      "Layer": 0,
+      "Style": 1,
+      "Name": "",
+      "MarginL": 0,
+      "MarginR": 0,
+      "MarginV": 0,
+      "Effect": "",
+      "Text": "Last subtitle"
+    }
+  ],
+  "restored": [
+    {
+      "_index": 0,
+      "Start": 1000,
+      "Duration": 9000,
+      "ReadOrder": 0,
+      "Layer": 0,
+      "Style": 1,
+      "Name": "񀀀",
+      "MarginL": 0,
+      "MarginR": 0,
+      "MarginV": 0,
+      "Effect": "",
+      "Text": "\u0001"
+    },
+    {
+      "_index": 1,
+      "Start": 3000,
+      "Duration": 5000,
+      "ReadOrder": 1,
+      "Layer": 1,
+      "Style": 1,
+      "Name": "",
+      "MarginL": 0,
+      "MarginR": 0,
+      "MarginV": 0,
+      "Effect": "",
+      "Text": "{\\an8\\t(0,1000,\\fs44)}Animated overlap"
+    },
+    {
+      "_index": 2,
+      "Start": 12000,
+      "Duration": 4000,
+      "ReadOrder": 2,
+      "Layer": 0,
+      "Style": 1,
+      "Name": "",
+      "MarginL": 0,
+      "MarginR": 0,
+      "MarginV": 0,
+      "Effect": "",
+      "Text": "Last subtitle"
+    },
+    {
+      "_index": 3,
+      "Start": 1000,
+      "Duration": 9000,
+      "ReadOrder": 0,
+      "Layer": 0,
+      "Style": 1,
+      "Name": "",
+      "MarginL": 0,
+      "MarginR": 0,
+      "MarginV": 0,
+      "Effect": "",
+      "Text": "First subtitle"
+    }
+  ],
+  "samples": [
+    {
+      "phase": "before-append",
+      "time": 2,
+      "differentChannels": 7181,
+      "fullInk": 3035,
+      "incrementalInk": 0
+    },
+    {
+      "phase": "append-current",
+      "time": 2,
+      "differentChannels": 0,
+      "fullInk": 3035,
+      "incrementalInk": 3035
+    },
+    {
+      "phase": "animation",
+      "time": 3.5,
+      "differentChannels": 0,
+      "fullInk": 8466,
+      "incrementalInk": 8466
+    },
+    {
+      "phase": "append-later",
+      "time": 13,
+      "differentChannels": 0,
+      "fullInk": 2947,
+      "incrementalInk": 2947
+    },
+    {
+      "phase": "removed-expected-empty",
+      "time": 2.5,
+      "differentChannels": 0,
+      "fullInk": 3035,
+      "incrementalInk": 3035
+    },
+    {
+      "phase": "restore-and-seek-back",
+      "time": 3.5,
+      "differentChannels": 14601,
+      "fullInk": 8466,
+      "incrementalInk": 8850
+    },
+    {
+      "phase": "explicit-track-rebuild",
+      "time": 3.5,
+      "differentChannels": 0,
+      "fullInk": 8466,
+      "incrementalInk": 8466
+    }
+  ],
+  "errors": [],
+  "passed": false
+}

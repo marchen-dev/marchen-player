@@ -1,0 +1,115 @@
+{
+  "checks": [
+    "远程限制提示且无内嵌重试",
+    "远程默认关闭字幕",
+    "远程未进入任何字幕目录/正文/字体读取阶段",
+    "native 实际持续播放",
+    "compat 实际持续播放",
+    "native 实际持续播放"
+  ],
+  "samples": [
+    {
+      "engine": "native",
+      "start": 3.439359,
+      "clock": {
+        "currentTime": 4.888158,
+        "duration": 20.001,
+        "volume": 1,
+        "muted": false,
+        "rate": 1,
+        "paused": false,
+        "seeking": false,
+        "ended": false,
+        "buffered": [
+          [
+            0,
+            20.001
+          ]
+        ]
+      },
+      "presentation": {
+        "decodeFps": 23.8712147962737,
+        "engine": "native",
+        "backend": "native",
+        "renderedFrames": 126,
+        "droppedFrames": 0,
+        "firstFrame": true,
+        "buffering": false,
+        "width": 320,
+        "height": 180,
+        "videoFrameRate": 24
+      }
+    },
+    {
+      "engine": "compat",
+      "start": 3.417929,
+      "clock": {
+        "currentTime": 4.8356003333369095,
+        "duration": 20.0005,
+        "volume": 1,
+        "muted": false,
+        "rate": 1,
+        "paused": false,
+        "seeking": false,
+        "ended": false,
+        "buffered": [
+          [
+            4.8356003333369095,
+            5.312166666666667
+          ]
+        ]
+      },
+      "presentation": {
+        "engine": "compat",
+        "backend": "webcodecs",
+        "firstFrame": true,
+        "buffering": false,
+        "width": 320,
+        "height": 180,
+        "videoCodec": "avc",
+        "decodeThreads": 0,
+        "audioOutputChannels": 2,
+        "videoQueuePeak": 1,
+        "audioAheadPeak": 0.4999376666696467,
+        "decodeFps": 0,
+        "colorOutput": "browser-managed",
+        "presenter": "video",
+        "submittedFrames": 34,
+        "renderedFrames": 34,
+        "videoFrameRate": 24
+      }
+    },
+    {
+      "engine": "native",
+      "start": 3,
+      "clock": {
+        "currentTime": 4.505895,
+        "duration": 20.001,
+        "volume": 1,
+        "muted": false,
+        "rate": 1,
+        "paused": false,
+        "seeking": false,
+        "ended": false,
+        "buffered": [
+          [
+            0,
+            15.943
+          ]
+        ]
+      },
+      "presentation": {
+        "decodeFps": 23.984529978264092,
+        "engine": "native",
+        "backend": "native",
+        "renderedFrames": 117,
+        "droppedFrames": 0,
+        "firstFrame": true,
+        "buffering": false,
+        "width": 320,
+        "height": 180,
+        "videoFrameRate": 24
+      }
+    }
+  ]
+}

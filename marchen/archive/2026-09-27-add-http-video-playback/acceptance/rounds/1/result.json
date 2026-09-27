@@ -1,0 +1,173 @@
+{
+  "title": "HTTP 文件直链播放验收",
+  "plan": [
+    {
+      "id": "open-link",
+      "name": "输入文件直链并开始播放"
+    },
+    {
+      "id": "compat-subtitle",
+      "name": "网络 MKV 字幕与双音轨"
+    },
+    {
+      "id": "preview-snapshot",
+      "name": "远程视频预览与截图"
+    },
+    {
+      "id": "danmaku-continuity",
+      "name": "更新弹幕后保持播放位置"
+    },
+    {
+      "id": "replace-link",
+      "name": "失效链接可恢复，内容变化不误续播"
+    },
+    {
+      "id": "access-recovery",
+      "name": "无法访问时有明确恢复入口"
+    }
+  ],
+  "cases": [
+    {
+      "id": "open-link",
+      "name": "输入文件直链并开始播放",
+      "status": "passed",
+      "observation": "首页打开链接可用；浅色、深色桌面输入界面均已查看。MP4 在 Web 与 Electron 原生内核显示首帧并持续播放；来源 HEAD 返回 405、无 ETag、URL 无视频后缀仍可播放。",
+      "evidence": [
+        {
+          "path": "assets/input-light.png",
+          "type": "image",
+          "text": "浅色链接输入"
+        },
+        {
+          "path": "assets/input-dark.png",
+          "type": "image",
+          "text": "深色链接输入"
+        },
+        {
+          "path": "assets/electron-playing.png",
+          "type": "image",
+          "text": "Electron 原生播放并暂停在 30 秒"
+        }
+      ]
+    },
+    {
+      "id": "compat-subtitle",
+      "name": "网络 MKV 字幕与双音轨",
+      "status": "passed",
+      "observation": "Web 与 macOS Electron 兼容内核实际播放包含两条 AAC 音轨和内嵌 SRT 的 MKV；字幕文字可见，切换到第二音轨成功。验证了切换后的轨道状态与持续可播放性，未进行人工听辨。",
+      "evidence": [
+        {
+          "path": "assets/compat.png",
+          "type": "image",
+          "text": "Web 字幕选择与内嵌字幕"
+        },
+        {
+          "path": "assets/electron-subtitle.png",
+          "type": "image",
+          "text": "Electron 5 秒暂停画面及内嵌字幕"
+        }
+      ]
+    },
+    {
+      "id": "preview-snapshot",
+      "name": "远程视频预览与截图",
+      "status": "passed",
+      "observation": "Web 与 Electron 均生成远程来源画面截图，进度条悬停显示预览。Web 原生 video 画面可绘制到 Canvas 并导出，没有跨域画布污染。",
+      "evidence": [
+        {
+          "path": "assets/preview.png",
+          "type": "image",
+          "text": "Web 进度预览"
+        },
+        {
+          "path": "assets/electron-preview.png",
+          "type": "image",
+          "text": "Electron 进度预览"
+        },
+        {
+          "path": "assets/snapshot.jpg",
+          "type": "image",
+          "text": "实际导出的 5 秒视频帧"
+        }
+      ]
+    },
+    {
+      "id": "danmaku-continuity",
+      "name": "更新弹幕后保持播放位置",
+      "status": "passed",
+      "observation": "受控弹幕接口返回网络弹幕；播放暂停并跳转到 5 秒后重试弹幕，Web/Electron 均保留暂停状态和当前时间，没有重开媒体会话。",
+      "evidence": [
+        {
+          "path": "assets/subtitle.png",
+          "type": "image",
+          "text": "Web 更新后仍暂停在 5 秒"
+        },
+        {
+          "path": "assets/electron-subtitle.png",
+          "type": "image",
+          "text": "Electron 更新后仍暂停在 5 秒"
+        }
+      ]
+    },
+    {
+      "id": "replace-link",
+      "name": "失效链接可恢复，内容变化不误续播",
+      "status": "passed",
+      "observation": "HTTP 403 后可更换链接；新地址经重定向读取同内容后，Web/Electron 均恢复到原 30 秒附近。指纹/大小核对失败时原记录地址不变，弹窗保留输入并提供作为新视频打开。",
+      "evidence": [
+        {
+          "path": "assets/restored.png",
+          "type": "image",
+          "text": "Web 同内容链接恢复进度"
+        },
+        {
+          "path": "assets/electron-restored.png",
+          "type": "image",
+          "text": "Electron 同内容链接恢复进度"
+        },
+        {
+          "path": "assets/mismatch.png",
+          "type": "image",
+          "text": "不同内容允许作为新视频打开"
+        }
+      ]
+    },
+    {
+      "id": "access-recovery",
+      "name": "无法访问时有明确恢复入口",
+      "status": "passed",
+      "observation": "无按需读取支持时显示错误及更换链接。Web 无 CORS 来源被拒绝，同来源在 Electron 可播放；取消慢探测后不恢复旧视频。Web 全屏中错误入口可编辑链接，弹窗位于全屏容器；浅深主题及长文件名无水平布局溢出。",
+      "evidence": [
+        {
+          "path": "assets/no-range.png",
+          "type": "image",
+          "text": "Web 来源错误"
+        },
+        {
+          "path": "assets/electron-no-range.png",
+          "type": "image",
+          "text": "Electron 来源错误"
+        },
+        {
+          "path": "assets/fullscreen-link.png",
+          "type": "image",
+          "text": "全屏更换链接；通过注入运行时错误验证入口"
+        },
+        {
+          "path": "assets/long-name.png",
+          "type": "image",
+          "text": "长文件名来源正常播放"
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "verdict": "passed",
+    "conclusion": "受控 MP4/MKV 在 macOS Electron 与桌面 Chrome 的播放和恢复场景通过，等待人工签核；访问与预算限制见报告。"
+  },
+  "commit": "working-tree@bc32272f7ddc7c9ba88f547f4c5bd4f8cefbd7f6",
+  "surfaces": [
+    "Chrome 桌面 Web，1280×800，浅色/深色、DOM 全屏",
+    "macOS ARM64 Electron 44，独立用户目录、CDP 9234"
+  ]
+}

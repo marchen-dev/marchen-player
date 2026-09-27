@@ -47,3 +47,10 @@
 - 2026-09-25: 清理已替代的 generalize-media-compat-playback 规划，实验移入 [双端内核重建](./archive/2026-09-07-rebuild-cross-platform-player-engine/historical-evidence/generalize-media-compat-playback/)。
 - 2026-09-25: [rebuild-observability-stack](./archive/2026-09-25-rebuild-observability-stack/) — 归档 Sentry/PostHog 可观测体系重建，保留待签核状态
 - 2026-09-25: 清理已替代的 add-ffmpeg-compat-playback 规划，后续以 [双端内核重建](./archive/2026-09-07-rebuild-cross-platform-player-engine/proposal.md) 为准。
+- 2026-09-27: [add-labs-url-playback-toggle](./archive/2026-09-27-add-labs-url-playback-toggle/) — 设置新增实验室分类，通过 URL 播放改为默认关闭的 Beta 开关，仅控制首页新建入口
+- 2026-09-27: [add-http-video-playback](./archive/2026-09-27-add-http-video-playback/) — 新增 HTTP 视频直链与历史恢复，后续收敛为桌面端
+- 2026-09-27: [load-remote-subtitles-on-demand](./archive/2026-09-27-load-remote-subtitles-on-demand/) — 废弃远程增量字幕方案，保留未完成任务与实验记录
+- 2026-09-27: [disable-remote-embedded-subtitles](./archive/2026-09-27-disable-remote-embedded-subtitles/) — 禁用远程内嵌字幕，保留外挂字幕与兼容内核
+- 2026-09-27: [add-link-danmaku-import](./archive/2026-09-27-add-link-danmaku-import/) — 新增链接弹幕导入与偏移，保留后续 UI 验证待办
+- 2026-09-27: [add-seo-metadata](./archive/2026-09-27-add-seo-metadata/) — 补齐 SEO 元信息、分享封面及环境索引策略
+- 2026-09-27: [reuse-remote-prefix-desktop](./archive/2026-09-27-reuse-remote-prefix-desktop/) — 复用桌面远程视频识别前缀，下线 Web 远程播放

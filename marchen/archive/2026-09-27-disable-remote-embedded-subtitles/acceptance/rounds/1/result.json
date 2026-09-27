@@ -1,0 +1,104 @@
+{
+  "title": "远程禁用内嵌字幕，保留兼容播放",
+  "plan": [
+    {
+      "id": "remote-policy",
+      "name": "远程字幕限制清晰且不再等待"
+    },
+    {
+      "id": "playback",
+      "name": "兼容播放、音轨及内核切换保留"
+    },
+    {
+      "id": "external",
+      "name": "远程视频可使用外挂字幕"
+    },
+    {
+      "id": "local",
+      "name": "本地内嵌字幕保持可用"
+    }
+  ],
+  "cases": [
+    {
+      "id": "remote-policy",
+      "name": "远程字幕限制清晰且不再等待",
+      "status": "passed",
+      "observation": "Electron/Web 字幕面板显示限制提示、关闭字幕和外挂导入，不出现内嵌选项或重新读取按钮。旧内嵌默认历史也恢复为关闭，不持续等待。",
+      "evidence": [
+        {
+          "path": "assets/web-remote.png",
+          "type": "image",
+          "text": "web-remote.png"
+        },
+        {
+          "path": "assets/electron-history.png",
+          "type": "image",
+          "text": "electron-history.png"
+        }
+      ]
+    },
+    {
+      "id": "playback",
+      "name": "兼容播放、音轨及内核切换保留",
+      "status": "passed",
+      "observation": "双端受控 MKV 兼容播放、seek/倍速通过；输出端 PCM 检测到约 440 Hz 与 660 Hz 两条不同音轨。MP4 在 H5 → 兼容 → H5 切换后均继续播放；未作人工扬声器听辨。",
+      "evidence": [
+        {
+          "path": "assets/electron-switch-compat.png",
+          "type": "image",
+          "text": "electron-switch-compat.png"
+        },
+        {
+          "path": "assets/web-switch-native.png",
+          "type": "image",
+          "text": "web-switch-native.png"
+        }
+      ]
+    },
+    {
+      "id": "external",
+      "name": "远程视频可使用外挂字幕",
+      "status": "passed",
+      "observation": "双端导入真实 SRT，画面显示“网络字幕验证”，字幕大小 150%、偏移 +1 秒可设置；外挂内容持久化并通过目录恢复测试。",
+      "evidence": [
+        {
+          "path": "assets/web-external.png",
+          "type": "image",
+          "text": "web-external.png"
+        },
+        {
+          "path": "assets/electron-external.png",
+          "type": "image",
+          "text": "electron-external.png"
+        }
+      ]
+    },
+    {
+      "id": "local",
+      "name": "本地内嵌字幕保持可用",
+      "status": "passed",
+      "observation": "从远程切到本地 MKV 后，内嵌轨道可选且实际呈现文字，远程限制提示消失。",
+      "evidence": [
+        {
+          "path": "assets/web-local.png",
+          "type": "image",
+          "text": "web-local.png"
+        },
+        {
+          "path": "assets/electron-local.png",
+          "type": "image",
+          "text": "electron-local.png"
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "verdict": "passed",
+    "conclusion": "macOS Electron 与桌面 Chrome 的受控来源回归通过，等待人工签核；不代表所有真实远程来源或编码均已验证。"
+  },
+  "commit": "working-tree@bc32272f7ddc7c9ba88f547f4c5bd4f8cefbd7f6",
+  "surfaces": [
+    "macOS Electron 独立测试用户目录",
+    "桌面 Chrome Web 1280×800"
+  ]
+}

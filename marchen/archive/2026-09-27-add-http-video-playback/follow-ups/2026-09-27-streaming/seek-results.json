@@ -1,0 +1,38 @@
+[
+  {
+    "target": 60,
+    "ms": 1729,
+    "time": 60,
+    "paused": true,
+    "width": 1920,
+    "height": 1080,
+    "frames": 223
+  },
+  {
+    "target": 1800,
+    "ms": 5637,
+    "time": 1800,
+    "paused": true,
+    "width": 1920,
+    "height": 1080,
+    "frames": 312
+  },
+  {
+    "target": 3200,
+    "ms": 3870,
+    "time": 3200,
+    "paused": true,
+    "width": 1920,
+    "height": 1080,
+    "frames": 481
+  },
+  {
+    "target": 5,
+    "ms": 6397,
+    "time": 5,
+    "paused": true,
+    "width": 1920,
+    "height": 1080,
+    "frames": 495
+  }
+]

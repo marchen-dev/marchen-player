@@ -1,0 +1,10 @@
+{
+  "fixture": "controlled-20s-mkv",
+  "delayPerLogicalReadMs": 15,
+  "directoryMs": 17.305999999999997,
+  "firstMs": 81.896,
+  "totalMs": 81.90433399999999,
+  "reads": 5,
+  "bytes": 1116225,
+  "cues": 1
+}

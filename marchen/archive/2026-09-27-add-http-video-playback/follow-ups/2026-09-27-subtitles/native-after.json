@@ -1,0 +1,360 @@
+[
+  {
+    "clock": {
+      "currentTime": 14.179159,
+      "duration": 1421.72,
+      "volume": 1,
+      "muted": false,
+      "rate": 1,
+      "paused": false,
+      "seeking": false,
+      "ended": false,
+      "buffered": [
+        [
+          0,
+          31.87
+        ]
+      ]
+    },
+    "presentation": {
+      "decodeFps": 23.894862604752724,
+      "engine": "native",
+      "backend": "native",
+      "renderedFrames": 345,
+      "droppedFrames": 0,
+      "firstFrame": true,
+      "buffering": false,
+      "width": 3840,
+      "height": 2160
+    }
+  },
+  {
+    "clock": {
+      "currentTime": 15.183777,
+      "duration": 1421.72,
+      "volume": 1,
+      "muted": false,
+      "rate": 1,
+      "paused": false,
+      "seeking": false,
+      "ended": false,
+      "buffered": [
+        [
+          0,
+          31.87
+        ]
+      ]
+    },
+    "presentation": {
+      "decodeFps": 24.98276189435246,
+      "engine": "native",
+      "backend": "native",
+      "renderedFrames": 370,
+      "droppedFrames": 0,
+      "firstFrame": true,
+      "buffering": false,
+      "width": 3840,
+      "height": 2160
+    }
+  },
+  {
+    "clock": {
+      "currentTime": 16.188788,
+      "duration": 1421.72,
+      "volume": 1,
+      "muted": false,
+      "rate": 1,
+      "paused": false,
+      "seeking": false,
+      "ended": false,
+      "buffered": [
+        [
+          0,
+          33.352
+        ]
+      ]
+    },
+    "presentation": {
+      "decodeFps": 23.881547524081274,
+      "engine": "native",
+      "backend": "native",
+      "renderedFrames": 394,
+      "droppedFrames": 0,
+      "firstFrame": true,
+      "buffering": false,
+      "width": 3840,
+      "height": 2160,
+      "videoFrameRate": 23.976023976023978
+    }
+  },
+  {
+    "clock": {
+      "currentTime": 17.191364,
+      "duration": 1421.72,
+      "volume": 1,
+      "muted": false,
+      "rate": 1,
+      "paused": false,
+      "seeking": false,
+      "ended": false,
+      "buffered": [
+        [
+          0,
+          33.352
+        ]
+      ]
+    },
+    "presentation": {
+      "decodeFps": 23.936926199692092,
+      "engine": "native",
+      "backend": "native",
+      "renderedFrames": 418,
+      "droppedFrames": 0,
+      "firstFrame": true,
+      "buffering": false,
+      "width": 3840,
+      "height": 2160,
+      "videoFrameRate": 23.976023976023978
+    }
+  },
+  {
+    "clock": {
+      "currentTime": 18.195679,
+      "duration": 1421.72,
+      "volume": 1,
+      "muted": false,
+      "rate": 1,
+      "paused": false,
+      "seeking": false,
+      "ended": false,
+      "buffered": [
+        [
+          0,
+          33.352
+        ]
+      ]
+    },
+    "presentation": {
+      "decodeFps": 23.91510139013629,
+      "engine": "native",
+      "backend": "native",
+      "renderedFrames": 442,
+      "droppedFrames": 0,
+      "firstFrame": true,
+      "buffering": false,
+      "width": 3840,
+      "height": 2160,
+      "videoFrameRate": 23.976023976023978
+    }
+  },
+  {
+    "clock": {
+      "currentTime": 19.197753,
+      "duration": 1421.72,
+      "volume": 1,
+      "muted": false,
+      "rate": 1,
+      "paused": false,
+      "seeking": false,
+      "ended": false,
+      "buffered": [
+        [
+          0,
+          34.545
+        ]
+      ]
+    },
+    "presentation": {
+      "decodeFps": 23.95006411647418,
+      "engine": "native",
+      "backend": "native",
+      "renderedFrames": 466,
+      "droppedFrames": 0,
+      "firstFrame": true,
+      "buffering": false,
+      "width": 3840,
+      "height": 2160,
+      "videoFrameRate": 23.976023976023978
+    }
+  },
+  {
+    "clock": {
+      "currentTime": 20.200561,
+      "duration": 1421.72,
+      "volume": 1,
+      "muted": false,
+      "rate": 1,
+      "paused": false,
+      "seeking": false,
+      "ended": false,
+      "buffered": [
+        [
+          0,
+          34.545
+        ]
+      ]
+    },
+    "presentation": {
+      "decodeFps": 23.991602939114312,
+      "engine": "native",
+      "backend": "native",
+      "renderedFrames": 490,
+      "droppedFrames": 0,
+      "firstFrame": true,
+      "buffering": false,
+      "width": 3840,
+      "height": 2160,
+      "videoFrameRate": 23.976023976023978
+    }
+  },
+  {
+    "clock": {
+      "currentTime": 21.203725,
+      "duration": 1421.72,
+      "volume": 1,
+      "muted": false,
+      "rate": 1,
+      "paused": false,
+      "seeking": false,
+      "ended": false,
+      "buffered": [
+        [
+          0,
+          34.545
+        ]
+      ]
+    },
+    "presentation": {
+      "decodeFps": 23.924756640110168,
+      "engine": "native",
+      "backend": "native",
+      "renderedFrames": 514,
+      "droppedFrames": 0,
+      "firstFrame": true,
+      "buffering": false,
+      "width": 3840,
+      "height": 2160,
+      "videoFrameRate": 23.976023976023978
+    }
+  },
+  {
+    "clock": {
+      "currentTime": 22.20744,
+      "duration": 1421.72,
+      "volume": 1,
+      "muted": false,
+      "rate": 1,
+      "paused": false,
+      "seeking": false,
+      "ended": false,
+      "buffered": [
+        [
+          0,
+          35.688
+        ]
+      ]
+    },
+    "presentation": {
+      "decodeFps": 23.910336239103362,
+      "engine": "native",
+      "backend": "native",
+      "renderedFrames": 538,
+      "droppedFrames": 0,
+      "firstFrame": true,
+      "buffering": false,
+      "width": 3840,
+      "height": 2160,
+      "videoFrameRate": 23.976023976023978
+    }
+  },
+  {
+    "clock": {
+      "currentTime": 23.211005,
+      "duration": 1421.72,
+      "volume": 1,
+      "muted": false,
+      "rate": 1,
+      "paused": false,
+      "seeking": false,
+      "ended": false,
+      "buffered": [
+        [
+          0,
+          37.272
+        ]
+      ]
+    },
+    "presentation": {
+      "decodeFps": 23.943612791775468,
+      "engine": "native",
+      "backend": "native",
+      "renderedFrames": 562,
+      "droppedFrames": 0,
+      "firstFrame": true,
+      "buffering": false,
+      "width": 3840,
+      "height": 2160,
+      "videoFrameRate": 23.976023976023978
+    }
+  },
+  {
+    "clock": {
+      "currentTime": 24.214823,
+      "duration": 1421.72,
+      "volume": 1,
+      "muted": false,
+      "rate": 1,
+      "paused": false,
+      "seeking": false,
+      "ended": false,
+      "buffered": [
+        [
+          0,
+          37.272
+        ]
+      ]
+    },
+    "presentation": {
+      "decodeFps": 23.90712083542612,
+      "engine": "native",
+      "backend": "native",
+      "renderedFrames": 586,
+      "droppedFrames": 0,
+      "firstFrame": true,
+      "buffering": false,
+      "width": 3840,
+      "height": 2160,
+      "videoFrameRate": 23.976023976023978
+    }
+  },
+  {
+    "clock": {
+      "currentTime": 25.219123,
+      "duration": 1421.72,
+      "volume": 1,
+      "muted": false,
+      "rate": 1,
+      "paused": false,
+      "seeking": false,
+      "ended": false,
+      "buffered": [
+        [
+          0,
+          37.272
+        ]
+      ]
+    },
+    "presentation": {
+      "decodeFps": 23.94647961806789,
+      "engine": "native",
+      "backend": "native",
+      "renderedFrames": 610,
+      "droppedFrames": 0,
+      "firstFrame": true,
+      "buffering": false,
+      "width": 3840,
+      "height": 2160,
+      "videoFrameRate": 23.976023976023978
+    }
+  }
+]
