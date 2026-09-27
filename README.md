@@ -2,9 +2,9 @@
 
 Marchen Player 是本地视频弹幕播放器，拖入动漫视频即可匹配对应的弹幕。
 
-采用 Electron 开发，支持 **Web、macOS ARM64、Windows x64** 三种发行形态，目前主要适配 **macOS** 版本。
+采用 Electron 开发，支持 **Web、macOS ARM64、Windows x64** 三种发行形态。
 
-桌面端当前要求 **macOS 13 Ventura 或更高版本**；开发环境使用 **Node.js 24 LTS + pnpm 11**。
+开发环境使用 **Node.js 24 LTS + pnpm 11**。
 
 [在线体验](https://marchen-play.suemor.com) | [下载客户端](https://github.com/marchen-dev/marchen-player/releases/latest)
 
