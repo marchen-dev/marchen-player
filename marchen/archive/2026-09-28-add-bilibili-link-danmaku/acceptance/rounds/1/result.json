@@ -1,0 +1,103 @@
+{
+  "title": "B 站视频与番剧链接弹幕",
+  "plan": [
+    {
+      "id": "bv-import",
+      "name": "BV 指定分 P 导入"
+    },
+    {
+      "id": "season-episode",
+      "name": "番剧整季选集与单集导入"
+    },
+    {
+      "id": "cancel-duplicate",
+      "name": "取消选集与来源去重"
+    },
+    {
+      "id": "playback-restore",
+      "name": "播放中弹幕显示与偏移恢复"
+    }
+  ],
+  "cases": [
+    {
+      "id": "bv-import",
+      "name": "BV 指定分 P 导入",
+      "status": "passed",
+      "observation": "真实 Electron 界面导入 BV1wT8J6NEFS 第 17 P，得到 3600 条普通弹幕，使用 CID 41951691252。",
+      "evidence": [
+        {
+          "path": "assets/bv.png",
+          "type": "image",
+          "text": "bv.png"
+        }
+      ]
+    },
+    {
+      "id": "season-episode",
+      "name": "番剧整季选集与单集导入",
+      "status": "passed",
+      "observation": "ss73081 显示颂乐人偶 13 集；未选择时导入按钮禁用，选择第 2 集后导入 3599 条，跳过 1 条无效或不支持记录。",
+      "evidence": [
+        {
+          "path": "assets/season.png",
+          "type": "image",
+          "text": "season.png"
+        },
+        {
+          "path": "assets/episodes.png",
+          "type": "image",
+          "text": "episodes.png"
+        },
+        {
+          "path": "assets/episode-import.png",
+          "type": "image",
+          "text": "episode-import.png"
+        }
+      ]
+    },
+    {
+      "id": "cancel-duplicate",
+      "name": "取消选集与来源去重",
+      "status": "passed",
+      "observation": "等待选集可取消；重复输入已导入 EP 链接提示已经添加过该来源，不创建重复来源。",
+      "evidence": [
+        {
+          "path": "assets/cancel.png",
+          "type": "image",
+          "text": "cancel.png"
+        },
+        {
+          "path": "assets/duplicate.png",
+          "type": "image",
+          "text": "duplicate.png"
+        }
+      ]
+    },
+    {
+      "id": "playback-restore",
+      "name": "播放中弹幕显示与偏移恢复",
+      "status": "passed",
+      "observation": "测试图视频时钟由 0.096 秒推进到 4.621 秒，检测到 8 个弹幕节点；刷新并重新打开同视频、直接播放后，两条来源及 P17 的 +2 秒偏移保留。",
+      "evidence": [
+        {
+          "path": "assets/playback.png",
+          "type": "image",
+          "text": "playback.png"
+        },
+        {
+          "path": "assets/restored.png",
+          "type": "image",
+          "text": "restored.png"
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "verdict": "passed",
+    "conclusion": "macOS Electron 独立测试目录中的 BV、SS 选集、EP 导入和保存恢复通过，等待人工签核。当前弹幕池不代表全部历史弹幕；Windows 安装包未实测。"
+  },
+  "commit": "working-tree@ed006ea2a8731b256dfd8738227bdbba6b92a181",
+  "surfaces": [
+    "macOS Electron 44 开发窗口，独立用户目录，1400×900 逻辑像素"
+  ]
+}

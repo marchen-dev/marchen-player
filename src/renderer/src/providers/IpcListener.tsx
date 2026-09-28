@@ -1,7 +1,9 @@
+import { RELEASE_REPOSITORY } from '@marchen/shared/update-policy'
 import { desktopUpdateAtom } from '@renderer/atoms/progress'
 import { jotaiStore } from '@renderer/atoms/store'
 import { windowFullscreenAtom, WindowState, windowStateAtom } from '@renderer/atoms/window'
 import { useSettingModal } from '@renderer/components/modules/settings/hooks'
+import { ToastAction } from '@renderer/components/ui/toast/toast'
 import { toast } from '@renderer/components/ui/toast/use-toast'
 import { handlers, ipcClient } from '@renderer/lib/client'
 import { RouteName } from '@renderer/router'
@@ -73,7 +75,19 @@ export const IpcListener = () => {
         if (notice)
           toast({
             title: `已更新至 ${notice.version}`,
-            description: notice.notes || '当前已运行新版本。',
+            // 完整 Markdown 留在对应版本的发布页，避免长篇原文挤满通知。
+            description: '当前已运行新版本。',
+            action: (
+              <ToastAction altText="在浏览器中查看此版本的更新内容" asChild>
+                <a
+                  href={`https://github.com/${RELEASE_REPOSITORY}/releases/tag/v${encodeURIComponent(notice.version)}`}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  查看更新内容
+                </a>
+              </ToastAction>
+            ),
             duration: 10000,
           })
       })

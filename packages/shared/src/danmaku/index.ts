@@ -37,7 +37,14 @@ export interface LinkResult {
   skipped: number
   segments: number
 }
-export type LinkResponse = { ok: true; result: LinkResult } | { ok: false; message: string }
+export interface LinkSelection {
+  title: string
+  episodes: Array<{ title: string; url: string }>
+}
+export type LinkResponse =
+  | { ok: true; result: LinkResult; selection?: never }
+  | { ok: true; selection: LinkSelection; result?: never }
+  | { ok: false; message: string }
 export const linkSourceId = (identity: LinkIdentity) =>
   `link:${identity.provider}:${identity.videoId}`
 export function validateOffset(value: number): number {

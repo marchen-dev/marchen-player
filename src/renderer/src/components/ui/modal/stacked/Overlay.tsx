@@ -1,6 +1,8 @@
 import type { FC, ForwardedRef } from 'react'
+import { cn } from '@renderer/lib/utils'
 import { m } from 'framer-motion'
 
+import { DIALOG_OVERLAY_CLASS_NAME, dialogOverlayMotionConfig } from '../../dialog/visual'
 import { RootPortal } from '../../portal'
 
 interface ModalOverlayProps {
@@ -13,10 +15,9 @@ export const ModalOverlay: FC<ModalOverlayProps> = ({ ref, ...props }) => {
     <RootPortal>
       <m.div
         id="modal-overlay"
-        className="pointer-events-none fixed inset-0 bg-zinc-50/80 dark:bg-neutral-900/80"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
+        // 与 shadcn Dialog 共用深色遮罩与淡入淡出参数
+        className={cn('pointer-events-none fixed inset-0', DIALOG_OVERLAY_CLASS_NAME)}
+        {...dialogOverlayMotionConfig}
         style={{ zIndex }}
         ref={ref}
       />

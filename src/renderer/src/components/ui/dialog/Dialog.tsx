@@ -2,6 +2,7 @@ import { cn } from '@renderer/lib/utils'
 import { X } from 'lucide-react'
 import { Dialog as DialogPrimitive } from 'radix-ui'
 import * as React from 'react'
+import { DIALOG_OVERLAY_CLASS_NAME } from './visual'
 
 const Dialog = DialogPrimitive.Root
 
@@ -21,7 +22,9 @@ const DialogOverlay = ({
   <DialogPrimitive.Overlay
     ref={ref}
     className={cn(
-      'data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-(--z-dialog) !cursor-default bg-black/80',
+      'fixed inset-0 z-(--z-dialog) !cursor-default',
+      DIALOG_OVERLAY_CLASS_NAME,
+      'data-[state=open]:animate-dialog-overlay-in data-[state=closed]:animate-dialog-overlay-out motion-reduce:animate-none',
       className,
     )}
     {...props}
@@ -47,7 +50,10 @@ const DialogContent = ({
       ref={ref}
       className={cn(
         'fixed top-[50%] left-[50%] z-(--z-dialog) grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] cursor-default gap-4',
-        'bg-background data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] border p-6 shadow-lg duration-200 sm:rounded-lg',
+        // 实心面板保证表单可读性；柔和大阴影替代硬边框，突出层级
+        'bg-background border-border/60 rounded-xl border p-6 shadow-2xl shadow-black/20',
+        // 仅缩放 + 轻微上浮，不再叠加旧式 slide-in-from-* 导致的斜向滑入
+        'data-[state=open]:animate-dialog-in data-[state=closed]:animate-dialog-out motion-reduce:animate-none',
         className,
       )}
       {...props}

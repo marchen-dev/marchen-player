@@ -30,7 +30,7 @@ export class DanmakuTasks {
         if (!controller.signal.aborted) progress({ ...value, requestId: id })
       })
       controller.signal.throwIfAborted()
-      return { ok: true, result }
+      return 'episodes' in result ? { ok: true, selection: result } : { ok: true, result }
     } catch (error) {
       return {
         ok: false,

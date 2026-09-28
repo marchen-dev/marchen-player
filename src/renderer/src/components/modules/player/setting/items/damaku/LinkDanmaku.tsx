@@ -1,4 +1,4 @@
-import type { LinkDanmakuEntry } from '@marchen/shared/danmaku'
+import type { LinkDanmakuEntry, LinkSelection } from '@marchen/shared/danmaku'
 import { validateOffset } from '@marchen/shared/danmaku'
 import { Alert, AlertDescription } from '@renderer/components/ui/alert'
 import { Button } from '@renderer/components/ui/button'
@@ -75,7 +75,10 @@ export function LinkDanmaku() {
           aria-invalid={snapshot.status === 'error'}
           className={`min-w-0 flex-1 ${inputClass}`}
           value={url}
-          onChange={(event) => setUrl(event.target.value)}
+          onChange={(event) => {
+            if (snapshot.status === 'selecting') controller.cancel()
+            setUrl(event.target.value)
+          }}
           placeholder="粘贴视频页面链接"
           disabled={busy}
         />
@@ -84,10 +87,74 @@ export function LinkDanmaku() {
         </Button>
       </form>
       <ImportStatus snapshot={snapshot} onCancel={controller.cancel} onRetry={submit} />
-      {selected && (
-        <SourceOffset entries={entries} selected={selected} onSelect={setSource} />
+      {snapshot.status === 'selecting' && snapshot.selection && (
+        <EpisodeSelection
+          key={snapshot.url}
+          selection={snapshot.selection}
+          disabled={state.step !== 'ready'}
+          onChoose={(episodeUrl) => {
+            setUrl(episodeUrl)
+            void controller.choose(episodeUrl).then(() => {
+              const added = controller.getSnapshot().source
+              if (added) setSource(added)
+            })
+          }}
+        />
       )}
+      {selected && <SourceOffset entries={entries} selected={selected} onSelect={setSource} />}
     </section>
+  )
+}
+
+/** 整季链接不默认选择第一集，由用户确认与正在播放的视频对应的剧集。 */
+function EpisodeSelection({
+  selection,
+  disabled,
+  onChoose,
+}: {
+  selection: LinkSelection
+  disabled: boolean
+  onChoose: (url: string) => void
+}) {
+  const [episode, setEpisode] = useState('')
+  const portalContainer = usePlayerPortalContainer()
+  return (
+    <div className="space-y-2">
+      <p className="text-sm text-white">{selection.title}</p>
+      <Select value={episode} onValueChange={setEpisode} disabled={disabled}>
+        <SelectTrigger
+          aria-label="选择番剧剧集"
+          className="w-full border-white/11 bg-white/8 text-white focus:ring-[var(--player-settings-focus)] focus:ring-offset-0"
+        >
+          <SelectValue placeholder="请选择剧集" />
+        </SelectTrigger>
+        <SelectContent
+          container={portalContainer}
+          className="border-white/11 bg-[rgb(38_38_44/96%)] text-white"
+        >
+          <SelectGroup>
+            {selection.episodes.map((item) => (
+              <SelectItem
+                key={item.url}
+                value={item.url}
+                className="focus:bg-white/14 focus:text-white"
+              >
+                {item.title}
+              </SelectItem>
+            ))}
+          </SelectGroup>
+        </SelectContent>
+      </Select>
+      <Button
+        type="button"
+        variant="outline"
+        className={buttonClass}
+        disabled={disabled || !episode}
+        onClick={() => onChoose(episode)}
+      >
+        导入所选剧集弹幕
+      </Button>
+    </div>
   )
 }
 
@@ -134,10 +201,8 @@ function ImportStatus({
   return (
     <div id="link-danmaku-status" role="status" className="space-y-2">
       <div className="flex items-center justify-between gap-3">
-        <p className="min-w-0 text-sm break-words text-[var(--player-settings-muted)]">
-          {message}
-        </p>
-        {loading && (
+        <p className="min-w-0 text-sm break-words text-[var(--player-settings-muted)]">{message}</p>
+        {(loading || status === 'selecting') && (
           <Button
             type="button"
             size="sm"

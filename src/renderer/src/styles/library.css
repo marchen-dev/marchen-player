@@ -71,9 +71,9 @@
   --library-poster-hover-shade: linear-gradient(180deg, transparent 30%, rgba(0, 0, 0, 0.6));
 
   /* 品牌色（oklch 高饱和红橙），同时用作主 CTA、危险按钮（B.1 决策） */
-  --library-accent: oklch(0.66 0.22 22);
-  --library-accent-press: oklch(0.58 0.22 22);
-  --library-accent-glow: oklch(0.66 0.22 22 / 0.5);
+  --library-accent: var(--brand);
+  --library-accent-press: var(--brand-press);
+  --library-accent-glow: oklch(from var(--brand) l c h / 0.5);
 
   /* 状态色 */
   --library-done: oklch(0.72 0.1 220);

@@ -8,6 +8,12 @@ import { Checkbox } from '@renderer/components/ui/checkbox'
 import { Label } from '@renderer/components/ui/label'
 import { Popover, PopoverContent, PopoverTrigger } from '@renderer/components/ui/popover'
 import { useToast } from '@renderer/components/ui/toast'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@renderer/components/ui/Tooltip'
 import { db } from '@renderer/database/db'
 import { useConfirmationDialog } from '@renderer/hooks/use-dialog'
 import { danmakuPlatformMap, mostDanmakuPlatform } from '@renderer/lib/danmaku'
@@ -31,10 +37,11 @@ export const DanmakuSource = memo(() => {
       <Popover>
         <PopoverTrigger asChild>
           <Button
-            className="border-white/11 bg-white/8 text-white hover:bg-white/14 hover:text-white"
+            className="max-w-[80%] min-w-0 border-white/11 bg-white/8 text-white hover:bg-white/14 hover:text-white"
             variant="outline"
+            title={mostDanmakuPlatform(danmaku)}
           >
-            {mostDanmakuPlatform(danmaku)}...
+            <span className="truncate">{mostDanmakuPlatform(danmaku)}</span>
           </Button>
         </PopoverTrigger>
         <PopoverContent
@@ -57,16 +64,25 @@ export const DanmakuSource = memo(() => {
 
 const SourceList = memo(() => {
   const { toast } = useToast()
+  const portalContainer = usePlayerPortalContainer()
   const { danmaku } = useDanmakuSourceConfig()
   const video = useAtomValue(videoAtom)
   const handleCheckDanmaku = debounce(
-    async (params: { checked: CheckboxPrimitive.CheckedState; source: string; session: number }) => {
+    async (params: {
+      checked: CheckboxPrimitive.CheckedState
+      source: string
+      session: number
+    }) => {
       const { checked, source } = params
       if (checked === 'indeterminate') return
 
       const service = getPlayerLoadingService()
-      try { await service.setDanmakuSourceSelected(source, checked, params.session) }
-      catch (error) { toast({ title: error instanceof Error ? error.message : '保存弹幕来源失败' }); return }
+      try {
+        await service.setDanmakuSourceSelected(source, checked, params.session)
+      } catch (error) {
+        toast({ title: error instanceof Error ? error.message : '保存弹幕来源失败' })
+        return
+      }
       const state = service.currentState
       if (state.step !== 'ready') return
 
@@ -80,27 +96,64 @@ const SourceList = memo(() => {
   if (!danmaku) {
     return <p>暂无弹幕</p>
   }
-  return danmaku?.map((item) => {
-    const danmakuPlatform = danmakuPlatformMap(item)
-    return (
-      <div key={item.source} className="flex items-center space-x-2">
-        <Checkbox
-          id={item.source}
-          checked={item.selected}
-          className="border-white/40 bg-white/6 text-white focus-visible:ring-[var(--player-settings-focus)] focus-visible:ring-offset-0 data-[state=checked]:border-[var(--player-settings-accent)] data-[state=checked]:bg-[var(--player-settings-accent)]"
-          onCheckedChange={(checked) => handleCheckDanmaku({ checked, source: item.source, session: getPlayerLoadingService().sessionId })}
-        />
-        <Label htmlFor={item.source}>
-          {danmakuPlatform}
-          {item.type !== 'auto' && (
-            <Badge className="ml-2 border-0 bg-white/12 py-0 text-white" variant="secondary">
-              {item.type === 'link' ? '链接弹幕' : '本地弹幕文件'}
-            </Badge>
-          )}
-        </Label>
-      </div>
-    )
-  })
+  return (
+    <TooltipProvider delayDuration={250}>
+      {danmaku.map((item) => {
+        const danmakuPlatform = danmakuPlatformMap(item)
+        return (
+          <div key={item.source} className="flex min-w-0 items-start gap-2.5">
+            <Checkbox
+              id={item.source}
+              checked={item.selected}
+              className="mt-1 shrink-0 border-white/40 bg-white/6 text-white focus-visible:ring-[var(--player-settings-focus)] focus-visible:ring-offset-0 data-[state=checked]:border-[var(--player-settings-accent)] data-[state=checked]:bg-[var(--player-settings-accent)]"
+              onCheckedChange={(checked) =>
+                handleCheckDanmaku({
+                  checked,
+                  source: item.source,
+                  session: getPlayerLoadingService().sessionId,
+                })
+              }
+            />
+            <Label htmlFor={item.source} className="block min-w-0 flex-1 leading-6">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span
+                    tabIndex={0}
+                    className="block truncate rounded-sm focus-visible:outline focus-visible:outline-[var(--player-settings-focus)]"
+                  >
+                    {item.type === 'link' ? item.title : danmakuPlatform}
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent
+                  container={portalContainer}
+                  side="left"
+                  sideOffset={10}
+                  className="max-w-80 border border-white/11 bg-[rgb(38_38_44/98%)] text-sm leading-6 break-words whitespace-normal text-white shadow-lg"
+                >
+                  {danmakuPlatform}
+                </TooltipContent>
+              </Tooltip>
+              {item.type !== 'auto' && (
+                <span className="mt-1 flex items-center gap-2">
+                  <Badge
+                    className="shrink-0 border-0 bg-white/12 py-0 leading-5 text-white"
+                    variant="secondary"
+                  >
+                    {item.type === 'link' ? '链接弹幕' : '本地弹幕文件'}
+                  </Badge>
+                  {item.type === 'link' && (
+                    <span className="text-xs leading-5 font-normal text-white/60">
+                      {item.content.count} 条
+                    </span>
+                  )}
+                </span>
+              )}
+            </Label>
+          </div>
+        )
+      })}
+    </TooltipProvider>
+  )
 })
 
 interface PopoverContentLayoutProps extends PropsWithChildren {

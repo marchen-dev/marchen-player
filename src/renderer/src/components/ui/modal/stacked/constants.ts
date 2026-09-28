@@ -1,30 +1,10 @@
-import type { motion, Target, Transition } from 'framer-motion'
-import type { ComponentProps } from 'react'
 import { Z_INDEX } from '@renderer/lib/constants/z-index'
+import { dialogMotionConfig } from '../../dialog/visual'
 
-const enterStyle: Target = {
-  scale: 1,
-  opacity: 1,
-}
-
-const initialStyle: Target = {
-  scale: 0.96,
-  opacity: 0,
-}
-
-export const microReboundPreset: Transition = {
-  type: 'spring',
-  stiffness: 300,
-  damping: 20,
-}
-
-type ModalMotionConfig = ComponentProps<typeof motion.div>
-
-export const modalMotionConfig: ModalMotionConfig = {
-  initial: initialStyle,
-  animate: enterStyle,
-  exit: initialStyle,
-  transition: microReboundPreset,
-}
+/**
+ * ModalStack 面板开关动画
+ * 复用 shadcn Dialog 的统一视觉参数（减速曲线进场、快速淡出退场），替代原先回弹明显的弹簧。
+ */
+export const modalMotionConfig = dialogMotionConfig
 
 export const MODAL_STACK_Z_INDEX = Z_INDEX.modalStack
