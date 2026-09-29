@@ -1,6 +1,23 @@
 # CHANGELOG
 
 
+# [1.0.0-alpha.2](https://github.com/marchen-dev/marchen-player/compare/v1.0.0-alpha.1...v1.0.0-alpha.2) (2026-09-29)
+
+
+### Bug Fixes
+
+* **ci:** 更新 Electron 44 原生模块 ABI 映射 ([47eb4c0](https://github.com/marchen-dev/marchen-player/commit/47eb4c0792b8fc1f26ec361cd558395534b54175))
+* **ci:** 补齐依赖构建审批并清理过期环境配置 ([c9cc865](https://github.com/marchen-dev/marchen-player/commit/c9cc865ffc92e6592b684297aa6c217d34245e35))
+* 修复文件关联打开并简化弹幕复制与设置 ([d70c16c](https://github.com/marchen-dev/marchen-player/commit/d70c16cec8ba2aacfd74bf1673b12ad4dc0a2a28))
+
+
+### Features
+
+* **downloads:** 支持 HTTP 并发下载并优化下载交互与主题 ([e8f04f0](https://github.com/marchen-dev/marchen-player/commit/e8f04f0781a45c40879bb4f417177ffb71d73396))
+* **downloads:** 新增 Electron BT 下载与播放联动 ([5489a55](https://github.com/marchen-dev/marchen-player/commit/5489a552f6104f8b606d0e7623ae17dadabcd274))
+* **player:** 显示远程读取进度与媒体传输信息 ([68ccada](https://github.com/marchen-dev/marchen-player/commit/68ccadaf2fe84bca3b8a24b202b71f7c7c866633))
+* 支持B站链接弹幕并完善播放器界面 ([7089c4c](https://github.com/marchen-dev/marchen-player/commit/7089c4c26b26dce3f613f8104565e0a122c88d54))
+
 # [1.0.0-alpha.1](https://github.com/marchen-dev/marchen-player/compare/v1.0.0-alpha.0...v1.0.0-alpha.1) (2026-09-27)
 
 
