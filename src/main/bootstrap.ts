@@ -3,13 +3,14 @@ import { electronApp, optimizer } from '@electron-toolkit/utils'
 import { MARCHEN_PROTOCOL } from '@marchen/shared/constants/protocol'
 import { name } from '@pkg'
 import { app, BrowserWindow, protocol } from 'electron'
-
 import { initializeApp } from './initialize'
+
 import { isDev } from './lib/env'
 import { fileOpenRequests } from './lib/file-open-requests'
 import { getIconPath } from './lib/icon'
 import { createApplicationProtocol } from './lib/media-protocol'
 import { autoUpdateInit } from './lib/update'
+import { initializeDownloads } from './services/downloads/lifecycle'
 import createWindow, { getMainWindow } from './windows/main'
 
 export const bootstrap = () => {
@@ -25,6 +26,7 @@ export const bootstrap = () => {
 
   initializeApp()
   app.whenReady().then(() => {
+    initializeDownloads()
     autoUpdateInit()
     electronApp.setAppUserModelId(`re.${name}`)
 

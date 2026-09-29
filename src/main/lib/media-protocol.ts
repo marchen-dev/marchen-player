@@ -5,6 +5,7 @@ import { realpath, stat } from 'node:fs/promises'
 import { extname, resolve, sep } from 'node:path'
 import { isVideoFile } from '@marchen/shared/media'
 import { openRemoteRangeSource, REMOTE_LIMITS } from '@marchen/shared/media/remote'
+import { isDownloadedMediaAvailable } from '../services/downloads/availability'
 import { fileRangeResponse } from './file-range-response'
 import { fromFilename } from './mime-utils'
 import { fetchRemoteMedia } from './remote-media'
@@ -164,6 +165,8 @@ export async function createMediaLease(path: string, owner: WebContents) {
   if (owner.isDestroyed() || !isApplicationUrl(owner.getURL())) throw new Error('媒体请求来源无效')
   if (!isVideoFile(path) && !['.ass', '.ssa', '.srt', '.vtt'].includes(extname(path).toLowerCase()))
     throw new Error('不支持的媒体文件类型')
+  if (!(await isDownloadedMediaAvailable(path)))
+    throw new Error('文件尚未下载完成')
   registerOwner(owner)
   const generation = generations.get(owner.id) ?? 0
   let canonical: string
@@ -256,3 +259,7 @@ export function createApplicationProtocol(rendererRoot: string) {
     }
   }
 }
+
+/** 下载文件删除前检查所有媒体租约，包括已暂停的播放。 */
+export const isMediaPathInUse = (path: string) =>
+  [...leases.values()].some((lease) => lease.path === path)

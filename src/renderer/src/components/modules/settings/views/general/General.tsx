@@ -8,6 +8,7 @@ import { useConfirmationDialog } from '@renderer/hooks/use-dialog'
 import { ipcClient } from '@renderer/lib/client'
 import { resetApp } from '@renderer/lib/ns'
 import { isWeb } from '@renderer/lib/utils'
+import { DownloadSettingsSection } from '@renderer/page/downloads/settings'
 import { useCallback } from 'react'
 
 import {
@@ -64,6 +65,7 @@ export const GeneralView = () => {
         </SettingsSection>
       )}
 
+      {!isWeb && <DownloadSettingsSection />}
       <SettingsSection title="播放">
         <SettingsGroup>
           <div className="p-4">
@@ -112,7 +114,7 @@ export const GeneralView = () => {
           </SettingsActionRow>
           <SettingsActionRow
             label="重置应用"
-            description="清除历史记录、服务配置与所有应用设置"
+            description="停止下载并清除任务、历史记录与设置，保留下载的视频文件"
             danger
           >
             <Button

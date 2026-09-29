@@ -2,6 +2,7 @@ import type { NonIndexRouteObject, RouteObject } from 'react-router'
 import App from '@renderer/App'
 import ErrorView from '@renderer/components/common/ErrorView'
 import { isWeb } from '@renderer/lib/utils'
+import Downloads from '@renderer/page/downloads'
 import Library from '@renderer/page/library'
 import VideoPlayer from '@renderer/page/player'
 import { createHashRouter, Navigate, useLocation } from 'react-router'
@@ -41,6 +42,12 @@ const allSidebarRoutes = [
     errorElement: <ErrorView />,
     element: <Library />,
   },
+  {
+    path: RouteName.DOWNLOADS,
+    meta: { icon: 'icon-[mingcute--download-2-line]', title: '下载' },
+    errorElement: <ErrorView />,
+    element: <Downloads />,
+  },
 ] satisfies SidebarRouteObject[]
 
 /**
@@ -50,7 +57,7 @@ const allSidebarRoutes = [
  *  - useCurrentRoute 匹配当前路由
  */
 export const siderbarRoutes = isWeb
-  ? allSidebarRoutes.filter((r) => r.path !== RouteName.LIBRARY)
+  ? allSidebarRoutes.filter((r) => r.path === RouteName.PLAYER)
   : allSidebarRoutes
 
 export const router = [
@@ -69,8 +76,9 @@ export const router = [
       // 此条 fallback 不会被命中。
       ...(isWeb
         ? [
+            { path: RouteName.LIBRARY, element: <Navigate to={RouteName.PLAYER} replace /> },
             {
-              path: RouteName.LIBRARY,
+              path: RouteName.DOWNLOADS,
               element: <Navigate to={RouteName.PLAYER} replace />,
             },
           ]

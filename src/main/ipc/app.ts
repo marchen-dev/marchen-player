@@ -18,6 +18,13 @@ import { app, BrowserWindow, dialog } from 'electron'
 const t = tipc.create()
 
 export const appGroup = {
+  torrentOpenReady: t.procedure.action(async ({ context }) => {
+    if (getMainWindow()?.webContents !== context.sender) return
+    fileOpenRequests.torrentReady((request) => context.sender.send('openTorrent', request))
+  }),
+  torrentHandled: t.procedure.input<{ id: string }>().action(async ({ context, input }) => {
+    if (getMainWindow()?.webContents === context.sender) fileOpenRequests.torrentHandled(input.id)
+  }),
   fileOpenReady: t.procedure.action(async ({ context }) => {
     // 只允许当前主窗口声明就绪，避免旧窗口或其他页面消费请求。
     const window = getMainWindow()

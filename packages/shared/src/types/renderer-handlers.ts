@@ -1,4 +1,5 @@
 import type { LinkProgress } from '../danmaku'
+import type { DownloadSnapshot } from '../downloads'
 import type { DesktopUpdateState } from './update'
 /**
  * Renderer 端事件处理器接口
@@ -22,6 +23,8 @@ export const resolveAppSettingsSection = (value?: unknown): AppSettingsSection =
     : DEFAULT_APP_SETTINGS_SECTION
 
 export interface RendererHandlers {
+  downloadsChanged: (snapshot: DownloadSnapshot) => void
+  openTorrent: (request: { id: string; path: string }) => void
   danmakuImportProgress: (progress: LinkProgress) => void
   desktopUpdate: (state: DesktopUpdateState) => void
   prepareUpdate: (requestId: string) => void

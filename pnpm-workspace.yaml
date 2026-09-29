@@ -18,4 +18,6 @@ allowBuilds:
   electron-winstaller: false
   es5-ext: true
   esbuild: true
+  node-datachannel: true
   simple-git-hooks: true
+  utp-native: false

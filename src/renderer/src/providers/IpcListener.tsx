@@ -6,6 +6,7 @@ import { useSettingModal } from '@renderer/components/modules/settings/hooks'
 import { ToastAction } from '@renderer/components/ui/toast/toast'
 import { toast } from '@renderer/components/ui/toast/use-toast'
 import { handlers, ipcClient } from '@renderer/lib/client'
+import { DownloadObserver } from '@renderer/page/downloads/observer'
 import { RouteName } from '@renderer/router'
 import { getPlayerLoadingService } from '@renderer/services/player-loading/index'
 import { preparePlayerUpdate } from '@renderer/services/player-runtime/update-preparation'
@@ -106,5 +107,5 @@ export const IpcListener = () => {
       unlisten?.forEach((fn) => fn?.())
     }
   }, [showModal])
-  return null
+  return <DownloadObserver />
 }

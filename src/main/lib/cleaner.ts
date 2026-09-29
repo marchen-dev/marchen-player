@@ -2,6 +2,7 @@ import { resetTelemetryInstallId } from '@main/telemetry/identity'
 import { resetMainTelemetryIdentity } from '@main/telemetry/sentry'
 import { getMainWindow } from '@main/windows/main'
 import { app } from 'electron'
+import { clearDownloads } from '../services/downloads/service'
 
 export const clearAllData = async () => {
   const win = getMainWindow()
@@ -9,6 +10,7 @@ export const clearAllData = async () => {
   const ses = win.webContents.session
 
   try {
+    await clearDownloads()
     await ses.clearCache()
 
     await ses.clearStorageData({
@@ -30,5 +32,6 @@ export const clearAllData = async () => {
     win.reload()
   } catch (error: any) {
     console.error('Failed to clear data:', error)
+    throw error
   }
 }

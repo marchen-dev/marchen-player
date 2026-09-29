@@ -22,6 +22,9 @@ files:
 win:
   executableName: Marchen
   fileAssociations:
+    - ext: [torrent]
+      name: BitTorrent 文件
+      role: Viewer
     - ext: [mp4, m4v, mov, qt, mkv, mk3d, webm, ts, mts, m2ts, m2t]
       name: Video Files
       role: Editor
@@ -49,6 +52,9 @@ mac:
       arch:
         - arm64
   fileAssociations:
+    - ext: [torrent]
+      name: BitTorrent 文件
+      role: Viewer
     - ext: [mp4, m4v, mov, qt, mkv, mk3d, webm, ts, mts, m2ts, m2t]
       name: Video Files
       role: Editor

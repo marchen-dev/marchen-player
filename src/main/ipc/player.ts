@@ -1,17 +1,18 @@
 import fs from 'node:fs'
 import path from 'node:path'
-
 import {
   createMediaLease,
   createRemoteMediaLease,
   releaseMediaLease,
 } from '@main/lib/media-protocol'
+
 import { showFileSelectionDialog } from '@main/modules/showDialog'
 import { tipc } from '@marchen/electron-ipc/main'
 import { calculateFileHashByBuffer } from '@marchen/shared/lib/calc-file-hash'
 import { isVideoFile, VIDEO_EXTENSIONS } from '@marchen/shared/media'
 import { dialog } from 'electron'
 import naturalCompare from 'string-natural-compare'
+import { getDownloads } from '../services/downloads/service'
 
 const t = tipc.create()
 
@@ -40,6 +41,8 @@ export const playerGroup = {
   getAnimeDetailByPath: t.procedure.input<{ path: string }>().action(async ({ input }) => {
     try {
       const animePath = input.path
+      if (!(await getDownloads().available(animePath)))
+        return { ok: 0, message: '文件尚未下载完成或正在校验' }
       if (!animePath || !fs.existsSync(animePath)) {
         return {
           ok: 0,
@@ -129,7 +132,8 @@ export const playerGroup = {
       name: path.basename(filePath),
     }))
 
-    return playList
+    const available = await Promise.all(playList.map((item) => getDownloads().available(item.path)))
+    return playList.filter((_, index) => available[index])
   }),
 
   importSubtitle: t.procedure.action(async () => {
@@ -145,6 +149,7 @@ export const playerGroup = {
   readSubtitleText: t.procedure.input<{ path: string }>().action(async ({ input }) => {
     try {
       const filePath = input.path
+      if (!(await getDownloads().available(filePath))) return { ok: 0, message: '字幕尚未下载完成' }
       const extension = path.extname(filePath).toLowerCase()
       if (!['.ass', '.ssa', '.srt', '.vtt'].includes(extension)) {
         return { ok: 0, message: '字幕文件格式不受支持' }
@@ -182,6 +187,9 @@ export const playerGroup = {
         filePath: path.join(directoryPath, file),
       }))
 
-    return matchedFiles
+    const available = await Promise.all(
+      matchedFiles.map((item) => getDownloads().available(item.filePath)),
+    )
+    return matchedFiles.filter((_, index) => available[index])
   }),
 }

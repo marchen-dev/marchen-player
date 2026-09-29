@@ -45,5 +45,9 @@ export const clearData = async () => {
     return
   }
 
-  return clearAllData()
+  try {
+    return await clearAllData()
+  } catch {
+    await dialog.showMessageBox({ type: 'error', message: '清除失败，请检查磁盘空间和权限后重试' })
+  }
 }
