@@ -1,45 +1,17 @@
-version: 1.0.0
+version: 1.0.1
 files:
-  - url: https://github.com/marchen-dev/marchen-player/releases/download/v1.0.0/Marchen-1.0.0-setup.exe
-    sha512: CzlnDprm9AdCwygmx3eSLkX6hWqt3kd45l/Ug76bZpzyy/DANEs1CnT1yFakestDQuy2jGEmQzqZ2qHHz3qG4g==
-    size: 171994166
-path: https://github.com/marchen-dev/marchen-player/releases/download/v1.0.0/Marchen-1.0.0-setup.exe
-sha512: CzlnDprm9AdCwygmx3eSLkX6hWqt3kd45l/Ug76bZpzyy/DANEs1CnT1yFakestDQuy2jGEmQzqZ2qHHz3qG4g==
-releaseNotes: "# Marchen 1.0.0\r
+  - url: https://github.com/marchen-dev/marchen-player/releases/download/v1.0.1/Marchen-1.0.1-setup.exe
+    sha512: H1it9pryplM44wtk6NdpCltDdqStKIRt1zTE+oyA4MyVDA0j/515CJFTN6Koy9HyFy08e2ItbT8zZrpv+currA==
+    size: 171993491
+path: https://github.com/marchen-dev/marchen-player/releases/download/v1.0.1/Marchen-1.0.1-setup.exe
+sha512: H1it9pryplM44wtk6NdpCltDdqStKIRt1zTE+oyA4MyVDA0j/515CJFTN6Koy9HyFy08e2ItbT8zZrpv+currA==
+releaseNotes: "# Marchen 1.0.1\r
 
   \r
 
-  Marchen 1.0.0 正式发布。拖入动漫视频即可自动匹配弹幕，也可以通过影视库继续观看，或下载完成后直接播放。\r
+  ## 问题修复\r
 
   \r
 
-  ## 播放与弹幕\r
-
-  \r
-
-  - 支持原生与兼容播放内核、音轨切换、内嵌字幕及外挂字幕。\r
-
-  - 自动匹配动漫弹幕，支持手动重新匹配、导入本地弹幕及添加链接弹幕。\r
-
-  - 匹配等待期间可直接播放，弹幕加载失败后支持重试。\r
-
-  - 点击弹幕即可复制内容。\r
-
-  - 影视库保存播放记录与进度，方便继续观看。\r
-
-  \r
-
-  ## 下载\r
-
-  \r
-
-  - 桌面客户端支持磁力链接、BT 种子和 HTTP/HTTPS 文件直链。\r
-
-  - HTTP 下载支持最多 3 个任务同时下载，其余自动排队。\r
-
-  - BT 合集支持按集数或文件选择下载，下载过程中可增减选择。\r
-
-  - 支持暂停、继续、重试、查看节点详情和打开保存目录。\r
-
-  - 下载完成后停止传输，首次播放后才进入影视库。\r\n"
-releaseDate: 2026-09-29T12:57:36.694Z
+  - 修复 Windows 标题栏最小化、最大化和关闭按钮无法点击的问题。\r\n"
+releaseDate: 2026-09-29T14:54:35.797Z
