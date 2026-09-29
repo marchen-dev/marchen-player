@@ -18,6 +18,11 @@ async function run<T>(
 }
 export const downloadsGroup = {
   list: t.procedure.action(({ context }) => run(context.sender, () => getDownloads().list())),
+  addHttp: t.procedure
+    .input<{ url: string; directory: string }>()
+    .action(({ context, input }) =>
+      run(context.sender, () => getDownloads().addHttp(input.url, input.directory)),
+    ),
   prepare: t.procedure
     .input<{ id: string; source: DownloadInput }>()
     .action(({ context, input }) =>
@@ -30,6 +35,14 @@ export const downloadsGroup = {
     .input<{ id: string; selected: number[]; directory: string }>()
     .action(({ context, input }) =>
       run(context.sender, () => getDownloads().confirm(input.id, input.selected, input.directory)),
+    ),
+  peers: t.procedure
+    .input<{ id: string }>()
+    .action(({ context, input }) => run(context.sender, () => getDownloads().peers(input.id))),
+  selectFiles: t.procedure
+    .input<{ id: string; selected: number[] }>()
+    .action(({ context, input }) =>
+      run(context.sender, () => getDownloads().selectFiles(input.id, input.selected)),
     ),
   pause: t.procedure
     .input<{ id: string }>()
@@ -58,11 +71,6 @@ export const downloadsGroup = {
   settings: t.procedure
     .input<DownloadSettings>()
     .action(({ context, input }) => run(context.sender, () => getDownloads().setSettings(input))),
-  policy: t.procedure
-    .input<{ id: string; policy: DownloadSettings['policy'] }>()
-    .action(({ context, input }) =>
-      run(context.sender, () => getDownloads().setPolicy(input.id, input.policy)),
-    ),
   selectTorrent: t.procedure.action(({ context }) =>
     run(context.sender, async () => {
       const result = await dialog.showOpenDialog({

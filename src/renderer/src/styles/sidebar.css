@@ -1,5 +1,5 @@
 /* Marchen Sidebar — Thin icon rail
- * 纯黑白灰系统：跟随项目 shadcn primary，不引入 library 的红色 accent。
+ * 导航使用中性灰选中态，蓝色留给主操作与进度。
  * .dark scope 切换主题，不污染 shadcn 全局 token。
  */
 
@@ -58,7 +58,9 @@
   justify-content: center;
   color: var(--sidebar-fg-3);
   position: relative;
-  transition: background 0.12s, color 0.12s;
+  transition:
+    background 0.12s,
+    color 0.12s;
   cursor: default;
   text-decoration: none;
 }

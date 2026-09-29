@@ -8,7 +8,7 @@
   --settings-selected: rgb(228 228 231);
   --settings-selected-text: rgb(24 24 27);
   --settings-hover: rgb(232 232 235 / 70%);
-  --settings-focus: rgb(99 102 241);
+  --settings-focus: hsl(var(--ring));
   --settings-scrim: rgb(9 9 11 / 38%);
 }
 
@@ -22,7 +22,7 @@
   --settings-selected: rgb(52 52 58);
   --settings-selected-text: rgb(250 250 250);
   --settings-hover: rgb(63 63 70 / 58%);
-  --settings-focus: rgb(165 180 252);
+  --settings-focus: hsl(var(--ring));
   --settings-scrim: rgb(0 0 0 / 62%);
 }
 

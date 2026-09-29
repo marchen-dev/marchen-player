@@ -85,6 +85,7 @@
 @theme inline {
   /* 品牌色 */
   --color-brand: var(--brand);
+  --color-brand-text: var(--brand-text);
   --color-brand-press: var(--brand-press);
 
   /* Colors - shadcn */
@@ -114,5 +115,4 @@
 
   --color-card: hsl(var(--card));
   --color-card-foreground: hsl(var(--card-foreground));
-
 }

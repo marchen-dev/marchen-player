@@ -1,16 +1,15 @@
-import type { DownloadDraft, DownloadFile } from '@marchen/shared/downloads'
+import type { DownloadDraft, DownloadFile, DownloadPeer } from '@marchen/shared/downloads'
 export interface EngineStats {
   id: string
   files: Array<Pick<DownloadFile, 'index' | 'verifiedBytes' | 'complete'>>
-  uploaded: number
   downloadSpeed: number
-  uploadSpeed: number
   peers: number
   error?: string
 }
 export type EngineCommand =
   | { kind: 'prepare'; id: string; input: string | Uint8Array }
   | { kind: 'start'; id: string; metadata: Uint8Array; directory: string; selected: number[] }
+  | { kind: 'peers'; id: string }
   | { kind: 'stop'; id: string }
   | { kind: 'limit'; bytes: number }
   | { kind: 'shutdown' }
@@ -21,6 +20,7 @@ export interface PreparedTorrent {
 export interface DownloadEngine {
   prepare: (id: string, input: string | Uint8Array) => Promise<PreparedTorrent>
   start: (id: string, metadata: Uint8Array, directory: string, selected: number[]) => Promise<void>
+  peers: (id: string) => Promise<DownloadPeer[]>
   stop: (id: string) => Promise<void>
   limit: (bytes: number) => Promise<void>
   shutdown: () => Promise<void>
@@ -35,7 +35,7 @@ export type EngineResponse =
       generation: string
       requestId: string
       ok: boolean
-      value?: PreparedTorrent
+      value?: PreparedTorrent | DownloadPeer[]
       message?: string
     }
   | { generation: string; stats: EngineStats }

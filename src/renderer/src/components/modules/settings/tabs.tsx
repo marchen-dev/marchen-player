@@ -1,6 +1,9 @@
 import type { AppSettingsSection } from '@marchen/shared/types/renderer-handlers'
 import type { ComponentType } from 'react'
 
+import { isWeb } from '@renderer/lib/utils'
+import { DownloadSettingsView } from '@renderer/page/downloads/settings'
+
 import { AboutView } from './views/about/About'
 import { GeneralView } from './views/general/General'
 import { LabsView } from './views/labs/Labs'
@@ -21,6 +24,17 @@ export const settingTabs: SettingTabModel[] = [
     icon: 'icon-[mingcute--settings-3-line]',
     component: GeneralView,
   },
+  ...(!isWeb
+    ? [
+        {
+          id: 'downloads' as const,
+          label: '下载',
+          description: '管理下载目录与传输设置',
+          icon: 'icon-[mingcute--download-2-line]',
+          component: DownloadSettingsView,
+        },
+      ]
+    : []),
   {
     id: 'labs',
     label: '实验室',

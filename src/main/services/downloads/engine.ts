@@ -1,3 +1,4 @@
+import type { DownloadPeer } from '@marchen/shared/downloads'
 import type {
   DownloadEngine,
   EngineCommand,
@@ -16,7 +17,7 @@ export class ProcessDownloadEngine implements DownloadEngine {
   private pending = new Map<
     string,
     {
-      resolve: (value: PreparedTorrent | undefined) => void
+      resolve: (value: PreparedTorrent | DownloadPeer[] | undefined) => void
       reject: (error: Error) => void
       timer: ReturnType<typeof setTimeout>
     }
@@ -25,7 +26,7 @@ export class ProcessDownloadEngine implements DownloadEngine {
     private onStats: (stats: EngineStats) => void,
     private onCrash: () => void,
   ) {}
-  private request(command: EngineCommand): Promise<PreparedTorrent | undefined> {
+  private request(command: EngineCommand): Promise<PreparedTorrent | DownloadPeer[] | undefined> {
     if (!this.child) {
       this.generation = randomUUID()
       const child = utilityProcess.fork(workerPath, [], {
@@ -59,8 +60,8 @@ export class ProcessDownloadEngine implements DownloadEngine {
     return new Promise((resolve, reject) => {
       const timer = setTimeout(
         () => {
-          // 无响应时必须结束进程，不能显示已暂停而连接仍存活。
-          this.child?.kill()
+          // 控制命令超时必须结束进程；只读节点查询失败不应中断下载。
+          if (command.kind !== 'peers') this.child?.kill()
           reject(new Error('下载进程响应超时'))
           this.pending.delete(requestId)
         },
@@ -76,11 +77,17 @@ export class ProcessDownloadEngine implements DownloadEngine {
   }
   async prepare(id: string, input: string | Uint8Array) {
     const result = await this.request({ kind: 'prepare', id, input })
-    if (!result) throw new Error('种子信息为空')
+    if (!result || Array.isArray(result)) throw new Error('种子信息为空')
     return result
   }
   async start(id: string, metadata: Uint8Array, directory: string, selected: number[]) {
     await this.request({ kind: 'start', id, metadata, directory, selected })
+  }
+  async peers(id: string): Promise<DownloadPeer[]> {
+    if (!this.child) return []
+    const result = await this.request({ kind: 'peers', id })
+    if (!Array.isArray(result)) throw new Error('节点信息无效')
+    return result
   }
   async stop(id: string) {
     if (this.child) await this.request({ kind: 'stop', id })

@@ -6,15 +6,17 @@ import type {
   DownloadTask,
 } from '@marchen/shared/downloads'
 import type { EngineStats, PreparedTorrent } from './engine-port'
+import { randomUUID } from 'node:crypto'
 import { mkdir, readFile, realpath, rm, stat, unlink, writeFile } from 'node:fs/promises'
 import { join, resolve } from 'node:path'
-import { DOWNLOAD_LIMITS, seedingDelta, shouldStopSeeding } from '@marchen/shared/downloads'
-import { app, BrowserWindow, powerMonitor } from 'electron'
+import { DOWNLOAD_LIMITS } from '@marchen/shared/downloads'
+import { app, BrowserWindow } from 'electron'
 import parseTorrent from 'parse-torrent'
 import { setDownloadAvailability } from './availability'
 import { ProcessDownloadEngine } from './engine'
+import { HttpDownloadEngine } from './http-engine'
 import { validateMagnet, validateMetadata } from './metadata'
-import { safeTaskPath } from './paths'
+import { reserveTorrentPaths, safeTaskPath, validateTorrentPath } from './paths'
 import { DownloadRepository, settingsSchema } from './repository'
 import { verifyFiles } from './verify-files'
 
@@ -23,37 +25,32 @@ export class DownloadService {
   private settings: DownloadSettings = {
     directory: app.getPath('downloads'),
     uploadLimit: -1,
-    policy: 'ratio-or-time',
   }
   private tasks: DownloadTask[] = []
   private drafts = new Map<string, PreparedTorrent>()
   private preparing = new Set<string>()
   private cancelled = new Set<string>()
   private locks = new Map<string, Promise<unknown>>()
-  private uploaded = new Map<string, number>()
-  private ticks = new Map<string, number>()
   private ready: Promise<void>
   private revision = 0
   private error?: string
   private storageLoaded = false
-  private suspended = false
   private closing = false
   private timer: ReturnType<typeof setInterval>
   private engine = new ProcessDownloadEngine(
     (s) => this.stats(s),
     () => this.crashed(),
   )
+  private httpEngine = new HttpDownloadEngine(
+    () => this.tasks,
+    (completed) => {
+      this.publish()
+      if (completed && !this.closing) void this.persist().catch(() => {})
+    },
+  )
   constructor() {
     this.ready = this.restore()
-    setDownloadAvailability(path => this.available(path))
-    powerMonitor.on('suspend', () => {
-      this.suspended = true
-      this.ticks.clear()
-    })
-    powerMonitor.on('resume', () => {
-      this.suspended = false
-      this.ticks.clear()
-    })
+    setDownloadAvailability((path) => this.available(path))
     this.timer = setInterval(() => {
       void this.ready
         .then(() => {
@@ -71,8 +68,14 @@ export class DownloadService {
       this.tasks = data.tasks
       for (const task of this.tasks) {
         task.downloadSpeed = 0
-        task.uploadSpeed = 0
         task.peers = 0
+        if (task.http) {
+          if (!task.files[0].complete) {
+            task.state = 'paused'
+            task.intent = 'paused'
+          }
+          continue
+        }
         task.files.forEach((f) => {
           f.complete = false
           f.verifiedBytes = 0
@@ -92,13 +95,30 @@ export class DownloadService {
       if (this.closing) return
       await this.serial(task.id, async () => {
         try {
+          if (task.http) {
+            if (task.files[0].complete) {
+              const info = await stat(await safeTaskPath(task.directory, task.files[0].path))
+              if (!info.isFile() || info.size !== task.files[0].size) {
+                task.files[0].complete = false
+                throw new Error('已下载文件被移动或修改')
+              }
+            }
+            this.publish()
+            return
+          }
           const metadata = await this.metadata(task.id)
           const verified = await verifyFiles(metadata, task.directory)
           for (const file of task.files) Object.assign(file, verified[file.index])
           const complete = this.complete(task)
           if (!complete) task.completedAt = undefined
           task.state = complete ? 'completed' : 'paused'
-          if (task.intent === 'running') await this.start(task)
+          // 旧版做种任务也只做离线校验，完成后不再连接下载网络。
+          if (complete) {
+            task.intent = 'stopped'
+            task.completedAt ??= Date.now()
+            await this.persist()
+          }
+          if (!complete && task.intent === 'running') await this.start(task)
           else this.publish()
         } catch (error) {
           this.fail(task, error)
@@ -138,6 +158,7 @@ export class DownloadService {
       this.error = undefined
     } catch {
       this.error = '下载记录保存失败，已停止传输，请检查磁盘后重启应用'
+      void this.httpEngine.shutdown()
       if (!this.closing) void this.engine.shutdown().catch(() => {})
       this.publish()
       throw new Error(this.error)
@@ -160,6 +181,58 @@ export class DownloadService {
     await this.ready
     return this.snapshot()
   }
+  async addHttp(urlValue: string, directory: string) {
+    await this.ensure()
+    return this.serial('confirm', async () => {
+      const url = new URL(urlValue.trim())
+      if (
+        !['http:', 'https:'].includes(url.protocol) ||
+        url.username ||
+        url.password ||
+        url.href.length > 16384
+      )
+        throw new Error('请输入 HTTP/HTTPS 文件直链')
+      if (this.tasks.length >= DOWNLOAD_LIMITS.tasks) throw new Error('下载任务超过限制')
+      if (this.tasks.some((task) => task.http?.url === url.href))
+        throw new Error('该链接的下载任务已存在')
+      const id = randomUUID()
+      let name = decodeURIComponent(url.pathname.split('/').pop() || `下载-${id}`)
+      if (name.length > 180) name = `下载-${id}`
+      validateTorrentPath(name)
+      if (name.includes('/')) throw new Error('下载文件名无效')
+      const root = await realpath(directory)
+      const partialName = `.marchen-${id}.part`
+      await reserveTorrentPaths(root, [{ path: name }, { path: partialName }])
+      const now = Date.now()
+      const task: DownloadTask = {
+        id,
+        name,
+        directory: root,
+        http: {
+          url: url.href,
+          urlChain: [url.href],
+          partialName,
+          offset: 0,
+          etag: '',
+          lastModified: '',
+        },
+        files: [
+          { index: 0, path: name, size: 0, selected: true, verifiedBytes: 0, complete: false },
+        ],
+        intent: 'running',
+        state: 'waiting',
+        createdAt: now,
+        updatedAt: now,
+        selectedBytes: 0,
+        downloadSpeed: 0,
+        peers: 0,
+      }
+      this.tasks.push(task)
+      await this.persist()
+      this.httpEngine.start(task)
+      return id
+    })
+  }
   async prepare(id: string, input: DownloadInput): Promise<DownloadDraft> {
     await this.ensure()
     if (
@@ -181,8 +254,15 @@ export class DownloadService {
         validateMetadata(value)
       }
       const identity = await parseTorrent(value)
-      const duplicate = this.tasks.find(task => task.infoHash === identity.infoHash)
-      if (duplicate) return { id, infoHash: duplicate.infoHash, name: duplicate.name, files: duplicate.files.map(({ index, path, size }) => ({ index, path, size })), existingTaskId: duplicate.id }
+      const duplicate = this.tasks.find((task) => task.infoHash === identity.infoHash)
+      if (duplicate)
+        return {
+          id,
+          infoHash: duplicate.infoHash!,
+          name: duplicate.name,
+          files: duplicate.files.map(({ index, path, size }) => ({ index, path, size })),
+          existingTaskId: duplicate.id,
+        }
       const result = await this.engine.prepare(id, value)
       if (this.cancelled.has(id) || this.closing) throw new Error('已取消添加')
       const existing = this.tasks.find((t) => t.infoHash === result.draft.infoHash)
@@ -212,16 +292,14 @@ export class DownloadService {
       if (!indices.length || indices.some((i) => !Number.isInteger(i) || !prepared.draft.files[i]))
         throw new Error('请选择有效文件')
       if (this.tasks.length >= DOWNLOAD_LIMITS.tasks) throw new Error('下载任务超过限制')
-      const parent = await realpath(directory)
-      const taskDirectory = join(parent, `Marchen-${id}`)
-      await mkdir(taskDirectory)
-      for (const f of prepared.draft.files) await safeTaskPath(taskDirectory, f.path)
+      const taskDirectory = await realpath(directory)
       await mkdir(join(this.repository.directory, 'metadata'), { recursive: true })
       await writeFile(
         join(this.repository.directory, 'metadata', `${id}.torrent`),
         prepared.metadata,
         { mode: 0o600 },
       )
+      await reserveTorrentPaths(taskDirectory, prepared.draft.files)
       const now = Date.now()
       const files = prepared.draft.files.map((f) => ({
         ...f,
@@ -237,14 +315,10 @@ export class DownloadService {
         files,
         intent: 'running',
         state: 'checking',
-        policy: this.settings.policy,
         createdAt: now,
         updatedAt: now,
-        uploadedBytes: 0,
-        ratioBaseBytes: files.filter((f) => f.selected).reduce((n, f) => n + f.size, 0),
-        seedingMs: 0,
+        selectedBytes: files.filter((f) => f.selected).reduce((n, f) => n + f.size, 0),
         downloadSpeed: 0,
-        uploadSpeed: 0,
         peers: 0,
       }
       this.tasks.push(task)
@@ -260,8 +334,6 @@ export class DownloadService {
     task.state = 'checking'
     task.error = undefined
     this.publish()
-    this.uploaded.set(task.id, 0)
-    this.ticks.delete(task.id)
     await this.engine.limit(this.settings.uploadLimit)
     await this.engine.start(
       task.id,
@@ -274,8 +346,14 @@ export class DownloadService {
     await this.ensure()
     return this.serial(id, async () => {
       const task = this.get(id)
+      if (!task.files.some((file) => file.selected)) throw new Error('请先选择要下载的文件')
+      if (this.complete(task)) return
       task.intent = 'running'
       await this.persist()
+      if (task.http) {
+        this.httpEngine.start(task)
+        return
+      }
       try {
         await this.start(task)
       } catch (error) {
@@ -288,17 +366,60 @@ export class DownloadService {
     await this.ensure()
     return this.serial(id, async () => {
       const task = this.get(id)
+      if (task.http) {
+        this.httpEngine.pause(task)
+        await this.persist()
+        return
+      }
+      if (completed && !this.complete(task)) return
       task.intent = completed ? 'stopped' : 'paused'
       task.state = 'pausing'
       this.publish()
       await this.engine.stop(id)
       task.state = this.complete(task) ? 'completed' : 'paused'
       task.downloadSpeed = 0
-      task.uploadSpeed = 0
       task.peers = 0
-      this.ticks.delete(id)
       await this.persist()
       this.publish()
+    })
+  }
+  async selectFiles(id: string, indices: number[]) {
+    await this.ensure()
+    return this.serial(id, async () => {
+      const task = this.get(id)
+      if (
+        !Array.isArray(indices) ||
+        indices.length > task.files.length ||
+        indices.some((index) => !Number.isInteger(index) || !task.files[index]) ||
+        new Set(indices).size !== indices.length
+      )
+        throw new Error('请选择有效文件')
+      if (task.files.every((file) => file.selected === indices.includes(file.index))) return
+      const shouldRun = task.intent === 'running' || task.state === 'completed'
+      task.state = 'pausing'
+      this.publish()
+      try {
+        // 先关闭原传输再按新清单重新校验和选片，防止已取消的文件继续被旧选择下载。
+        await this.engine.stop(id)
+        for (const file of task.files) file.selected = indices.includes(file.index)
+        task.selectedBytes = task.files
+          .filter((file) => file.selected)
+          .reduce((sum, file) => sum + file.size, 0)
+        const complete = this.complete(task)
+        task.completedAt = complete ? (task.completedAt ?? Date.now()) : undefined
+        task.intent = complete ? 'stopped' : shouldRun && indices.length > 0 ? 'running' : 'paused'
+        task.state = complete ? 'completed' : 'paused'
+        task.downloadSpeed = 0
+        task.peers = 0
+        task.error = undefined
+        task.updatedAt = Date.now()
+        await this.persist()
+        this.publish()
+        if (task.intent === 'running') await this.start(task)
+      } catch (error) {
+        this.fail(task, error)
+        throw error
+      }
     })
   }
   private stats(s: EngineStats) {
@@ -309,27 +430,13 @@ export class DownloadService {
       return
     }
     for (const f of s.files) if (task.files[f.index]) Object.assign(task.files[f.index], f)
-    const last = this.uploaded.get(s.id) ?? 0
-    task.uploadedBytes += Math.max(0, s.uploaded - last)
-    this.uploaded.set(s.id, s.uploaded)
     task.downloadSpeed = s.downloadSpeed
-    task.uploadSpeed = s.uploadSpeed
     task.peers = s.peers
-    const now = performance.now()
-    task.seedingMs += seedingDelta(
-      this.ticks.get(s.id) ?? now,
-      now,
-      task.state === 'seeding' && !this.suspended,
-    )
-    this.ticks.set(s.id, now)
     task.updatedAt = Date.now()
     if (this.complete(task)) {
       task.completedAt ??= Date.now()
-      task.state = 'seeding'
-      if (shouldStopSeeding(task.policy, task.uploadedBytes, task.ratioBaseBytes, task.seedingMs)) {
-        task.state = 'pausing'
-        void this.pause(task.id, true).catch((error) => this.fail(task, error))
-      }
+      task.state = 'pausing'
+      void this.pause(task.id, true).catch((error) => this.fail(task, error))
     } else {
       task.completedAt = undefined
       task.state = s.downloadSpeed > 0 ? 'downloading' : 'waiting'
@@ -340,26 +447,18 @@ export class DownloadService {
     task.state = 'error'
     task.error = message(error)
     task.downloadSpeed = 0
-    task.uploadSpeed = 0
     task.peers = 0
     this.publish()
   }
   private crashed() {
     if (this.closing) return
     for (const t of this.tasks)
-      if (t.intent === 'running') this.fail(t, new Error('下载进程已退出，请重试'))
+      if (!t.http && t.intent === 'running') this.fail(t, new Error('下载进程已退出，请重试'))
   }
   async setSettings(value: DownloadSettings) {
     await this.ensure()
     this.settings = settingsSchema.parse(value)
     await this.engine.limit(this.settings.uploadLimit)
-    await this.persist()
-    this.publish()
-  }
-  async setPolicy(id: string, policy: DownloadSettings['policy']) {
-    await this.ensure()
-    if (!['stop', 'ratio-or-time', 'forever'].includes(policy)) throw new Error('无效做种策略')
-    this.get(id).policy = policy
     await this.persist()
     this.publish()
   }
@@ -391,6 +490,7 @@ export class DownloadService {
     await this.pause(id)
     return this.serial(id, async () => {
       const task = this.get(id)
+      if (task.http) this.httpEngine.forget(task)
       if (deleteFiles) {
         const paths = await Promise.all(task.files.map((f) => safeTaskPath(task.directory, f.path)))
         if (paths.some(isInUse)) throw new Error('文件正在播放，请先结束播放')
@@ -402,6 +502,7 @@ export class DownloadService {
           )
             throw new Error('文件被其他任务使用')
         }
+        if (task.http) paths.push(await safeTaskPath(task.directory, task.http.partialName))
         for (const path of paths)
           await unlink(path).catch((error) => {
             if (error.code !== 'ENOENT') throw error
@@ -412,9 +513,20 @@ export class DownloadService {
       this.publish()
     })
   }
+  async peers(id: string) {
+    await this.ensure()
+    const task = this.get(id)
+    if (task.http) return []
+    if (task.intent !== 'running' || !['waiting', 'downloading'].includes(task.state)) return []
+    return this.engine.peers(id)
+  }
   async directory(id: string) {
     await this.ensure()
-    return this.get(id).directory
+    const task = this.get(id)
+    const root = task.files[0]?.path.split('/')[0]
+    if (root && task.files.every((file) => file.path.startsWith(`${root}/`)))
+      return safeTaskPath(task.directory, root)
+    return task.directory
   }
   hasActive() {
     return (
@@ -426,6 +538,7 @@ export class DownloadService {
     await this.ready
     this.closing = true
     clearInterval(this.timer)
+    await this.httpEngine.shutdown()
     await this.engine.shutdown()
     await Promise.allSettled([...this.locks.values()])
     if (clear) {
@@ -436,7 +549,6 @@ export class DownloadService {
       this.settings = {
         directory: app.getPath('downloads'),
         uploadLimit: -1,
-        policy: 'ratio-or-time',
       }
     }
     if (this.storageLoaded || clear) await this.persist()

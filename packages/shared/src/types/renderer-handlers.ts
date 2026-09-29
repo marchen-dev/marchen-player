@@ -10,7 +10,7 @@ import type { DesktopUpdateState } from './update'
  *
  * 事件流向：main → renderer（单向推送）
  */
-export const APP_SETTINGS_SECTIONS = ['general', 'labs', 'about'] as const
+export const APP_SETTINGS_SECTIONS = ['general', 'downloads', 'labs', 'about'] as const
 
 export type AppSettingsSection = (typeof APP_SETTINGS_SECTIONS)[number]
 

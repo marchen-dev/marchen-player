@@ -8,7 +8,7 @@ export const BetaBadge: FC<{ className?: string }> = ({ className }) => (
     variant="outline"
     className={cn(
       // 使用全局品牌色，与影视库强调色保持一致；亮色下文字取深一档保证小字号对比度
-      'border-brand/40 bg-brand/10 text-brand-press dark:text-brand px-1.5 py-0 text-[10px] leading-4 font-semibold tracking-wide uppercase',
+      'border-brand/40 bg-brand/10 text-brand-text px-1.5 py-0 text-[10px] leading-4 font-semibold tracking-wide uppercase',
       className,
     )}
   >

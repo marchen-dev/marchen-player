@@ -10,8 +10,8 @@ const readRendererSource = (path: string) =>
   readFileSync(new URL(`../../../${path}`, import.meta.url), 'utf8')
 
 describe('应用设置重构回归', () => {
-  it('只暴露三个稳定分类 ID，并安全回退到通用', () => {
-    expect(APP_SETTINGS_SECTIONS).toEqual(['general', 'labs', 'about'])
+  it('暴露稳定分类 ID，并安全回退到通用', () => {
+    expect(APP_SETTINGS_SECTIONS).toEqual(['general', 'downloads', 'labs', 'about'])
     expect(DEFAULT_APP_SETTINGS_SECTION).toBe('general')
     expect(resolveAppSettingsSection()).toBe('general')
     expect(resolveAppSettingsSection('ai')).toBe('general')

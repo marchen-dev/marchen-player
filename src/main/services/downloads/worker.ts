@@ -5,6 +5,7 @@ import MemoryStore from 'memory-chunk-store'
 import WebTorrent from 'webtorrent'
 import { validateMagnet, validateMetadata } from './metadata'
 import { safeTaskPath } from './paths'
+import { peerDetails } from './peer-details'
 
 const port = process.parentPort!
 const client = new WebTorrent({ utp: false })
@@ -39,9 +40,7 @@ function stats(id: string, t: Torrent): EngineStats {
           )
       return { index, verifiedBytes: bytes, complete: bytes === file.length }
     }),
-    uploaded: t.uploaded,
     downloadSpeed: t.downloadSpeed,
-    uploadSpeed: t.uploadSpeed,
     peers: t.numPeers,
   }
 }
@@ -52,9 +51,7 @@ client.on('error', () => {
       stats: {
         id,
         files: [],
-        uploaded: 0,
         downloadSpeed: 0,
-        uploadSpeed: 0,
         peers: 0,
         error: '下载引擎错误，请重试',
       },
@@ -90,9 +87,7 @@ port.on('message', async ({ data }: { data: EngineRequest }) => {
           stats: {
             id: command.id,
             files: [],
-            uploaded: 0,
             downloadSpeed: 0,
-            uploadSpeed: 0,
             peers: 0,
             error: '下载失败，请检查目录、空间或网络后重试',
           },
@@ -137,6 +132,9 @@ port.on('message', async ({ data }: { data: EngineRequest }) => {
         send({ generation, stats: stats(command.id, t) })
         send({ generation, requestId, ok: true })
       }
+    } else if (command.kind === 'peers') {
+      const torrent = torrents.get(command.id)
+      send({ generation, requestId, ok: true, value: torrent?.ready ? peerDetails(torrent) : [] })
     } else if (command.kind === 'stop') {
       await stop(command.id)
       send({ generation, requestId, ok: true })
@@ -152,7 +150,7 @@ port.on('message', async ({ data }: { data: EngineRequest }) => {
       process.exit(0)
     }
   } catch (error) {
-    if ('id' in command) await stop(command.id).catch(() => {})
+    if ('id' in command && command.kind !== 'peers') await stop(command.id).catch(() => {})
     send({
       generation,
       requestId,

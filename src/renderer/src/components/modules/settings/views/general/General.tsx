@@ -8,7 +8,6 @@ import { useConfirmationDialog } from '@renderer/hooks/use-dialog'
 import { ipcClient } from '@renderer/lib/client'
 import { resetApp } from '@renderer/lib/ns'
 import { isWeb } from '@renderer/lib/utils'
-import { DownloadSettingsSection } from '@renderer/page/downloads/settings'
 import { useCallback } from 'react'
 
 import {
@@ -65,7 +64,6 @@ export const GeneralView = () => {
         </SettingsSection>
       )}
 
-      {!isWeb && <DownloadSettingsSection />}
       <SettingsSection title="播放">
         <SettingsGroup>
           <div className="p-4">

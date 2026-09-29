@@ -2,7 +2,7 @@ import { mkdtemp, readFile, realpath, rm, symlink, writeFile } from 'node:fs/pro
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
-import { safeTaskPath, validateTorrentPath } from './paths'
+import { reserveTorrentPaths, safeTaskPath, validateTorrentPath } from './paths'
 import { DownloadRepository } from './repository'
 const dirs: string[] = []
 async function temp() {
@@ -20,11 +20,11 @@ describe('下载仓库', () => {
     const data = await repo.load('/downloads')
     await Promise.all([
       repo.save(data),
-      repo.save({ ...data, settings: { ...data.settings, policy: 'stop' } }),
+      repo.save({ ...data, settings: { ...data.settings, uploadLimit: 1024 } }),
     ])
-    expect((await repo.load('')).settings.policy).toBe('stop')
+    expect((await repo.load('')).settings.uploadLimit).toBe(1024)
     await writeFile(join(dir, 'tasks.json'), '{broken')
-    expect((await repo.load('')).settings.policy).toBe('ratio-or-time')
+    expect((await repo.load('')).settings.uploadLimit).toBe(-1)
     expect(await readFile(join(dir, 'tasks.json'), 'utf8')).toBe('{broken')
   })
   it('未知版本不静默清空', async () => {
@@ -45,4 +45,15 @@ describe('下载仓库', () => {
       join(await realpath(dir), '普通/第01集.mkv'),
     )
   })
+})
+
+it('直接预留种子原目录和单文件名称，拒绝覆盖已有内容', async () => {
+  const dir = await temp()
+  await reserveTorrentPaths(dir, [{ path: '番剧/01.mkv' }, { path: '番剧/02.mkv' }])
+  await writeFile(join(dir, '番剧', '01.mkv'), '原视频')
+  await expect(reserveTorrentPaths(dir, [{ path: '番剧/03.mkv' }])).rejects.toThrow('已存在')
+  expect(await readFile(join(dir, '番剧', '01.mkv'), 'utf8')).toBe('原视频')
+  await reserveTorrentPaths(dir, [{ path: '单集.mkv' }])
+  await expect(reserveTorrentPaths(dir, [{ path: '单集.mkv' }])).rejects.toThrow('已存在')
+  expect(await readFile(join(dir, '单集.mkv'), 'utf8')).toBe('')
 })

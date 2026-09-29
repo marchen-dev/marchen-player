@@ -15,7 +15,7 @@ export function initializeDownloads() {
         if (service?.hasActive()) {
           const answer = await dialog.showMessageBox({
             type: 'question',
-            message: '还有下载或做种任务，退出后将停止，重新打开可恢复。',
+            message: '还有未完成的下载任务，退出后将停止，重新打开可恢复。',
             buttons: ['取消', '退出'],
             defaultId: 0,
             cancelId: 0,

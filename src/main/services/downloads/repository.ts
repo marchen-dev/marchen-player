@@ -5,7 +5,6 @@ import { DOWNLOAD_LIMITS } from '@marchen/shared/downloads'
 import { z } from 'zod'
 import { validateTorrentPath } from './paths'
 const number = z.number().finite().nonnegative()
-const policy = z.enum(['ratio-or-time', 'stop', 'forever'])
 const file = z.object({
   index: number.int(),
   path: z.string().refine((value) => {
@@ -21,42 +20,62 @@ const file = z.object({
   verifiedBytes: number.int(),
   complete: z.boolean(),
 })
-const task = z.object({
-  id: z.string().uuid(),
-  infoHash: z.string().regex(/^[a-f0-9]{40}$/),
-  name: z.string().max(1024),
-  directory: z.string().min(1),
-  files: z.array(file).max(DOWNLOAD_LIMITS.files),
-  intent: z.enum(['running', 'paused', 'stopped']),
-  state: z.enum([
-    'checking',
-    'waiting',
-    'downloading',
-    'pausing',
-    'paused',
-    'seeding',
-    'completed',
-    'error',
-  ]),
-  policy,
-  createdAt: number,
-  updatedAt: number,
-  completedAt: number.optional(),
-  uploadedBytes: number,
-  ratioBaseBytes: number,
-  seedingMs: number,
-  error: z.string().optional(),
-  downloadSpeed: number,
-  uploadSpeed: number,
-  peers: number.int(),
-})
+// 读取旧版记录时兼容容量字段，并剥离已废弃的做种配置与统计。
+const task = z.preprocess(
+  (value) => {
+    if (!value || typeof value !== 'object') return value
+    const record = value as Record<string, unknown>
+    return { ...record, selectedBytes: record.selectedBytes ?? record.ratioBaseBytes }
+  },
+  z
+    .object({
+      id: z.string().uuid(),
+      infoHash: z
+        .string()
+        .regex(/^[a-f0-9]{40}$/)
+        .optional(),
+      http: z
+        .object({
+          url: z.string().url(),
+          urlChain: z.array(z.string().url()),
+          partialName: z.string().refine((value) => !value.includes('/') && !value.includes('\\')),
+          offset: number,
+          etag: z.string(),
+          lastModified: z.string(),
+        })
+        .optional(),
+      name: z.string().max(1024),
+      directory: z.string().min(1),
+      files: z.array(file).max(DOWNLOAD_LIMITS.files),
+      intent: z.enum(['running', 'paused', 'stopped']),
+      state: z
+        .enum([
+          'checking',
+          'waiting',
+          'downloading',
+          'pausing',
+          'paused',
+          'seeding',
+          'completed',
+          'error',
+        ])
+        .transform((state) => (state === 'seeding' ? ('completed' as const) : state)),
+      createdAt: number,
+      updatedAt: number,
+      completedAt: number.optional(),
+      selectedBytes: number,
+      error: z.string().optional(),
+      downloadSpeed: number,
+      peers: number.int(),
+    })
+    .refine((value) => Boolean(value.http) !== Boolean(value.infoHash), '下载任务来源无效'),
+)
 export const settingsSchema = z.object({
   directory: z.string(),
   uploadLimit: z
     .number()
     .int()
     .refine((n) => n === -1 || n > 0),
-  policy,
 })
 const schema = z.object({
   schemaVersion: z.literal(1),
@@ -87,7 +106,7 @@ export class DownloadRepository {
       if (missing && (error as NodeJS.ErrnoException).code === 'ENOENT')
         return {
           schemaVersion: 1,
-          settings: { directory: defaultDirectory, uploadLimit: -1, policy: 'ratio-or-time' },
+          settings: { directory: defaultDirectory, uploadLimit: -1 },
           tasks: [],
         }
       throw new Error('下载记录损坏或版本不兼容，已保留原文件，请恢复备份')

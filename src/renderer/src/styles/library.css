@@ -12,7 +12,7 @@
  *   --library-line-1..2               2 级边线
  *   --library-glass / glass-strong    玻璃感叠加层
  *   --library-scrim / scrim-soft      暗化蒙层
- *   --library-accent / press / glow   品牌色（红橙），同时承担危险色与焦点色
+ *   --library-accent / press / glow   蓝色品牌强调，危险操作使用独立语义色
  *   --library-done / on / warn        状态色
  *
  * z-index 全部映射到全局 --z-* 体系（lib/constants/z-index.ts），避免与 shadcn
@@ -70,7 +70,7 @@
   --library-poster-shade: linear-gradient(180deg, transparent, rgba(0, 0, 0, 0.85));
   --library-poster-hover-shade: linear-gradient(180deg, transparent 30%, rgba(0, 0, 0, 0.6));
 
-  /* 品牌色（oklch 高饱和红橙），同时用作主 CTA、危险按钮（B.1 决策） */
+  /* 主操作、进度和选中态共用蓝色品牌色 */
   --library-accent: var(--brand);
   --library-accent-press: var(--brand-press);
   --library-accent-glow: oklch(from var(--brand) l c h / 0.5);
@@ -86,9 +86,9 @@
   --library-shadow-card: 0 1px 4px rgba(20, 24, 30, 0.08), 0 6px 14px rgba(20, 24, 30, 0.06);
   --library-shadow-card-hover: 0 14px 32px rgba(20, 24, 30, 0.18);
 
-  /* Chip active 翻转色（active 时用 fg 做背景，bg 做文字） */
-  --library-chip-on-bg: #0a0c10;
-  --library-chip-on-fg: #ffffff;
+  /* 分类选中态使用中性色，品牌蓝留给主操作与进度。 */
+  --library-chip-on-bg: var(--library-panel-2);
+  --library-chip-on-fg: var(--library-fg);
 
   /* 卡片尺寸常量（PosterCard） */
   --library-rail-card-w: 184px;
@@ -139,8 +139,8 @@
   --library-shadow-card: 0 4px 16px rgba(0, 0, 0, 0.4);
   --library-shadow-card-hover: 0 18px 44px rgba(0, 0, 0, 0.55);
 
-  --library-chip-on-bg: #ffffff;
-  --library-chip-on-fg: #000000;
+  --library-chip-on-bg: var(--library-panel-2);
+  --library-chip-on-fg: var(--library-fg);
 }
 
 /* =============================================================================
@@ -189,7 +189,6 @@
 .library-tabular {
   font-variant-numeric: tabular-nums;
 }
-
 
 /* ── Hero ────────────────────────────────────────────────────────────────── */
 .library-hero {
@@ -242,7 +241,7 @@
   font-size: 11.5px;
   font-weight: 600;
   letter-spacing: 0.16em;
-  color: var(--library-accent);
+  color: var(--brand-text);
   text-transform: uppercase;
   align-self: flex-start;
 }
@@ -325,8 +324,12 @@
   color: #fff;
   font-size: 15px;
   font-weight: 700;
-  box-shadow: 0 12px 36px var(--library-accent-glow), inset 0 1px 0 rgba(255, 255, 255, 0.18);
-  transition: background 0.12s, transform 0.12s;
+  box-shadow:
+    0 12px 36px var(--library-accent-glow),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  transition:
+    background 0.12s,
+    transform 0.12s;
   cursor: default;
   border: 0;
 }
@@ -476,12 +479,16 @@
   border-radius: 10px;
   overflow: hidden;
   background: var(--library-panel-2);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
   box-shadow: var(--library-shadow-card);
 }
 .library-poster-card:hover .library-poster-art {
   transform: translateY(-4px) scale(1.025);
-  box-shadow: var(--library-shadow-card-hover), 0 0 0 1px var(--library-line-2);
+  box-shadow:
+    var(--library-shadow-card-hover),
+    0 0 0 1px var(--library-line-2);
 }
 .library-poster-art img {
   display: block;
@@ -611,12 +618,17 @@
 }
 .library-poster-card.is-managing .library-poster-art {
   outline: 0 solid var(--library-accent);
-  transition: outline 0.12s, transform 0.18s, box-shadow 0.18s;
+  transition:
+    outline 0.12s,
+    transform 0.18s,
+    box-shadow 0.18s;
 }
 .library-poster-card.is-selected .library-poster-art {
   outline: 2.5px solid var(--library-accent);
   outline-offset: 2px;
-  box-shadow: var(--library-shadow-card-hover), 0 0 0 1px var(--library-accent);
+  box-shadow:
+    var(--library-shadow-card-hover),
+    0 0 0 1px var(--library-accent);
 }
 .library-pick {
   position: absolute;
@@ -633,11 +645,14 @@
   justify-content: center;
   color: #fff;
   z-index: 4;
-  transition: background 0.12s, border-color 0.12s, transform 0.12s;
+  transition:
+    background 0.12s,
+    border-color 0.12s,
+    transform 0.12s;
 }
 .library-pick.is-on {
   background: var(--library-accent);
-  border-color: var(--library-accent);
+  border-color: var(--brand-text);
   transform: scale(1.05);
 }
 
@@ -655,7 +670,9 @@
   overflow: hidden;
   background: var(--library-panel-2);
   box-shadow: var(--library-shadow-card);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
 }
 .library-lc-art img {
   display: block;
@@ -668,7 +685,9 @@
 }
 .library-lc-card:hover .library-lc-art {
   transform: translateY(-3px) scale(1.02);
-  box-shadow: var(--library-shadow-card-hover), 0 0 0 1px var(--library-line-2);
+  box-shadow:
+    var(--library-shadow-card-hover),
+    0 0 0 1px var(--library-line-2);
 }
 .library-lc-overlay {
   position: absolute;
@@ -757,7 +776,9 @@
   background: var(--library-bg-2);
   border-radius: 14px;
   overflow: hidden;
-  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6), 0 0 0 1px var(--library-line-2);
+  box-shadow:
+    0 30px 80px rgba(0, 0, 0, 0.6),
+    0 0 0 1px var(--library-line-2);
   animation: library-dt-in 0.24s cubic-bezier(0.22, 1, 0.36, 1);
 }
 .library-dt-scroll {
@@ -849,7 +870,9 @@
   height: 330px;
   border-radius: 10px;
   overflow: hidden;
-  box-shadow: 0 20px 56px rgba(0, 0, 0, 0.6), 0 0 0 1px var(--library-line-2);
+  box-shadow:
+    0 20px 56px rgba(0, 0, 0, 0.6),
+    0 0 0 1px var(--library-line-2);
   position: relative;
   z-index: 3;
   background: var(--library-panel-2);
@@ -971,7 +994,9 @@
   border-radius: 9px;
   background: var(--library-panel-1);
   border: 1px solid transparent;
-  transition: background 0.12s, border-color 0.12s;
+  transition:
+    background 0.12s,
+    border-color 0.12s;
   position: relative;
   cursor: default;
 }
@@ -1038,7 +1063,9 @@
   border-radius: 14px;
   padding: 24px 24px 20px;
   z-index: calc(var(--z-dialog) + 2);
-  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.5), 0 0 0 1px var(--library-line-1);
+  box-shadow:
+    0 30px 80px rgba(0, 0, 0, 0.5),
+    0 0 0 1px var(--library-line-1);
   animation: library-pop-in 0.18s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .library-confirm-title {
@@ -1076,13 +1103,11 @@
 .library-confirm-cancel:hover {
   background: var(--library-panel-2);
 }
-.library-confirm-danger,
 .library-confirm-primary {
   background: var(--library-accent);
   color: #fff;
   box-shadow: 0 4px 14px var(--library-accent-glow);
 }
-.library-confirm-danger:hover,
 .library-confirm-primary:hover {
   background: var(--library-accent-press);
 }
@@ -1151,4 +1176,13 @@
 
 .library-bottom-spacer {
   height: 60px;
+}
+
+/* 删除与普通确认分开，切换品牌色不能改变危险操作的语义。 */
+.library-confirm-danger {
+  background: hsl(var(--destructive));
+  color: hsl(var(--destructive-foreground));
+}
+.library-confirm-danger:hover {
+  background: hsl(var(--destructive) / 90%);
 }
