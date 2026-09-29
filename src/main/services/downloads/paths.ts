@@ -74,3 +74,25 @@ export async function reserveTorrentPaths(root: string, files: Array<{ path: str
     throw error
   }
 }
+
+/** 仅清理任务文件的空父目录，始终止于保存目录；不递归删除目录内容。 */
+export async function removeEmptyTaskDirectories(root: string, files: Array<{ path: string }>) {
+  const directories = new Set<string>()
+  for (const file of files) {
+    validateTorrentPath(file.path)
+    const parts = file.path.split('/')
+    parts.pop()
+    while (parts.length) {
+      directories.add(parts.join('/'))
+      parts.pop()
+    }
+  }
+  // 先删子目录再删父目录；同一目录只尝试一次，非空即保留。
+  const deepestFirst = [...directories].sort((a, b) => b.split('/').length - a.split('/').length)
+  for (const relative of deepestFirst) {
+    const target = await safeTaskPath(root, relative)
+    await rmdir(target).catch((error: NodeJS.ErrnoException) => {
+      if (!['ENOENT', 'ENOTEMPTY', 'EEXIST'].includes(error.code ?? '')) throw error
+    })
+  }
+}

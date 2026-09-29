@@ -30,7 +30,16 @@ export const createRendererSentryOptions = (): BrowserOptions => ({
   beforeSendSpan: (span) => redactMediaAddresses(span),
   beforeSend: (event) => redactMediaAddresses(event),
   beforeSendTransaction: (event) => redactMediaAddresses(event),
-  beforeBreadcrumb: (event) => redactMediaAddresses(event),
+  beforeBreadcrumb: (event, hint) => {
+    const target = hint?.event?.target
+    if (
+      typeof Element !== 'undefined' &&
+      target instanceof Element &&
+      target.closest('[data-telemetry-replay-block]')
+    )
+      return null
+    return redactMediaAddresses(event)
+  },
   sendDefaultPii: true,
   tracesSampleRate: 1,
   // 当前代理没有声明接受 sentry-trace/baggage，只记录客户端 span，不跨域传播。

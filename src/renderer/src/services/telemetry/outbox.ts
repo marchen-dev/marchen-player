@@ -5,6 +5,9 @@ export const OUTBOX_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1_000
 const MAX_RETRY_DELAY_MS = 60 * 60 * 1_000
 
 export const CRITICAL_TELEMETRY_EVENTS = new Set<TelemetryEventName>([
+  'download_state_changed',
+  'download_progress_stalled',
+  'remote_import_result',
   'app_session_started',
   'app_session_ended',
   'video_import_completed',

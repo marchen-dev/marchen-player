@@ -38,6 +38,7 @@ export async function loadHistoricalVideo(
     if (record.source?.kind === 'remote-url') {
       if (isWeb) throw new Error('网页版不支持远程视频，请使用桌面版')
       if (!service.loadFromUrl) throw new Error('当前加载器不支持网络视频')
+      markNextPlayerImportSource('library')
       service.loadFromUrl(record.source.url, hash)
       return { status: 'loaded', path: record.source.name }
     }

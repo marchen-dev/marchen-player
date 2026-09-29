@@ -4,6 +4,7 @@ import type {
   DownloadState,
   DownloadTask,
 } from '@marchen/shared/downloads'
+import type { TelemetryEventMap } from '@renderer/services/telemetry/contracts'
 import { isVideoFile } from '@marchen/shared/media'
 import { Button } from '@renderer/components/ui/button'
 import {
@@ -26,6 +27,9 @@ import { toast } from '@renderer/components/ui/toast/use-toast'
 import { usePageHeader } from '@renderer/hooks/use-page-header'
 import { ipcClient } from '@renderer/lib/client'
 import { getPlayerLoadingService } from '@renderer/services/player-loading'
+import { trackDownloadAction, trackDownloadAdd } from '@renderer/services/telemetry/downloads'
+import { captureFeatureUsed } from '@renderer/services/telemetry/features'
+import { markNextPlayerImportSource } from '@renderer/services/telemetry/player-loading-observer'
 import { useAtom, useAtomValue } from 'jotai'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router'
@@ -74,7 +78,8 @@ export default function Downloads() {
   }
   return (
     <div
-      className="bg-background h-full overflow-y-auto px-8 py-9"
+      data-telemetry-replay-block
+      className="ph-no-capture bg-background h-full overflow-y-auto px-8 py-9"
       onDragOver={(e) => {
         if (e.dataTransfer.types.includes('Files')) e.preventDefault()
       }}
@@ -209,9 +214,13 @@ function TaskRow({ task }: { task: DownloadTask }) {
   const percentage = total ? Math.min(100, Math.floor((done / total) * 100)) : 0
   const eta =
     total > 0 && task.downloadSpeed > 0 ? Math.ceil((total - done) / task.downloadSpeed / 60) : null
-  const run = (work: () => Promise<unknown>) => {
+  const run = (
+    work: () => Promise<unknown>,
+    action: TelemetryEventMap['download_action_result']['action'] = 'selection',
+    deleteFiles?: boolean,
+  ) => {
     setBusy(true)
-    void work()
+    void trackDownloadAction(task, action, work, deleteFiles)
       .catch(downloadError)
       .finally(() => setBusy(false))
   }
@@ -219,8 +228,9 @@ function TaskRow({ task }: { task: DownloadTask }) {
     run(async () => {
       const path = await downloadCall(ipcClient?.downloads.play({ id: task.id, index }))
       navigate('/player')
+      markNextPlayerImportSource('download')
       getPlayerLoadingService().loadFromPath(path)
-    })
+    }, 'play')
   const active = ['waiting', 'downloading', 'checking', 'pausing'].includes(task.state)
   return (
     <section id={`download-${task.id}`} className="border-b p-5 last:border-0">
@@ -229,7 +239,10 @@ function TaskRow({ task }: { task: DownloadTask }) {
           className="bg-muted flex size-11 shrink-0 items-center justify-center rounded-xl"
           aria-label={`${expanded ? '收起' : '展开'} ${task.name}`}
           aria-expanded={expanded}
-          onClick={() => setExpanded(!expanded)}
+          onClick={() => {
+            captureFeatureUsed('download_files', expanded ? 'collapse' : 'expand')
+            setExpanded(!expanded)
+          }}
         >
           <i className="icon-[mingcute--file-download-line] text-xl" />
         </button>
@@ -239,7 +252,10 @@ function TaskRow({ task }: { task: DownloadTask }) {
             title={`${task.name}（点击${expanded ? '收起' : '展开'}文件）`}
             aria-controls={`download-file-list-${task.id}`}
             aria-expanded={expanded}
-            onClick={() => setExpanded(!expanded)}
+            onClick={() => {
+              captureFeatureUsed('download_files', expanded ? 'collapse' : 'expand')
+              setExpanded(!expanded)
+            }}
           >
             {task.name}
           </button>
@@ -261,12 +277,14 @@ function TaskRow({ task }: { task: DownloadTask }) {
               variant="outline"
               disabled={busy || task.state === 'pausing' || selected.length === 0}
               onClick={() =>
-                run(() =>
-                  downloadCall(
-                    active
-                      ? ipcClient?.downloads.pause({ id: task.id })
-                      : ipcClient?.downloads.resume({ id: task.id }),
-                  ),
+                run(
+                  () =>
+                    downloadCall(
+                      active
+                        ? ipcClient?.downloads.pause({ id: task.id })
+                        : ipcClient?.downloads.resume({ id: task.id }),
+                    ),
+                  active ? 'pause' : task.state === 'error' ? 'retry' : 'resume',
                 )
               }
             >
@@ -294,13 +312,23 @@ function TaskRow({ task }: { task: DownloadTask }) {
             >
               <DropdownMenuItem
                 onSelect={() =>
-                  run(() => downloadCall(ipcClient?.downloads.openFolder({ id: task.id })))
+                  run(
+                    () => downloadCall(ipcClient?.downloads.openFolder({ id: task.id })),
+                    'open_folder',
+                  )
                 }
               >
                 打开目录
               </DropdownMenuItem>
               {!task.http && (
-                <DropdownMenuItem onSelect={() => setShowPeers(true)}>节点详情</DropdownMenuItem>
+                <DropdownMenuItem
+                  onSelect={() => {
+                    captureFeatureUsed('download_peer_details', 'open')
+                    setShowPeers(true)
+                  }}
+                >
+                  节点详情
+                </DropdownMenuItem>
               )}
               <DropdownMenuSeparator />
               <DropdownMenuItem
@@ -325,6 +353,7 @@ function TaskRow({ task }: { task: DownloadTask }) {
       </div>
       <div className="text-muted-foreground mt-2 flex justify-between text-xs">
         <span>
+          {!task.http && '已校验 '}
           {bytes(done)} / {total ? bytes(total) : '大小未知'}
           {total ? ` · ${percentage}%` : ''}
         </span>
@@ -339,6 +368,15 @@ function TaskRow({ task }: { task: DownloadTask }) {
             : ''}
         </span>
       </div>
+      {!task.http && (task.receivedBytes ?? 0) > 0 && !completed && (
+        <p
+          className="text-muted-foreground mt-2 text-xs"
+          title="本轮接收包含尚未校验的分片和重传，进度条只统计校验通过的数据。"
+        >
+          本轮已接收 {bytes(task.receivedBytes ?? 0)}
+          {(task.hashFailures ?? 0) > 0 && ` · 分片校验失败 ${task.hashFailures} 次，已丢弃并重试`}
+        </p>
+      )}
       {task.error && (
         <p role="alert" className="text-destructive mt-3 text-sm">
           {task.error}
@@ -435,6 +473,8 @@ function TaskRow({ task }: { task: DownloadTask }) {
       )}
       <Dialog open={remove} onOpenChange={setRemove}>
         <DialogContent
+          data-telemetry-replay-block
+          className="ph-no-capture"
           onCloseAutoFocus={(event) => {
             event.preventDefault()
             const target =
@@ -463,10 +503,14 @@ function TaskRow({ task }: { task: DownloadTask }) {
               variant="destructive"
               disabled={busy}
               onClick={() =>
-                run(async () => {
-                  await downloadCall(ipcClient?.downloads.remove({ id: task.id, deleteFiles }))
-                  setRemove(false)
-                })
+                run(
+                  async () => {
+                    await downloadCall(ipcClient?.downloads.remove({ id: task.id, deleteFiles }))
+                    setRemove(false)
+                  },
+                  'remove',
+                  deleteFiles,
+                )
               }
             >
               移除
@@ -491,6 +535,7 @@ function NewDownload({
   const [id] = useState(() => crypto.randomUUID())
   const [input, setInput] = useState('')
   const isHttp = /^https?:\/\//i.test(input.trim())
+  const [inputKind, setInputKind] = useState<'magnet' | 'torrent'>('magnet')
   const [draft, setDraft] = useState<DownloadDraft>()
   const [selected, setSelected] = useState<number[]>([])
   const [directory, setDirectory] = useState(initialDirectory)
@@ -501,9 +546,12 @@ function NewDownload({
   const prepare = useCallback(
     async (source: DownloadInput) => {
       setBusy(true)
+      setInputKind(source.kind)
       setError('')
       try {
-        const result = await downloadCall(ipcClient?.downloads.prepare({ id, source }))
+        const result = await trackDownloadAdd(source.kind, 'metadata', () =>
+          downloadCall(ipcClient?.downloads.prepare({ id, source })),
+        )
         if (cancelledRef.current) return
         if (result.existingTaskId) {
           onExistingRef.current(result.existingTaskId)
@@ -546,7 +594,8 @@ function NewDownload({
       }}
     >
       <DialogContent
-        className="max-h-[85vh] overflow-y-auto sm:max-w-xl"
+        data-telemetry-replay-block
+        className="ph-no-capture max-h-[85vh] overflow-y-auto sm:max-w-xl"
         onCloseAutoFocus={(event) => {
           event.preventDefault()
           document.getElementById('new-download')?.focus()
@@ -690,7 +739,9 @@ function NewDownload({
               if (!draft && isHttp) {
                 setBusy(true)
                 setError('')
-                void downloadCall(ipcClient?.downloads.addHttp({ url: input.trim(), directory }))
+                void trackDownloadAdd('http', 'create', () =>
+                  downloadCall(ipcClient?.downloads.addHttp({ url: input.trim(), directory })),
+                )
                   .then(onClose)
                   .catch((e) => {
                     setError(e.message)
@@ -703,7 +754,9 @@ function NewDownload({
                 return
               }
               setBusy(true)
-              void downloadCall(ipcClient?.downloads.confirm({ id, selected, directory }))
+              void trackDownloadAdd(inputKind, 'create', () =>
+                downloadCall(ipcClient?.downloads.confirm({ id, selected, directory })),
+              )
                 .then(onClose)
                 .catch((e) => {
                   setError(e.message)

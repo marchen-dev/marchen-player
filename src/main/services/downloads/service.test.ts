@@ -1,6 +1,6 @@
 import type { EngineStats, PreparedTorrent } from './engine-port'
 import { createHash, randomUUID } from 'node:crypto'
-import { mkdtemp, readFile, realpath, rm, writeFile } from 'node:fs/promises'
+import { mkdtemp, readFile, realpath, rm, stat, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import bencode from 'bencode'
@@ -289,4 +289,30 @@ it('下载中替换集数，完成后追加未完成集数会重新启动', asyn
     selectedBytes: content.length * 2,
   })
   expect((await service!.list()).tasks[0].completedAt).toBeUndefined()
+})
+
+it('删除合集文件同时清理任务空目录，保留用户保存目录', async () => {
+  const { id, task, content } = await setup(true)
+  await writeFile(join(task.directory, 'sample.mkv', '01.mkv'), content)
+  await service!.remove(id, true, () => false)
+  await expect(stat(join(task.directory, 'sample.mkv'))).rejects.toMatchObject({ code: 'ENOENT' })
+  expect((await stat(task.directory)).isDirectory()).toBe(true)
+  expect((await service!.list()).tasks).toHaveLength(0)
+})
+
+it('收到字节但未通过校验不能误报完成，并保留校验失败诊断', async () => {
+  const { id } = await setup()
+  mock.stats!({
+    id,
+    files: [{ index: 0, complete: false, verifiedBytes: 0 }],
+    receivedBytes: 100000,
+    hashFailures: 2,
+    downloadSpeed: 1000,
+    peers: 2,
+  })
+  const task = (await service!.list()).tasks[0]
+  expect(task).toMatchObject({ state: 'downloading', receivedBytes: 100000, hashFailures: 2 })
+  expect(task.files[0].complete).toBe(false)
+  expect(task.files[0].verifiedBytes).toBe(0)
+  await expect(service!.filePath(id, 0)).rejects.toThrow('尚未完整')
 })

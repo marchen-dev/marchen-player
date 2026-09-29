@@ -45,6 +45,9 @@ export interface DownloadTask {
   selectedBytes: number
   error?: string
   downloadSpeed: number
+  /** BT 当前传输会话的接收量（含重传），仅供实时显示。 */
+  receivedBytes?: number
+  hashFailures?: number
   peers: number
 }
 export interface DownloadSettings {

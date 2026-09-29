@@ -5,6 +5,7 @@ import { db } from '@renderer/database/db'
 import { retainRemoteImport } from '@renderer/services/media/remote-handoff'
 import { remoteImportProgressAtom } from '@renderer/services/media/remote-progress'
 import { openRemoteSource } from '@renderer/services/media/remote-source'
+import { telemetry } from '@renderer/services/telemetry/client'
 import SparkMD5 from 'spark-md5'
 
 /** 先核对候选，成功前不更改旧历史来源。 */
@@ -19,6 +20,10 @@ export async function importRemoteVideo(
   signal.addEventListener('abort', cancel, { once: true })
   let range: Awaited<ReturnType<typeof openRemoteSource>> | undefined
   let retained = false
+  const startedAt = performance.now()
+  let receivedBytes = 0
+  let fingerprint = false
+  let succeeded = false
   let importing = true
   const progressId = crypto.randomUUID()
   let lastProgress = 0
@@ -36,6 +41,7 @@ export async function importRemoteVideo(
         jotaiStore.get(remoteImportProgressAtom)?.id !== progressId
       )
         return
+      receivedBytes = received
       const now = performance.now()
       if (received !== 0 && received !== total && now - lastProgress < 250) return
       lastProgress = now
@@ -53,7 +59,9 @@ export async function importRemoteVideo(
         Math.min(range.size, 16 * 1024 * 1024),
         AbortSignal.any([signal, AbortSignal.timeout(REMOTE_LIMITS.fingerprintTimeout)]),
       )
+      receivedBytes = bytes.byteLength
       matchHash = SparkMD5.ArrayBuffer.hash(bytes.buffer as ArrayBuffer)
+      fingerprint = true
     } catch {
       signal.throwIfAborted() /* 指纹缺失不阻止首次播放。 */
     }
@@ -87,8 +95,17 @@ export async function importRemoteVideo(
       },
     })
     retained = true
+    succeeded = true
     return { source, hash, matchHash, name: source.name, size: source.size, playList: [] }
   } finally {
+    telemetry.capture('remote_import_result', {
+      result: signal.aborted ? 'cancelled' : succeeded ? 'success' : 'failed',
+      duration_ms: Math.round(performance.now() - startedAt),
+      fingerprint,
+      restoring: Boolean(recordId),
+      received_bytes: receivedBytes,
+      ...(!signal.aborted && !succeeded ? { error_code: 'remote_import_failed' as const } : {}),
+    })
     importing = false
     if (jotaiStore.get(remoteImportProgressAtom)?.id === progressId)
       jotaiStore.set(remoteImportProgressAtom, null)

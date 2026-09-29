@@ -8,6 +8,7 @@ import { Button } from '@renderer/components/ui/button'
 import { Input } from '@renderer/components/ui/input'
 import { toast } from '@renderer/components/ui/toast/use-toast'
 import { ipcClient } from '@renderer/lib/client'
+import { captureFeatureUsed } from '@renderer/services/telemetry/features'
 import { useAtomValue } from 'jotai'
 import { useState } from 'react'
 import { downloadCall, downloadError, downloadsAtom } from './state'
@@ -31,7 +32,7 @@ function DownloadSettingsForm({ initial }: { initial: DownloadSettings }) {
       description="下载完成后自动停止传输；上传限速仅用于下载期间的分片交换。"
     >
       <SettingsGroup>
-        <div className="space-y-4 p-4">
+        <div data-telemetry-replay-block className="ph-no-capture space-y-4 p-4">
           <label className="block text-sm">
             默认保存目录
             <div className="mt-2 flex gap-2">
@@ -71,7 +72,10 @@ function DownloadSettingsForm({ initial }: { initial: DownloadSettings }) {
             onClick={() => {
               setBusy(true)
               void downloadCall(ipcClient?.downloads.settings(value))
-                .then(() => toast({ title: '下载设置已保存' }))
+                .then(() => {
+                  captureFeatureUsed('download_settings', 'save_upload_limit', value.uploadLimit)
+                  toast({ title: '下载设置已保存' })
+                })
                 .catch(downloadError)
                 .finally(() => setBusy(false))
             }}

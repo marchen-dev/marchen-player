@@ -1,8 +1,13 @@
-import { mkdtemp, readFile, realpath, rm, symlink, writeFile } from 'node:fs/promises'
+import { mkdir, mkdtemp, readFile, realpath, rm, stat, symlink, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
-import { reserveTorrentPaths, safeTaskPath, validateTorrentPath } from './paths'
+import {
+  removeEmptyTaskDirectories,
+  reserveTorrentPaths,
+  safeTaskPath,
+  validateTorrentPath,
+} from './paths'
 import { DownloadRepository } from './repository'
 const dirs: string[] = []
 async function temp() {
@@ -56,4 +61,38 @@ it('直接预留种子原目录和单文件名称，拒绝覆盖已有内容', a
   await reserveTorrentPaths(dir, [{ path: '单集.mkv' }])
   await expect(reserveTorrentPaths(dir, [{ path: '单集.mkv' }])).rejects.toThrow('已存在')
   expect(await readFile(join(dir, '单集.mkv'), 'utf8')).toBe('')
+})
+
+it('从内到外清理空目录，保留保存目录与不属于任务的目录', async () => {
+  const root = await temp()
+  await mkdir(join(root, '番剧', '字幕'), { recursive: true })
+  await mkdir(join(root, '其他空目录'))
+  await removeEmptyTaskDirectories(root, [
+    { path: '番剧/字幕/01.ass' },
+    { path: '番剧/01.mkv' },
+    { path: '单集.mkv' },
+  ])
+  await expect(stat(join(root, '番剧'))).rejects.toMatchObject({ code: 'ENOENT' })
+  expect((await stat(root)).isDirectory()).toBe(true)
+  expect((await stat(join(root, '其他空目录'))).isDirectory()).toBe(true)
+})
+
+it('保留包含用户其他文件的目录，只清理其空子目录', async () => {
+  const root = await temp()
+  await mkdir(join(root, '番剧', '字幕'), { recursive: true })
+  await writeFile(join(root, '番剧', '笔记.txt'), '保留')
+  await removeEmptyTaskDirectories(root, [{ path: '番剧/字幕/01.ass' }, { path: '番剧/01.mkv' }])
+  expect(await readFile(join(root, '番剧', '笔记.txt'), 'utf8')).toBe('保留')
+  await expect(stat(join(root, '番剧', '字幕'))).rejects.toMatchObject({ code: 'ENOENT' })
+})
+
+it('目录清理拒绝跟随符号链接，缺失的子目录可忽略', async () => {
+  const root = await temp()
+  const outside = await temp()
+  await symlink(outside, join(root, '链接'))
+  await expect(removeEmptyTaskDirectories(root, [{ path: '链接/01.mkv' }])).rejects.toThrow(
+    '符号链接',
+  )
+  expect((await stat(outside)).isDirectory()).toBe(true)
+  await removeEmptyTaskDirectories(root, [{ path: '不存在/子目录/01.mkv' }])
 })

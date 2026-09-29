@@ -8,6 +8,7 @@ import {
   usePlayerLoadingService,
   usePlayerLoadingState,
 } from '@renderer/services/player-loading/hooks'
+import { markNextPlayerImportSource } from '@renderer/services/telemetry/player-loading-observer'
 import { atom, useAtom } from 'jotai'
 import { useEffect, useRef, useState } from 'react'
 import { RemoteReadProgress } from './RemoteReadProgress'
@@ -48,6 +49,7 @@ export function RemoteVideoDialog() {
       const valid = validateRemoteUrl(url)
       submittedRef.current = true
       setError('')
+      markNextPlayerImportSource('remote_url')
       service.loadFromUrl(valid, asNew ? undefined : request?.recordId)
     } catch (error) {
       setError(error instanceof Error ? error.message : '链接无效')
@@ -62,7 +64,7 @@ export function RemoteVideoDialog() {
     >
       <DialogContent
         container={document.fullscreenElement ?? undefined}
-        className="max-w-lg"
+        className="ph-no-capture max-w-lg"
         data-telemetry-replay-block
         aria-describedby="remote-video-description"
         // 防止编辑链接时误点遮罩关闭，保留 Esc 和显式关闭操作。

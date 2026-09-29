@@ -9,6 +9,7 @@ import type {
 import type { PlaybackClock } from '@marchen/playback-core'
 import { DanmakuEngineCore, DanmakuNodePool } from '@marchen/danmaku-engine'
 import { toast } from '@renderer/components/ui/toast/use-toast'
+import { captureFeatureUsed } from '@renderer/services/telemetry/features'
 
 export interface DomDanmakuConfig extends Partial<DanmakuConfig> {
   hoverPause?: boolean
@@ -300,10 +301,12 @@ export class DomDanmakuRenderer {
       const text = active.node.textContent ?? ''
       void (navigator.clipboard?.writeText(text) ?? Promise.reject(new Error('剪贴板不可用'))).then(
         () => {
+          captureFeatureUsed('danmaku_copy', 'success')
           if (!this.destroyed) toast({ title: '已复制弹幕', duration: 1500 })
         },
         () => {
           if (!this.destroyed) {
+            captureFeatureUsed('danmaku_copy', 'failed')
             toast({ title: '复制失败，请重试', variant: 'destructive', duration: 3000 })
           }
         },

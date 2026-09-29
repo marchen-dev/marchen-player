@@ -16,6 +16,7 @@ interface RouterTracingSink {
 }
 
 export const normalizeTelemetryRoute = (pathname: string): string => {
+  if (pathname === '/downloads') return '/downloads'
   if (pathname === '/library') return '/library'
   if (pathname === '/player' || pathname === '/') return '/player'
   return '/unknown'

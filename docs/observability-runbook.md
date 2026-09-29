@@ -35,3 +35,18 @@ Electron tag workflow 继续完成桌面各平台的 Source Map、release 和安
 开发默认不上报，只有显式 VITE_TELEMETRY_DEBUG=true 才临时打开。分别验证会话、播放漏斗、字幕错误、React 异常、Source Map、回放和告警；检查结束关闭诊断窗口。不要将本地 .env 的秘密提交。回放默认未遮蔽普通文字，视频/弹幕/字幕等层以 data-telemetry-replay-block 排除；实际采集范围需要在后台核实。
 
 FFmpeg/Gateway/media.generation 与 compat_fallback_triggered 为历史版本口径，不适用于现在的 native/compat 内核；历史事件不直接拼接为同一条性能趋势。
+
+
+## 下载与远程导入事件
+
+- `download_add_result`：HTTP／磁力／种子元数据读取、创建请求的结果与耗时。
+- `download_state_changed`：新建、完成、失败、选集变化，含类型、选中文件数、容量及已完成字节。`elapsed_ms` 是自任务创建以来的墙钟时间（含暂停），不是纯传输耗时。
+- `download_action_result`：暂停、继续、重试、删除、播放、打开目录及选集操作的结果；删除只记录是否同时删除文件。
+- `download_progress_stalled`：运行任务连续 60 秒无已完成字节增长，每个停滞阶段只报一次；HTTP 排队、暂停和校验阶段不计入。BT 附带本轮接收量、节点数和校验失败次数，不上传节点地址。
+- `remote_import_result`：远程导入成功、失败或取消，含耗时、是否恢复历史、是否取得指纹及读取字节数，不上传指纹值。
+- `video_import_started.source` 增加 `remote_url` / `download`，影视库远程记录仍标为 `library`。
+- `feature_used` 补充弹幕复制结果、节点详情打开、文件列表展开及下载设置保存；不包含弹幕原文或保存目录。
+
+下载状态由根级观察器订阅，与当前路由无关；首次快照仅建立基线，不重报历史完成任务。整个渲染窗口关闭期间的状态变化不补报，因此这些事件不能用作跨应用会话的完整下载账本。完成／失败等状态事件、停滞及远程导入结果使用现有离线 outbox。
+
+事件仅使用白名单枚举和数值，不传任务 ID、infoHash、文件名、本地路径、链接、磁力、节点 IP 或错误原文。下载页及其门户弹窗、目录设置和下载错误详情同时屏蔽 PostHog 自动采集、两端回放；Sentry 自动 UI breadcrumb 忽略带屏蔽标记的目标。开发环境仍遵循既有 `VITE_TELEMETRY_DEBUG` 开关，不为验收自动开启线上上报。

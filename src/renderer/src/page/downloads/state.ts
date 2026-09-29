@@ -1,6 +1,7 @@
 import type { DownloadResult, DownloadSnapshot } from '@marchen/shared/downloads'
 import { toast } from '@renderer/components/ui/toast/use-toast'
 import { atom } from 'jotai'
+import { createElement } from 'react'
 export const downloadsAtom = atom<DownloadSnapshot | null>(null)
 export const torrentRequestAtom = atom<{ id: string; path: string } | null>(null)
 export async function downloadCall<T>(promise: Promise<DownloadResult<T>> | undefined): Promise<T> {
@@ -10,7 +11,15 @@ export async function downloadCall<T>(promise: Promise<DownloadResult<T>> | unde
   return result.value
 }
 export const downloadError = (error: unknown) =>
-  toast({ title: error instanceof Error ? error.message : '下载操作失败', variant: 'destructive' })
+  toast({
+    title: '下载操作失败',
+    description: createElement(
+      'span',
+      { 'data-telemetry-replay-block': true, className: 'ph-no-capture' },
+      error instanceof Error ? error.message : '下载操作失败',
+    ),
+    variant: 'destructive',
+  })
 export const bytes = (value: number) =>
   value >= 1024 ** 3
     ? `${(value / 1024 ** 3).toFixed(2)} GB`

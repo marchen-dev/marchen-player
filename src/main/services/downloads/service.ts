@@ -16,7 +16,12 @@ import { setDownloadAvailability } from './availability'
 import { ProcessDownloadEngine } from './engine'
 import { HttpDownloadEngine } from './http-engine'
 import { validateMagnet, validateMetadata } from './metadata'
-import { reserveTorrentPaths, safeTaskPath, validateTorrentPath } from './paths'
+import {
+  removeEmptyTaskDirectories,
+  reserveTorrentPaths,
+  safeTaskPath,
+  validateTorrentPath,
+} from './paths'
 import { DownloadRepository, settingsSchema } from './repository'
 import { verifyFiles } from './verify-files'
 
@@ -332,6 +337,8 @@ export class DownloadService {
   private async start(task: DownloadTask) {
     if (this.closing) return
     task.state = 'checking'
+    task.receivedBytes = 0
+    task.hashFailures = 0
     task.error = undefined
     this.publish()
     await this.engine.limit(this.settings.uploadLimit)
@@ -430,6 +437,8 @@ export class DownloadService {
       return
     }
     for (const f of s.files) if (task.files[f.index]) Object.assign(task.files[f.index], f)
+    task.receivedBytes = s.receivedBytes ?? 0
+    task.hashFailures = s.hashFailures ?? 0
     task.downloadSpeed = s.downloadSpeed
     task.peers = s.peers
     task.updatedAt = Date.now()
@@ -507,6 +516,7 @@ export class DownloadService {
           await unlink(path).catch((error) => {
             if (error.code !== 'ENOENT') throw error
           })
+        await removeEmptyTaskDirectories(task.directory, task.files)
       }
       this.tasks = this.tasks.filter((t) => t.id !== id)
       await this.persist()

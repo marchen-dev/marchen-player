@@ -10,6 +10,7 @@ import { peerDetails } from './peer-details'
 const port = process.parentPort!
 const client = new WebTorrent({ utp: false })
 const torrents = new Map<string, Torrent>()
+const failures = new WeakMap<Torrent, number>()
 let generation = ''
 const send = (message: EngineResponse) => port.postMessage(message)
 const stop = async (id: string) => {
@@ -40,6 +41,8 @@ function stats(id: string, t: Torrent): EngineStats {
           )
       return { index, verifiedBytes: bytes, complete: bytes === file.length }
     }),
+    receivedBytes: t.received,
+    hashFailures: failures.get(t) ?? 0,
     downloadSpeed: t.downloadSpeed,
     peers: t.numPeers,
   }
@@ -81,6 +84,15 @@ port.on('message', async ({ data }: { data: EngineRequest }) => {
       }
       const t = client.add(source, options)
       torrents.set(command.id, t)
+      // 引擎收到字节不等于校验通过；只传失败计数，不记录节点或资源地址。
+      t.on('warning', (warning) => {
+        if (
+          /^Piece \d+ failed verification$/.test(
+            typeof warning === 'string' ? warning : warning.message,
+          )
+        )
+          failures.set(t, (failures.get(t) ?? 0) + 1)
+      })
       t.on('error', () =>
         send({
           generation,

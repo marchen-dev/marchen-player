@@ -17,13 +17,51 @@ export interface CommonTelemetryProperties {
 }
 
 export interface TelemetryEventMap {
+  download_add_result: {
+    input: 'http' | 'magnet' | 'torrent'
+    stage: 'metadata' | 'create'
+    result: 'success' | 'failed'
+    duration_ms: number
+  }
+  download_state_changed: {
+    kind: 'http' | 'bt'
+    state: 'created' | 'completed' | 'failed' | 'selection_changed'
+    selected_count: number
+    total_bytes: number
+    verified_bytes: number
+    elapsed_ms: number
+    error_code?: 'download_failed'
+  }
+  download_action_result: {
+    kind: 'http' | 'bt'
+    action: 'pause' | 'resume' | 'retry' | 'remove' | 'play' | 'open_folder' | 'selection'
+    result: 'success' | 'failed'
+    duration_ms: number
+    delete_files?: boolean
+  }
+  download_progress_stalled: {
+    kind: 'http' | 'bt'
+    stalled_ms: number
+    received_bytes: number
+    verified_bytes: number
+    peers: number
+    hash_failures: number
+  }
+  remote_import_result: {
+    result: 'success' | 'failed' | 'cancelled'
+    duration_ms: number
+    fingerprint: boolean
+    restoring: boolean
+    received_bytes: number
+    error_code?: 'remote_import_failed'
+  }
   app_session_started: { launch_source?: string }
   app_session_ended: { duration_ms: number; reason: 'quit' | 'reload' | 'reset' | 'unknown' }
   page_viewed: { route: string; previous_route?: string }
   feature_used: { feature: string; action: string; value?: string | number | boolean }
   video_import_started: {
     operation_id: string
-    source: 'click' | 'drop' | 'library' | 'association'
+    source: 'click' | 'drop' | 'library' | 'association' | 'remote_url' | 'download'
   }
   video_import_completed: {
     operation_id: string
