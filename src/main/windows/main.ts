@@ -1,7 +1,7 @@
 import { join } from 'node:path'
 
 import { is } from '@electron-toolkit/utils'
-import { quickLaunchViaVideo } from '@main/lib/utils'
+import { fileOpenRequests } from '@main/lib/file-open-requests'
 import { app, BrowserWindow, nativeTheme, shell } from 'electron'
 
 import { getIconPath } from '../lib/icon'
@@ -78,14 +78,27 @@ export default function createWindow() {
   return mainWindow
 }
 
-export const getMainWindow = () => windows.mainWindow
+export const getMainWindow = () => {
+  const window = windows.mainWindow
+  return window && !window.isDestroyed() ? window : null
+}
 
 const initializeListeningEvent = (mainWindow: BrowserWindow) => {
+  // 重载和关闭后，必须重新等待新页面注册接收监听。
+  mainWindow.webContents.on('did-start-loading', () => {
+    fileOpenRequests.rendererUnavailable()
+  })
+  mainWindow.webContents.on('render-process-gone', () => {
+    fileOpenRequests.rendererUnavailable()
+  })
+  mainWindow.on('closed', () => {
+    if (windows.mainWindow !== mainWindow) return
+    windows.mainWindow = null
+    fileOpenRequests.rendererUnavailable()
+  })
+
   mainWindow.on('ready-to-show', () => {
     isDev ? mainWindow.showInactive() : mainWindow.show()
-
-    // 当软件未运行时的情况下，通过视频快速启动
-    quickLaunchViaVideo()
   })
 
   mainWindow.on('enter-full-screen', () => {

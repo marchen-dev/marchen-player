@@ -4,6 +4,7 @@ import path from 'node:path'
 import { app } from 'electron'
 
 import { isDev } from './lib/env'
+import { fileOpenRequests } from './lib/file-open-requests'
 import './register-schemes'
 
 // userData、身份与离线状态都依赖 appData；开发目录必须在任何遥测模块加载前确定。
@@ -14,6 +15,13 @@ if (isDev && process.env.MARCHEN_DEV_USER_DATA_DIR) {
   mkdirSync(testUserData, { recursive: true })
   app.setPath('userData', testUserData)
 }
+
+// Finder 的文件事件可能早于 ready；必须在任何异步初始化前接住。
+app.on('open-file', (event, path) => {
+  event.preventDefault()
+  fileOpenRequests.request(path)
+})
+fileOpenRequests.requestFromArgv(process.argv)
 
 const start = async () => {
   try {

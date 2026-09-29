@@ -1,12 +1,10 @@
 import { registerIpc } from '@marchen/electron-ipc/main'
 import { app } from 'electron'
-import logger from 'electron-log'
 
 import { router } from '../ipc'
 import { isDev, isWindows } from '../lib/env'
-import { quickLaunchViaVideo } from '../lib/utils'
+import { fileOpenRequests } from '../lib/file-open-requests'
 import { getMainWindow } from '../windows/main'
-import { getRendererHandlers } from '../windows/setting'
 import { registerLog } from './log'
 import { registerAppMenu } from './menu'
 
@@ -18,20 +16,6 @@ export const initializeApp = () => {
   registerIpc(router)
   registerAppMenu()
   registerLog()
-  // macOS 通过视频文件快捷打开
-  app.on('open-file', (event, url) => {
-    event.preventDefault()
-    logger.info('[app] macOS open-file url', url)
-    const mainWindow = getMainWindow()
-    // 当主窗口已经创建时，通过 IPC 通知渲染进程打开视频文件
-    if (mainWindow) {
-      return getRendererHandlers()?.importAnime.send({ path: url })
-    }
-
-    // 当主窗口未创建时，将视频文件路径添加到 process.argv 中, 等在主窗口创建后再处理
-    process.argv.push(url)
-  })
-
   // windows 当主窗口已经创建情况下, 通过视频文件快捷打开
   if (isWindows) {
     app.on('second-instance', (_event, commandLine) => {
@@ -41,7 +25,7 @@ export const initializeApp = () => {
         mainWindow.show()
       }
 
-      quickLaunchViaVideo(commandLine)
+      fileOpenRequests.requestFromArgv(commandLine)
     })
   }
 }

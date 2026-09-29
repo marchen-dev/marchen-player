@@ -69,6 +69,9 @@ export const IpcListener = () => {
       }),
     ]
 
+    // 所有监听注册完成后才领取系统文件打开请求。
+    void ipcClient?.app.fileOpenReady().catch(console.error)
+
     void ipcClient?.app
       .getInstalledUpdate()
       .then((notice) => {

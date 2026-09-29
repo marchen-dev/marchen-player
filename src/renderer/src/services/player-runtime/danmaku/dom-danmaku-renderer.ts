@@ -8,6 +8,7 @@ import type {
 } from '@marchen/danmaku-engine'
 import type { PlaybackClock } from '@marchen/playback-core'
 import { DanmakuEngineCore, DanmakuNodePool } from '@marchen/danmaku-engine'
+import { toast } from '@renderer/components/ui/toast/use-toast'
 
 export interface DomDanmakuConfig extends Partial<DanmakuConfig> {
   hoverPause?: boolean
@@ -42,9 +43,6 @@ export class DomDanmakuRenderer {
   private lastWidth = -1
   private lastHeight = -1
   private styleRevision = 0
-  private copyButton?: HTMLButtonElement
-  private copyTarget?: string
-  private copyTimer?: ReturnType<typeof setTimeout>
   private playing = false
   private destroyed = false
 
@@ -264,7 +262,6 @@ export class DomDanmakuRenderer {
   private releaseNode(id: string, completed = false): void {
     const active = this.animations.get(id)
     if (!active) return
-    if (this.copyTarget === id) this.hideCopyAction()
     this.animations.delete(id)
     this.hoverPaused.delete(id)
     if (completed) this.engine.completeItem(id)
@@ -281,79 +278,36 @@ export class DomDanmakuRenderer {
       this.engine.resumeItem(id)
       if (this.playing) active.animation.play()
     }
+    active.node.title = '点击复制弹幕'
     active.node.onmouseenter = () => {
-      this.hideCopyAction()
-      this.copyTarget = id
       if (this.config.hoverPause) {
         this.engine.pauseItem(id)
         this.hoverPaused.add(id)
         active.animation.pause()
       }
-      const text = active.node.textContent ?? ''
-      const rect = active.node.getBoundingClientRect()
-      const button = document.createElement('button')
-      this.copyButton = button
-      button.type = 'button'
-      const icon = document.createElement('i')
-      icon.className = 'icon-[mingcute--copy-2-line] size-4'
-      icon.setAttribute('aria-hidden', 'true')
-      button.append(icon)
-      button.title = '复制弹幕'
-      button.setAttribute('aria-label', '复制弹幕')
-      button.dataset.danmakuCopy = ''
-      button.className =
-        'no-drag-region pointer-events-auto fixed z-50 grid size-8 place-items-center rounded-lg border border-white/15 bg-zinc-900 text-white shadow-lg hover:bg-zinc-700 focus-visible:outline-2 focus-visible:outline-white'
-      button.style.setProperty('-webkit-app-region', 'no-drag')
-      button.style.left = `${Math.max(8, Math.min(rect.left, window.innerWidth - 40))}px`
-      button.style.top = `${Math.max(8, Math.min(rect.bottom + 4, window.innerHeight - 42))}px`
-      button.onmouseenter = () => clearTimeout(this.copyTimer)
-      button.onmouseleave = () => this.scheduleHideCopyAction()
-      button.onfocus = () => clearTimeout(this.copyTimer)
-      button.onblur = () => this.scheduleHideCopyAction()
-      button.ondblclick = (event) => event.stopPropagation()
-      button.onclick = (event) => {
-        event.stopPropagation()
-        void (
-          navigator.clipboard?.writeText(text) ?? Promise.reject(new Error('剪贴板不可用'))
-        ).then(
-          () => {
-            if (this.copyButton === button) {
-              icon.className = 'icon-[mingcute--check-line] size-4 text-emerald-300'
-              button.setAttribute('aria-label', '已复制')
-              button.title = '已复制'
-            }
-          },
-          () => {
-            if (this.copyButton === button) {
-              icon.className = 'icon-[mingcute--close-line] size-4 text-red-300'
-              button.setAttribute('aria-label', '复制失败')
-              button.title = '复制失败'
-            }
-          },
-        )
-      }
-      // 独立于弹幕层的裁剪和透明度，同时留在全屏根节点内。
-      const host = this.container.closest('[data-player-root]') ?? this.container
-      host.append(button)
     }
-    active.node.onmouseleave = () => this.scheduleHideCopyAction()
-  }
-
-  private scheduleHideCopyAction() {
-    clearTimeout(this.copyTimer)
-    // 给鼠标从文字移入按钮留出间隙，按钮停留期间继续保留该条悬停状态。
-    this.copyTimer = setTimeout(() => this.hideCopyAction(), 180)
-  }
-
-  private hideCopyAction() {
-    clearTimeout(this.copyTimer)
-    this.copyButton?.remove()
-    this.copyButton = undefined
-    const id = this.copyTarget
-    this.copyTarget = undefined
-    if (id && this.hoverPaused.delete(id)) {
-      this.engine.resumeItem(id)
-      if (this.playing) this.animations.get(id)?.animation.play()
+    active.node.onmouseleave = () => {
+      active.node.title = '点击复制弹幕'
+      if (this.hoverPaused.delete(id)) {
+        this.engine.resumeItem(id)
+        if (this.playing) active.animation.play()
+      }
+    }
+    // 点击文字只复制，避免冒泡触发播放器的暂停或双击全屏。
+    active.node.ondblclick = (event) => event.stopPropagation()
+    active.node.onclick = (event) => {
+      event.stopPropagation()
+      const text = active.node.textContent ?? ''
+      void (navigator.clipboard?.writeText(text) ?? Promise.reject(new Error('剪贴板不可用'))).then(
+        () => {
+          if (!this.destroyed) toast({ title: '已复制弹幕', duration: 1500 })
+        },
+        () => {
+          if (!this.destroyed) {
+            toast({ title: '复制失败，请重试', variant: 'destructive', duration: 3000 })
+          }
+        },
+      )
     }
   }
 
@@ -363,7 +317,6 @@ export class DomDanmakuRenderer {
   }
 
   private clearNodes(): void {
-    this.hideCopyAction()
     for (const id of [...this.animations.keys()]) this.releaseNode(id)
     this.pool.releaseAll()
   }
@@ -552,6 +505,9 @@ export const requiresDanmakuLayoutReset = (previous: DomDanmakuConfig, next: Dom
 const resetNode = (node: HTMLSpanElement) => {
   node.onmouseenter = null
   node.onmouseleave = null
+  node.onclick = null
+  node.ondblclick = null
+  node.removeAttribute('title')
   node.textContent = ''
   node.className = ''
   node.removeAttribute('style')

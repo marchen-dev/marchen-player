@@ -10,10 +10,11 @@ const readRendererSource = (path: string) =>
   readFileSync(new URL(`../../../${path}`, import.meta.url), 'utf8')
 
 describe('应用设置重构回归', () => {
-  it('只暴露四个稳定分类 ID，并安全回退到通用', () => {
-    expect(APP_SETTINGS_SECTIONS).toEqual(['general', 'ai', 'labs', 'about'])
+  it('只暴露三个稳定分类 ID，并安全回退到通用', () => {
+    expect(APP_SETTINGS_SECTIONS).toEqual(['general', 'labs', 'about'])
     expect(DEFAULT_APP_SETTINGS_SECTION).toBe('general')
     expect(resolveAppSettingsSection()).toBe('general')
+    expect(resolveAppSettingsSection('ai')).toBe('general')
     expect(resolveAppSettingsSection('about')).toBe('about')
     expect(resolveAppSettingsSection('播放器')).toBe('general')
     expect(resolveAppSettingsSection({ id: 'ai' })).toBe('general')
@@ -22,7 +23,7 @@ describe('应用设置重构回归', () => {
   it('分类配置删除播放器入口并使用组件引用而非 ReactNode 身份', () => {
     const source = readRendererSource('components/modules/settings/tabs.tsx')
     expect(source).toContain("id: 'general'")
-    expect(source).toContain("id: 'ai'")
+    expect(source).not.toContain("id: 'ai'")
     expect(source).toContain("id: 'labs'")
     expect(source).toContain("id: 'about'")
     expect(source).not.toContain('PlayerView')
@@ -52,16 +53,6 @@ describe('应用设置重构回归', () => {
     expect(componentsSource).toContain('app-settings-scroll-viewport')
     expect(componentsSource).toContain('id={labelId}')
     expect(componentsSource).toContain('id={descriptionId}')
-  })
-
-  it('ai 条目使用 radio 语义、文字状态和具名操作', () => {
-    const source = readRendererSource('components/modules/settings/views/ai/ProviderCard.tsx')
-    expect(source).toContain('role="radio"')
-    expect(source).toContain('aria-checked={isActive}')
-    expect(source).toContain('>当前</span>')
-    expect(source).toMatch(/aria-label=\{`编辑服务商：\$\{provider\.name\}`\}/)
-    expect(source).toMatch(/aria-label=\{`删除服务商：\$\{provider\.name\}`\}/)
-    expect(source.match(/truncate/g)?.length).toBeGreaterThanOrEqual(2)
   })
 
   it('主题偏好受控，实际资源使用 resolvedTheme，设置材质隔离到专属作用域', () => {

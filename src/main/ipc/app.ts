@@ -1,3 +1,4 @@
+import { fileOpenRequests } from '@main/lib/file-open-requests'
 import {
   acknowledgeUpdateSave,
   checkForDesktopUpdates,
@@ -17,6 +18,14 @@ import { app, BrowserWindow, dialog } from 'electron'
 const t = tipc.create()
 
 export const appGroup = {
+  fileOpenReady: t.procedure.action(async ({ context }) => {
+    // 只允许当前主窗口声明就绪，避免旧窗口或其他页面消费请求。
+    const window = getMainWindow()
+    if (!window || window.webContents !== context.sender) return
+    fileOpenRequests.rendererReady((path) => {
+      context.sender.send('importAnime', { path })
+    })
+  }),
   getTelemetryIdentity: t.procedure.action(async () => ({
     installId: await getOrCreateTelemetryInstallId(),
     appSessionId: telemetryAppSessionId,

@@ -6,10 +6,11 @@ import { app, BrowserWindow, protocol } from 'electron'
 
 import { initializeApp } from './initialize'
 import { isDev } from './lib/env'
+import { fileOpenRequests } from './lib/file-open-requests'
 import { getIconPath } from './lib/icon'
 import { createApplicationProtocol } from './lib/media-protocol'
 import { autoUpdateInit } from './lib/update'
-import createWindow from './windows/main'
+import createWindow, { getMainWindow } from './windows/main'
 
 export const bootstrap = () => {
   // 桌面播放器的拖入/历史续播就是用户的明确播放意图；媒体准备完成后
@@ -53,6 +54,12 @@ export const bootstrap = () => {
     protocol.handle(MARCHEN_PROTOCOL, createApplicationProtocol(join(__dirname, '../renderer')))
 
     createWindow()
+    fileOpenRequests.setWindowOpener(() => {
+      const window = getMainWindow() ?? createWindow()
+      if (window.isMinimized()) window.restore()
+      window.show()
+      window.focus()
+    })
 
     if (app.dock && isDev) app.dock.setIcon(getIconPath())
 

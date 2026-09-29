@@ -236,31 +236,6 @@
   color: var(--destructive);
 }
 
-.app-settings-provider-row + .app-settings-provider-row {
-  border-top: 1px solid var(--settings-border);
-}
-
-.app-settings-provider-row.is-active {
-  background: color-mix(in srgb, var(--settings-focus) 7%, transparent);
-}
-
-.app-settings-provider-radio {
-  display: flex;
-  width: 18px;
-  height: 18px;
-  flex-shrink: 0;
-  align-items: center;
-  justify-content: center;
-  color: var(--settings-focus);
-  border: 2px solid currentColor;
-  border-radius: 999px;
-}
-
-.app-settings-provider-radio:focus-visible {
-  outline: 2px solid var(--settings-focus);
-  outline-offset: 3px;
-}
-
 .app-settings-close {
   position: absolute;
   z-index: 2;

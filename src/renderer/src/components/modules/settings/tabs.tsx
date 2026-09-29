@@ -2,7 +2,6 @@ import type { AppSettingsSection } from '@marchen/shared/types/renderer-handlers
 import type { ComponentType } from 'react'
 
 import { AboutView } from './views/about/About'
-import { AIView } from './views/ai/AIView'
 import { GeneralView } from './views/general/General'
 import { LabsView } from './views/labs/Labs'
 
@@ -21,13 +20,6 @@ export const settingTabs: SettingTabModel[] = [
     description: '管理应用行为、外观与本地数据',
     icon: 'icon-[mingcute--settings-3-line]',
     component: GeneralView,
-  },
-  {
-    id: 'ai',
-    label: 'AI 服务',
-    description: '配置用于智能功能的模型服务商',
-    icon: 'icon-[mingcute--sparkles-2-line]',
-    component: AIView,
   },
   {
     id: 'labs',
