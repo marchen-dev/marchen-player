@@ -1,11 +1,8 @@
 import { useAppSettings } from '@renderer/atoms/settings/app'
-import Show from '@renderer/components/common/Show'
 import { useToast } from '@renderer/components/ui/toast'
 import { appLog } from '@renderer/lib/log'
-import { cn, isWeb, isWindows } from '@renderer/lib/utils'
+import { isWeb, isWindows } from '@renderer/lib/utils'
 import { useEffect } from 'react'
-
-import { Titlebar } from './WindowsTitlebar'
 
 export const Prepare = () => {
   const [_, setAppSettings] = useAppSettings()
@@ -30,21 +27,9 @@ export const Prepare = () => {
     setAppSettings((old) => ({ ...old, firstOpen: false }))
   }, [])
 
-  if (isWeb) {
-    return null
-  }
+  // Windows 的拖拽与按钮由 AppHeader / PlayerWindowChrome 承担，
+  // 不叠加透明拖拽层，避免原生窗口命中测试吞掉按钮点击。
+  if (isWeb || isWindows) return null
 
-  return (
-    <div
-      className={cn(
-        'drag-region absolute inset-x-0 top-0 h-12 shrink-0',
-        isWindows && 'pointer-events-none z-[9999]',
-      )}
-      aria-hidden
-    >
-      <Show when={isWindows}>
-        <Titlebar />
-      </Show>
-    </div>
-  )
+  return <div className="drag-region absolute inset-x-0 top-0 h-12 shrink-0" aria-hidden />
 }

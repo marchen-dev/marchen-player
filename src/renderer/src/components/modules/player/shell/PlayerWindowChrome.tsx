@@ -89,7 +89,7 @@ const WindowButton = ({
     type="button"
     aria-label={label}
     className={cn(
-      'flex h-9 w-12 items-center justify-center text-white/75 transition-colors hover:bg-white/10 hover:text-white',
+      'no-drag-region pointer-events-auto flex h-9 w-12 items-center justify-center text-white/75 transition-colors hover:bg-white/10 hover:text-white',
       danger && 'hover:bg-red-500',
     )}
     onClick={onClick}

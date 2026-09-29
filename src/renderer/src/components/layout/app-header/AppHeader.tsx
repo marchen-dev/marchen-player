@@ -1,5 +1,6 @@
 import { pageHeaderAtom } from '@renderer/atoms/page-header'
-import { cn, isMac } from '@renderer/lib/utils'
+import { Titlebar } from '@renderer/components/modules/app/WindowsTitlebar'
+import { cn, isMac, isWeb, isWindows } from '@renderer/lib/utils'
 import { useAtomValue } from 'jotai'
 
 /**
@@ -13,13 +14,18 @@ export const AppHeader = () => {
 
   return (
     <header
-      className={cn('app-header drag-region', isMac && 'is-mac', variant === 'manage' && 'is-manage')}
+      className={cn(
+        'app-header drag-region',
+        isMac && 'is-mac',
+        variant === 'manage' && 'is-manage',
+      )}
     >
       {isMac && <div className="app-header-tl-spacer" aria-hidden />}
 
       <div className="app-header-title no-drag-region">{title}</div>
 
       <div className="app-header-actions no-drag-region">{actions}</div>
+      {!isWeb && isWindows && <Titlebar />}
     </header>
   )
 }

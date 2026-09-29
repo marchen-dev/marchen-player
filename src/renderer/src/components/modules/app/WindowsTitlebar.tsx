@@ -1,30 +1,15 @@
 import { useWindowState, WindowState } from '@renderer/atoms/window'
-import { ElECTRON_CUSTOM_TITLEBAR_HEIGHT, ELECTRON_WINDOWS_RADIUS } from '@renderer/constants'
 import { ipcClient } from '@renderer/lib/client'
-import { usePlayerLoadingSelector } from '@renderer/services/player-loading/hooks'
 
 export const Titlebar = () => {
-  // 当前视频已经准备好时隐藏普通应用标题栏
-  const isPlaying = usePlayerLoadingSelector((s) => s.step === 'ready' || s.step === 'reloading')
   const windowState = useWindowState()
 
-  // Hide titlebar when playing
-  if (isPlaying) {
-    return null
-  }
-
   return (
-    <div
-      className="drag-region flex w-full items-center justify-end overflow-hidden"
-      style={{
-        height: `${ElECTRON_CUSTOM_TITLEBAR_HEIGHT}px`,
-        borderTopLeftRadius: `${ELECTRON_WINDOWS_RADIUS}px`,
-        borderTopRightRadius: `${ELECTRON_WINDOWS_RADIUS}px`,
-      }}
-    >
+    <div className="no-drag-region -mr-4 flex h-full shrink-0 items-center">
       <button
         className="no-drag-region hover:bg-muted pointer-events-auto flex h-full w-[50px] items-center justify-center duration-200"
         type="button"
+        aria-label="最小化"
         onClick={() => {
           ipcClient?.app.windowAction({ action: 'minimize' })
         }}
@@ -34,6 +19,7 @@ export const Titlebar = () => {
 
       <button
         type="button"
+        aria-label={windowState === WindowState.MAXIMIZED ? '还原窗口' : '最大化'}
         className="no-drag-region hover:bg-muted pointer-events-auto flex h-full w-[50px] items-center justify-center duration-200"
         onClick={async () => {
           await ipcClient?.app.windowAction({ action: 'maximum' })
@@ -48,6 +34,7 @@ export const Titlebar = () => {
 
       <button
         type="button"
+        aria-label="关闭窗口"
         className="no-drag-region pointer-events-auto flex h-full w-[50px] items-center justify-center duration-200 hover:bg-red-500 hover:!text-white"
         onClick={() => {
           ipcClient?.app.windowAction({ action: 'close' })
