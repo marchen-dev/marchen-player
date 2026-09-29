@@ -1,6 +1,13 @@
 # CHANGELOG
 
 
+## [1.0.1](https://github.com/marchen-dev/marchen-player/compare/v1.0.0...v1.0.1) (2026-09-29)
+
+
+### Bug Fixes
+
+* **window:** 修复 Windows 标题栏按钮点击区域 ([29d7b91](https://github.com/marchen-dev/marchen-player/commit/29d7b912da869b7d94775d6258872dc54201161d))
+
 # [1.0.0](https://github.com/marchen-dev/marchen-player/compare/v1.0.0-alpha.2...v1.0.0) (2026-09-29)
 
 
