@@ -1,6 +1,13 @@
 # CHANGELOG
 
 
+# [1.0.0](https://github.com/marchen-dev/marchen-player/compare/v1.0.0-alpha.2...v1.0.0) (2026-09-29)
+
+
+### Features
+
+* **downloads:** 补充下载诊断与埋点并清理空目录 ([556b8e3](https://github.com/marchen-dev/marchen-player/commit/556b8e387fa564102c290eac8ebbf55683b57f4d))
+
 # [1.0.0-alpha.2](https://github.com/marchen-dev/marchen-player/compare/v1.0.0-alpha.1...v1.0.0-alpha.2) (2026-09-29)
 
 
