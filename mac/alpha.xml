@@ -3,50 +3,33 @@
   <channel>
     <title>Marchen</title>
     <item>
-      <title>1.0.0-alpha.2</title>
-      <pubDate>Tue, 29 Sep 2026 12:12:46 +0000</pubDate>
-      <sparkle:version>1.0.0a3</sparkle:version>
-      <sparkle:shortVersionString>1.0.0-alpha.2</sparkle:shortVersionString>
+      <title>1.0.0</title>
+      <pubDate>Tue, 29 Sep 2026 12:57:31 +0000</pubDate>
+      <sparkle:version>1.0.0</sparkle:version>
+      <sparkle:shortVersionString>1.0.0</sparkle:shortVersionString>
       <sparkle:minimumSystemVersion>13.0.0</sparkle:minimumSystemVersion>
       <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
-      <description sparkle:format="markdown"># Marchen 1.0.0-alpha.2
+      <description sparkle:format="markdown"># Marchen 1.0.0
 
-本次 Alpha 新增桌面端下载功能，并改善远程视频读取提示、弹幕复制与界面体验。
+Marchen 1.0.0 正式发布。拖入动漫视频即可自动匹配弹幕，也可以通过影视库继续观看，或下载完成后直接播放。
+
+## 播放与弹幕
+
+- 支持原生与兼容播放内核、音轨切换、内嵌字幕及外挂字幕。
+- 自动匹配动漫弹幕，支持手动重新匹配、导入本地弹幕及添加链接弹幕。
+- 匹配等待期间可直接播放，弹幕加载失败后支持重试。
+- 点击弹幕即可复制内容。
+- 影视库保存播放记录与进度，方便继续观看。
 
 ## 下载
 
-- 新增「下载」页面，支持磁力链接、BT 种子和 HTTP/HTTPS 文件直链。
-- HTTP 下载支持最多 3 个文件同时下载，其余任务自动排队。
-- BT 合集支持选择下载文件，也可在下载过程中增减集数、全选或取消全选。
-- 支持暂停、继续、重试、打开目录及查看 BT 节点详情。
-- 下载完成后自动停止传输，文件保留在下载列表；首次播放后沿用现有流程进入影视库。
-- 新任务按原文件或文件夹名保存，不额外套一层目录；已有任务保留原路径。
-
-## 弹幕与播放
-
-- 点击弹幕即可复制内容，并显示复制成功提示。
-- URL 播放与影视库远程播放新增识别数据读取进度。
-- 播放设置中显示本地／远程来源，远程视频可查看接收速度及累计接收量。
-- 修复通过系统「打开方式」启动视频时未正常播放的问题。
-
-## 界面
-
-- 统一蓝色主题，调整设置与弹窗样式。
-- 下载设置移至独立分类，任务更多操作改为下拉菜单。
-- 移除尚未接入的 AI 服务设置。
-
-## 使用说明
-
-- 下载功能仅支持桌面客户端。BT 暂仅支持 v1，不支持 v2 或混合种子。
-- HTTP 下载支持文件直链，不包含网页视频解析或 m3u8/HLS 下载；断点续传取决于服务器支持，重启应用后需手动继续。
-- 视频直链播放仍需在「设置 → 实验室」开启；读取百分比仅表示播放前的识别数据读取进度。
-- macOS 支持 macOS 13 及以上的 Apple Silicon（ARM64）；Windows 提供 x64 安装包。
+- 桌面客户端支持磁力链接、BT 种子和 HTTP/HTTPS 文件直链。
+- HTTP 下载支持最多 3 个任务同时下载，其余自动排队。
+- BT 合集支持按集数或文件选择下载，下载过程中可增减选择。
+- 支持暂停、继续、重试、查看节点详情和打开保存目录。
+- 下载完成后停止传输，首次播放后才进入影视库。
 </description>
-      <enclosure url="https://github.com/marchen-dev/marchen-player/releases/download/v1.0.0-alpha.2/Marchen-1.0.0-alpha.2-arm64.zip" length="199176265" type="application/octet-stream" sparkle:edSignature="SyojUNdl84/kmMAwIIYHrQG1ebmK/0mfVEoQYCrS1FeBJEsOgYVXDKB58fBsP7i3Tvpj3FpU5xXPsg1EHOJvCQ=="/>
-      <sparkle:deltas>
-        <enclosure url="https://github.com/marchen-dev/marchen-player/releases/download/v1.0.0-alpha.2/Marchen1.0.0a3-1.0.0a2.delta" sparkle:deltaFrom="1.0.0a2" length="6871534" type="application/octet-stream" sparkle:deltaFromSparkleExecutableSize="976240" sparkle:deltaFromSparkleLocales="de,he,ar,el,ja,fa,uk" sparkle:edSignature="trxYxFCXKh4DJLwD6FLHOr8Vq18dO6bEmwJwvJcZAoBzoHaGA6bXY0/brChd6lwCd2fo094FanppevVNPMizBw=="/>
-        <enclosure url="https://github.com/marchen-dev/marchen-player/releases/download/v1.0.0-alpha.2/Marchen1.0.0a3-1.0.0a1.delta" sparkle:deltaFrom="1.0.0a1" length="6936150" type="application/octet-stream" sparkle:deltaFromSparkleExecutableSize="976240" sparkle:deltaFromSparkleLocales="de,he,ar,el,ja,fa,uk" sparkle:edSignature="QIfoQJ6Q8TNeRHNvYC0foxPZfjN/jCfkrUm+IDTCw1ijwALbt4RD9y0zOE2Q/VJyyLBQI6WzqIVPuP4bKmD5Dg=="/>
-      </sparkle:deltas>
+      <enclosure url="https://github.com/marchen-dev/marchen-player/releases/download/v1.0.0/Marchen-1.0.0-arm64.zip" length="199180270" type="application/octet-stream" sparkle:edSignature="PDgCLeEDdZba22jEdsDGJ6fzY70GmVE0WzII7e7Eaqw86fj5r2I1z84lKGx7RGkri7MdHdFUCIeXccfdTxo5Cg=="/>
     </item>
   </channel>
 </rss>
