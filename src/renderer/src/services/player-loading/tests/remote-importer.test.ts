@@ -1,4 +1,6 @@
+import { jotaiStore } from '@renderer/atoms/store'
 import { releaseRemoteImport, takeRemoteImport } from '@renderer/services/media/remote-handoff'
+import { remoteImportProgressAtom } from '@renderer/services/media/remote-progress'
 import { describe, expect, it, vi } from 'vitest'
 import { importRemoteVideo } from '../adapters/remote-importer'
 const mocks = vi.hoisted(() => ({ get: vi.fn(), open: vi.fn() }))
@@ -48,4 +50,30 @@ describe('网络视频内容身份', () => {
       importRemoteVideo('https://example.com/a', undefined, controller.signal),
     ).rejects.toBeDefined()
   })
+})
+
+it('导入期间发布识别进度，结束后清理且复用读取不再更新导入状态', async () => {
+  let report!: (received: number, total: number) => void
+  const range = source()
+  mocks.open.mockImplementationOnce(async (_url, _signal, onProgress) => {
+    report = onProgress
+    expect(jotaiStore.get(remoteImportProgressAtom)?.stage).toBe('connecting')
+    range.read.mockImplementationOnce(async () => {
+      report(0, 3)
+      expect(jotaiStore.get(remoteImportProgressAtom)).toMatchObject({
+        stage: 'reading',
+        received: 0,
+        total: 3,
+      })
+      report(3, 3)
+      expect(jotaiStore.get(remoteImportProgressAtom)?.received).toBe(3)
+      return bytes
+    })
+    return range
+  })
+  const result = await importRemoteVideo('https://example.com/progress.mp4')
+  expect(jotaiStore.get(remoteImportProgressAtom)).toBeNull()
+  report(1, 3)
+  expect(jotaiStore.get(remoteImportProgressAtom)).toBeNull()
+  releaseRemoteImport(result.source)
 })

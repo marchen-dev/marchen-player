@@ -10,6 +10,7 @@ import {
 } from '@renderer/services/player-loading/hooks'
 import { atom, useAtom } from 'jotai'
 import { useEffect, useRef, useState } from 'react'
+import { RemoteReadProgress } from './RemoteReadProgress'
 
 const remoteDialogAtom = atom<{ url: string; recordId?: string } | null>(null)
 export const openRemoteVideoDialog = (url = '', recordId?: string) => {
@@ -107,6 +108,7 @@ export function RemoteVideoDialog() {
               </p>
             )}
           </div>
+          {busy && <RemoteReadProgress />}
           <div className="flex justify-end gap-2">
             <Button type="button" variant="ghost" onClick={close}>
               取消

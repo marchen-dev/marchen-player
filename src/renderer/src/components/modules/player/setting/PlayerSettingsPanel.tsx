@@ -19,10 +19,11 @@ import { createPlaybackInfoRows } from '@renderer/services/player-runtime/playba
 import { useAtom } from 'jotai'
 import { lazy, useEffect, useState } from 'react'
 import { withControllerPosition } from '../controls/controller-position'
-
 import { AudioTrackSetting } from './items/AudioTrackSetting'
+
 import { Danmaku } from './items/damaku/Danmaku'
 import { Subtitle } from './items/subtitle/Subtitle'
+import { MediaTransferRows } from './MediaTransferRows'
 
 const PlayList = lazy(() => import('./items/playList/PlayList'))
 
@@ -195,6 +196,7 @@ const PlaybackSettings = ({
             <PlayerEngineSetting playerMaterial container={portalContainer} />
           </div>
           <AudioTrackSetting />
+          <MediaTransferRows />
           {playbackInfoRows.map((row) => (
             <div
               key={row.label}

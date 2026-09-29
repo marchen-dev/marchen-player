@@ -1,8 +1,10 @@
 import type { DurableMediaSource } from '@marchen/shared/media'
 import type { CompatResource } from '../../media/compat/media-adapter'
 import { RemoteMediaError } from '@marchen/shared/media/remote'
+import { jotaiStore } from '@renderer/atoms/store'
 import { openRangeSource } from '../../media/range-source'
 import { takeRemoteImport } from '../../media/remote-handoff'
+import { activeRemoteLeaseAtom } from '../../media/remote-progress'
 import { openRemoteSource } from '../../media/remote-source'
 import { MediaSourceOwner } from '../../media/source-owner'
 
@@ -16,6 +18,7 @@ export async function openPlaybackResource(
   let release: () => void
   let url: string
   let owner: MediaSourceOwner
+  let remoteLeaseId: string | null = null
   let compatSource: CompatResource['source']
   if (source.kind === 'remote-url') {
     // 只有主播放会话可以领取导入资源，缩略图等短任务不能提前消费并释放它。
@@ -27,6 +30,7 @@ export async function openPlaybackResource(
       throw new RemoteMediaError('changed', '视频内容已变化，请重新打开')
     }
     url = range.nativeUrl
+    remoteLeaseId = new URL(url).pathname.slice(1)
     release = range.close
     owner = new MediaSourceOwner({ kind: 'electron', source: range, release, remote: true })
     compatSource = { kind: 'url', url, remote: true }
@@ -53,11 +57,15 @@ export async function openPlaybackResource(
     }
     compatSource = { kind: 'url', url }
   }
+  const activeLease = remoteLeaseId ? { id: remoteLeaseId } : null
+  if (reuseImport) jotaiStore.set(activeRemoteLeaseAtom, activeLease)
   const primary = owner.acquire()
   let closed = false
   const close = () => {
     if (closed) return
     closed = true
+    if (reuseImport && remoteLeaseId && jotaiStore.get(activeRemoteLeaseAtom) === activeLease)
+      jotaiStore.set(activeRemoteLeaseAtom, null)
     signal.removeEventListener('abort', close)
     owner.close()
     if (source.kind === 'web-file') release()

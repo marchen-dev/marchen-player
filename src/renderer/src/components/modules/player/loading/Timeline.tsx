@@ -1,3 +1,4 @@
+import type { LoadingState, StepName } from '@marchen/player-loading'
 /**
  * 加载进度 Timeline（水平 stepper）
  *
@@ -5,7 +6,6 @@
  * 纯 Tailwind 实现，不依赖外部 CSS 组件库。
  */
 
-import type { LoadingState, StepName } from '@marchen/player-loading'
 import type { FC } from 'react'
 import { VISIBLE_STEPS } from '@marchen/player-loading'
 import { Button } from '@renderer/components/ui/button'
@@ -14,6 +14,7 @@ import {
   usePlayerLoadingService,
   usePlayerLoadingState,
 } from '@renderer/services/player-loading/hooks'
+import { RemoteReadProgress } from './RemoteReadProgress'
 
 const stepLabels: Record<(typeof VISIBLE_STEPS)[number], string> = {
   importing: '视频导入',
@@ -43,6 +44,7 @@ export const LoadingDanmuTimeLine = () => {
         ))}
       </div>
       <StepDescription state={state} />
+      {state.step === 'importing' && <RemoteReadProgress />}
       {canSkip && (
         <div className="flex items-center gap-2">
           <Button variant={failed ? 'default' : 'secondary'} onClick={() => service.skipDanmaku()}>

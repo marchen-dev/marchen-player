@@ -10,10 +10,17 @@ import { fileRangeResponse } from './file-range-response'
 import { fromFilename } from './mime-utils'
 import { fetchRemoteMedia } from './remote-media'
 import { cacheRemotePrefix } from './remote-prefix-cache'
+import { RemoteTransferMeter, trackRemoteTransfer } from './remote-transfer'
 
 const leases = new Map<
   string,
-  { path?: string; remote?: Promise<RemoteRangeSource>; owner: number; controller: AbortController }
+  {
+    path?: string
+    remote?: Promise<RemoteRangeSource>
+    owner: number
+    controller: AbortController
+    meter?: RemoteTransferMeter
+  }
 >()
 const generations = new Map<number, number>()
 const owners = new Set<number>()
@@ -39,11 +46,12 @@ export async function createRemoteMediaLease(url: string, id: string, owner: Web
     throw new Error('媒体租约超过限制')
   registerOwner(owner)
   const controller = new AbortController()
+  const meter = new RemoteTransferMeter()
   const remote = openRemoteRangeSource(url, controller.signal, fetchRemoteMedia).then((source) => {
     controller.signal.throwIfAborted()
-    return cacheRemotePrefix(source, controller.signal)
+    return cacheRemotePrefix(trackRemoteTransfer(source, meter), controller.signal)
   })
-  leases.set(id, { owner: owner.id, controller, remote })
+  leases.set(id, { owner: owner.id, controller, remote, meter })
   try {
     const source = await remote
     controller.signal.throwIfAborted()
@@ -165,8 +173,7 @@ export async function createMediaLease(path: string, owner: WebContents) {
   if (owner.isDestroyed() || !isApplicationUrl(owner.getURL())) throw new Error('媒体请求来源无效')
   if (!isVideoFile(path) && !['.ass', '.ssa', '.srt', '.vtt'].includes(extname(path).toLowerCase()))
     throw new Error('不支持的媒体文件类型')
-  if (!(await isDownloadedMediaAvailable(path)))
-    throw new Error('文件尚未下载完成')
+  if (!(await isDownloadedMediaAvailable(path))) throw new Error('文件尚未下载完成')
   registerOwner(owner)
   const generation = generations.get(owner.id) ?? 0
   let canonical: string
@@ -263,3 +270,9 @@ export function createApplicationProtocol(rendererRoot: string) {
 /** 下载文件删除前检查所有媒体租约，包括已暂停的播放。 */
 export const isMediaPathInUse = (path: string) =>
   [...leases.values()].some((lease) => lease.path === path)
+
+/** 仅读取当前窗口所属租约，不返回 URL、路径等来源信息。 */
+export function getRemoteTransfer(id: string, owner: number) {
+  const lease = leases.get(id)
+  return lease?.owner === owner ? (lease.meter?.snapshot() ?? null) : null
+}

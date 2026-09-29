@@ -3,6 +3,7 @@ import path from 'node:path'
 import {
   createMediaLease,
   createRemoteMediaLease,
+  getRemoteTransfer,
   releaseMediaLease,
 } from '@main/lib/media-protocol'
 
@@ -22,6 +23,9 @@ export const playerGroup = {
   createRemoteMediaLease: t.procedure
     .input<{ url: string; id: string }>()
     .action(({ input, context }) => createRemoteMediaLease(input.url, input.id, context.sender)),
+  remoteTransfer: t.procedure
+    .input<{ id: string }>()
+    .action(async ({ input, context }) => getRemoteTransfer(input.id, context.sender.id)),
   createMediaLease: t.procedure
     .input<{ path: string }>()
     .action(({ input, context }) => createMediaLease(input.path, context.sender)),

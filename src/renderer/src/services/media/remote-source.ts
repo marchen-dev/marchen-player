@@ -2,7 +2,11 @@ import { RemoteMediaError, validateRemoteUrl } from '@marchen/shared/media/remot
 import { openRangeSource } from './range-source'
 
 /** 桌面远程读取必须经过受控媒体租约；Web 不发起远程视频请求。 */
-export async function openRemoteSource(value: string, signal: AbortSignal) {
+export async function openRemoteSource(
+  value: string,
+  signal: AbortSignal,
+  onProgress?: (received: number, total: number) => void,
+) {
   const { ipcClient } = await import('@renderer/lib/client')
   if (!ipcClient) throw new Error('网页版不支持远程视频，请使用桌面版')
   const url = validateRemoteUrl(value)
@@ -15,7 +19,7 @@ export async function openRemoteSource(value: string, signal: AbortSignal) {
     signal.throwIfAborted()
     const lease = await ipcClient.player.createRemoteMediaLease({ url, id })
     signal.throwIfAborted()
-    const range = await openRangeSource(lease.url, signal)
+    const range = await openRangeSource(lease.url, signal, onProgress)
     return {
       ...range,
       name: lease.name,

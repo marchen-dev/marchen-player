@@ -1,7 +1,9 @@
 import type { VideoInfo } from '@marchen/player-loading'
 import { REMOTE_LIMITS } from '@marchen/shared/media/remote'
+import { jotaiStore } from '@renderer/atoms/store'
 import { db } from '@renderer/database/db'
 import { retainRemoteImport } from '@renderer/services/media/remote-handoff'
+import { remoteImportProgressAtom } from '@renderer/services/media/remote-progress'
 import { openRemoteSource } from '@renderer/services/media/remote-source'
 import SparkMD5 from 'spark-md5'
 
@@ -17,8 +19,33 @@ export async function importRemoteVideo(
   signal.addEventListener('abort', cancel, { once: true })
   let range: Awaited<ReturnType<typeof openRemoteSource>> | undefined
   let retained = false
+  let importing = true
+  const progressId = crypto.randomUUID()
+  let lastProgress = 0
+  jotaiStore.set(remoteImportProgressAtom, {
+    id: progressId,
+    stage: 'connecting',
+    received: 0,
+    total: 0,
+  })
   try {
-    range = await openRemoteSource(url, lifetime.signal)
+    range = await openRemoteSource(url, lifetime.signal, (received, total) => {
+      if (
+        !importing ||
+        signal.aborted ||
+        jotaiStore.get(remoteImportProgressAtom)?.id !== progressId
+      )
+        return
+      const now = performance.now()
+      if (received !== 0 && received !== total && now - lastProgress < 250) return
+      lastProgress = now
+      jotaiStore.set(remoteImportProgressAtom, {
+        id: progressId,
+        stage: 'reading',
+        received,
+        total,
+      })
+    })
     let matchHash: string | undefined
     try {
       const bytes = await range.read(
@@ -62,6 +89,9 @@ export async function importRemoteVideo(
     retained = true
     return { source, hash, matchHash, name: source.name, size: source.size, playList: [] }
   } finally {
+    importing = false
+    if (jotaiStore.get(remoteImportProgressAtom)?.id === progressId)
+      jotaiStore.set(remoteImportProgressAtom, null)
     signal.removeEventListener('abort', cancel)
     if (!retained) {
       lifetime.abort()

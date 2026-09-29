@@ -1,7 +1,11 @@
 import type { SubtitleSource } from './subtitles/matroska'
 
 /** URL 来自平台授权租约；不接受服务端忽略 Range 后下载整部影片。 */
-export async function openRangeSource(url: string, signal?: AbortSignal): Promise<SubtitleSource> {
+export async function openRangeSource(
+  url: string,
+  signal?: AbortSignal,
+  onProgress?: (received: number, total: number) => void,
+): Promise<SubtitleSource> {
   const head = await fetch(url, { method: 'HEAD', signal })
   if (!head.ok) throw new Error(`媒体来源不可用（${head.status}）`)
   const length = head.headers.get('Content-Length')
@@ -44,6 +48,7 @@ export async function openRangeSource(url: string, signal?: AbortSignal): Promis
       if (!reader) throw new Error('媒体响应为空')
       const output = new Uint8Array(end - start)
       let offset = 0
+      onProgress?.(0, output.length)
       try {
         while (true) {
           const { done, value } = await reader.read()
@@ -51,6 +56,7 @@ export async function openRangeSource(url: string, signal?: AbortSignal): Promis
           if (offset + value.length > output.length) throw new Error('媒体响应超过请求范围')
           output.set(value, offset)
           offset += value.length
+          onProgress?.(offset, output.length)
         }
         combined?.throwIfAborted()
         if (offset !== output.length) throw new Error('媒体响应短读')
