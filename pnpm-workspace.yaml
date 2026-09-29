@@ -13,13 +13,17 @@ packages:
 allowBuilds:
   '@sentry/cli': true
   '@swc/core': true
+  bufferutil: true
   core-js: true
   electron: true
   electron-winstaller: false
   es5-ext: true
   esbuild: true
+  # 只检查包管理器，不参与构建；避免安装时通过 npx 下载额外程序。
+  ip-set: false
   node-datachannel: true
   simple-git-hooks: true
+  utf-8-validate: true
   utp-native: false
 
 # Electron 44 需要新版 ABI 映射，仅约束原生模块重建工具的依赖。
