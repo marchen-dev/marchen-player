@@ -1,36 +1,59 @@
-version: 1.0.0-alpha.1
+version: 1.0.0-alpha.2
 files:
-  - url: https://github.com/marchen-dev/marchen-player/releases/download/v1.0.0-alpha.1/Marchen-1.0.0-alpha.1-setup.exe
-    sha512: oOYldUoUWogxYH4qBKz7EQp1fEVKCnwf3v/hZiCOmHje80BdCooFqISTP38DrHv1MRPiqiKj/KDY7J16CY/DcQ==
-    size: 167145138
-path: https://github.com/marchen-dev/marchen-player/releases/download/v1.0.0-alpha.1/Marchen-1.0.0-alpha.1-setup.exe
-sha512: oOYldUoUWogxYH4qBKz7EQp1fEVKCnwf3v/hZiCOmHje80BdCooFqISTP38DrHv1MRPiqiKj/KDY7J16CY/DcQ==
-releaseNotes: "# Marchen 1.0.0-alpha.1\r
+  - url: https://github.com/marchen-dev/marchen-player/releases/download/v1.0.0-alpha.2/Marchen-1.0.0-alpha.2-setup.exe
+    sha512: hXt78CHpajvgi0hmwW9/0PRaIC1dH4+ASHPv/nC0Ic6r8+YwHuyuUh1LS3UXotKcmXNzdW5I+CFv5MieNgTiPg==
+    size: 171990199
+path: https://github.com/marchen-dev/marchen-player/releases/download/v1.0.0-alpha.2/Marchen-1.0.0-alpha.2-setup.exe
+sha512: hXt78CHpajvgi0hmwW9/0PRaIC1dH4+ASHPv/nC0Ic6r8+YwHuyuUh1LS3UXotKcmXNzdW5I+CFv5MieNgTiPg==
+releaseNotes: "# Marchen 1.0.0-alpha.2\r
 
   \r
 
-  本次 Alpha 更新改善了弹幕加载体验，并新增桌面端视频直链播放和链接弹幕导入。\r
+  本次 Alpha 新增桌面端下载功能，并改善远程视频读取提示、弹幕复制与界面体验。\r
 
   \r
 
-  ## 新功能与改进\r
+  ## 下载\r
 
   \r
 
-  - 匹配或弹幕加载等待期间可选择“直接播放”，不必等到超时；加载失败后支持重试。\r
+  - 新增「下载」页面，支持磁力链接、BT 种子和 HTTP/HTTPS 文件直链。\r
 
-  - 新增视频直链播放实验功能：在“设置 → 实验室”开启“通过 URL 播放”后，可从首页打开 HTTP/HTTPS
-  视频文件链接，支持原生与兼容播放内核。\r
+  - HTTP 下载支持最多 3 个文件同时下载，其余任务自动排队。\r
 
-  - 复用识别时已读取的视频前缀，减少起播阶段的重复下载，改善远程视频的首帧等待。\r
+  - BT 合集支持选择下载文件，也可在下载过程中增减集数、全选或取消全选。\r
 
-  - 桌面端支持通过优酷视频链接添加弹幕，可单独开关来源、调整时间偏移，并保存到播放记录。\r
+  - 支持暂停、继续、重试、打开目录及查看 BT 节点详情。\r
 
-  - 字幕支持 50%～200% 字号缩放，并自动记住设置。\r
+  - 下载完成后自动停止传输，文件保留在下载列表；首次播放后沿用现有流程进入影视库。\r
 
-  - 展示当前匹配的番剧与集数，支持快捷开关弹幕。\r
+  - 新任务按原文件或文件夹名保存，不额外套一层目录；已有任务保留原路径。\r
 
-  - 移除字幕设置中容易产生误解的“重新读取轨道”按钮。\r
+  \r
+
+  ## 弹幕与播放\r
+
+  \r
+
+  - 点击弹幕即可复制内容，并显示复制成功提示。\r
+
+  - URL 播放与影视库远程播放新增识别数据读取进度。\r
+
+  - 播放设置中显示本地／远程来源，远程视频可查看接收速度及累计接收量。\r
+
+  - 修复通过系统「打开方式」启动视频时未正常播放的问题。\r
+
+  \r
+
+  ## 界面\r
+
+  \r
+
+  - 统一蓝色主题，调整设置与弹窗样式。\r
+
+  - 下载设置移至独立分类，任务更多操作改为下拉菜单。\r
+
+  - 移除尚未接入的 AI 服务设置。\r
 
   \r
 
@@ -38,11 +61,11 @@ releaseNotes: "# Marchen 1.0.0-alpha.1\r
 
   \r
 
-  - 视频直链播放仅支持桌面客户端，默认关闭。来源需支持按需读取；暂不支持 m3u8/HLS、网页地址、需要登录或自定义请求头的视频。\r
+  - 下载功能仅支持桌面客户端。BT 暂仅支持 v1，不支持 v2 或混合种子。\r
 
-  - 远程视频暂不支持内嵌字幕，可手动导入外挂字幕；本地视频的内嵌字幕与外挂字幕功能保留。\r
+  - HTTP 下载支持文件直链，不包含网页视频解析或 m3u8/HLS 下载；断点续传取决于服务器支持，重启应用后需手动继续。\r
 
-  - 首次识别仍需读取部分视频数据，起播速度受网络、来源服务和视频编码影响。实验功能仍在完善，欢迎反馈问题。\r
+  - 视频直链播放仍需在「设置 → 实验室」开启；读取百分比仅表示播放前的识别数据读取进度。\r
 
   - macOS 支持 macOS 13 及以上的 Apple Silicon（ARM64）；Windows 提供 x64 安装包。\r\n"
-releaseDate: 2026-09-27T13:37:18.878Z
+releaseDate: 2026-09-29T12:15:11.420Z
