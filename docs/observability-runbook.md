@@ -20,9 +20,21 @@
 
 ## Sentry
 
-查询标签：release、dist、app_target、runtime、error_code。字幕主动降级错误使用 SUBTITLE_RESOLVE_FAILED / SUBTITLE_RENDERER_FAILED / SUBTITLE_CATALOG_FAILED / SUBTITLE_IMPORT_FAILED。字幕错误诊断只保留阶段与错误类型，不上传字幕内容、文件名或临时 URL。组件捕获错误后不能仅 setError，必须显式经过 telemetry 边界。
+查询标签：release、dist、app_target、runtime、error_code。字幕主动降级错误使用 SUBTITLE_RESOLVE_FAILED / SUBTITLE_RENDERER_FAILED / SUBTITLE_CATALOG_FAILED / SUBTITLE_IMPORT_FAILED。字幕失败上报目前只构造阶段与错误类型的稳定诊断错误（为聚合而非隐私）。组件捕获错误后不能仅 setError，必须显式经过 telemetry 边界。
 
 Web 使用 @sentry/react；Electron 使用对应 SDK。Source Map 构建期上传，运行时变量不包含上传认证。SDK 接入、日志和单元测试成功不证明线上事件、源码还原或告警已验收。
+
+## 采集与脱敏策略
+
+按产品决定完整上报，客户端不做任何隐私遮蔽或脱敏：
+
+- Sentry 与 PostHog 不改写 URL、token、本地路径、文件名、界面文本或输入框内容；`sendDefaultPii` 开启。
+- 两端回放均不遮蔽文字与输入（PostHog `mask_all_text` / `maskAllInputs` 与 Sentry `maskAllText` / `maskAllInputs` 均为 false）。
+- 唯一的回放屏蔽是弹幕运动层的 `data-telemetry-replay-block`，原因是高频 DOM mutation 会拖垮录制和播放，不是隐私；Sentry 也忽略该层上的 UI breadcrumb。视频、canvas 字幕与缩略图本来就不录像素，无需屏蔽。
+- `services/telemetry/bound.ts` 只限制长度、深度、集合大小并消除循环引用，防止 payload 被拒收，不承担脱敏职责。
+- Sentry 服务端默认的 Data Scrubber 与 IP 存储限制仍会替换 password/token 等字段，客户端代码覆盖不到；需要完整数据时到 Sentry 项目设置 → Security & Privacy 关闭 “Data Scrubber”“Use Default Scrubbers”“Prevent Storing of IP Addresses”。
+
+结构化产品事件（PostHog capture）仍只带白名单枚举与数值，这是为了聚合维度稳定、避免高基数，不是隐私限制；需要明细排障时看回放、breadcrumb 与 Sentry context。
 
 ## 发布
 
@@ -32,7 +44,7 @@ Electron tag workflow 继续完成桌面各平台的 Source Map、release 和安
 
 ## 本地验证
 
-开发默认不上报，只有显式 VITE_TELEMETRY_DEBUG=true 才临时打开。分别验证会话、播放漏斗、字幕错误、React 异常、Source Map、回放和告警；检查结束关闭诊断窗口。不要将本地 .env 的秘密提交。回放默认未遮蔽普通文字，视频/弹幕/字幕等层以 data-telemetry-replay-block 排除；实际采集范围需要在后台核实。
+开发默认不上报，只有显式 VITE_TELEMETRY_DEBUG=true 才临时打开。分别验证会话、播放漏斗、字幕错误、React 异常、Source Map、回放和告警；检查结束关闭诊断窗口。不要将本地 .env 的秘密提交。回放只排除弹幕运动层；实际采集范围需要在后台核实。
 
 FFmpeg/Gateway/media.generation 与 compat_fallback_triggered 为历史版本口径，不适用于现在的 native/compat 内核；历史事件不直接拼接为同一条性能趋势。
 
@@ -49,4 +61,4 @@ FFmpeg/Gateway/media.generation 与 compat_fallback_triggered 为历史版本口
 
 下载状态由根级观察器订阅，与当前路由无关；首次快照仅建立基线，不重报历史完成任务。整个渲染窗口关闭期间的状态变化不补报，因此这些事件不能用作跨应用会话的完整下载账本。完成／失败等状态事件、停滞及远程导入结果使用现有离线 outbox。
 
-事件仅使用白名单枚举和数值，不传任务 ID、infoHash、文件名、本地路径、链接、磁力、节点 IP 或错误原文。下载页及其门户弹窗、目录设置和下载错误详情同时屏蔽 PostHog 自动采集、两端回放；Sentry 自动 UI breadcrumb 忽略带屏蔽标记的目标。开发环境仍遵循既有 `VITE_TELEMETRY_DEBUG` 开关，不为验收自动开启线上上报。
+下载事件属性仅使用白名单枚举和数值，以保证聚合维度稳定；下载页、弹窗、目录设置和错误详情与其他页面一样参与 PostHog 自动采集与两端回放，不做屏蔽。开发环境仍遵循既有 `VITE_TELEMETRY_DEBUG` 开关，不为验收自动开启线上上报。

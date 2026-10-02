@@ -64,8 +64,7 @@ export function RemoteVideoDialog() {
     >
       <DialogContent
         container={document.fullscreenElement ?? undefined}
-        className="ph-no-capture max-w-lg"
-        data-telemetry-replay-block
+        className="max-w-lg"
         aria-describedby="remote-video-description"
         // 防止编辑链接时误点遮罩关闭，保留 Esc 和显式关闭操作。
         onPointerDownOutside={(event) => event.preventDefault()}
@@ -98,8 +97,7 @@ export function RemoteVideoDialog() {
               }}
               placeholder="粘贴视频链接"
               disabled={busy}
-              className="ph-no-capture focus-visible:ring-1 focus-visible:ring-offset-0"
-              data-sentry-mask
+              className="focus-visible:ring-1 focus-visible:ring-offset-0"
             />
             <p id="remote-video-description" className="text-muted-foreground text-sm">
               支持 HTTP / HTTPS 视频文件直链

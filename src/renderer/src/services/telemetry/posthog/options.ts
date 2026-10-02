@@ -1,9 +1,6 @@
-import type { CaptureResult } from 'posthog-js'
-import { redactMediaAddresses } from '@marchen/shared/media/redact'
 import { POSTHOG_HOST } from '@renderer/lib/env'
 
 export const createPostHogOptions = () => ({
-  before_send: (event: CaptureResult | null) => redactMediaAddresses(event),
   api_host: POSTHOG_HOST,
   defaults: '2026-08-30' as const,
   autocapture: true,
@@ -17,6 +14,7 @@ export const createPostHogOptions = () => ({
   mask_all_text: false,
   mask_all_element_attributes: false,
   session_recording: {
+    // 仅弹幕运动层因高频 DOM mutation 屏蔽，其余界面与输入完整录制。
     blockSelector: '[data-telemetry-replay-block]',
     maskAllInputs: false,
     maskTextSelector: null,

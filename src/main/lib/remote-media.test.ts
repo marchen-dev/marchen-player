@@ -1,6 +1,5 @@
 import type { WebContents } from 'electron'
 import { EventEmitter } from 'node:events'
-import { redactMediaAddresses } from '@marchen/shared/media/redact'
 import { openRemoteRangeSource, validateRemoteUrl } from '@marchen/shared/media/remote'
 import { describe, expect, it, vi } from 'vitest'
 import { createApplicationProtocol, createRemoteMediaLease } from './media-protocol'
@@ -146,11 +145,6 @@ describe('远程范围读取', () => {
     source.close()
     expect((await requests).every((result) => result.status === 'rejected')).toBe(true)
     expect(fetcher).toHaveBeenCalledTimes(4)
-  })
-  it('诊断中清除路径、查询和内嵌账号', () => {
-    expect(
-      redactMediaAddresses({ url: 'https://user:password@example.com/secret?token=abc' }),
-    ).toEqual({ url: 'https://example.com/[Filtered]' })
   })
 })
 

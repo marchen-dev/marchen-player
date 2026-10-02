@@ -130,7 +130,7 @@ describe('播放器 UI 回归', () => {
     expect(timelineTimeFromPointer(150, 100, 0, 120)).toBe(0)
   })
 
-  it.each(['\n', '\r\n'])('回放隔离高频画面层但保留播放器交互外壳（换行 %j）', (lineEnding) => {
+  it.each(['\n', '\r\n'])('回放只隔离弹幕运动层，其余播放器界面完整录制（换行 %j）', (lineEnding) => {
     const shellSource = readFileSync(
       new URL('../../../components/modules/player/shell/PlayerShell.tsx', import.meta.url),
       'utf8',
@@ -144,12 +144,14 @@ describe('播放器 UI 回归', () => {
       'utf8',
     )
 
-    expect(shellSource.match(/data-telemetry-replay-block/g)).toHaveLength(3)
-    expect(danmakuSource).toContain('data-telemetry-replay-block')
     // Windows checkout 可能使用 CRLF；属性边界不应依赖操作系统换行符。
-    const source = timelineSource.replace(/\r?\n/g, lineEnding)
-    expect(source).toMatch(/data-timeline-track\s+data-telemetry-replay-block/)
-    expect(source).not.toMatch(/role="slider"\s+data-telemetry-replay-block/)
+    const shell = shellSource.replace(/\r?\n/g, lineEnding)
+    expect(shell.match(/data-telemetry-replay-block/g)).toHaveLength(1)
+    const block = shell.indexOf('data-telemetry-replay-block')
+    expect(block).toBeGreaterThan(shell.indexOf('data-player-danmaku-surface'))
+    expect(block).toBeLessThan(shell.indexOf('export const InteractionSurface'))
+    expect(danmakuSource).toContain('data-telemetry-replay-block')
+    expect(timelineSource).not.toContain('data-telemetry-replay-block')
   })
 
   it('统一设置面板打开目标标签，关闭时保留标签供下次恢复', () => {

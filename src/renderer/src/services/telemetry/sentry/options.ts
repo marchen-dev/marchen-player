@@ -1,44 +1,29 @@
 import type { BrowserOptions } from '@sentry/react'
-import { redactMediaAddresses } from '@marchen/shared/media/redact'
 import { SENTRY_DSN } from '@renderer/lib/env'
 import * as Sentry from '@sentry/react'
 import { useEffect } from 'react'
 import { createRoutesFromChildren, matchRoutes, useLocation, useNavigationType } from 'react-router'
 
-export const isNoisyGatewayMediaRequest = (url: string): boolean => {
-  try {
-    const base = typeof window === 'undefined' ? 'http://localhost/' : window.location.href
-    const parsed = new URL(url, base)
-    const isLocalGateway = parsed.hostname === '127.0.0.1' || parsed.hostname === 'localhost'
-    return (
-      isLocalGateway &&
-      parsed.pathname.includes('/v1/media/') &&
-      /(?:\.m4s|\/init\.mp4|\.m3u8)$/i.test(parsed.pathname)
-    )
-  } catch {
-    return false
-  }
-}
+/** 仅用于性能隔离的回放屏蔽标记：弹幕运动层的高频 mutation 会让录制失控。 */
+export const REPLAY_PERFORMANCE_BLOCK_SELECTOR = '[data-telemetry-replay-block]'
 
+// 按产品决定完整上报界面文本、输入、URL 与诊断上下文，客户端不做脱敏或遮蔽。
 export const createRendererSentryOptions = (): BrowserOptions => ({
   dsn: SENTRY_DSN,
   release: __MARCHEN_RELEASE__,
   dist: __MARCHEN_DIST__,
   environment: __MARCHEN_ENVIRONMENT__,
   enableLogs: true,
-  beforeSendLog: (log) => redactMediaAddresses(log),
-  beforeSendSpan: (span) => redactMediaAddresses(span),
-  beforeSend: (event) => redactMediaAddresses(event),
-  beforeSendTransaction: (event) => redactMediaAddresses(event),
   beforeBreadcrumb: (event, hint) => {
+    // 弹幕层不录回放，其上的 UI breadcrumb 也没有可对照的画面，直接忽略。
     const target = hint?.event?.target
     if (
       typeof Element !== 'undefined' &&
       target instanceof Element &&
-      target.closest('[data-telemetry-replay-block]')
+      target.closest(REPLAY_PERFORMANCE_BLOCK_SELECTOR)
     )
       return null
-    return redactMediaAddresses(event)
+    return event
   },
   sendDefaultPii: true,
   tracesSampleRate: 1,
@@ -50,7 +35,6 @@ export const createRendererSentryOptions = (): BrowserOptions => ({
     Sentry.reactRouterBrowserTracingIntegration({
       instrumentNavigation: false,
       instrumentPageLoad: false,
-      shouldCreateSpanForRequest: (url) => !isNoisyGatewayMediaRequest(url),
       useEffect,
       useLocation,
       useNavigationType,
@@ -59,10 +43,10 @@ export const createRendererSentryOptions = (): BrowserOptions => ({
     }),
     Sentry.httpClientIntegration(),
     Sentry.replayIntegration({
-      beforeAddRecordingEvent: (event) => redactMediaAddresses(event),
       maskAllText: false,
+      maskAllInputs: false,
       blockAllMedia: false,
-      block: ['[data-telemetry-replay-block]'],
+      block: [REPLAY_PERFORMANCE_BLOCK_SELECTOR],
     }),
   ],
   initialScope: {

@@ -61,8 +61,7 @@ export function PeerDialog({
       }}
     >
       <DialogContent
-        data-telemetry-replay-block
-        className="ph-no-capture sm:max-w-4xl"
+        className="sm:max-w-4xl"
         onCloseAutoFocus={(event) => {
           event.preventDefault()
           document.getElementById(`download-menu-${id}`)?.focus()

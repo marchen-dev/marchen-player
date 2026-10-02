@@ -15,7 +15,7 @@ export const downloadError = (error: unknown) =>
     title: '下载操作失败',
     description: createElement(
       'span',
-      { 'data-telemetry-replay-block': true, className: 'ph-no-capture' },
+      null,
       error instanceof Error ? error.message : '下载操作失败',
     ),
     variant: 'destructive',

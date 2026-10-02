@@ -78,8 +78,7 @@ export default function Downloads() {
   }
   return (
     <div
-      data-telemetry-replay-block
-      className="ph-no-capture bg-background h-full overflow-y-auto px-8 py-9"
+      className="bg-background h-full overflow-y-auto px-8 py-9"
       onDragOver={(e) => {
         if (e.dataTransfer.types.includes('Files')) e.preventDefault()
       }}
@@ -473,8 +472,6 @@ function TaskRow({ task }: { task: DownloadTask }) {
       )}
       <Dialog open={remove} onOpenChange={setRemove}>
         <DialogContent
-          data-telemetry-replay-block
-          className="ph-no-capture"
           onCloseAutoFocus={(event) => {
             event.preventDefault()
             const target =
@@ -594,8 +591,7 @@ function NewDownload({
       }}
     >
       <DialogContent
-        data-telemetry-replay-block
-        className="ph-no-capture max-h-[85vh] overflow-y-auto sm:max-w-xl"
+        className="max-h-[85vh] overflow-y-auto sm:max-w-xl"
         onCloseAutoFocus={(event) => {
           event.preventDefault()
           document.getElementById('new-download')?.focus()

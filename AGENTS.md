@@ -116,6 +116,16 @@ Web 所在的正式、预览及开发 Origin 需由 API 服务允许 CORS，JSON
 - **平台判断**：`isWeb = !window.electron`，见 `src/renderer/src/lib/utils.ts`
 - **错误监控**：Sentry，DSN 由 `VITE_SENTRY_DSN` 配置
 
+### 埋点与上报
+
+- **统一入口**：业务代码只调用 `services/telemetry` 的 `telemetry.*`、`captureFeatureUsed`、`reportOperationalError` 等封装，不直接引用 Sentry / PostHog SDK；`packages/*` 纯 TS 包不得依赖遥测 SDK，通过 observer 订阅公开状态上报（参考 `player-loading-observer.ts`、`playback-observer.ts`）
+- **事件契约**：新增产品事件先在 `services/telemetry/contracts.ts` 的 `TelemetryEventMap` 声明，事件名与属性用 snake_case；属性优先用枚举、布尔和数值，用 `operation_id` / `attempt_id` 等关联 ID 串联链路。文件名、路径、URL 等高基数值不放进产品事件属性，原因是聚合维度，不是隐私
+- **关键事件**：漏斗与结果类事件加入 `outbox.ts` 的 `CRITICAL_TELEMETRY_EVENTS`；普通交互用 `feature_used`（feature / action / value）
+- **错误**：外部交互失败必须显式经过 telemetry 边界，不能只 `setError` 或 `console.error`；用户取消、AbortError 等预期情况不作为异常上报；fingerprint 和 tag 只用稳定错误码，明细放 context
+- **不脱敏、不遮蔽**：按产品决定完整上报，禁止新增 URL / token / 路径脱敏、`mask`、`ph-no-capture` 或隐私性质的回放屏蔽；`services/telemetry/bound.ts` 只做体积与循环保护
+- **性能屏蔽**：`data-telemetry-replay-block` 只用于每秒大量增删 DOM 的高频层（当前仅弹幕运动层），并注释说明是性能原因
+- **降级**：遥测初始化或调用失败不得影响业务流程；口径或策略变化同步更新 `docs/observability-runbook.md`
+
 ## 目录结构
 
 ```

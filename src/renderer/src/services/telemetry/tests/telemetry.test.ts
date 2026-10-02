@@ -2,6 +2,7 @@ import type { ErrorContext } from '../contracts'
 
 import type { OutboxItem, OutboxStorage } from '../outbox'
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import { boundTelemetryString, boundTelemetryValue } from '../bound'
 import {
   configureTelemetry,
   createCompositeTelemetryClient,
@@ -16,8 +17,6 @@ import { captureStablePageView, resetPageViewStateForTest } from '../navigation'
 import { reportOperationalError } from '../operational-errors'
 import { OUTBOX_MAX_AGE_MS, OUTBOX_MAX_ITEMS, TelemetryOutbox } from '../outbox'
 import { createReactRootErrorHandlers } from '../react-errors'
-import { sanitizeTelemetryString, sanitizeTelemetryValue } from '../sanitize'
-import { isNoisyGatewayMediaRequest } from '../sentry/options'
 import { installStableRouterTracing, normalizeTelemetryRoute } from '../sentry/router-tracing'
 
 const context = () => ({
@@ -314,19 +313,6 @@ describe('critical event outbox', () => {
   })
 })
 
-describe('sentry request span boundary', () => {
-  it('drops per-resource Gateway spans but keeps API and summary requests', () => {
-    expect(
-      isNoisyGatewayMediaRequest('http://127.0.0.1:49321/v1/media/token/g/2/segment-0001.m4s'),
-    ).toBe(true)
-    expect(isNoisyGatewayMediaRequest('http://localhost:49321/v1/media/token/g/2/index.m3u8')).toBe(
-      true,
-    )
-    expect(isNoisyGatewayMediaRequest('https://proxy.example.com/api/v2/match')).toBe(false)
-    expect(isNoisyGatewayMediaRequest('http://127.0.0.1:49321/v1/status')).toBe(false)
-  })
-})
-
 describe('web install identity', () => {
   it('persists until the application resets it', () => {
     const values = new Map<string, string>()
@@ -343,36 +329,28 @@ describe('web install identity', () => {
   })
 })
 
-describe('telemetry sanitizer', () => {
-  it('filters capability secrets but keeps ordinary diagnostics', () => {
-    const result = sanitizeTelemetryValue({
+describe('telemetry bounds', () => {
+  it('keeps secrets, URLs and paths intact without redaction', () => {
+    const input = {
       apiKey: 'secret',
-      headers: { Authorization: 'Bearer secret', Accept: 'application/json' },
+      headers: { Authorization: 'Bearer secret' },
+      url: 'https://user:password@example.com/video.mkv?token=abc',
+      media: 'marchen://media/lease-id',
       filePath: '/Users/example/video.mkv',
-    })
+    }
 
-    expect(result.value).toEqual({
-      apiKey: '[Filtered]',
-      headers: { Authorization: '[Filtered]', Accept: 'application/json' },
-      filePath: '/Users/example/video.mkv',
-    })
+    expect(boundTelemetryValue(input)).toEqual({ value: input, truncated: false })
   })
 
-  it('normalizes gateway tokens and marks truncation', () => {
-    const gateway = sanitizeTelemetryString(
-      'GET http://127.0.0.1:49321/v1/media/high-entropy-token/g/2/index.m3u8',
-    )
-    const long = sanitizeTelemetryString('abcdef', 3)
-
-    expect(gateway.value).toContain('/v1/media/[Filtered]/g/2/index.m3u8')
-    expect(long).toEqual({ value: 'abc…[Truncated]', truncated: true })
+  it('marks truncated strings', () => {
+    expect(boundTelemetryString('abcdef', 3)).toEqual({ value: 'abc…[Truncated]', truncated: true })
   })
 
   it('handles circular objects and bounded collections', () => {
     const circular: Record<string, unknown> = { values: [1, 2, 3] }
     circular.self = circular
 
-    const result = sanitizeTelemetryValue(circular, { maxArrayLength: 2 })
+    const result = boundTelemetryValue(circular, { maxArrayLength: 2 })
 
     expect(result.truncated).toBe(true)
     expect(result.value).toEqual({ values: [1, 2], self: '[Circular]' })

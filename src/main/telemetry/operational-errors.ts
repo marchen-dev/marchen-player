@@ -1,7 +1,6 @@
 import type { OperationalArea } from '@marchen/shared/telemetry/errors'
 import { normalizeOperationalError } from '@marchen/shared/telemetry/errors'
 import * as Sentry from '@sentry/electron/main'
-import { getMainErrorDiagnosticContext } from './diagnostics'
 
 export const reportMainOperationalError = (
   area: OperationalArea,
@@ -32,8 +31,6 @@ export const reportMainOperationalError = (
     scope.setFingerprint(normalized.fingerprint)
     scope.setTag('error_code', normalized.errorCode)
     scope.setContext('operation', attributes)
-    const diagnostics = getMainErrorDiagnosticContext(error)
-    if (Object.keys(diagnostics).length > 0) scope.setContext('diagnostics', diagnostics)
     Sentry.captureException(error, { mechanism: { type: `${area}.${operation}`, handled: true } })
   })
 }

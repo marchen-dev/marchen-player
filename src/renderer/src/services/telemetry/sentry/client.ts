@@ -1,7 +1,7 @@
 import type { TelemetryClient } from '../contracts'
 
 import * as Sentry from '@sentry/react'
-import { sanitizeTelemetryValue } from '../sanitize'
+import { boundTelemetryValue } from '../bound'
 
 export const createSentryTelemetryClient = (): TelemetryClient => ({
   identify(identity) {
@@ -23,8 +23,8 @@ export const createSentryTelemetryClient = (): TelemetryClient => ({
       if (context?.mechanism) scope.setTag('mechanism', context.mechanism)
       if (typeof context?.handled === 'boolean') scope.setTag('handled', context.handled)
       if (context?.contexts) {
-        const sanitized = sanitizeTelemetryValue(context.contexts)
-        scope.setContext('diagnostics', sanitized.value as Record<string, unknown>)
+        const bounded = boundTelemetryValue(context.contexts)
+        scope.setContext('diagnostics', bounded.value as Record<string, unknown>)
       }
       return Sentry.captureException(error, {
         mechanism: {
@@ -35,14 +35,14 @@ export const createSentryTelemetryClient = (): TelemetryClient => ({
     })
   },
   log(entry) {
-    const sanitized = sanitizeTelemetryValue(entry.data)
-    const attributes = sanitized.value as Record<string, string | number | boolean | null>
+    const bounded = boundTelemetryValue(entry.data)
+    const attributes = bounded.value as Record<string, string | number | boolean | null>
     const level = entry.level === 'warning' ? 'warn' : entry.level
     Sentry.logger[level](entry.message, attributes)
   },
   addBreadcrumb(breadcrumb) {
-    const sanitized = sanitizeTelemetryValue(breadcrumb.data)
-    Sentry.addBreadcrumb({ ...breadcrumb, data: sanitized.value as Record<string, unknown> })
+    const bounded = boundTelemetryValue(breadcrumb.data)
+    Sentry.addBreadcrumb({ ...breadcrumb, data: bounded.value as Record<string, unknown> })
   },
   startSpan(span, run) {
     return Sentry.startSpan(

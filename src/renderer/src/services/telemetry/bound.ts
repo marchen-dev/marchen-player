@@ -1,40 +1,28 @@
-import { redactMediaAddresses } from '@marchen/shared/media/redact'
-export interface SanitizeTelemetryOptions {
+export interface BoundTelemetryOptions {
   maxDepth?: number
   maxStringLength?: number
   maxArrayLength?: number
   maxObjectKeys?: number
 }
 
-export interface SanitizedTelemetryValue {
+export interface BoundedTelemetryValue {
   value: unknown
   truncated: boolean
 }
 
-const SECRET_KEY = /^(?:api[_-]?key|authorization|cookie|set-cookie|password|secret|token)$/i
-const GATEWAY_TOKEN = /(https?:\/\/(?:127\.0\.0\.1|localhost):\d+\/v1\/media\/)[^/\s?#]+/gi
+/**
+ * 只限制体积并消除循环引用，避免 payload 被 413 拒收或序列化卡死。
+ * 这里刻意不做任何脱敏：按产品决定完整保留 URL、路径、token 等诊断上下文。
+ */
+export const boundTelemetryString = (value: string, maxLength = 8_192): BoundedTelemetryValue =>
+  value.length <= maxLength
+    ? { value, truncated: false }
+    : { value: `${value.slice(0, maxLength)}…[Truncated]`, truncated: true }
 
-export const sanitizeTelemetryString = (
-  value: string,
-  maxLength = 8_192,
-): SanitizedTelemetryValue => {
-  const withoutGatewayToken = redactMediaAddresses(value)
-    .replace(GATEWAY_TOKEN, '$1[Filtered]')
-    .replace(/marchen:\/\/media\/[^\s"'<>?#]+/gi, 'marchen://media/[Filtered]')
-    .replace(/blob:[^\s"'<>]+/gi, 'blob:[Filtered]')
-  if (withoutGatewayToken.length <= maxLength) {
-    return { value: withoutGatewayToken, truncated: false }
-  }
-  return {
-    value: `${withoutGatewayToken.slice(0, maxLength)}…[Truncated]`,
-    truncated: true,
-  }
-}
-
-export const sanitizeTelemetryValue = (
+export const boundTelemetryValue = (
   input: unknown,
-  options: SanitizeTelemetryOptions = {},
-): SanitizedTelemetryValue => {
+  options: BoundTelemetryOptions = {},
+): BoundedTelemetryValue => {
   const maxDepth = options.maxDepth ?? 6
   const maxStringLength = options.maxStringLength ?? 8_192
   const maxArrayLength = options.maxArrayLength ?? 50
@@ -44,9 +32,9 @@ export const sanitizeTelemetryValue = (
 
   const visit = (value: unknown, depth: number): unknown => {
     if (typeof value === 'string') {
-      const sanitized = sanitizeTelemetryString(value, maxStringLength)
-      truncated ||= sanitized.truncated
-      return sanitized.value
+      const bounded = boundTelemetryString(value, maxStringLength)
+      truncated ||= bounded.truncated
+      return bounded.value
     }
     if (
       value == null ||
@@ -84,9 +72,7 @@ export const sanitizeTelemetryValue = (
     const entries = Object.entries(value)
     if (entries.length > maxObjectKeys) truncated = true
     return Object.fromEntries(
-      entries
-        .slice(0, maxObjectKeys)
-        .map(([key, item]) => [key, SECRET_KEY.test(key) ? '[Filtered]' : visit(item, depth + 1)]),
+      entries.slice(0, maxObjectKeys).map(([key, item]) => [key, visit(item, depth + 1)]),
     )
   }
 

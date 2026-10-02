@@ -38,7 +38,6 @@ export const VideoSurface = ({
   <video
     ref={videoRef}
     data-player-video
-    data-telemetry-replay-block
     data-rotation={rotation}
     className={cn('absolute top-1/2 left-1/2 z-0 bg-black object-contain', className)}
     style={{
@@ -62,7 +61,6 @@ export const SubtitleSurface = ({ surfaceRef, className, ...props }: SurfaceProp
   <div
     ref={surfaceRef}
     data-player-subtitle-surface
-    data-telemetry-replay-block
     className={cn('pointer-events-none absolute inset-0 z-10 overflow-hidden', className)}
     aria-hidden="true"
     {...props}
@@ -73,6 +71,7 @@ export const DanmakuSurface = ({ surfaceRef, className, ...props }: SurfaceProps
   <div
     ref={surfaceRef}
     data-player-danmaku-surface
+    // 弹幕运动层高频增删 DOM，仅出于录制性能屏蔽回放，不是隐私遮蔽。
     data-telemetry-replay-block
     className={cn('pointer-events-none absolute inset-0 z-20 overflow-hidden', className)}
     aria-hidden="true"

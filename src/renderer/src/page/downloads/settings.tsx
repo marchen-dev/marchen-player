@@ -32,7 +32,7 @@ function DownloadSettingsForm({ initial }: { initial: DownloadSettings }) {
       description="下载完成后自动停止传输；上传限速仅用于下载期间的分片交换。"
     >
       <SettingsGroup>
-        <div data-telemetry-replay-block className="ph-no-capture space-y-4 p-4">
+        <div className="space-y-4 p-4">
           <label className="block text-sm">
             默认保存目录
             <div className="mt-2 flex gap-2">
