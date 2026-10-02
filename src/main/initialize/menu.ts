@@ -3,7 +3,7 @@ import { Menu } from 'electron'
 import { isMacOS } from '../lib/env'
 
 import { checkForDesktopUpdates } from '../lib/update'
-import { clearData, createSettingWindow, importAnime } from '../windows/setting'
+import { clearData, createSettingWindow, importAnime, openFeedback } from '../windows/setting'
 
 export const registerAppMenu = () => {
   if (!isMacOS) {
@@ -23,6 +23,10 @@ export const registerAppMenu = () => {
           click: () => {
             void checkForDesktopUpdates()
           },
+        },
+        {
+          label: '反馈问题…',
+          click: openFeedback,
         },
         { type: 'separator' },
         {

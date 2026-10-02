@@ -32,6 +32,9 @@ export interface RendererHandlers {
   /** 打开应用设置，可选指定稳定分类 ID。 */
   showSetting: (section?: AppSettingsSection) => void
 
+  /** 打开反馈弹窗（macOS 应用菜单「反馈问题…」） */
+  openFeedback: () => void
+
   /** 通知 renderer 导入动画文件（如通过系统文件关联或拖拽打开） */
   importAnime: (params?: { path: string }) => void
 

@@ -1,3 +1,6 @@
+import type { DiagnosticLogLevel } from '@main/lib/diagnostic-log'
+import type { FeedbackInput } from '@main/telemetry/feedback'
+import { logDirectory, writeLog } from '@main/lib/diagnostic-log'
 import { fileOpenRequests } from '@main/lib/file-open-requests'
 import {
   acknowledgeUpdateSave,
@@ -9,13 +12,27 @@ import {
   openUpdateDownloadPage,
   setUpdatePlaybackState,
 } from '@main/lib/update'
+import { isFeedbackAvailable, sendFeedback } from '@main/telemetry/feedback'
 import { getOrCreateTelemetryInstallId, telemetryAppSessionId } from '@main/telemetry/identity'
 import { getMainWindow } from '@main/windows/main'
 import { performClearData } from '@main/windows/setting'
 import { tipc } from '@marchen/electron-ipc/main'
-import { app, BrowserWindow, dialog } from 'electron'
+import { app, BrowserWindow, dialog, shell } from 'electron'
 
 const t = tipc.create()
+
+interface RendererLogEntry {
+  t?: string
+  lv: DiagnosticLogLevel
+  cat?: string
+  msg: string
+  op?: string
+  data?: unknown
+}
+
+const LOG_LEVELS = new Set<unknown>(['debug', 'info', 'warn', 'error'])
+/** 单批上限，防止异常 renderer 一次塞入过多条目 */
+const MAX_LOG_BATCH = 200
 
 export const appGroup = {
   torrentOpenReady: t.procedure.action(async ({ context }) => {
@@ -139,6 +156,31 @@ export const appGroup = {
   ),
   /** 清理当前窗口 session 的 HTTP 缓存；不影响 IndexedDB、localStorage 与下载任务 */
   clearNetworkCache: t.procedure.action(async ({ context }) => context.sender.session.clearCache()),
+
+  /**
+   * 接收 renderer 批量发来的诊断日志。main 是唯一写入者，避免多进程追加交错；
+   * 只做最小形状校验，异常条目直接丢弃。
+   */
+  appendLogs: t.procedure.input<{ entries: RendererLogEntry[] }>().action(async ({ input }) => {
+    for (const entry of input.entries.slice(0, MAX_LOG_BATCH)) {
+      if (!LOG_LEVELS.has(entry?.lv) || typeof entry.msg !== 'string') continue
+      writeLog({
+        t: typeof entry.t === 'string' ? entry.t : undefined,
+        lv: entry.lv,
+        src: 'renderer',
+        cat: typeof entry.cat === 'string' ? entry.cat : 'renderer',
+        msg: entry.msg,
+        op: typeof entry.op === 'string' ? entry.op : undefined,
+        data: entry.data,
+      })
+    }
+  }),
+  feedbackAvailable: t.procedure.action(async () => isFeedbackAvailable()),
+  sendFeedback: t.procedure.input<FeedbackInput>().action(async ({ input }) => sendFeedback(input)),
+  openLogDirectory: t.procedure.action(async () => {
+    const error = await shell.openPath(logDirectory())
+    if (error) throw new Error(error)
+  }),
 
   confirmationDialog: t.procedure.input<{ title: string }>().action(async ({ input }) => {
     const result = await dialog.showMessageBox({

@@ -1,3 +1,6 @@
+import { openFeedbackDialog } from '@renderer/atoms/feedback'
+import { getLastImportOperationId } from '@renderer/services/telemetry/local-log'
+
 interface PlaybackFailureProps {
   description: string
   detail?: string
@@ -58,6 +61,22 @@ export const PlaybackFailure = ({
           退出当前播放
         </button>
       </div>
+      <button
+        type="button"
+        className="mt-4 text-xs text-white/50 underline-offset-4 hover:text-white/80 hover:underline"
+        onClick={() => {
+          // Web 全屏作用于播放器元素，弹窗挂在 body 上会被遮挡，先退出全屏
+          if (document.fullscreenElement) void document.exitFullscreen().catch(() => {})
+          // 预填失败说明与底层错误，并关联最近一次导入操作，后台可直接定位这次失败
+          openFeedbackDialog({
+            source: 'playback_error',
+            prefill: `播放失败：${description}${detail ? `\n错误详情：${detail}` : ''}\n`,
+            operationId: getLastImportOperationId(),
+          })
+        }}
+      >
+        反馈此问题
+      </button>
     </div>
   </div>
 )

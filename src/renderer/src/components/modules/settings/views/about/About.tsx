@@ -1,4 +1,5 @@
 import { version } from '@pkg'
+import { openFeedbackDialog } from '@renderer/atoms/feedback'
 import { desktopUpdateAtom } from '@renderer/atoms/progress'
 import { Logo } from '@renderer/components/icons/Logo'
 import { Button } from '@renderer/components/ui/button'
@@ -7,7 +8,7 @@ import { cn, isWeb } from '@renderer/lib/utils'
 import { useMutation } from '@tanstack/react-query'
 import { useAtomValue } from 'jotai'
 
-import { SettingsGroup, SettingsPage, SettingsSection } from '../../components'
+import { SettingsActionRow, SettingsGroup, SettingsPage, SettingsSection } from '../../components'
 
 const copyrightYear = new Date().getFullYear()
 
@@ -118,6 +119,31 @@ export const AboutView = () => {
       )}
 
       <SettingsSection title="问题反馈" description="欢迎提交问题、建议或参与项目讨论">
+        <SettingsGroup className="mb-3">
+          <SettingsActionRow
+            label="发送诊断反馈"
+            description="附带本机日志，帮助定位播放、字幕或下载问题"
+          >
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => openFeedbackDialog({ source: 'about' })}
+            >
+              反馈问题…
+            </Button>
+          </SettingsActionRow>
+          {!isWeb && (
+            <SettingsActionRow label="日志位置" description="本地诊断日志，最多保留约 15 MB">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => void ipcClient?.app.openLogDirectory()}
+              >
+                打开目录
+              </Button>
+            </SettingsActionRow>
+          )}
+        </SettingsGroup>
         <div className="grid grid-cols-2 gap-2">
           {socialMediaList.map((item) => (
             <Button variant="outline" key={item.name} className="justify-start" size="sm" asChild>

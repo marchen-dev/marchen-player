@@ -1,4 +1,5 @@
 import type { OperationalArea } from '@marchen/shared/telemetry/errors'
+import { writeLog } from '@main/lib/diagnostic-log'
 import { normalizeOperationalError } from '@marchen/shared/telemetry/errors'
 import * as Sentry from '@sentry/electron/main'
 
@@ -15,6 +16,13 @@ export const reportMainOperationalError = (
     error_code: normalized.errorCode,
     recovered,
   }
+  // 本地日志不受遥测开关影响：离线或未配置 Sentry 时仍能事后排查
+  writeLog({
+    lv: recovered || normalized.expected ? 'warn' : 'error',
+    cat: area,
+    msg: operation,
+    data: { ...attributes, message: normalized.message, error },
+  })
   Sentry.addBreadcrumb({
     category: `operational.${area}`,
     message: operation,

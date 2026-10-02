@@ -62,3 +62,27 @@ FFmpeg/Gateway/media.generation 与 compat_fallback_triggered 为历史版本口
 下载状态由根级观察器订阅，与当前路由无关；首次快照仅建立基线，不重报历史完成任务。整个渲染窗口关闭期间的状态变化不补报，因此这些事件不能用作跨应用会话的完整下载账本。完成／失败等状态事件、停滞及远程导入结果使用现有离线 outbox。
 
 下载事件属性仅使用白名单枚举和数值，以保证聚合维度稳定；下载页、弹窗、目录设置和错误详情与其他页面一样参与 PostHog 自动采集与两端回放，不做屏蔽。开发环境仍遵循既有 `VITE_TELEMETRY_DEBUG` 开关，不为验收自动开启线上上报。
+
+## 本地诊断日志与用户反馈
+
+### 本地日志（Electron）
+
+- **位置**：正式版 macOS `~/Library/Logs/Marchen/`，Windows `%APPDATA%\Marchen\logs\`；开发版在 `<userData>/logs/`（appData 为 `Marchen (dev)`），与正式版隔离。设置 › 关于 › 日志位置可直接打开。旧版 `<userData>/log/main.log` 会在首次启动时删除。
+- **始终开启**：不受 `VITE_TELEMETRY_DEBUG` 与 Sentry 是否配置影响。main 是唯一写入者（electron-log 同步追加），renderer 经 `app.appendLogs` 批量（1 秒或 50 条）交给 main，页面隐藏时立即发送。
+- **格式**：JSON Lines，每行 `{ t, lv, src, cat, msg, op?, data?, repeated?, truncated? }`。`t` 为产生时刻（renderer 自带），`op` 为 operation_id / attempt_id，可与 Sentry、PostHog 的同一次操作对应。electron-updater 等第三方纯文本被包装为 `cat: "updater"`。公共构建属性只出现在 `app_start`（main）与 `renderer_start`（renderer）快照中。
+- **记录范围**：未捕获异常与未处理拒绝、渲染进程 / 子进程退出、窗口无响应、页面加载失败、显式上报错误、组合 telemetry client 收到的全部产品事件与面包屑；不记逐秒进度、弹幕与字幕正文。
+- **体积**：`marchen.log` 5 MB 轮转，保留 `.1`、`.2` 两份历史，总量约 15 MB；同一 `级别+消息+错误码` 10 秒内超过 5 条只计数（补写 `repeated`）；单行超过 8 KB 截断 `data`；info 每分钟 120 条，超出补写 `info_rate_limited`。退出前同步写出待补汇总。
+- **重置应用**：清空日志并写入 `app_reset`。
+- **自身失败**：只打印到终端，不经遥测上报，避免递归。
+
+Web 端不持久化日志，只在内存保留最近 2000 条，刷新即清空，用于反馈附带与「复制诊断信息」。
+
+### 用户反馈
+
+- **入口**：设置 › 关于「反馈问题…」、macOS 应用菜单「反馈问题…」、播放失败页「反馈此问题」（预填失败说明并携带最近一次导入的 operation_id）。
+- **发送**：Electron 由 main 读取三份日志、gzip 为 `marchen-logs.jsonl.gz`，调用 `@sentry/electron/main` 的 `captureFeedback` 附件发送；Web 附带内存记录 `marchen-logs.jsonl`。tags：`feedback_source`、`attach_logs`、`operation_id`。联系方式为邮箱时写入 `email`，否则写入 `name`。成功后 PostHog 记录 `feature_used(feedback, sent, attachLogs)`。
+- **查找**：Sentry → User Feedback，按反馈编号（事件 ID 前 8 位）或 `feedback_source` 筛选，附件在反馈详情中下载后 `gunzip` 查看。
+- **不可用时**：Sentry 未初始化（开发态默认、未配置 DSN）时弹窗直接提示，并提供打开日志目录 / 复制诊断信息与复制邮箱。本地调试发送需 `VITE_TELEMETRY_DEBUG=true`。
+- **已验证**：Electron 发送的 feedback 附件显示在 User Feedback 详情中并可下载。
+- **垃圾识别**：Sentry 默认会把疑似无意义的反馈（如测试文本）自动归入 Spam，排查时注意查看 Spam 分栏，或在项目 User Feedback 设置中关闭。
+- **待核实**：Web 端发送、附件额度与服务端 Data Scrubber 对附件内容的影响。

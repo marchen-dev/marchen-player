@@ -4,6 +4,7 @@ import { AppHeader } from './components/layout/app-header/AppHeader'
 import { RootLayout } from './components/layout/root/RootLayout'
 import { Sidebar } from './components/layout/sidebar'
 import { Prepare } from './components/modules/app/Prepare'
+import { FeedbackDialog } from './components/modules/shared/FeedbackDialog'
 import AnimatedOutlet from './components/ui/animate/AnimatedOutlet'
 import { useNetworkToast } from './hooks/use-network-toast'
 import { useUpdateToast } from './hooks/use-update-toast'
@@ -20,6 +21,7 @@ function App(): JSX.Element {
         <AppHeader />
         <Sidebar />
         <Content />
+        <FeedbackDialog />
         {!isWeb && (
           <>
             <IpcListener />

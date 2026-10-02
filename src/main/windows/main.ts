@@ -1,6 +1,7 @@
 import { join } from 'node:path'
 
 import { is } from '@electron-toolkit/utils'
+import { writeLog } from '@main/lib/diagnostic-log'
 import { fileOpenRequests } from '@main/lib/file-open-requests'
 import { app, BrowserWindow, nativeTheme, shell } from 'electron'
 
@@ -88,8 +89,32 @@ const initializeListeningEvent = (mainWindow: BrowserWindow) => {
   mainWindow.webContents.on('did-start-loading', () => {
     fileOpenRequests.rendererUnavailable()
   })
-  mainWindow.webContents.on('render-process-gone', () => {
+  mainWindow.webContents.on('render-process-gone', (_event, details) => {
     fileOpenRequests.rendererUnavailable()
+    writeLog({
+      lv: 'error',
+      cat: 'window',
+      msg: 'render_process_gone',
+      data: { reason: details.reason, exitCode: details.exitCode },
+    })
+  })
+  mainWindow.webContents.on(
+    'did-fail-load',
+    (_event, errorCode, errorDescription, validatedURL, isMainFrame) => {
+      if (!isMainFrame) return
+      writeLog({
+        lv: 'error',
+        cat: 'window',
+        msg: 'did_fail_load',
+        data: { errorCode, errorDescription, url: validatedURL },
+      })
+    },
+  )
+  mainWindow.on('unresponsive', () => {
+    writeLog({ lv: 'warn', cat: 'window', msg: 'window_unresponsive' })
+  })
+  mainWindow.on('responsive', () => {
+    writeLog({ lv: 'info', cat: 'window', msg: 'window_responsive' })
   })
   mainWindow.on('closed', () => {
     if (windows.mainWindow !== mainWindow) return

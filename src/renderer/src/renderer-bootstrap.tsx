@@ -4,12 +4,14 @@ import { RouterProvider } from 'react-router/dom'
 
 import { initializeApp } from './initialize'
 import { reactRouter } from './router'
+import { writeRendererSnapshot } from './services/telemetry/diagnostic-snapshot'
 import { createReactRootErrorHandlers } from './services/telemetry/react-errors'
 import { installStableRouterTracing } from './services/telemetry/sentry/router-tracing'
 import './styles/main.css'
 
 export const mountRenderer = () => {
   initializeApp()
+  writeRendererSnapshot()
   installStableRouterTracing(reactRouter)
 
   const root = ReactDOM.createRoot(

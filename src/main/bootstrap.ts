@@ -5,6 +5,7 @@ import { name } from '@pkg'
 import { app, BrowserWindow, protocol } from 'electron'
 import { initializeApp } from './initialize'
 
+import { writeLog } from './lib/diagnostic-log'
 import { isDev } from './lib/env'
 import { fileOpenRequests } from './lib/file-open-requests'
 import { getIconPath } from './lib/icon'
@@ -25,7 +26,23 @@ export const bootstrap = () => {
   }
 
   initializeApp()
+  // GPU / 工具进程等子进程崩溃：常见于硬件解码与显卡驱动问题，是播放故障的重要线索
+  app.on('child-process-gone', (_event, details) => {
+    writeLog({
+      lv: details.reason === 'clean-exit' ? 'info' : 'error',
+      cat: 'process',
+      msg: 'child_process_gone',
+      data: {
+        type: details.type,
+        reason: details.reason,
+        exitCode: details.exitCode,
+        name: details.name,
+        serviceName: details.serviceName,
+      },
+    })
+  })
   app.whenReady().then(() => {
+    writeStartupSnapshot()
     initializeDownloads()
     autoUpdateInit()
     electronApp.setAppUserModelId(`re.${name}`)
@@ -72,6 +89,29 @@ export const bootstrap = () => {
 
   app.on('window-all-closed', () => {
     if (process.platform !== 'darwin') app.quit()
+  })
+}
+
+/** 每次启动写一条主进程环境快照；构建信息只在这里出现，不在每条日志中重复 */
+function writeStartupSnapshot() {
+  writeLog({
+    lv: 'info',
+    cat: 'app',
+    msg: 'app_start',
+    data: {
+      version: app.getVersion(),
+      release: __MARCHEN_RELEASE__,
+      dist: __MARCHEN_DIST__,
+      commit: __MARCHEN_COMMIT__,
+      environment: __MARCHEN_ENVIRONMENT__,
+      packaged: app.isPackaged,
+      os: `${process.platform} ${process.getSystemVersion()}`,
+      arch: process.arch,
+      electron: process.versions.electron,
+      chrome: process.versions.chrome,
+      locale: app.getLocale(),
+      gpu: app.getGPUFeatureStatus(),
+    },
   })
 }
 

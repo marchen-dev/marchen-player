@@ -1,4 +1,5 @@
 import { RELEASE_REPOSITORY } from '@marchen/shared/update-policy'
+import { openFeedbackDialog } from '@renderer/atoms/feedback'
 import { desktopUpdateAtom } from '@renderer/atoms/progress'
 import { jotaiStore } from '@renderer/atoms/store'
 import { windowFullscreenAtom, WindowState, windowStateAtom } from '@renderer/atoms/window'
@@ -43,6 +44,7 @@ export const IpcListener = () => {
         return () => clearTimeout(timeoutId)
       }),
 
+      handlers?.openFeedback.listen(() => openFeedbackDialog({ source: 'menu' })),
       handlers?.importAnime.listen((params) => {
         navigation(RouteName.PLAYER)
         // 通过 service 加载视频

@@ -1,7 +1,8 @@
 import type { TelemetryClient } from './contracts'
 
 import { isTelemetryEnabled, POSTHOG_KEY, SENTRY_DSN } from '@renderer/lib/env'
-import { createCompositeTelemetryClient, createNoopTelemetryClient } from './client'
+import { createCompositeTelemetryClient } from './client'
+import { createLocalLogTelemetryClient, installLocalLogGlobalHandlers } from './local-log'
 import { startTelemetrySession } from './session'
 
 export const initializeRendererTelemetry = async () => {
@@ -32,7 +33,9 @@ export const initializeRendererTelemetry = async () => {
     }
   }
 
-  const client =
-    clients.length > 0 ? createCompositeTelemetryClient(clients) : createNoopTelemetryClient()
+  // 本地诊断日志始终启用，不受遥测开关影响；放在最后，tracing 仍由 Sentry 负责
+  installLocalLogGlobalHandlers()
+  clients.push(createLocalLogTelemetryClient())
+  const client = createCompositeTelemetryClient(clients)
   return startTelemetrySession({ client })
 }

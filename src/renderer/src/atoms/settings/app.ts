@@ -6,10 +6,17 @@ const createAppDefaultSettings = () => {
   return {
     launchAtLogin: false,
     firstOpen: true,
+    /** 反馈时是否附带诊断日志，记住用户上次选择 */
+    feedbackAttachLogs: true,
   }
 }
 
-export const appSettingAtom = createSettingATom('app', createAppDefaultSettings)
+// 读取时补齐默认值：旧版本保存的设置缺少新增字段（如 feedbackAttachLogs），
+// 不补齐会读成 undefined，导致默认开启的选项显示为关闭
+export const appSettingAtom = createSettingATom('app', createAppDefaultSettings, (settings) => ({
+  ...createAppDefaultSettings(),
+  ...settings,
+}))
 
 export const useAppSettings = () => useAtom(appSettingAtom)
 export const useAppSettingsValue = () => useAtomValue(appSettingAtom)

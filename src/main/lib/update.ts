@@ -2,6 +2,7 @@ import type { DesktopUpdateState } from '@marchen/shared/types/update'
 import type { SparkleBridge } from '@marchen/sparkle-updater'
 import { readFile, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
+import { writeLog } from '@main/lib/diagnostic-log'
 import { getMainWindow } from '@main/windows/main'
 import { getRendererHandlers } from '@main/windows/setting'
 import { parseReleaseVersion, updateFeedURL } from '@marchen/shared/update-policy'
@@ -47,7 +48,7 @@ const publish = (patch: Partial<DesktopUpdateState>) => {
 }
 const fail = (error: unknown) => {
   const message = error instanceof Error ? error.message : String(error)
-  logger.error('[update]', message)
+  writeLog({ lv: 'error', cat: 'updater', msg: 'update_failed', data: { message } })
   publish({ phase: 'error', error: message })
 }
 export const getUpdateState = () => state
@@ -96,7 +97,9 @@ export async function autoUpdateInit() {
         bridge = loaded.bridge
         bridge.initialize((event) => {
           if (event === 'prepare-install') void prepareInstall(() => bridge?.resumeInstall())
-          if (event === 'error') logger.warn('[update] Sparkle 已通过原生窗口报告错误')
+          if (event === 'error') {
+            writeLog({ lv: 'warn', cat: 'updater', msg: 'sparkle_error_reported' })
+          }
         })
       } catch (error) {
         bridge = undefined

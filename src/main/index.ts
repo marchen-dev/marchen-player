@@ -3,6 +3,7 @@ import path from 'node:path'
 
 import { app } from 'electron'
 
+import { writeLog } from './lib/diagnostic-log'
 import { isDev } from './lib/env'
 import { fileOpenRequests } from './lib/file-open-requests'
 import './register-schemes'
@@ -15,6 +16,15 @@ if (isDev && process.env.MARCHEN_DEV_USER_DATA_DIR) {
   mkdirSync(testUserData, { recursive: true })
   app.setPath('userData', testUserData)
 }
+
+// 最早注册：启动阶段的异常也要落到本地日志（同步写入，崩溃前最后一行不丢）。
+// uncaughtExceptionMonitor 只观察不接管，保留 Electron 默认的异常处理行为。
+process.on('uncaughtExceptionMonitor', (error, origin) => {
+  writeLog({ lv: 'error', cat: 'process', msg: 'uncaught_exception', data: { origin, error } })
+})
+process.on('unhandledRejection', (reason) => {
+  writeLog({ lv: 'error', cat: 'process', msg: 'unhandled_rejection', data: { reason } })
+})
 
 // Finder 的文件事件可能早于 ready；必须在任何异步初始化前接住。
 app.on('open-file', (event, path) => {

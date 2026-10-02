@@ -41,6 +41,7 @@ vi.mock('electron-updater', () => ({
   },
 }))
 vi.mock('electron-log', () => ({ default: { error: vi.fn(), warn: vi.fn() } }))
+vi.mock('@main/lib/diagnostic-log', () => ({ writeLog: vi.fn() }))
 vi.mock('@main/windows/main', () => ({ getMainWindow: () => mocks.window }))
 vi.mock('@main/windows/setting', () => ({
   getRendererHandlers: () => ({

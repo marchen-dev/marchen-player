@@ -23,6 +23,11 @@ export const createSettingWindow = (section?: AppSettingsSection) => {
   handlers?.showSetting.send(section)
 }
 
+/** 通知 renderer 打开反馈弹窗 */
+export const openFeedback = () => {
+  getRendererHandlers()?.openFeedback.send()
+}
+
 /** 通知 renderer 导入动画文件 */
 export const importAnime = () => {
   const handlers = getRendererHandlers()
