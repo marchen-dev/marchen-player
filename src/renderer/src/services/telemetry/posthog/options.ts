@@ -2,6 +2,8 @@ import { POSTHOG_HOST } from '@renderer/lib/env'
 
 export const createPostHogOptions = () => ({
   api_host: POSTHOG_HOST,
+  // api_host 可能是托管反向代理域名（Web 用于规避广告拦截），工具栏与后台链接需固定指向 PostHog 官方地址。
+  ui_host: 'https://us.posthog.com',
   defaults: '2026-08-30' as const,
   autocapture: true,
   capture_pageview: false,

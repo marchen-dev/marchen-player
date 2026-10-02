@@ -53,7 +53,7 @@ pnpm format       # Prettier
 
 ### IPC 通信
 
-`@marchen/electron-ipc`：`defineGroup` + `handler` 定义于 `src/main/ipc/`（app/player/setting/utils），渲染端通过 `ipcClient?.group.method()` 调用。事件用 `createEmitter` / `createListener`。Web 环境 `ipcClient` 为 null，必须可选链。
+`@marchen/electron-ipc`：IPC 分组定义于 `src/main/ipc/`（app / danmaku / downloads / player / setting），汇总于 `ipc/index.ts` 的 `router`；渲染端通过 `ipcClient?.group.method()` 调用。事件用 `createEmitter` / `createListener`。Web 环境 `ipcClient` 为 null，必须可选链。
 
 ### 播放器分层
 
@@ -84,9 +84,11 @@ idle → importing → hashing → matching → [waiting_user] → loading_danma
 
 关键 atom：`videoAtom`、`playerSettingSheetAtom`，设置类在 `atoms/settings/`。
 
-### 数据库 HISTORY 表
+### 数据库
 
-主键 `hash`，媒体来源 `source` 区分 Electron 路径与 Web 文件元信息（不保存 File/blob URL），音轨偏好保存在 `audioTrack`；字段：animeId、episodeId、animeTitle、episodeTitle、progress、duration、cover、thumbnail、danmaku、newBangumi、subtitles、updatedAt。
+两张表：`history`（主键 `hash`）与 `library`（主键 `animeId`，影视库，仅 Electron 有数据）。schema 在 `database/schemas/`；`history` 写入通过 `persistence/media-path.ts` 校验，禁止持久化临时媒体路径。
+
+**HISTORY**：媒体来源 `source` 区分 Electron 路径与 Web 文件元信息（不保存 File/blob URL），音轨偏好保存在 `audioTrack`；其余字段：animeId、episodeId、animeTitle、episodeTitle、progress、duration、cover、thumbnail、danmaku、newBangumi、subtitles、updatedAt。
 
 - `danmaku`: `Array<{ type: 'auto'|'local', source, selected?, content: CommentsData }>`
 - `subtitles` 保存 defaultId/timeOffset 和轨道 tags；内嵌轨道保存稳定 UID/codec，外挂字幕保存路径或受预算限制的文本内容，不持久化临时 URL。
@@ -112,7 +114,7 @@ Web 所在的正式、预览及开发 Origin 需由 API 服务允许 CORS，JSON
 - **自定义协议**：`marchen://`，固定应用 origin 为 `marchen://app`，媒体采用可撤销的不透明租约；逻辑在 `src/main/lib/media-protocol.ts`，常量在 `@marchen/shared/constants/protocol.ts`
 - **播放器**：HTML5 Video + `@marchen/playback-core` + `@marchen/danmaku-engine` + `@jellyfin/libass-wasm`（ASS/SSA）；兼容内核使用 MediaBunny、WebCodecs、@suemor/libav-hevc@0.1.1 和官方 AC-3/E-AC-3/DTS 扩展；兼容画面唯一经 VideoFramePresenter → MediaStream → 静音 video 输出，音频继续 Web Audio/SoundTouch；Canvas 仅用于预览/缩略图/字幕；没有 Node FFmpeg/HLS 或主画面 Canvas 播放回退
 - **UI**：shadcn/ui (Radix) + Tailwind 4 + next-themes，图标 `icon-[mingcute--xxx]`，动画 framer-motion（LazyMotion），模态框 ModalStackProvider
-- **路由**：React Router 7 HashRouter，`router/router.tsx` 定义 `/player`、`/history`，侧边栏由 `siderbarRoutes` 渲染，默认重定向 `/player`
+- **路由**：React Router 8，通过 `createHashRouter` 创建 Hash 路由；`router/router.tsx` 定义 `/player`、`/library`（影视库）、`/downloads`（下载）。影视库与下载仅 Electron 展示，Web 访问对应地址时重定向到 `/player`。侧边栏由 `siderbarRoutes` 渲染，默认重定向 `/player`
 - **平台判断**：`isWeb = !window.electron`，见 `src/renderer/src/lib/utils.ts`
 - **错误监控**：Sentry，DSN 由 `VITE_SENTRY_DSN` 配置
 
@@ -134,7 +136,7 @@ src/
 ├── preload/              # 预加载
 └── renderer/src/         # React 前端 / Web
     ├── components/{ui,modules/{player,settings,shared,app},layout,icons,common}
-    ├── page/{player,history}
+    ├── page/{player,library,downloads}
     ├── atoms/            # Jotai
     ├── hooks/  services/  request/  database/  router/  providers/  initialize/  lib/
 

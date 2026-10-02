@@ -18,7 +18,7 @@
 | MARCHEN_DEPLOY_ENV | 必填 preview 或 production，须与控制台目标环境一致 |
 | VITE_API_URL | `https://dandan-proxy.suemor.com/api/v2`，Web 与 Electron 直连的 API 基址 |
 | VITE_SENTRY_DSN | 客户端 Sentry 项目配置 |
-| VITE_POSTHOG_KEY / VITE_POSTHOG_HOST | 产品事件采集 |
+| VITE_POSTHOG_KEY / VITE_POSTHOG_HOST | 产品事件采集；Web 的 HOST 填 PostHog 托管反向代理 `https://t.suemor.com`（CNAME 至 proxyhog，规避广告拦截），Electron 发行仍用 GitHub Secrets 中的官方地址 |
 | SENTRY_AUTH_TOKEN / SENTRY_ORG / SENTRY_PROJECT | 构建期 Source Map 上传；禁止添加 VITE_ 前缀 |
 
 release 为 `Marchen@版本+完整提交SHA`；生产 environment=production、dist=web，预览 environment=preview、dist=web-preview。告警和仪表盘筛选 production，预览事件不能作为正式 DAU/失败率。Git 提交必须存在；本地未提交工作不会由 EdgeOne 构建。
