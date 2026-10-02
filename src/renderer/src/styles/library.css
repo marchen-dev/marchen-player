@@ -484,7 +484,9 @@
     box-shadow 0.2s ease;
   box-shadow: var(--library-shadow-card);
 }
-.library-poster-card:hover .library-poster-art {
+.library-poster-card:hover .library-poster-art,
+/* 右键菜单打开期间保持悬停态，标明菜单作用的卡片 */
+.library-poster-card[data-state='open'] .library-poster-art {
   transform: translateY(-4px) scale(1.025);
   box-shadow:
     var(--library-shadow-card-hover),
@@ -683,7 +685,8 @@
 .library-lc-art img[data-failed='1'] {
   display: none;
 }
-.library-lc-card:hover .library-lc-art {
+.library-lc-card:hover .library-lc-art,
+.library-lc-card[data-state='open'] .library-lc-art {
   transform: translateY(-3px) scale(1.02);
   box-shadow:
     var(--library-shadow-card-hover),
@@ -756,7 +759,8 @@
   opacity: 0;
   transition: opacity 0.18s;
 }
-.library-lc-card:hover .library-lc-play {
+.library-lc-card:hover .library-lc-play,
+.library-lc-card[data-state='open'] .library-lc-play {
   opacity: 1;
 }
 

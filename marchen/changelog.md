@@ -57,5 +57,6 @@
 - 2026-09-28: [unify-dialog-visuals](./archive/2026-09-28-unify-dialog-visuals/) — 统一 shadcn Dialog 与 ModalStack 的深色遮罩与减速曲线开关动画，去掉斜向滑入
 - 2026-09-28: [add-bilibili-link-danmaku](./archive/2026-09-28-add-bilibili-link-danmaku/) — 新增B站BV分P与番剧EP、SS选集弹幕，完善来源展示和悬停提示
 - 2026-10-01: [open-telemetry-capture](./archive/2026-10-01-open-telemetry-capture/) — 遥测放开采集：移除 Sentry/PostHog 脱敏与隐私屏蔽，仅保留弹幕层性能屏蔽，并补充上报规范
+- 2026-10-02: [library-card-context-menu](./archive/2026-10-02-library-card-context-menu/) — 影视库继续观看卡与海报卡新增右键菜单：播放、查看详情、标记全部已看/重置进度、在 Finder 中显示、确认后从影视库移除
 - 2026-10-02: [data-storage-usage](./archive/2026-10-02-data-storage-usage/) — 展示分项缓存占用并提供独立清理，保留用户弹幕，消除重置重复确认
 - 2026-10-02: [add-diagnostic-logs-feedback](./archive/2026-10-02-add-diagnostic-logs-feedback/) — 新增本地诊断日志、日志轮转与附带诊断信息的 Sentry 用户反馈

@@ -1,5 +1,7 @@
 import type { DiagnosticLogLevel } from '@main/lib/diagnostic-log'
 import type { FeedbackInput } from '@main/telemetry/feedback'
+import fs from 'node:fs/promises'
+import path from 'node:path'
 import { logDirectory, writeLog } from '@main/lib/diagnostic-log'
 import { fileOpenRequests } from '@main/lib/file-open-requests'
 import {
@@ -17,6 +19,7 @@ import { getOrCreateTelemetryInstallId, telemetryAppSessionId } from '@main/tele
 import { getMainWindow } from '@main/windows/main'
 import { performClearData } from '@main/windows/setting'
 import { tipc } from '@marchen/electron-ipc/main'
+import { isVideoFile } from '@marchen/shared/media'
 import { app, BrowserWindow, dialog, shell } from 'electron'
 
 const t = tipc.create()
@@ -149,6 +152,19 @@ export const appGroup = {
   updatePlaybackState: t.procedure
     .input<{ playing: boolean }>()
     .action(async ({ input }) => setUpdatePlaybackState(input.playing)),
+
+  /**
+   * 在系统文件管理器中定位视频文件（影视库右键「在 Finder 中显示」）。
+   * renderer 传入的是 history 中保存的路径，这里仍校验绝对路径、视频扩展名与文件存在，
+   * 避免任意路径被用来探测或打开非媒体文件。
+   */
+  showItemInFolder: t.procedure.input<{ path: string }>().action(async ({ input }) => {
+    const target = input.path
+    if (!path.isAbsolute(target) || !isVideoFile(target)) throw new Error('INVALID_MEDIA_PATH')
+    const stats = await fs.stat(target).catch(() => null)
+    if (!stats?.isFile()) throw new Error('MEDIA_FILE_NOT_FOUND')
+    shell.showItemInFolder(target)
+  }),
 
   /** 当前窗口 session 的 HTTP 缓存大小（字节），用于设置页数据区展示 */
   getNetworkCacheSize: t.procedure.action(async ({ context }) =>

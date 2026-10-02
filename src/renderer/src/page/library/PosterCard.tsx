@@ -1,67 +1,81 @@
 import type { DB_Library } from '@renderer/database/schemas/library'
 import type { FC } from 'react'
+import type { LibraryCardActions } from './LibraryCardContextMenu'
+import type { LibrarySource } from './selectors'
 import { memo } from 'react'
 
+import { LibraryCardContextMenu } from './LibraryCardContextMenu'
 import { isCompleted, isWatching } from './selectors'
+import { SourceTag } from './SourceTag'
 
 interface PosterCardProps {
   item: DB_Library
   onClick: () => void
+  actions: LibraryCardActions
+  source?: LibrarySource
 }
 
-export const PosterCard: FC<PosterCardProps> = memo(({ item, onClick }) => {
+export const PosterCard: FC<PosterCardProps> = memo(({ item, onClick, actions, source }) => {
   const watched = item.watchedEpisodeIds.length
   const completed = isCompleted(item)
   const watching = isWatching(item)
   const percent = item.totalEpisodes > 0 ? Math.round((watched / item.totalEpisodes) * 100) : 0
 
   return (
-    <article className="library-poster-card no-drag-region" onClick={onClick}>
-      <div className="library-poster-art">
-        {item.imageUrl && (
-          <img
-            src={item.imageUrl}
-            alt={item.title}
-            loading="lazy"
-            onError={(e) => {
-              e.currentTarget.dataset.failed = '1'
-            }}
-          />
-        )}
+    <LibraryCardContextMenu item={item} actions={actions} source={source}>
+      <article className="library-poster-card no-drag-region" onClick={onClick}>
+        <div className="library-poster-art">
+          {item.imageUrl && (
+            <img
+              src={item.imageUrl}
+              alt={item.title}
+              loading="lazy"
+              onError={(e) => {
+                e.currentTarget.dataset.failed = '1'
+              }}
+            />
+          )}
 
-        {item.rating > 0 && (
-          <span className="library-tl-badge library-tl-rating">
-            <StarGlyph /> {item.rating.toFixed(1)}
-          </span>
-        )}
-        {item.isOnAir && (
-          <span className="library-tr-badge library-tr-onair">
-            <span className="library-live-dot" />
-            连载中
-          </span>
-        )}
-        {completed && !item.isOnAir && (
-          <span className="library-tr-badge library-tr-done">已看完</span>
-        )}
+          {item.rating > 0 && (
+            <span className="library-tl-badge library-tl-rating">
+              <StarGlyph /> {item.rating.toFixed(1)}
+            </span>
+          )}
+          {item.isOnAir && (
+            <span className="library-tr-badge library-tr-onair">
+              <span className="library-live-dot" />
+              连载中
+            </span>
+          )}
+          {completed && !item.isOnAir && (
+            <span className="library-tr-badge library-tr-done">已看完</span>
+          )}
 
-        {watching && (
-          <div className="library-poster-bottom">
-            <div className="library-poster-bottom-bar">
-              <div style={{ width: `${percent}%` }} />
+          {watching && (
+            <div className="library-poster-bottom">
+              <div className="library-poster-bottom-bar">
+                <div style={{ width: `${percent}%` }} />
+              </div>
             </div>
-          </div>
-        )}
-      </div>
-
-      <div className="library-poster-text">
-        <p className="library-poster-title">{item.title}</p>
-        <div className="library-poster-sub">
-          <span className="library-tabular">
-            {watched}/{item.totalEpisodes}
-          </span>
+          )}
         </div>
-      </div>
-    </article>
+
+        <div className="library-poster-text">
+          <p className="library-poster-title">{item.title}</p>
+          <div className="library-poster-sub">
+            <span className="library-tabular">
+              {watched}/{item.totalEpisodes}
+            </span>
+            {source && (
+              <>
+                <span>·</span>
+                <SourceTag source={source} />
+              </>
+            )}
+          </div>
+        </div>
+      </article>
+    </LibraryCardContextMenu>
   )
 })
 
@@ -74,4 +88,3 @@ function StarGlyph() {
     </svg>
   )
 }
-

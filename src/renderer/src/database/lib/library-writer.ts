@@ -189,3 +189,34 @@ export async function handleRematchLibraryUpdate(
     console.error('重新匹配后更新 library 失败:', error)
   }
 }
+
+/**
+ * 将作品所有正片标记为已看（影视库右键「标记全部已看」）。
+ * lastWatched 指针保持不变，避免「继续观看」的续播位置被改写。
+ */
+export async function markAllEpisodesWatched(animeId: number): Promise<void> {
+  const existing = await db.library.get(animeId)
+  if (!existing) return
+  await db.library.update(animeId, {
+    watchedEpisodeIds: existing.episodes.map((ep) => ep.episodeId),
+  })
+}
+
+/**
+ * 重置作品观看进度：清空已看集与 lastWatched 指针。
+ * 单集播放进度保存在 history 中，这里不动，重新打开某集仍可续播。
+ */
+export async function resetLibraryProgress(animeId: number): Promise<void> {
+  await db.library.update(animeId, {
+    watchedEpisodeIds: [],
+    lastWatchedEpisodeId: undefined,
+  })
+}
+
+/**
+ * 从影视库移除作品，只删 library 条目、保留 history。
+ * 软删除语义：之后再播放该作品任意一集会经 markEpisodeStarted 自动重新入库。
+ */
+export async function removeLibraryEntry(animeId: number): Promise<void> {
+  await db.library.delete(animeId)
+}

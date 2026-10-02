@@ -105,3 +105,22 @@ export function ctaLabel(item: DB_Library): string {
   if (!next) return '继续观看'
   return `继续观看 · 第${String(next.episodeNumber).padStart(2, '0')}话`
 }
+
+/**
+ * 作品已导入剧集的媒体来源：本地文件（含下载完成的视频）、远程 URL，或两者都有。
+ * 由播放记录的 source 推导，没有可识别来源时为 undefined。
+ */
+export type LibrarySource = 'local' | 'remote' | 'mixed'
+
+export function mergeLibrarySource(
+  current: LibrarySource | undefined,
+  next: 'local' | 'remote',
+): LibrarySource {
+  if (!current || current === next) return next
+  return 'mixed'
+}
+
+/** 是否存在可在系统文件管理器中定位的本地文件 */
+export function hasLocalSource(source: LibrarySource | undefined): boolean {
+  return source === 'local' || source === 'mixed'
+}
