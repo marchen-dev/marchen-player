@@ -11,7 +11,7 @@ import {
 } from '@main/lib/update'
 import { getOrCreateTelemetryInstallId, telemetryAppSessionId } from '@main/telemetry/identity'
 import { getMainWindow } from '@main/windows/main'
-import { clearData } from '@main/windows/setting'
+import { performClearData } from '@main/windows/setting'
 import { tipc } from '@marchen/electron-ipc/main'
 import { app, BrowserWindow, dialog } from 'electron'
 
@@ -83,7 +83,8 @@ export const appGroup = {
           break
         }
         case 'reset': {
-          clearData()
+          // renderer 已完成确认，这里不再二次确认
+          performClearData()
           break
         }
         case 'laungh-at-login': {
@@ -131,6 +132,13 @@ export const appGroup = {
   updatePlaybackState: t.procedure
     .input<{ playing: boolean }>()
     .action(async ({ input }) => setUpdatePlaybackState(input.playing)),
+
+  /** 当前窗口 session 的 HTTP 缓存大小（字节），用于设置页数据区展示 */
+  getNetworkCacheSize: t.procedure.action(async ({ context }) =>
+    context.sender.session.getCacheSize(),
+  ),
+  /** 清理当前窗口 session 的 HTTP 缓存；不影响 IndexedDB、localStorage 与下载任务 */
+  clearNetworkCache: t.procedure.action(async ({ context }) => context.sender.session.clearCache()),
 
   confirmationDialog: t.procedure.input<{ title: string }>().action(async ({ input }) => {
     const result = await dialog.showMessageBox({

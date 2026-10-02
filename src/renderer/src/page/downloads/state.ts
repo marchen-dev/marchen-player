@@ -20,9 +20,4 @@ export const downloadError = (error: unknown) =>
     ),
     variant: 'destructive',
   })
-export const bytes = (value: number) =>
-  value >= 1024 ** 3
-    ? `${(value / 1024 ** 3).toFixed(2)} GB`
-    : value >= 1024 ** 2
-      ? `${(value / 1024 ** 2).toFixed(1)} MB`
-      : `${Math.round(value / 1024)} KB`
+export { formatBytes as bytes } from '@renderer/lib/format-bytes'

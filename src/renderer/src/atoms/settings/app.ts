@@ -4,7 +4,6 @@ import { createSettingATom } from './helper'
 
 const createAppDefaultSettings = () => {
   return {
-    showPoster: false,
     launchAtLogin: false,
     firstOpen: true,
   }

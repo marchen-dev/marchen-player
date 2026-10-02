@@ -57,3 +57,4 @@
 - 2026-09-28: [unify-dialog-visuals](./archive/2026-09-28-unify-dialog-visuals/) — 统一 shadcn Dialog 与 ModalStack 的深色遮罩与减速曲线开关动画，去掉斜向滑入
 - 2026-09-28: [add-bilibili-link-danmaku](./archive/2026-09-28-add-bilibili-link-danmaku/) — 新增B站BV分P与番剧EP、SS选集弹幕，完善来源展示和悬停提示
 - 2026-10-01: [open-telemetry-capture](./archive/2026-10-01-open-telemetry-capture/) — 遥测放开采集：移除 Sentry/PostHog 脱敏与隐私屏蔽，仅保留弹幕层性能屏蔽，并补充上报规范
+- 2026-10-02: [data-storage-usage](./archive/2026-10-02-data-storage-usage/) — 展示分项缓存占用并提供独立清理，保留用户弹幕，消除重置重复确认

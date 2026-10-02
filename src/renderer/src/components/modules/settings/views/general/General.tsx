@@ -3,12 +3,15 @@ import { PlayerEngineSetting } from '@renderer/components/modules/shared/setting
 import { SettingSwitch } from '@renderer/components/modules/shared/setting/SettingSwitch'
 import { Button } from '@renderer/components/ui/button'
 import { useToast } from '@renderer/components/ui/toast'
-import { db } from '@renderer/database/db'
 import { useConfirmationDialog } from '@renderer/hooks/use-dialog'
 import { ipcClient } from '@renderer/lib/client'
+import { formatBytes } from '@renderer/lib/format-bytes'
 import { resetApp } from '@renderer/lib/ns'
 import { isWeb } from '@renderer/lib/utils'
-import { useCallback } from 'react'
+import { clearAutoDanmakuCache, clearThumbnails, useStorageUsage } from '@renderer/services/storage'
+import { captureFeatureUsed } from '@renderer/services/telemetry/features'
+import { reportOperationalError } from '@renderer/services/telemetry/operational-errors'
+import { useCallback, useState } from 'react'
 
 import {
   SettingsActionRow,
@@ -24,20 +27,38 @@ export const GeneralView = () => {
   const { toast } = useToast()
   const showConfirmationDialog = useConfirmationDialog()
 
-  const handleClearDanmakuCache = useCallback(async () => {
-    try {
-      await db.transaction('rw', db.history, async () => {
-        const allEntries = await db.history.toArray()
-        await Promise.all(
-          allEntries.map((entry) => db.history.update(entry.hash, { danmaku: undefined })),
-        )
-      })
-      toast({ title: '清除弹幕缓存成功' })
-    } catch (error) {
-      console.error('Failed to clear danmaku field:', error)
-      toast({ title: '清除弹幕缓存失败', variant: 'destructive' })
-    }
-  }, [toast])
+  const { state: usage, refresh: refreshUsage } = useStorageUsage()
+  // 正在执行的清除项，执行期间禁用对应按钮防止重复点击
+  const [clearing, setClearing] = useState<ClearTarget | null>(null)
+
+  const runClear = useCallback(
+    async (target: ClearTarget) => {
+      const { label, action, run } = CLEAR_ACTIONS[target]
+      setClearing(target)
+      try {
+        await run()
+        captureFeatureUsed('settings', action)
+        toast({ title: `已清除${label}` })
+      } catch (error) {
+        reportOperationalError(target === 'network' ? 'ipc' : 'player', `settings.${action}`, error)
+        toast({ title: `清除${label}失败`, variant: 'destructive' })
+      } finally {
+        setClearing(null)
+        void refreshUsage()
+      }
+    },
+    [refreshUsage, toast],
+  )
+
+  // 各清除项的可释放大小；undefined 表示统计中、失败或当前平台不支持
+  const sizes: Record<ClearTarget, number | undefined> =
+    usage.status === 'ready'
+      ? {
+          danmaku: usage.history?.danmaku.bytes,
+          thumbnail: usage.history?.thumbnail.bytes,
+          network: usage.network,
+        }
+      : { danmaku: undefined, thumbnail: undefined, network: undefined }
 
   return (
     <SettingsPage sectionId="general" title="通用" description="管理应用行为、外观与本地数据">
@@ -83,36 +104,35 @@ export const GeneralView = () => {
               <DarkModeToggle />
             </div>
           </SettingsRow>
-          {!isWeb && (
-            <SettingsRow
-              label="播放记录显示海报"
-              description="在历史记录中使用番剧海报作为封面"
-              labelId="show-poster-label"
-              descriptionId="show-poster-description"
-            >
-              <SettingSwitch
-                value={appSettings.showPoster}
-                aria-labelledby="show-poster-label"
-                aria-describedby="show-poster-description"
-                onCheckedChange={(checked) =>
-                  setAppSettings((prev) => ({ ...prev, showPoster: checked }))
-                }
-              />
-            </SettingsRow>
-          )}
         </SettingsGroup>
       </SettingsSection>
 
-      <SettingsSection title="数据" description="这些操作不会影响本地视频文件">
+      <SettingsSection title="数据">
         <SettingsGroup>
-          <SettingsActionRow label="清除弹幕缓存" description="下次播放时会重新获取已缓存的弹幕">
-            <Button variant="outline" size="sm" onClick={handleClearDanmakuCache}>
-              清除缓存
-            </Button>
-          </SettingsActionRow>
+          {CLEAR_TARGETS.filter((target) => !isWeb || target !== 'network').map((target) => (
+            <SettingsActionRow
+              key={target}
+              label={CLEAR_ACTIONS[target].label}
+              description={CLEAR_ACTIONS[target].description}
+            >
+              <span className="text-muted-foreground mr-3 text-xs tabular-nums">
+                {usage.status === 'loading'
+                  ? '计算中…'
+                  : sizes[target] != null && `约 ${formatBytes(sizes[target])}`}
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={clearing != null || sizes[target] === 0}
+                onClick={() => runClear(target)}
+              >
+                清除
+              </Button>
+            </SettingsActionRow>
+          ))}
           <SettingsActionRow
             label="重置应用"
-            description="停止下载并清除任务、历史记录与设置，保留下载的视频文件"
+            description="清除任务、记录与设置，保留视频文件"
             danger
           >
             <Button
@@ -132,4 +152,38 @@ export const GeneralView = () => {
       </SettingsSection>
     </SettingsPage>
   )
+}
+
+type ClearTarget = 'danmaku' | 'thumbnail' | 'network'
+
+const CLEAR_TARGETS: ClearTarget[] = ['danmaku', 'thumbnail', 'network']
+
+/**
+ * 各缓存类清除项：行标题、埋点 action 与执行函数。
+ * 弹幕缓存只清自动匹配弹幕，本地导入与外链弹幕保留（见 services/storage）。
+ */
+const CLEAR_ACTIONS: Record<
+  ClearTarget,
+  { label: string; description: string; action: string; run: () => Promise<void> }
+> = {
+  danmaku: {
+    label: '弹幕缓存',
+    description: '下次播放时重新获取，导入的弹幕会保留',
+    action: 'clear_danmaku_cache',
+    run: clearAutoDanmakuCache,
+  },
+  thumbnail: {
+    label: '播放缩略图',
+    description: '继续观看改用作品海报',
+    action: 'clear_thumbnails',
+    run: clearThumbnails,
+  },
+  network: {
+    label: '网络缓存',
+    description: '海报等图片，需要时重新下载',
+    action: 'clear_network_cache',
+    run: async () => {
+      await ipcClient?.app.clearNetworkCache()
+    },
+  },
 }
