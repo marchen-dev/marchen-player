@@ -1,6 +1,15 @@
 # CHANGELOG
 
 
+## [1.0.2](https://github.com/marchen-dev/marchen-player/compare/v1.0.1...v1.0.2) (2026-10-02)
+
+
+### Features
+
+* **feedback:** 新增本地诊断日志与问题反馈入口 ([d37e4b2](https://github.com/marchen-dev/marchen-player/commit/d37e4b270a590edc645e9224f657a62dcf911c1d))
+* **library:** 新增卡片右键菜单与媒体来源标记 ([97ddc03](https://github.com/marchen-dev/marchen-player/commit/97ddc03e9a42bc3c150c1aa3eabee0bcc31ac766))
+* **settings:** 展示缓存占用并支持分项清理 ([e977d97](https://github.com/marchen-dev/marchen-player/commit/e977d97685f0b269e6931e380ee6764320c24150))
+
 ## [1.0.1](https://github.com/marchen-dev/marchen-player/compare/v1.0.0...v1.0.1) (2026-09-29)
 
 
