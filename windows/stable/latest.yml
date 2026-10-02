@@ -1,17 +1,45 @@
-version: 1.0.1
+version: 1.0.2
 files:
-  - url: https://github.com/marchen-dev/marchen-player/releases/download/v1.0.1/Marchen-1.0.1-setup.exe
-    sha512: H1it9pryplM44wtk6NdpCltDdqStKIRt1zTE+oyA4MyVDA0j/515CJFTN6Koy9HyFy08e2ItbT8zZrpv+currA==
-    size: 171993491
-path: https://github.com/marchen-dev/marchen-player/releases/download/v1.0.1/Marchen-1.0.1-setup.exe
-sha512: H1it9pryplM44wtk6NdpCltDdqStKIRt1zTE+oyA4MyVDA0j/515CJFTN6Koy9HyFy08e2ItbT8zZrpv+currA==
-releaseNotes: "# Marchen 1.0.1\r
+  - url: https://github.com/marchen-dev/marchen-player/releases/download/v1.0.2/Marchen-1.0.2-setup.exe
+    sha512: 9LAPDXK5vI/E5HpFZpWbviovtkBnh/gqhz6HEYdNxpNb5yHrew9OYadO6xzYDfBb/Wx1AnnXyjcB7fQAdJWTnA==
+    size: 172051126
+path: https://github.com/marchen-dev/marchen-player/releases/download/v1.0.2/Marchen-1.0.2-setup.exe
+sha512: 9LAPDXK5vI/E5HpFZpWbviovtkBnh/gqhz6HEYdNxpNb5yHrew9OYadO6xzYDfBb/Wx1AnnXyjcB7fQAdJWTnA==
+releaseNotes: "# Marchen 1.0.2\r
 
   \r
 
-  ## 问题修复\r
+  ## 影视库\r
 
   \r
 
-  - 修复 Windows 标题栏最小化、最大化和关闭按钮无法点击的问题。\r\n"
-releaseDate: 2026-09-29T14:54:35.797Z
+  - 作品卡片支持右键菜单，可快速播放、查看详情、标记全部已看、重置观看进度或移除作品。\r
+
+  - 新增本地与远程来源标记，本地视频可直接在文件管理器中定位。\r
+
+  - 减少返回影视库时的封面闪烁。\r
+
+  \r
+
+  ## 数据管理\r
+
+  \r
+
+  - 设置页展示弹幕缓存、播放缩略图和网络缓存占用，支持分别清理。\r
+
+  - 清理弹幕缓存时保留手动导入和链接添加的弹幕。\r
+
+  - 简化重置应用的确认流程。\r
+
+  \r
+
+  ## 问题反馈\r
+
+  \r
+
+  - 新增应用内反馈入口，播放失败时可直接反馈当前问题。\r
+
+  - 支持随反馈附带诊断日志，方便排查播放、字幕和下载异常。\r
+
+  - 完善运行信息记录与异常排查能力。\r\n"
+releaseDate: 2026-10-02T09:52:48.024Z
