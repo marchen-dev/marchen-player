@@ -39,7 +39,7 @@ import {
 } from './selectors'
 
 const MAX_ALL = 50
-const MAX_CONTINUE = 10
+const MAX_CONTINUE = 30
 
 interface LastWatchedInfo {
   thumbnails: Map<number, string>

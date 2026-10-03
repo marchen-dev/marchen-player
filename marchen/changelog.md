@@ -61,3 +61,4 @@
 - 2026-10-02: [data-storage-usage](./archive/2026-10-02-data-storage-usage/) — 展示分项缓存占用并提供独立清理，保留用户弹幕，消除重置重复确认
 - 2026-10-02: [add-diagnostic-logs-feedback](./archive/2026-10-02-add-diagnostic-logs-feedback/) — 新增本地诊断日志、日志轮转与附带诊断信息的 Sentry 用户反馈
 - 2026-10-02: [add-torrent-downloads](./archive/2026-10-02-add-torrent-downloads/) — 新增 Electron BT 下载、磁力与种子导入、任务管理及完成文件播放
+- 2026-10-03: [raise-continue-watching-limit](./archive/2026-10-03-raise-continue-watching-limit/) — 影视库继续观看横滚 Rail 上限由 10 调高到 30
