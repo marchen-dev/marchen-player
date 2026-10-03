@@ -23,7 +23,7 @@ jobs:
           fetch-depth: 0
           lfs: true
       - run: git lfs checkout
-      - uses: pnpm/action-setup@v4.1.0
+      - uses: pnpm/action-setup@v4.4.0
       - uses: actions/setup-node@v4
         with:
           node-version: 24.x
