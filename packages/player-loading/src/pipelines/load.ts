@@ -158,12 +158,8 @@ export function executeFetchDanmaku(
       }
     }
 
-    // 请求新弹幕
-    const chConvert = deps.settings.getChConvert()
-    const commentsData = await deps.api.getDanmu(match.episodeId, {
-      withRelated: true,
-      chConvert,
-    })
+    // 请求新弹幕（始终取原文，繁简转换在渲染层完成）
+    const commentsData = await deps.api.getDanmu(match.episodeId, { withRelated: true })
 
     // 保留已有的 local 弹幕
     const existingCache = await deps.cache.get(hash)

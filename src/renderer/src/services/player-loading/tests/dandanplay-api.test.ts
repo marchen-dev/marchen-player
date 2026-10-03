@@ -23,15 +23,15 @@ describe('加载请求的业务失败与取消', () => {
     api.comment
       .mockResolvedValueOnce({ success: false, errorMessage: '弹幕服务暂不可用' })
       .mockResolvedValueOnce({ success: true, count: 0, comments: [] })
-    await expect(adapter.getDanmu(1, { withRelated: true, chConvert: 0, signal })).rejects.toThrow(
+    await expect(adapter.getDanmu(1, { withRelated: true, signal })).rejects.toThrow(
       '弹幕服务暂不可用',
     )
     expect(api.comment).toHaveBeenLastCalledWith(
       1,
-      { withRelated: true, chConvert: 0 },
+      { withRelated: true },
       { signal, silent: true },
     )
-    await expect(adapter.getDanmu(1, { withRelated: true, chConvert: 0 })).resolves.toEqual({
+    await expect(adapter.getDanmu(1, { withRelated: true })).resolves.toEqual({
       count: 0,
       comments: [],
     })

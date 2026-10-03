@@ -10,6 +10,7 @@ import {
 } from '@renderer/services/player-runtime/context'
 import { createContext, use, useCallback, useEffect, useMemo, useRef } from 'react'
 import { DomDanmakuRenderer } from './dom-danmaku-renderer'
+import { convertDanmakuItemsToSimplified } from './traditional-to-simplified'
 
 interface NativeDanmakuContextValue {
   surfaceRef: (node: HTMLDivElement | null) => void
@@ -26,8 +27,14 @@ export const NativeDanmakuProvider = ({
   const clock = usePlaybackClock()
   const playback = usePlaybackViewModel()
   const [settings, setSettings] = usePlayerSettings()
-  const { danmakuDuration, danmakuEndArea, danmakuFontSize, danmakuMaxOnScreen, enableDanmaku } =
-    settings
+  const {
+    danmakuDuration,
+    danmakuEndArea,
+    danmakuFontSize,
+    danmakuMaxOnScreen,
+    enableDanmaku,
+    enableTraditionalToSimplified,
+  } = settings
   fallbackState?.bindDanmaku(enableDanmaku, (enabled) =>
     setSettings((current) => ({ ...current, enableDanmaku: enabled })),
   )
@@ -46,7 +53,11 @@ export const NativeDanmakuProvider = ({
   const comments = usePlayerLoadingSelector((state) =>
     state.step === 'ready' || state.step === 'reloading' ? state.mergedComments : [],
   )
-  const items = useMemo(() => convertDandanplayComments(comments), [comments])
+  // 繁简转换只作用于送入渲染器的副本，缓存与 HISTORY 保留原文，开关切换即时生效
+  const items = useMemo(() => {
+    const converted = convertDandanplayComments(comments)
+    return enableTraditionalToSimplified ? convertDanmakuItemsToSimplified(converted) : converted
+  }, [comments, enableTraditionalToSimplified])
   const rendererRef = useRef<DomDanmakuRenderer | null>(null)
   const unregisterRef = useRef<(() => void) | null>(null)
   const itemsRef = useRef(items)

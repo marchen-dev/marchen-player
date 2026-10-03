@@ -236,7 +236,7 @@ export interface DanmakuAPI {
   /** 获取弹幕（withRelated=true 包含第三方源） */
   getDanmu: (
     episodeId: number,
-    opts: { withRelated: boolean; chConvert: number; signal?: AbortSignal },
+    opts: { withRelated: boolean; signal?: AbortSignal },
   ) => Promise<CommentsData>
 }
 
@@ -273,12 +273,6 @@ export interface HistoryStore {
   get: (hash: string) => Promise<HistoryEntry | null>
 }
 
-/** 设置读取接口 */
-export interface SettingsReader {
-  /** 获取繁简转换参数（0=不转换，1=繁转简） */
-  getChConvert: () => number
-}
-
 // ============================================================
 // Service 构造参数
 // ============================================================
@@ -289,5 +283,4 @@ export interface ServiceDeps {
   cache: DanmakuCache
   importer: VideoImporter
   history: HistoryStore
-  settings: SettingsReader
 }

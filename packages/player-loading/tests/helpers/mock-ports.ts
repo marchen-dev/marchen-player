@@ -9,7 +9,6 @@ import type {
   HistoryStore,
   MatchResult,
   ServiceDeps,
-  SettingsReader,
   VideoImporter,
   VideoInfo,
 } from '../../src/types'
@@ -123,14 +122,6 @@ export function createMockHistory(overrides?: Partial<HistoryStore>): HistorySto
   }
 }
 
-/** 创建 mock SettingsReader */
-export function createMockSettings(overrides?: Partial<SettingsReader>): SettingsReader {
-  return {
-    getChConvert: vi.fn().mockReturnValue(0),
-    ...overrides,
-  }
-}
-
 /** 创建完整的 mock ServiceDeps */
 export function createMockDeps(overrides?: Partial<ServiceDeps>): ServiceDeps {
   return {
@@ -138,6 +129,5 @@ export function createMockDeps(overrides?: Partial<ServiceDeps>): ServiceDeps {
     cache: createMockCache(overrides?.cache as any),
     importer: createMockImporter(overrides?.importer as any),
     history: createMockHistory(overrides?.history as any),
-    settings: createMockSettings(overrides?.settings as any),
   }
 }

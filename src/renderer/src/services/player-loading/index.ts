@@ -8,7 +8,6 @@
 import { PlayerLoadingService } from '@marchen/player-loading'
 import { videoAtom } from '@renderer/atoms/player'
 import { jotaiStore } from '@renderer/atoms/store'
-import { getStorageNS } from '@renderer/lib/ns'
 import { isWeb } from '@renderer/lib/utils'
 import { installPlayerLoadingTelemetry } from '@renderer/services/telemetry/player-loading-observer'
 
@@ -32,19 +31,6 @@ export function getPlayerLoadingService(): PlayerLoadingService {
       cache: new IndexedDBCache(),
       importer: isWeb ? new WebImporter() : new ElectronImporter(),
       history: new IndexedDBHistoryStore(),
-      settings: {
-        getChConvert: () => {
-          // 直接从 localStorage 读取设置（避免循环依赖）
-          try {
-            const raw = localStorage.getItem(getStorageNS('player'))
-            if (raw) {
-              const settings = JSON.parse(raw)
-              return settings.enableTraditionalToSimplified ? 1 : 0
-            }
-          } catch {}
-          return 0
-        },
-      },
     })
 
     installPlayerLoadingTelemetry(serviceInstance)

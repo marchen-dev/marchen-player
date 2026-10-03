@@ -70,7 +70,7 @@ idle → importing → hashing → matching → [waiting_user] → loading_danma
 任何步骤 → error
 ```
 
-**Port**：`DanmakuAPI`、`DanmakuCache`、`VideoImporter`、`HistoryStore`、`PlayerBridge`、`SettingsReader`
+**Port**：`DanmakuAPI`、`DanmakuCache`、`VideoImporter`、`HistoryStore`、`PlayerBridge`
 
 **Pipeline**：`load.ts`（主加载）、`rematch.ts`（重新匹配 / 本地导入）
 

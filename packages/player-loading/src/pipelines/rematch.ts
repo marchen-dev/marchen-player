@@ -30,12 +30,8 @@ export function createRematchPipeline(
     // 获取新弹幕（强制刷新，不使用缓存）
     defer(async () => {
       const { hash } = video
-      const chConvert = deps.settings.getChConvert()
-
-      const commentsData = await deps.api.getDanmu(match.episodeId, {
-        withRelated: true,
-        chConvert,
-      })
+      // 始终取原文，繁简转换在渲染层完成
+      const commentsData = await deps.api.getDanmu(match.episodeId, { withRelated: true })
 
       // 保留已有的 local 弹幕
       const existingCache = await deps.cache.get(hash)

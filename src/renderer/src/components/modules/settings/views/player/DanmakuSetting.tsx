@@ -15,11 +15,10 @@ import {
 
 interface DanmakuSettingProps extends PropsWithChildren {
   classNames?: { cardLayout?: string }
-  onTraditionalToSimplifiedChange?: (value: boolean) => void
 }
 
 export const DanmakuSetting: FC<DanmakuSettingProps> = (props) => {
-  const { classNames, children, onTraditionalToSimplifiedChange } = props
+  const { classNames, children } = props
   const [playerSetting, setPlayerSetting] = usePlayerSettings()
   const isPlaying = !!classNames?.cardLayout
   const portalContainer = usePlayerPortalContainer()
@@ -38,17 +37,17 @@ export const DanmakuSetting: FC<DanmakuSettingProps> = (props) => {
           />
         </FieldLayout>
       )}
-      {!isPlaying && (
-        <FieldLayout title="繁体转简体">
-          <SettingSwitch
-            value={playerSetting.enableTraditionalToSimplified}
-            onCheckedChange={(value) => {
-              setPlayerSetting((prev) => ({ ...prev, enableTraditionalToSimplified: value }))
-              onTraditionalToSimplifiedChange?.(value)
-            }}
-          />
-        </FieldLayout>
-      )}
+      {/* 客户端转换，切换即时作用于当前弹幕，无需重新请求 */}
+      <FieldLayout title="繁体转简体">
+        <SettingSwitch
+          playerMaterial={isPlaying}
+          value={playerSetting.enableTraditionalToSimplified}
+          onCheckedChange={(value) => {
+            captureFeatureUsed('danmaku_traditional_to_simplified', value ? 'enable' : 'disable')
+            setPlayerSetting((prev) => ({ ...prev, enableTraditionalToSimplified: value }))
+          }}
+        />
+      </FieldLayout>
       <FieldLayout title="字体大小">
         <SettingSelect
           container={isPlaying ? portalContainer : undefined}

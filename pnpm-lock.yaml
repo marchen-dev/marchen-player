@@ -208,7 +208,7 @@ importers:
         specifier: ^1.5.1
         version: 1.5.1
       opencc-js:
-        specifier: ^1.4.2
+        specifier: 1.4.2
         version: 1.4.2
       playwright-core:
         specifier: 1.58.2

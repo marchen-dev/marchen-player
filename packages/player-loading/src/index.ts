@@ -40,7 +40,6 @@ export type {
   ReadyState,
   ReloadingState,
   ServiceDeps,
-  SettingsReader,
   StepName,
   VideoImporter,
   VideoInfo,

@@ -62,3 +62,4 @@
 - 2026-10-02: [add-diagnostic-logs-feedback](./archive/2026-10-02-add-diagnostic-logs-feedback/) — 新增本地诊断日志、日志轮转与附带诊断信息的 Sentry 用户反馈
 - 2026-10-02: [add-torrent-downloads](./archive/2026-10-02-add-torrent-downloads/) — 新增 Electron BT 下载、磁力与种子导入、任务管理及完成文件播放
 - 2026-10-03: [raise-continue-watching-limit](./archive/2026-10-03-raise-continue-watching-limit/) — 影视库继续观看横滚 Rail 上限由 10 调高到 30
+- 2026-10-03: [client-danmaku-t2s](./archive/2026-10-03-client-danmaku-t2s/) — 弹幕繁体转简体改为客户端 OpenCC 字形转换并恢复播放器侧栏开关，覆盖全部弹幕来源，移除服务端 chConvert 与 SettingsReader

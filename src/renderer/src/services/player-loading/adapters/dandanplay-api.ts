@@ -36,14 +36,11 @@ export class DandanplayAPI implements DanmakuAPI {
 
   async getDanmu(
     episodeId: number,
-    opts: { withRelated: boolean; chConvert: number; signal?: AbortSignal },
+    opts: { withRelated: boolean; signal?: AbortSignal },
   ): Promise<CommentsData> {
     const data = await apiClient.comment.getDanmu(
       episodeId,
-      {
-        withRelated: opts.withRelated,
-        chConvert: opts.chConvert,
-      },
+      { withRelated: opts.withRelated },
       { signal: opts.signal, silent: true },
     )
     if (data.success === false || data.errorCode)
