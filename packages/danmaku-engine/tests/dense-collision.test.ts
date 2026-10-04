@@ -58,6 +58,7 @@ describe('dense collision simulation', () => {
           return [
             {
               id: snapshot.id,
+              mode: snapshot.mode,
               left: snapshot.left,
               right: snapshot.right,
               top: snapshot.top,
@@ -67,7 +68,11 @@ describe('dense collision simulation', () => {
         })
         .filter((rect) => isVisibleRect(rect, 640, 360))
 
-      expect(findRectIntersections(rects), `t=${now.toFixed(2)}`).toEqual([])
+      // 滚动与固定弹幕允许交叠；分别验证滚动防追尾和顶部/底部固定弹幕互斥。
+      for (const scrolling of [true, false]) {
+        const layer = rects.filter((rect) => (rect.mode === 'scroll') === scrolling)
+        expect(findRectIntersections(layer), `t=${now.toFixed(2)}, scroll=${scrolling}`).toEqual([])
+      }
     }
     expect(placed).toBeGreaterThan(10)
     expect(engine.getDiagnostics().peakActive).toBeGreaterThan(1)

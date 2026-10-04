@@ -24,7 +24,7 @@ export interface LaneAllocation {
   y: number
 }
 
-/** 统一维护所有模式的垂直占用与运动状态。 */
+/** 统一维护运动状态，滚动与固定弹幕分别检查轨道占用。 */
 export class DanmakuLaneAllocator {
   private layout: DanmakuLayout = { width: 0, height: 0 }
   private active = new Map<string, ActiveDanmaku>()
@@ -159,6 +159,8 @@ export class DanmakuLaneAllocator {
     if (intersectsVertical(top, bottom, this.layout.exclusionRect)) return false
 
     for (const existing of this.active.values()) {
+      // 两类弹幕允许同排穿过；固定弹幕之间仍互斥，滚动弹幕之间仍防追尾。
+      if ((item.mode === 'scroll') !== (existing.item.mode === 'scroll')) continue
       if (!spansOverlap(allocation.lane, allocation.laneSpan, existing.lane, existing.laneSpan)) {
         continue
       }

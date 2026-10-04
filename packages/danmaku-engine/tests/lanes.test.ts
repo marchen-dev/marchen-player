@@ -53,7 +53,7 @@ describe('danmaku lane allocator', () => {
     expect(allocator.allocate(scroll, metrics, 0)).toMatchObject({ lane: 0, laneSpan: span })
   })
 
-  it('多轨弹幕占用其覆盖的每条垂直候选', () => {
+  it('多轨滚动弹幕占用同类弹幕的每条垂直候选', () => {
     const allocator = new DanmakuLaneAllocator(config)
     allocator.resize({ width: 400, height: 81 })
     expect(allocator.allocate(scroll, { width: 100, height: 54 }, 0)).toMatchObject({
@@ -61,8 +61,24 @@ describe('danmaku lane allocator', () => {
       laneSpan: 2,
     })
     expect(
-      allocator.allocate({ ...scroll, id: 'fixed', mode: 'top' }, { width: 100, height: 27 }, 0),
+      allocator.allocate({ ...scroll, id: 'next' }, { width: 100, height: 27 }, 0),
     ).toMatchObject({ lane: 2, laneSpan: 1 })
+  })
+
+  it.each(['top', 'bottom'] as const)('%s 固定弹幕与滚动弹幕可双向复用同一行', (mode) => {
+    for (const fixedFirst of [true, false]) {
+      const allocator = new DanmakuLaneAllocator(config)
+      allocator.resize({ width: 300, height: 27 })
+      const fixed: DanmakuItem = { ...scroll, id: 'fixed', mode }
+      const items = fixedFirst ? [fixed, scroll] : [scroll, fixed]
+      for (const item of items) {
+        expect(allocator.allocate(item, { width: 100, height: 27 }, 0)?.lane).toBe(0)
+      }
+      expect(allocator.activeCount).toBe(2)
+      // 共用行不意味着放开各自的碰撞约束。
+      expect(allocator.allocate({ ...fixed, id: 'fixed-2' }, { width: 100, height: 27 }, 0)).toBeNull()
+      expect(allocator.allocate({ ...scroll, id: 'scroll-2' }, { width: 100, height: 27 }, 0)).toBeNull()
+    }
   })
 
   it('相同排除矩形去重且不清除已有活动占用', () => {
