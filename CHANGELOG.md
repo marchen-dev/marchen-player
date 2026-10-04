@@ -1,6 +1,15 @@
 # CHANGELOG
 
 
+## [1.0.3](https://github.com/marchen-dev/marchen-player/compare/v1.0.2...v1.0.3) (2026-10-04)
+
+
+### Features
+
+* **danmaku:** 允许固定弹幕与滚动弹幕同排显示 ([aea8e7a](https://github.com/marchen-dev/marchen-player/commit/aea8e7ae2abd695c55167c35e53eb665aae20c6c))
+* **danmaku:** 在客户端转换繁体弹幕并支持即时切换 ([3ba9667](https://github.com/marchen-dev/marchen-player/commit/3ba9667e051908bf6597c7ed5f188db0c3c57af5))
+* **library:** 将继续观看上限提高至 30 部 ([b7232fd](https://github.com/marchen-dev/marchen-player/commit/b7232fd17dbdf323ea517c64902af09bf389cfbb))
+
 ## [1.0.2](https://github.com/marchen-dev/marchen-player/compare/v1.0.1...v1.0.2) (2026-10-02)
 
 
