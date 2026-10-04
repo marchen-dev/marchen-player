@@ -29,6 +29,39 @@ export const DanmuPosition: Record<number, Mode> = {
 }
 
 /**
+ * 获取弹幕源的短名称（不带条数），供来源列表、弹幕列表的来源列与筛选项共用
+ */
+export const danmakuSourceName = (danmaku?: DB_Danmaku) => {
+  if (!danmaku) {
+    return '未知弹幕'
+  }
+
+  switch (danmaku.type) {
+    case 'auto': {
+      return '弹弹play'
+    }
+    case 'link': {
+      // 视频标题里常见「𝟒𝐊」这类数学粗体字符，会让整段文字回退到衬线字体；
+      // NFKC 归一化为普通字符后与界面其余文字保持同一字体，仅影响显示，不改动存储的标题
+      return danmaku.title.normalize('NFKC')
+    }
+    case 'local': {
+      if (danmaku.source.startsWith('local-file:')) {
+        try {
+          return decodeURIComponent(danmaku.source.slice(danmaku.source.indexOf('/') + 1))
+        } catch {
+          // 旧缓存或损坏的来源标识仍显示通用名称。
+        }
+      }
+      return '本地弹幕'
+    }
+    default: {
+      return '未知弹幕'
+    }
+  }
+}
+
+/**
  * 获取弹幕源的显示名称
  */
 export const danmakuPlatformMap = (danmaku?: DB_Danmaku) => {
@@ -36,34 +69,7 @@ export const danmakuPlatformMap = (danmaku?: DB_Danmaku) => {
     return '未知弹幕'
   }
 
-  let mapName = ''
-  switch (danmaku.type) {
-    case 'auto': {
-      mapName = '弹弹play'
-      break
-    }
-    case 'link': {
-      mapName = danmaku.title
-      break
-    }
-    case 'local': {
-      mapName = '本地弹幕'
-      if (danmaku.source.startsWith('local-file:')) {
-        try {
-          mapName = decodeURIComponent(danmaku.source.slice(danmaku.source.indexOf('/') + 1))
-        } catch {
-          // 旧缓存或损坏的来源标识仍显示通用名称。
-        }
-      }
-      break
-    }
-    default: {
-      mapName = '未知弹幕'
-      break
-    }
-  }
-
-  return `${mapName} (${danmaku.content.count}条)`
+  return `${danmakuSourceName(danmaku)} (${danmaku.content.count}条)`
 }
 
 /**
