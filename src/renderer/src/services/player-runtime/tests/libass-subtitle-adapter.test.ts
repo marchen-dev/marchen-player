@@ -38,7 +38,9 @@ describe('libassSubtitleAdapter', () => {
     const content = '[V4+ Styles]\nFormat: Name, Fontsize\nStyle: Default,40'
     adapter.setFontScale(150)
     adapter.setTrack('a.ass', release, [], content)
-    expect(factory).toHaveBeenCalledWith(expect.objectContaining({ subContent: content.replace('40', '60') }))
+    expect(factory).toHaveBeenCalledWith(
+      expect.objectContaining({ subContent: content.replace('40', '60') }),
+    )
     adapter.setFontScale(200)
     expect(instance.setTrack).toHaveBeenLastCalledWith(content.replace('40', '80'))
     expect(instance.setCurrentTime).toHaveBeenLastCalledWith(10)
@@ -124,15 +126,22 @@ describe('libassSubtitleAdapter', () => {
 it('worker 异步失败只释放一次，迟到回调无效且允许重新选择字幕', () => {
   const instances = [createFakeInstance(), createFakeInstance()]
   const callbacks: { onError: (error: unknown) => void; onReady: () => void }[] = []
-  const error = vi.fn(); const release = vi.fn()
+  const error = vi.fn()
+  const release = vi.fn()
   const adapter = new LibassSubtitleAdapter(canvas, clock, error, (options) => {
     callbacks.push(options)
     return instances[callbacks.length - 1]
   })
   adapter.setTrack('first.ass', release)
-  instances[0].dispose = vi.fn(() => { throw new Error('worker is null') })
+  instances[0].dispose = vi.fn(() => {
+    throw new Error('worker is null')
+  })
   callbacks[0].onError(new Error('worker failed'))
-  expect(() => { adapter.resize(); adapter.sync(); adapter.close() }).not.toThrow()
+  expect(() => {
+    adapter.resize()
+    adapter.sync()
+    adapter.close()
+  }).not.toThrow()
   expect(release).toHaveBeenCalledOnce()
   expect(error).toHaveBeenCalledOnce()
   adapter.setTrack('retry.ass')
@@ -140,16 +149,21 @@ it('worker 异步失败只释放一次，迟到回调无效且允许重新选择
   callbacks[0].onError(new Error('late'))
   expect(error).toHaveBeenCalledOnce()
   expect(instances[1].dispose).not.toHaveBeenCalled()
-  adapter.dispose(); adapter.dispose()
+  adapter.dispose()
+  adapter.dispose()
   expect(instances[0].dispose).toHaveBeenCalledOnce()
   expect(instances[1].dispose).toHaveBeenCalledOnce()
 })
 
 it('resize 调用失败不会逃逸到宿主或阻止资源释放', () => {
-  const instance = createFakeInstance(); const release = vi.fn(); const error = vi.fn()
+  const instance = createFakeInstance()
+  const release = vi.fn()
+  const error = vi.fn()
   const adapter = new LibassSubtitleAdapter(canvas, clock, error, () => instance)
   adapter.setTrack('test.ass', release)
-  instance.resize = vi.fn(() => { throw new Error('postMessage of null') })
+  instance.resize = vi.fn(() => {
+    throw new Error('postMessage of null')
+  })
   expect(() => adapter.resize()).not.toThrow()
   expect(error).toHaveBeenCalledOnce()
   expect(release).toHaveBeenCalledOnce()

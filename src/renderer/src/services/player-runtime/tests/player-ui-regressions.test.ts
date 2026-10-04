@@ -130,29 +130,35 @@ describe('播放器 UI 回归', () => {
     expect(timelineTimeFromPointer(150, 100, 0, 120)).toBe(0)
   })
 
-  it.each(['\n', '\r\n'])('回放只隔离弹幕运动层，其余播放器界面完整录制（换行 %j）', (lineEnding) => {
-    const shellSource = readFileSync(
-      new URL('../../../components/modules/player/shell/PlayerShell.tsx', import.meta.url),
-      'utf8',
-    )
-    const danmakuSource = readFileSync(
-      new URL('../danmaku/NativeDanmakuSurface.tsx', import.meta.url),
-      'utf8',
-    )
-    const timelineSource = readFileSync(
-      new URL('../../../components/modules/player/controls/TimelineScrubber.tsx', import.meta.url),
-      'utf8',
-    )
+  it.each(['\n', '\r\n'])(
+    '回放只隔离弹幕运动层，其余播放器界面完整录制（换行 %j）',
+    (lineEnding) => {
+      const shellSource = readFileSync(
+        new URL('../../../components/modules/player/shell/PlayerShell.tsx', import.meta.url),
+        'utf8',
+      )
+      const danmakuSource = readFileSync(
+        new URL('../danmaku/NativeDanmakuSurface.tsx', import.meta.url),
+        'utf8',
+      )
+      const timelineSource = readFileSync(
+        new URL(
+          '../../../components/modules/player/controls/TimelineScrubber.tsx',
+          import.meta.url,
+        ),
+        'utf8',
+      )
 
-    // Windows checkout 可能使用 CRLF；属性边界不应依赖操作系统换行符。
-    const shell = shellSource.replace(/\r?\n/g, lineEnding)
-    expect(shell.match(/data-telemetry-replay-block/g)).toHaveLength(1)
-    const block = shell.indexOf('data-telemetry-replay-block')
-    expect(block).toBeGreaterThan(shell.indexOf('data-player-danmaku-surface'))
-    expect(block).toBeLessThan(shell.indexOf('export const InteractionSurface'))
-    expect(danmakuSource).toContain('data-telemetry-replay-block')
-    expect(timelineSource).not.toContain('data-telemetry-replay-block')
-  })
+      // Windows checkout 可能使用 CRLF；属性边界不应依赖操作系统换行符。
+      const shell = shellSource.replace(/\r?\n/g, lineEnding)
+      expect(shell.match(/data-telemetry-replay-block/g)).toHaveLength(1)
+      const block = shell.indexOf('data-telemetry-replay-block')
+      expect(block).toBeGreaterThan(shell.indexOf('data-player-danmaku-surface'))
+      expect(block).toBeLessThan(shell.indexOf('export const InteractionSurface'))
+      expect(danmakuSource).toContain('data-telemetry-replay-block')
+      expect(timelineSource).not.toContain('data-telemetry-replay-block')
+    },
+  )
 
   it('统一设置面板打开目标标签，关闭时保留标签供下次恢复', () => {
     const opened = openPlayerSettingsPanel(initialPlayerSettingsPanelState, 'subtitle')

@@ -153,12 +153,14 @@ export function convertRows(rows: unknown[], seen: Set<string>, startId: number)
         throw new Error('无效数据')
       const properties = object(decode(row.propertis || '{}'))
       const value = properties.color ?? 0xFFFFFF
-      if (typeof value === 'string' && !/^(?:#[0-9a-f]{1,8}|[0-9a-f]{1,10})$/i.test(value)) throw new Error('颜色无效')
+      if (typeof value === 'string' && !/^(?:#[0-9a-f]{1,8}|[0-9a-f]{1,10})$/i.test(value))
+        throw new Error('颜色无效')
       const color =
         typeof value === 'string' && (value.startsWith('#') || /[a-f]/i.test(value))
           ? Number.parseInt(value.replace(/^#/, ''), 16)
           : Number(value)
-      if (!Number.isSafeInteger(color) || color < 0 || color > 0xFFFFFFFF) throw new Error('无效数据')
+      if (!Number.isSafeInteger(color) || color < 0 || color > 0xFFFFFFFF)
+        throw new Error('无效数据')
       if (typeof row.id === 'number' && !Number.isSafeInteger(row.id)) throw new Error('无效数据')
       const rgb = color & 0xFFFFFF
       const key = row.id != null ? `id:${String(row.id)}` : JSON.stringify([time, row.content, rgb])
@@ -186,13 +188,12 @@ export async function fetchYouku(
   progress({ stage: 'metadata', completed: 0, count: 0 })
   const meta = object(
     await client.request(
-      `https://openapi.youku.com/v2/videos/show.json?${
-        new URLSearchParams({
-          client_id: '53e6cc67237fc59a',
-          video_id: identity.videoId,
-          package: 'com.huawei.hwvplayer.youku',
-          ext: 'show',
-        })}`,
+      `https://openapi.youku.com/v2/videos/show.json?${new URLSearchParams({
+        client_id: '53e6cc67237fc59a',
+        video_id: identity.videoId,
+        package: 'com.huawei.hwvplayer.youku',
+        ext: 'show',
+      })}`,
     ),
   )
   const duration = Number(meta.duration)
@@ -224,7 +225,7 @@ export async function fetchYouku(
     const data = JSON.stringify({
       ...message,
       msg: encoded,
-      sign: md5(`${encoded  }MkmC9SoIw6xCkSKHhJ7b5D2r51kBiREr`),
+      sign: md5(`${encoded}MkmC9SoIw6xCkSKHhJ7b5D2r51kBiREr`),
     })
     const now = String(Date.now())
     const query = new URLSearchParams({

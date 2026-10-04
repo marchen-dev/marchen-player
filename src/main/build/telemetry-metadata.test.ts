@@ -4,7 +4,13 @@ import { createTelemetryDefine, resolveTelemetryBuildMetadata } from './telemetr
 
 // 发布脚本会注入真实版本和分发信息；每个用例从独立环境开始，再声明自己的覆盖值。
 beforeEach(() => {
-  for (const key of ['SENTRY_RELEASE', 'MARCHEN_DIST', 'MARCHEN_ENVIRONMENT', 'MARCHEN_COMMIT', 'GITHUB_SHA']) {
+  for (const key of [
+    'SENTRY_RELEASE',
+    'MARCHEN_DIST',
+    'MARCHEN_ENVIRONMENT',
+    'MARCHEN_COMMIT',
+    'GITHUB_SHA',
+  ]) {
     vi.stubEnv(key, undefined)
   }
 })
@@ -18,9 +24,15 @@ describe('telemetry build metadata', () => {
     vi.stubEnv('MARCHEN_DIST', 'web-preview')
     vi.stubEnv('MARCHEN_ENVIRONMENT', 'preview')
 
-    expect(resolveTelemetryBuildMetadata({ target: 'web', version: '1.2.3', mode: 'production' })).toEqual({
-      target: 'web', version: '1.2.3', commit: 'release-sha',
-      release: 'Marchen@1.2.3+release-sha', dist: 'web-preview', environment: 'preview',
+    expect(
+      resolveTelemetryBuildMetadata({ target: 'web', version: '1.2.3', mode: 'production' }),
+    ).toEqual({
+      target: 'web',
+      version: '1.2.3',
+      commit: 'release-sha',
+      release: 'Marchen@1.2.3+release-sha',
+      dist: 'web-preview',
+      environment: 'preview',
     })
   })
 
@@ -75,12 +87,23 @@ describe('telemetry build metadata', () => {
   })
 })
 
-
 it('预览上报与生产隔离，开发模式仍保持 development', () => {
   vi.stubEnv('MARCHEN_ENVIRONMENT', 'preview')
   try {
-    const input = { target: 'web' as const, version: '1.0.0', commit: 'preview-sha', dist: 'web-preview' }
-    expect(resolveTelemetryBuildMetadata({ ...input, mode: 'production' })).toMatchObject({ environment: 'preview', dist: 'web-preview' })
-    expect(resolveTelemetryBuildMetadata({ ...input, mode: 'development' }).environment).toBe('development')
-  } finally { vi.unstubAllEnvs() }
+    const input = {
+      target: 'web' as const,
+      version: '1.0.0',
+      commit: 'preview-sha',
+      dist: 'web-preview',
+    }
+    expect(resolveTelemetryBuildMetadata({ ...input, mode: 'production' })).toMatchObject({
+      environment: 'preview',
+      dist: 'web-preview',
+    })
+    expect(resolveTelemetryBuildMetadata({ ...input, mode: 'development' }).environment).toBe(
+      'development',
+    )
+  } finally {
+    vi.unstubAllEnvs()
+  }
 })

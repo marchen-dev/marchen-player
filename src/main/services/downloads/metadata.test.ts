@@ -28,8 +28,8 @@ describe('下载输入边界', () => {
   })
   it('磁力只接受 v1 且移除直接取资源参数', () => {
     const valid = `magnet:?xt=urn:btih:${'a'.repeat(40)}`
-    expect(validateMagnet(`${valid  }&ws=https://example.com/file`)).not.toContain('ws=')
-    expect(() => validateMagnet(`${valid  }&xt=urn:btmh:123`)).toThrow('v1')
+    expect(validateMagnet(`${valid}&ws=https://example.com/file`)).not.toContain('ws=')
+    expect(() => validateMagnet(`${valid}&xt=urn:btmh:123`)).toThrow('v1')
     expect(() => validateMagnet('https://example.com')).toThrow('v1')
     expect(() => validateMagnet(valid + 'x'.repeat(DOWNLOAD_LIMITS.magnetChars))).toThrow('过长')
   })

@@ -1,10 +1,7 @@
 import type { DanmakuItem } from '@marchen/danmaku-engine'
 import { describe, expect, it } from 'vitest'
 
-import {
-  convertDanmakuItemsToSimplified,
-  toSimplified,
-} from '../danmaku/traditional-to-simplified'
+import { convertDanmakuItemsToSimplified, toSimplified } from '../danmaku/traditional-to-simplified'
 
 describe('弹幕繁体转简体', () => {
   it('转换常见繁体字形，包括多个繁体合并为同一简体的情况', () => {

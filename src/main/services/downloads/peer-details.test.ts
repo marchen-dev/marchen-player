@@ -18,7 +18,7 @@ describe('节点明细', () => {
   const snapshot = (overrides = {}, pieces = 2) =>
     peerDetails({
       wires: [{ ...wire, ...overrides }],
-      pieces: Array.from({length: pieces}).fill(null),
+      pieces: Array.from({ length: pieces }).fill(null),
     } as unknown as Pick<Torrent, 'wires' | 'pieces'>)[0]
   it('格式化 IPv6，统计远端分片并保留连接传输量', () => {
     expect(snapshot()).toMatchObject({

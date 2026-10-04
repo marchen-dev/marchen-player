@@ -309,8 +309,8 @@ it('协议响应跨过内部 32 MiB 窗口仍保持完整范围，不提前报�
       const range = new Headers(options?.headers).get('Range')!
       ranges.push(range)
       const match = range.match(/bytes=(\d+)-(\d+)/)!
-      const start = Number(match[1]);
-        const end = Number(match[2])
+      const start = Number(match[1])
+      const end = Number(match[2])
       let offset = start
       return new Response(
         new ReadableStream({

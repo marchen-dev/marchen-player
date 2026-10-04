@@ -35,9 +35,14 @@ const readGitCommit = (): string => {
 export const resolveTelemetryBuildMetadata = (
   options: ResolveTelemetryBuildMetadataOptions,
 ): TelemetryBuildMetadata => {
-  const commit = options.commit || process.env.MARCHEN_COMMIT || process.env.GITHUB_SHA || readGitCommit()
-  const environment = options.mode === 'development' ? 'development'
-    : process.env.MARCHEN_ENVIRONMENT === 'preview' ? 'preview' : 'production'
+  const commit =
+    options.commit || process.env.MARCHEN_COMMIT || process.env.GITHUB_SHA || readGitCommit()
+  const environment =
+    options.mode === 'development'
+      ? 'development'
+      : process.env.MARCHEN_ENVIRONMENT === 'preview'
+        ? 'preview'
+        : 'production'
   const platform = options.platform ?? process.platform
   const arch = options.arch ?? process.arch
   const defaultDist = options.target === 'web' ? 'web' : `${platform}-${arch}`

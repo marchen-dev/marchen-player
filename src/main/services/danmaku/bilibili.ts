@@ -171,7 +171,8 @@ export async function convertBilibiliXml(text: string, cid: string) {
     try {
       const row = object(raw)
       const p = object(row.$).p
-      if (typeof p !== 'string' || typeof row._ !== 'string' || !row._.trim()) throw new Error('无效弹幕记录')
+      if (typeof p !== 'string' || typeof row._ !== 'string' || !row._.trim())
+        throw new Error('无效弹幕记录')
       const fields = p.split(',')
       const [time, mode, , color] = fields.map(Number)
       if (

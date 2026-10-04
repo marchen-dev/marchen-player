@@ -149,20 +149,26 @@ describe('用户链接来源提交', () => {
     }
   })
   it('抓取完成遇到重匹配时等待新结果再合并', async () => {
-    const {service,deps}=await setup()
+    const { service, deps } = await setup()
     try {
-      let finish!: (value: {count:number;comments:[]}) => void
-      vi.mocked(deps.api.getDanmu).mockImplementationOnce(()=>new Promise(resolve=>{finish=resolve}))
-      service.rematch({animeId:2,episodeId:2,animeTitle:'新剧集',episodeTitle:'二'})
-      const pending=service.addLinkDanmaku(entry,service.sessionId,new AbortController().signal)
-      await vi.waitFor(()=>expect(finish).toBeTypeOf('function'))
-      finish({count:0,comments:[]})
+      let finish!: (value: { count: number; comments: [] }) => void
+      vi.mocked(deps.api.getDanmu).mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            finish = resolve
+          }),
+      )
+      service.rematch({ animeId: 2, episodeId: 2, animeTitle: '新剧集', episodeTitle: '二' })
+      const pending = service.addLinkDanmaku(entry, service.sessionId, new AbortController().signal)
+      await vi.waitFor(() => expect(finish).toBeTypeOf('function'))
+      finish({ count: 0, comments: [] })
       await pending
-      const current=service.currentState
-      if(current.step!=='ready') throw new Error('没有恢复 ready')
+      const current = service.currentState
+      if (current.step !== 'ready') throw new Error('没有恢复 ready')
       expect(current.match.episodeId).toBe(2)
       expect(current.danmaku).toContainEqual(entry)
-    } finally {service.destroy()}
+    } finally {
+      service.destroy()
+    }
   })
-
 })

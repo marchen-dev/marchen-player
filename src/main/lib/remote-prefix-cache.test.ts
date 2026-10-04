@@ -54,8 +54,8 @@ describe('远程租约识别前缀缓存', () => {
   })
   it('预算包括未读完的填充，取消或租约撤销归还预算', async () => {
     const budget = new RemotePrefixBudget(32)
-    const a = fixture();
-      const b = fixture()
+    const a = fixture()
+    const b = fixture()
     const first = cacheRemotePrefix(a.source, a.controller.signal, budget)
     const second = cacheRemotePrefix(b.source, b.controller.signal, budget)
     const pending = await first.stream(0, 32)

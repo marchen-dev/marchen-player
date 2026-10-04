@@ -21,7 +21,9 @@ describe('b 站链接弹幕', () => {
     const value = recognizeBilibili('https://www.bilibili.com/video/BV1wT8J6NEFS/?p=17&spm=x')!
     expect(value.videoId).toBe('BV1wT8J6NEFS:p17')
     expect(value.canonicalUrl).toBe('https://www.bilibili.com/video/BV1wT8J6NEFS/?p=17')
-    expect(recognizeBilibili('https://www.bilibili.com/video/BV1Lyhb69EUf/')?.videoId).toMatch(/:p1$/)
+    expect(recognizeBilibili('https://www.bilibili.com/video/BV1Lyhb69EUf/')?.videoId).toMatch(
+      /:p1$/,
+    )
     expect(resolveAdapter(value.canonicalUrl).identity).toEqual(value)
     for (const url of [
       'https://www.bilibili.com.evil/video/BV1wT8J6NEFS/',

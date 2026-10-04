@@ -187,18 +187,48 @@ describe('链接弹幕', () => {
   it('窗口销毁中止慢请求并允许后续任务', async () => {
     let close: (() => void) | undefined
     let count = 0
-    const tasks = new DanmakuTasks(() => ({ identity, fetch: async (_identity, signal) => {
-      count++
-      if (count === 1) await new Promise((_, reject) => signal.addEventListener('abort', () => reject(new Error('窗口关闭')), {once:true}))
-      return { identity, title:'测试', content:{count:1,comments:[]}, skipped:0, segments:1 }
-    } }))
+    const tasks = new DanmakuTasks(() => ({
+      identity,
+      fetch: async (_identity, signal) => {
+        count++
+        if (count === 1)
+          await new Promise((_, reject) =>
+            signal.addEventListener('abort', () => reject(new Error('窗口关闭')), { once: true }),
+          )
+        return {
+          identity,
+          title: '测试',
+          content: { count: 1, comments: [] },
+          skipped: 0,
+          segments: 1,
+        }
+      },
+    }))
     const detach = vi.fn()
-    const first = tasks.run(1,'first','',()=>{}, callback => { close=callback; return detach })
+    const first = tasks.run(
+      1,
+      'first',
+      '',
+      () => {},
+      (callback) => {
+        close = callback
+        return detach
+      },
+    )
     close!()
     expect((await first).ok).toBe(false)
     expect(detach).toHaveBeenCalledOnce()
-    expect((await tasks.run(1,'retry','',()=>{},()=>detach)).ok).toBe(true)
+    expect(
+      (
+        await tasks.run(
+          1,
+          'retry',
+          '',
+          () => {},
+          () => detach,
+        )
+      ).ok,
+    ).toBe(true)
     expect(detach).toHaveBeenCalledTimes(2)
   })
-
 })

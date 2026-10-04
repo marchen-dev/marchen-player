@@ -4,7 +4,17 @@
  * 新增时同步 electron-builder.yml 的系统文件关联；音频与 HLS 播放列表不在此列。
  */
 export const VIDEO_EXTENSIONS = [
-  'mp4', 'm4v', 'mov', 'qt', 'mkv', 'mk3d', 'webm', 'ts', 'mts', 'm2ts', 'm2t',
+  'mp4',
+  'm4v',
+  'mov',
+  'qt',
+  'mkv',
+  'mk3d',
+  'webm',
+  'ts',
+  'mts',
+  'm2ts',
+  'm2t',
 ] as const
 
 export const VIDEO_FILE_ACCEPT = VIDEO_EXTENSIONS.map((extension) => `.${extension}`).join(',')
