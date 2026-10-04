@@ -317,10 +317,10 @@ export const PlayerControls = ({
           <div
             data-player-mini-progress
             aria-hidden
-            className="absolute inset-x-0 bottom-0 h-0.5 bg-white/20"
+            className="absolute inset-x-0 bottom-0 h-0.5"
           >
             <span
-              className="block h-full bg-[var(--player-progress)]"
+              className="block h-full bg-[#93bce8]/65"
               style={{ width: `${Math.min(100, Math.max(0, (currentTime / duration) * 100))}%` }}
             />
           </div>
