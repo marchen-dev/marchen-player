@@ -1,7 +1,12 @@
 import type { DB_History } from '@renderer/database/schemas/history'
-import { describe, expect, it, vi } from 'vitest'
+import { markNextPlayerImportSource } from '@renderer/services/telemetry/player-loading-observer'
 
-import { loadHistoricalVideo } from './load-history'
+import { describe, expect, it, vi } from 'vitest'
+import { loadHistoricalVideo, parseHistoricalImportSource } from './load-history'
+
+vi.mock('@renderer/services/telemetry/player-loading-observer', () => ({
+  markNextPlayerImportSource: vi.fn(),
+}))
 
 describe('历史视频共享加载动作', () => {
   it('根据 hash 找到 path，并且只向 service 发出一次加载', async () => {
@@ -69,6 +74,26 @@ describe('历史视频共享加载动作', () => {
 
     expect(databaseResult).toEqual({ status: 'error', error: databaseError })
     expect(serviceResult).toEqual({ status: 'error', error: serviceError })
+  })
+
+  it('未指定入口时导入来源记为影视库，指定后按入口记录', async () => {
+    const deps = {
+      history: { get: vi.fn(async () => history()) },
+      service: { loadFromPath: vi.fn() },
+    }
+
+    await loadHistoricalVideo('video-hash', deps)
+    expect(markNextPlayerImportSource).toHaveBeenLastCalledWith('library')
+
+    await loadHistoricalVideo('video-hash', { ...deps, importSource: 'history' })
+    expect(markNextPlayerImportSource).toHaveBeenLastCalledWith('history')
+  })
+
+  it('路由 state 中不认识的来源回退到影视库', () => {
+    expect(parseHistoricalImportSource('history')).toBe('history')
+    expect(parseHistoricalImportSource('library')).toBe('library')
+    expect(parseHistoricalImportSource('click')).toBe('library')
+    expect(parseHistoricalImportSource(undefined)).toBe('library')
   })
 })
 

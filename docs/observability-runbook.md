@@ -58,6 +58,12 @@ FFmpeg/Gateway/media.generation 与 compat_fallback_triggered 为历史版本口
 - `video_import_started.source` 增加 `remote_url` / `download`，影视库远程记录仍标为 `library`。
 - `feature_used` 补充弹幕复制结果、节点详情打开、文件列表展开及下载设置保存；不包含弹幕原文或保存目录。
 
+## 播放记录事件
+
+- `video_import_started.source` 增加 `history`（从播放记录弹窗续播）；从影视库作品续播仍标为 `library`。
+- `feature_used(playback_history, action, value)`：`action` 为 `open` / `play` / `reveal` / `delete`，均不带 value。不包含文件名或路径。
+- 删除记录失败按 `player` 域的 `history.delete` 上报，在文件管理器中定位失败按 `ipc` 域的 `history.show_item_in_folder` 上报（已提示用户，标记为已恢复）。
+
 下载状态由根级观察器订阅，与当前路由无关；首次快照仅建立基线，不重报历史完成任务。整个渲染窗口关闭期间的状态变化不补报，因此这些事件不能用作跨应用会话的完整下载账本。完成／失败等状态事件、停滞及远程导入结果使用现有离线 outbox。
 
 下载事件属性仅使用白名单枚举和数值，以保证聚合维度稳定；下载页、弹窗、目录设置和错误详情与其他页面一样参与 PostHog 自动采集与两端回放，不做屏蔽。开发环境仍遵循既有 `VITE_TELEMETRY_DEBUG` 开关，不为验收自动开启线上上报。

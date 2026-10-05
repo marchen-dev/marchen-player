@@ -61,7 +61,7 @@ export interface TelemetryEventMap {
   feature_used: { feature: string; action: string; value?: string | number | boolean }
   video_import_started: {
     operation_id: string
-    source: 'click' | 'drop' | 'library' | 'association' | 'remote_url' | 'download'
+    source: 'click' | 'drop' | 'library' | 'history' | 'association' | 'remote_url' | 'download'
   }
   video_import_completed: {
     operation_id: string

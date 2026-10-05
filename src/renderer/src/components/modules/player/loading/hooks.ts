@@ -8,7 +8,10 @@
 import { usePlayAnimeFailedToast } from '@renderer/hooks/use-toast'
 import { RouteName } from '@renderer/router'
 import { usePlayerLoadingService } from '@renderer/services/player-loading/hooks'
-import { loadHistoricalVideo } from '@renderer/services/player-loading/load-history'
+import {
+  loadHistoricalVideo,
+  parseHistoricalImportSource,
+} from '@renderer/services/player-loading/load-history'
 import { useEffect, useRef } from 'react'
 import { useLocation, useNavigate } from 'react-router'
 
@@ -24,13 +27,21 @@ export const useLoadingHistoricalAnime = () => {
   const consumedHashRef = useRef<string | null>(null)
   const hash = typeof location.state?.hash === 'string' ? location.state.hash : null
 
+  const importSource = parseHistoricalImportSource(location.state?.source)
+
   useEffect(() => {
-    if (!hash || location.pathname !== RouteName.PLAYER || consumedHashRef.current === hash) return
+    if (!hash) {
+      // state 已被消费后才解除去重。从播放器首页打开播放记录弹窗续播时本 hook 不会重新挂载，
+      // 不重置的话同一条记录取消加载后再次点击会被当成重复而忽略。
+      consumedHashRef.current = null
+      return
+    }
+    if (location.pathname !== RouteName.PLAYER || consumedHashRef.current === hash) return
     consumedHashRef.current = hash
 
     // 先消费 state，避免刷新或后续渲染重复加载同一条记录。
     navigate(location.pathname, { replace: true })
-    void loadHistoricalVideo(hash, { service }).then((result) => {
+    void loadHistoricalVideo(hash, { service, importSource }).then((result) => {
       if (result.status === 'loaded' || result.status === 'cancelled') return
       showFailedToast({
         title: '无法继续播放',
@@ -42,5 +53,5 @@ export const useLoadingHistoricalAnime = () => {
             : '播放记录已失效，请重新导入视频',
       })
     })
-  }, [hash, location.pathname, navigate, service, showFailedToast])
+  }, [hash, importSource, location.pathname, navigate, service, showFailedToast])
 }

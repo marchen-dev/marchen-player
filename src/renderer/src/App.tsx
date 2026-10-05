@@ -4,6 +4,7 @@ import { AppHeader } from './components/layout/app-header/AppHeader'
 import { RootLayout } from './components/layout/root/RootLayout'
 import { Sidebar } from './components/layout/sidebar'
 import { Prepare } from './components/modules/app/Prepare'
+import { PlaybackHistoryDialog } from './components/modules/history/PlaybackHistoryDialog'
 import { FeedbackDialog } from './components/modules/shared/FeedbackDialog'
 import AnimatedOutlet from './components/ui/animate/AnimatedOutlet'
 import { useNetworkToast } from './hooks/use-network-toast'
@@ -28,6 +29,8 @@ function App(): JSX.Element {
             {/* 把"网络状态"与"更新进度"的副作用从 sidebar 抽到根级，
                 统一通过 toast 反馈，让 sidebar 内不再保留状态组件 */}
             <GlobalDesktopToasts />
+            {/* 播放记录弹窗独立于路由，在根部只挂载一次 */}
+            <PlaybackHistoryDialog />
           </>
         )}
       </RootLayout>

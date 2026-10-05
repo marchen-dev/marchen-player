@@ -2,6 +2,8 @@ import type { ChangeEvent, FC } from 'react'
 import { VIDEO_FILE_ACCEPT } from '@marchen/shared/media'
 import { useLabsSettingsValue } from '@renderer/atoms/settings/labs'
 import { BetaBadge } from '@renderer/components/common/BetaBadge'
+import { openPlaybackHistoryDialog } from '@renderer/components/modules/history/dialog-state'
+import { useHasHistoryRecords } from '@renderer/components/modules/history/use-history-records'
 import { VideoProvider } from '@renderer/components/modules/player/loading/PlayerProvider'
 import {
   openRemoteVideoDialog,
@@ -26,12 +28,21 @@ import { useCallback, useMemo, useRef } from 'react'
 
 const PLAYER_HEADER = { title: '视频播放', actions: null }
 
+/** 空态下方次级入口（URL 播放、播放记录）共用的按钮样式 */
+const SECONDARY_ENTRY_CLASS =
+  'gap-2 bg-neutral-200/60 hover:bg-neutral-200/90 dark:bg-neutral-800 dark:hover:bg-neutral-700'
+
 export default function VideoPlayer() {
   const service = usePlayerLoadingService()
   const { showFailedToast } = usePlayAnimeFailedToast()
   const fileInputRef = useRef<HTMLInputElement | null>(null)
   // 实验室开关只控制新建入口；失败重试、更换链接和历史远程记录不受影响
   const { remoteUrlPlayback } = useLabsSettingsValue()
+
+  // 播放记录仅桌面端提供，且至少有一条记录时才显示入口：新用户看到的空态保持不变
+  const hasHistory = useHasHistoryRecords()
+  const showRemoteEntry = !isWeb && remoteUrlPlayback
+  const showHistoryEntry = !isWeb && hasHistory
 
   usePageHeader(PLAYER_HEADER)
 
@@ -109,19 +120,42 @@ export default function VideoPlayer() {
       ) : (
         <div key="empty-player" className="flex flex-col items-center gap-5">
           <DragTips onClick={manualImport} />
-          {!isWeb && remoteUrlPlayback && (
-            <Button
-              variant="secondary"
-              className="gap-2 bg-neutral-200/60 hover:bg-neutral-200/90 dark:bg-neutral-800 dark:hover:bg-neutral-700"
-              onClick={() => openRemoteVideoDialog()}
-            >
-              通过 URL 播放
-              <BetaBadge />
-            </Button>
+          {/* 次级入口并排放在提示下方；都不满足条件时整行不渲染，空态与最初一致 */}
+          {(showRemoteEntry || showHistoryEntry) && (
+            <div className="flex items-center gap-3">
+              {showRemoteEntry && (
+                <Button
+                  variant="secondary"
+                  className={SECONDARY_ENTRY_CLASS}
+                  onClick={() => openRemoteVideoDialog()}
+                >
+                  通过 URL 播放
+                  <BetaBadge />
+                </Button>
+              )}
+              {showHistoryEntry && (
+                <Button
+                  variant="secondary"
+                  className={SECONDARY_ENTRY_CLASS}
+                  onClick={() => openPlaybackHistoryDialog()}
+                >
+                  <i aria-hidden="true" className="icon-[mingcute--history-line] text-base" />
+                  播放记录
+                </Button>
+              )}
+            </div>
           )}
         </div>
       ),
-    [preparedVideo, manualImport, loadError, remoteRequest, service, remoteUrlPlayback],
+    [
+      preparedVideo,
+      manualImport,
+      loadError,
+      remoteRequest,
+      service,
+      showRemoteEntry,
+      showHistoryEntry,
+    ],
   )
 
   return (
