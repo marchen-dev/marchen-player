@@ -28,8 +28,15 @@ export function Toaster() {
           <ToastClose />
         </Toast>
       ))}
-      {/* 防止弹窗遮住视频进度条 */}
-      <ToastViewport className={cn(isPlaying && 'sm:bottom-14')} />
+      {/*
+        播放时 toast 浮在视频上：上移避免遮住进度条，并接入播放器的固定深色色板，
+        不跟随应用主题（浅色主题下白色的提示块压在画面上很突兀）。
+        全局 Toaster 挂在应用根部、不在播放器容器内，所以用属性显式接入。
+      */}
+      <ToastViewport
+        data-player-theme={isPlaying ? '' : undefined}
+        className={cn(isPlaying && 'dark sm:bottom-14')}
+      />
     </ToastProvider>
   )
 }

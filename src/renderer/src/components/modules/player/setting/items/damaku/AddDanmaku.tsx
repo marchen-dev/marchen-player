@@ -79,7 +79,8 @@ export const AddDanmaku = () => {
         }}
       />
       <div className="flex flex-col gap-3">
-        <Label className="text-[var(--player-settings-muted)]">
+        {/* Label 默认行高为 1，只适合单行；这句说明在侧栏宽度下会折成两行，需要正常行高 */}
+        <Label className="leading-5 text-[var(--player-settings-muted)]">
           从弹幕文件导入，支持 B 站 XML / JSON 格式（最大 10 MB）
         </Label>
         <Button

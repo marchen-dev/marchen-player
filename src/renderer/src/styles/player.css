@@ -62,8 +62,12 @@
  *
  * 取值思路参照 Infuse：面板是深灰而不是黑（应用深色主题的 3.9% 压在视频上是一整块纯黑），
  * 层次靠「比面板亮一档的填充」表达，而不是在暗底上画更暗的线。
+ *
+ * 挂在播放器容器之外、但播放时同样浮在视频上的界面（目前是全局 toast）
+ * 通过 data-player-theme 属性接入同一套色板。
  */
-[data-player-portal-root] {
+[data-player-portal-root],
+[data-player-theme] {
   --background: 240 3% 11%;
   --foreground: 240 6% 93%;
   --card: 240 3% 11%;

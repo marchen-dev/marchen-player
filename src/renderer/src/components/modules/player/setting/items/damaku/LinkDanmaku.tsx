@@ -57,7 +57,8 @@ export function LinkDanmaku() {
 
   return (
     <section className="space-y-3 border-t border-white/10 pt-4" aria-label="从链接添加弹幕">
-      <Label htmlFor="link-danmaku-url" className="text-[var(--player-settings-muted)]">
+      {/* label 是行内元素，space-y 加在它身上的纵向外边距不生效；改为块级后与输入框的间距才是 12px */}
+      <Label htmlFor="link-danmaku-url" className="block text-[var(--player-settings-muted)]">
         从链接添加弹幕
       </Label>
       {/* 关闭原生校验：空链接直接禁用按钮，其余错误在状态区内联展示 */}
