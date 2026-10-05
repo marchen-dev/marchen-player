@@ -1,8 +1,17 @@
-# Marchen
+<p align="center">
+  <img src="resources/icon.png" alt="Marchen 应用图标" width="128" height="128" />
+</p>
 
-Marchen 是一个动漫弹幕播放器。拖入视频或粘贴视频直链，即可自动匹配弹幕。支持 macOS、Windows 客户端，也可以在浏览器中直接使用。
+<h1 align="center">Marchen</h1>
 
-[在线体验](https://marchen-play.suemor.com) | [下载客户端](https://github.com/marchen-dev/marchen-player/releases/latest)
+<p align="center">
+  Marchen 是一个动漫弹幕播放器。拖入视频或粘贴视频直链，即可自动匹配弹幕。<br />
+  支持 macOS、Windows 客户端，也可以在浏览器中直接使用。
+</p>
+
+<p align="center">
+  <a href="https://marchen-play.suemor.com">在线体验</a> | <a href="https://github.com/marchen-dev/marchen-player/releases/latest">下载客户端</a>
+</p>
 
 ## ✨ 特征
 
