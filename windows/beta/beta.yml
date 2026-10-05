@@ -1,11 +1,11 @@
-version: 1.0.3
+version: 1.0.4
 files:
-  - url: https://github.com/marchen-dev/marchen-player/releases/download/v1.0.3/Marchen-1.0.3-setup.exe
-    sha512: +TiIfVIA6ql1Cg94ST3rsHFIQYyF8zyP4wQJxPY0e2ho38cckzLQGEuDijrjXBncLPZeqQQdzcrZrSyu5duoQw==
-    size: 172064150
-path: https://github.com/marchen-dev/marchen-player/releases/download/v1.0.3/Marchen-1.0.3-setup.exe
-sha512: +TiIfVIA6ql1Cg94ST3rsHFIQYyF8zyP4wQJxPY0e2ho38cckzLQGEuDijrjXBncLPZeqQQdzcrZrSyu5duoQw==
-releaseNotes: "# Marchen 1.0.3\r
+  - url: https://github.com/marchen-dev/marchen-player/releases/download/v1.0.4/Marchen-1.0.4-setup.exe
+    sha512: 78eQLYW040p+yutoXGoDvczBPbXhRvECygqL0N2yB/K6erKDUbClLVY3cWJVolIKPDS1uU+zRwMyOZAHGqjKOA==
+    size: 172025022
+path: https://github.com/marchen-dev/marchen-player/releases/download/v1.0.4/Marchen-1.0.4-setup.exe
+sha512: 78eQLYW040p+yutoXGoDvczBPbXhRvECygqL0N2yB/K6erKDUbClLVY3cWJVolIKPDS1uU+zRwMyOZAHGqjKOA==
+releaseNotes: "# Marchen 1.0.4\r
 
   \r
 
@@ -13,17 +13,31 @@ releaseNotes: "# Marchen 1.0.3\r
 
   \r
 
-  - 优化繁体转简体，支持在播放时即时切换，对在线获取和本地导入的弹幕均生效。\r
+  - 新增弹幕列表，可搜索弹幕内容、按来源筛选，并查看已屏蔽的弹幕。\r
 
-  - 调整弹幕排布，顶部、底部固定弹幕可与滚动弹幕同排显示。\r
+  - 新增弹幕屏蔽，支持关键词、正则表达式和按弹幕类型屏蔽，规则对所有视频生效。\r
 
-  \r
-
-  ## 播放体验\r
+  - 悬停弹幕时显示复制、屏蔽工具条，也可直接在弹幕列表中添加屏蔽规则。\r
 
   \r
 
-  - 影视库「继续观看」展示上限由 10 部提高至 30 部。\r
+  ## 播放记录\r
 
-  - 控制栏隐藏时，底部进度条改为半透明浅蓝色。\r\n"
-releaseDate: 2026-10-04T13:00:57.867Z
+  \r
+
+  - 播放器首页新增播放记录入口，可查看最近播放的视频，包括未匹配到弹幕的视频。\r
+
+  - 支持继续播放、在文件管理器中显示文件，以及删除播放记录。\r
+
+  \r
+
+  ## 界面\r
+
+  \r
+
+  - 更换应用图标，采用白色底板与青蓝色播放、弹幕元素。\r
+
+  - 播放器内的弹窗和提示统一使用深色色板，改善浅色主题下的观看体验。\r
+
+  - 调整弹幕导入区域的文字行距与输入框间距。\r\n"
+releaseDate: 2026-10-05T10:35:01.214Z
