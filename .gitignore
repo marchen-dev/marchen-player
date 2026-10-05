@@ -21,3 +21,6 @@ src/renderer/public/audio/soundtouch/
 
 # 本地一次性排查输出
 .tmp/
+
+# 宣传视频工程（Remotion），不随应用仓库提交
+promo/
