@@ -1,6 +1,20 @@
 # CHANGELOG
 
 
+## [1.0.4](https://github.com/marchen-dev/marchen-player/compare/v1.0.3...v1.0.4) (2026-10-05)
+
+
+### Bug Fixes
+
+* **player:** 播放时 toast 使用播放器色板并修正弹幕导入区的行距 ([e768e4e](https://github.com/marchen-dev/marchen-player/commit/e768e4e65eb05b1e9b6c56160442af913a5932e7))
+
+
+### Features
+
+* **danmaku:** 新增弹幕列表弹窗 ([4e6c240](https://github.com/marchen-dev/marchen-player/commit/4e6c240cb680ecb88b406f2b3c64c29f634b87ae))
+* **danmaku:** 新增弹幕屏蔽与悬停工具条 ([9f91089](https://github.com/marchen-dev/marchen-player/commit/9f9108914b0a22380fbc4ad99c286429ede4819f))
+* **history:** 新增播放记录弹窗 ([72ada94](https://github.com/marchen-dev/marchen-player/commit/72ada9428ef315498d607916b7793e532bdce43d))
+
 ## [1.0.3](https://github.com/marchen-dev/marchen-player/compare/v1.0.2...v1.0.3) (2026-10-04)
 
 
