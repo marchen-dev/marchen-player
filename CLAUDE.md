@@ -101,6 +101,13 @@ idle → importing → hashing → matching → [waiting_user] → loading_danma
 - 字幕大小保存在 `playerSettingAtom.subtitleScale`，是全局持久化偏好，默认 100%，范围 50%～200%，步进 5%；不存入单视频 HISTORY。
 - 字号缩放由 `services/player-runtime/subtitles/font-scale.ts` 处理：始终基于原始字幕生成内存副本，调整样式和行内绝对字号，保留相对字号指令及定位坐标；禁止覆盖原字幕文件或累积缩放结果。
 
+### 弹幕屏蔽
+
+- 规则是全局偏好，保存在 `playerSettingAtom.danmakuBlock`（总开关、滚动 / 顶部 / 底部类型开关、关键词与正则规则，上限 500 条）；不存入单视频 HISTORY，也不改写弹幕缓存。
+- 判定是 `services/player-runtime/danmaku/danmaku-block.ts` 的纯函数：匹配前统一转简体并转小写，与"繁体转简体"显示开关无关；渲染器与弹幕列表必须共用同一个 blocker，保证两处结论一致。
+- 生效方式是向引擎下发被屏蔽的 id 集合（`setBlockedIds`），不走 `replaceItems`：规则变化不清屏，只撤掉命中的在屏弹幕。`packages/danmaku-engine` 只认 id 集合，禁止把规则或 OpenCC 引入引擎包。
+- 画面上的复制与屏蔽在悬停工具条（`hover-toolbar.ts`）完成，工具条出现在文字正下方的鼠标位置，整个弹幕层只有一个工具条元素；禁止往池化的弹幕节点里加子元素，弹幕文字本身不响应点击。
+
 ### API 请求
 
 `ofetch` 封装于 `request/ofetch.ts`，API 模块在 `request/api/`（match、comment、bangumi、search），类型在 `request/models/`。基础 URL 由 `VITE_API_URL` 配置。

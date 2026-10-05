@@ -15,6 +15,11 @@ import {
 import { cn } from '@renderer/lib/utils'
 import { usePlayerPortalContainer } from '@renderer/services/player-runtime'
 import { usePlaybackClock } from '@renderer/services/player-runtime/context'
+import { blockDanmakuByText } from '@renderer/services/player-runtime/danmaku/block-danmaku-action'
+import {
+  createDanmakuBlocker,
+  describeBlockHit,
+} from '@renderer/services/player-runtime/danmaku/danmaku-block'
 import {
   buildDanmakuList,
   filterDanmakuList,
@@ -89,7 +94,7 @@ const DanmakuListDialog = ({ open, onOpenChange }: DanmakuListDialogProps) => {
 
 const DanmakuListBody = () => {
   const { danmaku } = useDanmakuSourceConfig()
-  const [{ enableTraditionalToSimplified }] = usePlayerSettings()
+  const [{ danmakuBlock, enableTraditionalToSimplified }] = usePlayerSettings()
   const clock = usePlaybackClock()
   const portalContainer = usePlayerPortalContainer()
   const [keyword, setKeyword] = useState('')
@@ -97,9 +102,11 @@ const DanmakuListBody = () => {
   const deferredKeyword = useDeferredValue(keyword)
   const [sourceId, setSourceId] = useState(ALL_SOURCES)
 
+  // 与屏幕使用同一个判定函数；规则变化（包括在本列表里屏蔽）后整表重新派生
+  const blocker = useMemo(() => createDanmakuBlocker(danmakuBlock), [danmakuBlock])
   const list = useMemo(
-    () => buildDanmakuList(danmaku, { simplified: enableTraditionalToSimplified }),
-    [danmaku, enableTraditionalToSimplified],
+    () => buildDanmakuList(danmaku, { simplified: enableTraditionalToSimplified, blocker }),
+    [blocker, danmaku, enableTraditionalToSimplified],
   )
   const rows = useMemo(
     () =>
@@ -189,6 +196,7 @@ const DanmakuListBody = () => {
           <span>时间</span>
           <span>内容</span>
           {showSource && <span>来源</span>}
+          <span aria-hidden />
         </div>
         {rows.length === 0 ? (
           <p className="text-muted-foreground flex min-h-0 flex-1 items-center justify-center">
@@ -234,7 +242,10 @@ const DanmakuListBody = () => {
 }
 
 const rowGridClassName = (showSource: boolean) =>
-  showSource ? 'grid-cols-[4rem_minmax(0,1fr)_9rem]' : 'grid-cols-[4rem_minmax(0,1fr)]'
+  // 末列是行内操作位（屏蔽按钮），宽度固定，避免悬停时内容列跳动
+  showSource
+    ? 'grid-cols-[4rem_minmax(0,1fr)_9rem_1.5rem]'
+    : 'grid-cols-[4rem_minmax(0,1fr)_1.5rem]'
 
 const MODE_LABELS: Partial<Record<DanmakuListRow['mode'], string>> = { top: '顶', bottom: '底' }
 
@@ -246,17 +257,22 @@ interface DanmakuRowProps {
 
 const DanmakuRow = memo(({ row, current, showSource }: DanmakuRowProps) => {
   const modeLabel = MODE_LABELS[row.mode]
+  const blocked = Boolean(row.blocked)
+  // 被屏蔽的行只减弱内容，不减弱整行：当前播放位置的高亮仍要看得清
+  const dimmed = blocked && 'opacity-50'
   return (
     <div
       aria-current={current || undefined}
       className={cn(
-        'grid items-start gap-3 border-b px-4 py-2 leading-5',
+        'group grid items-start gap-3 border-b px-4 py-2 leading-5',
         rowGridClassName(showSource),
         current && 'bg-accent shadow-[inset_2px_0_0_var(--color-primary)]',
       )}
     >
-      <span className="text-muted-foreground tabular-nums">{formatTime(row.time)}</span>
-      <span className="flex min-w-0 items-start gap-2">
+      <span className={cn('text-muted-foreground tabular-nums', dimmed)}>
+        {formatTime(row.time)}
+      </span>
+      <span className={cn('flex min-w-0 items-start gap-2', dimmed)}>
         {/* 弹幕颜色点带描边，白色和黑色弹幕在浅色、深色主题下都能辨认 */}
         <span
           aria-hidden
@@ -270,11 +286,33 @@ const DanmakuRow = memo(({ row, current, showSource }: DanmakuRowProps) => {
             {modeLabel}
           </span>
         )}
+        {row.blocked && (
+          // 悬停说明命中的是哪条规则或哪个类型，用来排查误伤；解除屏蔽统一在「弹幕屏蔽」里进行
+          <span
+            className="bg-muted text-muted-foreground shrink-0 rounded px-1 text-xs"
+            title={describeBlockHit(row.blocked)}
+          >
+            已屏蔽
+          </span>
+        )}
       </span>
       {showSource && (
-        <span className="text-muted-foreground truncate" title={row.sourceName}>
+        <span className={cn('text-muted-foreground truncate', dimmed)} title={row.sourceName}>
           {row.sourceName}
         </span>
+      )}
+      {blocked ? (
+        <span aria-hidden />
+      ) : (
+        <button
+          type="button"
+          title="屏蔽"
+          aria-label={`屏蔽弹幕：${row.text}`}
+          className="text-muted-foreground hover:bg-foreground/10 hover:text-foreground focus-visible:ring-ring invisible flex size-5 items-center justify-center rounded group-hover:visible focus-visible:visible focus-visible:ring-2 focus-visible:outline-none"
+          onClick={() => blockDanmakuByText(row.text, 'list')}
+        >
+          <span aria-hidden className="icon-[mingcute--forbid-circle-line] size-4" />
+        </button>
       )}
     </div>
   )

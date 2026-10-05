@@ -1,6 +1,8 @@
 import type { DanmakuEntry } from '@marchen/shared/danmaku'
 import { describe, expect, it } from 'vitest'
 
+import { createDanmakuBlocker } from '../danmaku/danmaku-block'
+import { createDefaultDanmakuBlockSettings } from '../danmaku/danmaku-block-settings'
 import { buildDanmakuList, filterDanmakuList, findCurrentRowIndex } from '../danmaku/danmaku-list'
 
 const comment = (cid: number, time: number, text: string, mode = 1, color = 16777215) => ({
@@ -69,7 +71,58 @@ describe('弹幕列表派生', () => {
   })
 
   it('没有来源时返回空列表', () => {
-    expect(buildDanmakuList(undefined, { simplified: false })).toEqual({ rows: [], sources: [] })
+    expect(buildDanmakuList(undefined, { simplified: false })).toEqual({
+      rows: [],
+      sources: [],
+      blockedCount: 0,
+    })
+  })
+})
+
+describe('弹幕列表屏蔽联动', () => {
+  const blockerWith = (patch: Partial<ReturnType<typeof createDefaultDanmakuBlockSettings>>) =>
+    createDanmakuBlocker({ ...createDefaultDanmakuBlockSettings(), ...patch })
+
+  it('标注被屏蔽的行并统计条数，未屏蔽的行不带标注', () => {
+    const { rows, blockedCount } = buildDanmakuList([autoEntry, linkEntry], {
+      simplified: false,
+      blocker: blockerWith({ rules: [{ type: 'keyword', pattern: '后来' }] }),
+    })
+    // 关键词是简体，繁转简显示关闭时仍命中繁体原文，且行文本保持原样
+    const blocked = rows.filter((row) => row.blocked)
+    expect(blocked.map((row) => row.text)).toEqual(['後來'])
+    expect(blocked[0].blocked).toEqual({
+      kind: 'rule',
+      rule: { type: 'keyword', pattern: '后来' },
+    })
+    expect(blockedCount).toBe(1)
+    expect(rows).toHaveLength(3)
+  })
+
+  it('按类型屏蔽时标注对应类型的行', () => {
+    const { rows, blockedCount } = buildDanmakuList([autoEntry, linkEntry], {
+      simplified: false,
+      blocker: blockerWith({ modes: { scroll: false, top: true, bottom: true } }),
+    })
+    expect(rows.filter((row) => row.blocked).map((row) => row.mode)).toEqual(['top', 'bottom'])
+    expect(blockedCount).toBe(2)
+  })
+
+  it('总开关关闭时不标注任何行', () => {
+    const { rows, blockedCount } = buildDanmakuList([autoEntry], {
+      simplified: false,
+      blocker: blockerWith({ enabled: false, rules: [{ type: 'keyword', pattern: 'hello' }] }),
+    })
+    expect(rows.some((row) => row.blocked)).toBe(false)
+    expect(blockedCount).toBe(0)
+  })
+
+  it('被屏蔽的行仍参与搜索与来源筛选', () => {
+    const { rows } = buildDanmakuList([autoEntry, linkEntry], {
+      simplified: false,
+      blocker: blockerWith({ rules: [{ type: 'keyword', pattern: 'hello' }] }),
+    })
+    expect(filterDanmakuList(rows, { keyword: 'hello' }).map((row) => row.text)).toEqual(['Hello'])
   })
 })
 

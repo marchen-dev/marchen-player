@@ -7,10 +7,12 @@
  */
 import type { DanmakuItem } from '@marchen/danmaku-engine'
 import type { DanmakuEntry } from '@marchen/shared/danmaku'
+import type { DanmakuBlocker, DanmakuBlockHit } from './danmaku-block'
 import { convertDandanplayComments } from '@marchen/danmaku-engine'
 import { mergeSources } from '@marchen/shared/danmaku'
 import { danmakuSourceName } from '@renderer/lib/danmaku'
 
+import { normalizeBlockText } from './danmaku-block'
 import { toSimplified } from './traditional-to-simplified'
 
 export interface DanmakuListSource {
@@ -25,19 +27,36 @@ export interface DanmakuListRow extends Pick<DanmakuItem, 'time' | 'text' | 'mod
   key: string
   sourceId: string
   sourceName: string
+  /** 被屏蔽时的命中信息；与屏幕使用同一个判定函数，结论一致 */
+  blocked?: DanmakuBlockHit
 }
 
 export interface DanmakuList {
   rows: DanmakuListRow[]
   sources: DanmakuListSource[]
+  /** rows 中被屏蔽的条数，口径与总条数相同（已勾选来源、应用偏移后实际在用的弹幕） */
+  blockedCount: number
 }
 
 export function buildDanmakuList(
   entries: readonly DanmakuEntry[] | undefined,
-  options: { simplified: boolean },
+  options: { simplified: boolean; blocker?: DanmakuBlocker | null },
 ): DanmakuList {
+  const { blocker } = options
   const sources: DanmakuListSource[] = []
   const rows: DanmakuListRow[] = []
+  let blockedCount = 0
+  // 弹幕大量重复，匹配用的归一化文本按原文缓存
+  const blockTexts = new Map<string, string>()
+  const judge = (item: DanmakuItem) => {
+    if (!blocker) return undefined
+    let text = blockTexts.get(item.text)
+    if (text === undefined) {
+      text = normalizeBlockText(item.text)
+      blockTexts.set(item.text, text)
+    }
+    return blocker({ text, mode: item.mode }) ?? undefined
+  }
 
   for (const entry of entries ?? []) {
     if (!entry.selected) continue
@@ -45,6 +64,8 @@ export function buildDanmakuList(
     const sourceName = danmakuSourceName(entry)
     sources.push({ id: entry.source, name: sourceName, count: items.length })
     for (const item of items) {
+      const blocked = judge(item)
+      if (blocked) blockedCount += 1
       rows.push({
         key: `${entry.source}:${item.id}`,
         time: item.time,
@@ -53,13 +74,14 @@ export function buildDanmakuList(
         color: item.color,
         sourceId: entry.source,
         sourceName,
+        ...(blocked && { blocked }),
       })
     }
   }
 
   // Array.prototype.sort 是稳定排序，同一时间点保持来源内的原有顺序
   rows.sort((left, right) => left.time - right.time)
-  return { rows, sources }
+  return { rows, sources, blockedCount }
 }
 
 export function filterDanmakuList(

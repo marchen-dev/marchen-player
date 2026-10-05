@@ -24,6 +24,11 @@ export class DanmakuEngineCore {
   private resetRevision = 0
   private peakActive = 0
   private dropped = 0
+  /**
+   * 不应出现的弹幕 id。引擎只认集合，不关心它由什么规则得出。
+   * 换弹幕（replaceItems）不会清空它：新旧 id 空间不同，由调用方在替换后重新下发。
+   */
+  private blockedIds: ReadonlySet<string> = new Set()
 
   constructor(
     private readonly clock: DanmakuClock,
@@ -56,6 +61,14 @@ export class DanmakuEngineCore {
 
   setRate(rate: number): void {
     this.playbackRate = Number.isFinite(rate) && rate > 0 ? rate : 1
+  }
+
+  /**
+   * 更新屏蔽集合。只影响之后的候选，不动时间线、不递增 revision，
+   * 在屏弹幕保持原位；已在屏且新被屏蔽的条目由渲染层按 id 调用 cancelItem 撤掉。
+   */
+  setBlockedIds(ids: ReadonlySet<string>): void {
+    this.blockedIds = ids
   }
 
   pauseItem(id: string): boolean {
@@ -113,7 +126,10 @@ export class DanmakuEngineCore {
     if (!this.playing || !this.config.enabled) return []
     const now = this.clock.now()
     this.allocator.prune(now)
-    return this.timeline.collect(now, this.config.lookAhead)
+    const items = this.timeline.collect(now, this.config.lookAhead)
+    // 在候选出口跳过：被屏蔽的弹幕不进入测量与放置，也就不占同屏数量名额，且不计入丢弃统计
+    if (this.blockedIds.size === 0) return items
+    return items.filter((item) => !this.blockedIds.has(item.id))
   }
 
   placeCandidates(candidates: ReadonlyArray<DanmakuMeasuredItem>): DanmakuPlacement[] {

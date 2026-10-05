@@ -9,6 +9,8 @@ import {
   usePlayerRuntime,
 } from '@renderer/services/player-runtime/context'
 import { createContext, use, useCallback, useEffect, useMemo, useRef } from 'react'
+import { blockDanmakuByText } from './block-danmaku-action'
+import { collectBlockedIds, createDanmakuBlocker, prepareBlockTexts } from './danmaku-block'
 import { DomDanmakuRenderer } from './dom-danmaku-renderer'
 import { convertDanmakuItemsToSimplified } from './traditional-to-simplified'
 
@@ -31,6 +33,7 @@ export const NativeDanmakuProvider = ({
     danmakuDuration,
     danmakuEndArea,
     danmakuFontSize,
+    danmakuBlock,
     danmakuMaxOnScreen,
     enableDanmaku,
     enableTraditionalToSimplified,
@@ -58,11 +61,25 @@ export const NativeDanmakuProvider = ({
     const converted = convertDandanplayComments(comments)
     return enableTraditionalToSimplified ? convertDanmakuItemsToSimplified(converted) : converted
   }, [comments, enableTraditionalToSimplified])
+  // 屏蔽只下发「哪些 id 不出现」，不改 items：规则变化不走 replaceItems，因此不清屏。
+  // 归一化文本只依赖弹幕本身，单独缓存；没有任何生效规则时整段跳过，不触发简繁字典初始化。
+  const blocker = useMemo(() => createDanmakuBlocker(danmakuBlock), [danmakuBlock])
+  const hasBlocker = blocker !== null
+  const blockTexts = useMemo(
+    () => (hasBlocker ? prepareBlockTexts(items) : []),
+    [hasBlocker, items],
+  )
+  const blockedIds = useMemo(
+    () => collectBlockedIds(items, blockTexts, blocker),
+    [blockTexts, blocker, items],
+  )
   const rendererRef = useRef<DomDanmakuRenderer | null>(null)
   const unregisterRef = useRef<(() => void) | null>(null)
   const itemsRef = useRef(items)
   const configRef = useRef(rendererConfig)
+  const blockedIdsRef = useRef(blockedIds)
   itemsRef.current = items
+  blockedIdsRef.current = blockedIds
   configRef.current = rendererConfig
 
   const surfaceRef = useCallback(
@@ -73,10 +90,13 @@ export const NativeDanmakuProvider = ({
       rendererRef.current = null
       if (!node) return
 
-      const renderer = new DomDanmakuRenderer(node, clock, configRef.current)
+      const renderer = new DomDanmakuRenderer(node, clock, configRef.current, {
+        onBlock: (text) => blockDanmakuByText(text, 'hover'),
+      })
       rendererRef.current = renderer
       unregisterRef.current = runtime.registerDisposer('danmaku', () => renderer.dispose())
       renderer.replaceItems(itemsRef.current, clock.now())
+      renderer.setBlockedIds(blockedIdsRef.current)
     },
     [clock, runtime],
   )
@@ -92,6 +112,11 @@ export const NativeDanmakuProvider = ({
   useEffect(() => {
     rendererRef.current?.replaceItems(items, clock.now())
   }, [clock, items])
+
+  // 必须声明在替换弹幕的 effect 之后：换弹幕时先换条目、再下发新的屏蔽集合
+  useEffect(() => {
+    rendererRef.current?.setBlockedIds(blockedIds)
+  }, [blockedIds])
 
   useEffect(() => {
     rendererRef.current?.updateConfig(rendererConfig)

@@ -64,6 +64,17 @@ FFmpeg/Gateway/media.generation 与 compat_fallback_triggered 为历史版本口
 - `feature_used(playback_history, action, value)`：`action` 为 `open` / `play` / `reveal` / `delete`，均不带 value。不包含文件名或路径。
 - 删除记录失败按 `player` 域的 `history.delete` 上报，在文件管理器中定位失败按 `ipc` 域的 `history.show_item_in_folder` 上报（已提示用户，标记为已恢复）。
 
+## 弹幕屏蔽事件
+
+- `feature_used(danmaku_block, action, value)`：
+  - `add_keyword` / `add_regex`：新增规则，`value` 为入口 `dialog`（管理弹窗）/ `hover`（画面悬停工具条）/ `list`（弹幕列表）。
+  - `undo`：撤销一次悬停或列表屏蔽，`value` 为对应入口。
+  - `remove_rule`、`enable` / `disable`（总开关）：不带 value。
+  - `mode_enable` / `mode_disable`：`value` 为 `scroll` / `top` / `bottom`。
+  - `open`：打开管理弹窗，`value` 为打开时本集已屏蔽的弹幕条数（总开关关闭时为 0）。
+- 规则内容与弹幕原文是高基数值，不进入事件属性。
+- **口径断点**：`feature_used(danmaku_copy, success | failed)` 的触发方式由"点击弹幕文字"改为"点击悬停工具条的复制图标"。复制需要先悬停约 150ms 再点图标，该变更上线前后的次数不可直接对比。
+
 下载状态由根级观察器订阅，与当前路由无关；首次快照仅建立基线，不重报历史完成任务。整个渲染窗口关闭期间的状态变化不补报，因此这些事件不能用作跨应用会话的完整下载账本。完成／失败等状态事件、停滞及远程导入结果使用现有离线 outbox。
 
 下载事件属性仅使用白名单枚举和数值，以保证聚合维度稳定；下载页、弹窗、目录设置和错误详情与其他页面一样参与 PostHog 自动采集与两端回放，不做屏蔽。开发环境仍遵循既有 `VITE_TELEMETRY_DEBUG` 开关，不为验收自动开启线上上报。

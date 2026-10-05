@@ -5,6 +5,10 @@ import {
   danmakuEndAreaList,
   danmakuFontSizeList,
 } from '@renderer/components/modules/settings/views/player/list'
+import {
+  createDefaultDanmakuBlockSettings,
+  normalizeDanmakuBlockSettings,
+} from '@renderer/services/player-runtime/danmaku/danmaku-block-settings'
 import { normalizeEnginePreference } from '@renderer/services/player-runtime/engine-policy'
 import { normalizeSubtitleScale } from '@renderer/services/player-runtime/subtitles/font-scale'
 import { useAtom, useAtomValue } from 'jotai'
@@ -28,6 +32,8 @@ const createPlayerDefaultSettings = () => {
     danmakuFontSize: getSelectedDefaultValue(danmakuFontSizeList) ?? '26',
     danmakuDuration: getSelectedDefaultValue(danmakuDurationList) ?? '15000',
     danmakuEndArea: getSelectedDefaultValue(danmakuEndAreaList)!,
+    // 全局屏蔽规则，对所有视频与弹幕来源生效；只影响显示，不改写缓存与 HISTORY 中的弹幕
+    danmakuBlock: createDefaultDanmakuBlockSettings(),
   }
 }
 
@@ -36,6 +42,7 @@ const playerSettingAtom = createSettingATom('player', createPlayerDefaultSetting
   ...settings,
   enginePreference: normalizeEnginePreference(settings?.enginePreference),
   subtitleScale: normalizeSubtitleScale(settings?.subtitleScale),
+  danmakuBlock: normalizeDanmakuBlockSettings(settings?.danmakuBlock),
 }))
 
 export { playerSettingAtom }

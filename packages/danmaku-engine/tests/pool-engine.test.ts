@@ -220,6 +220,84 @@ describe('danmaku engine commands', () => {
   })
 })
 
+describe('danmaku engine blocked ids', () => {
+  const item = (id: string, time: number): DanmakuItem => ({
+    id,
+    time,
+    text: id,
+    mode: 'scroll',
+    color: '#fff',
+  })
+  const createEngine = (now: () => number, maxOnScreen = 10) => {
+    const engine = new DanmakuEngineCore({ now }, () => ({ width: 20, height: 27 }), {
+      maxOnScreen,
+      lookAhead: 0,
+    })
+    engine.resize(500, 200)
+    engine.play()
+    return engine
+  }
+
+  it('被屏蔽的条目不产生放置，也不占用同屏名额或计入丢弃', () => {
+    const engine = createEngine(() => 0, 1)
+    engine.replaceItems([item('blocked', 0), item('kept', 0)], 0)
+    engine.setBlockedIds(new Set(['blocked']))
+
+    expect(engine.tick().map((placement) => placement.item.id)).toEqual(['kept'])
+    expect(engine.getDiagnostics()).toMatchObject({ active: 1, dropped: 0 })
+  })
+
+  it('更新屏蔽集合不清空在屏条目，也不递增 revision', () => {
+    let now = 0
+    const engine = createEngine(() => now)
+    engine.replaceItems([item('first', 0), item('later', 1)], 0)
+    expect(engine.tick().map((placement) => placement.item.id)).toEqual(['first'])
+    const revision = engine.revision
+
+    engine.setBlockedIds(new Set(['later']))
+    expect(engine.revision).toBe(revision)
+    expect(engine.activeCount).toBe(1)
+    expect(engine.getMotionSnapshot('first')).not.toBeNull()
+
+    now = 1
+    expect(engine.tick()).toEqual([])
+  })
+
+  it('在屏条目被屏蔽后由调用方撤掉，占用随之释放', () => {
+    const engine = createEngine(() => 0)
+    engine.replaceItems([item('first', 0)], 0)
+    engine.tick()
+    engine.setBlockedIds(new Set(['first']))
+    expect(engine.activeCount).toBe(1)
+
+    expect(engine.cancelItem('first')).toBe(true)
+    expect(engine.activeCount).toBe(0)
+  })
+
+  it('移除屏蔽后，尚未到达的条目正常出现，已错过的不补发', () => {
+    let now = 0
+    const engine = createEngine(() => now)
+    engine.replaceItems([item('missed', 0), item('upcoming', 2)], 0)
+    engine.setBlockedIds(new Set(['missed', 'upcoming']))
+    expect(engine.tick()).toEqual([])
+
+    engine.setBlockedIds(new Set())
+    now = 2
+    expect(engine.tick().map((placement) => placement.item.id)).toEqual(['upcoming'])
+  })
+
+  it('替换弹幕不会清空屏蔽集合，须由调用方重新下发', () => {
+    const engine = createEngine(() => 0)
+    engine.setBlockedIds(new Set(['same-id']))
+    engine.replaceItems([item('same-id', 0)], 0)
+    expect(engine.tick()).toEqual([])
+
+    engine.replaceItems([item('same-id', 0)], 0)
+    engine.setBlockedIds(new Set())
+    expect(engine.tick().map((placement) => placement.item.id)).toEqual(['same-id'])
+  })
+})
+
 it('迟到弹幕的轨道起点与此刻启动的视觉动画一致', () => {
   const engine = new DanmakuEngineCore({ now: () => 1.2 }, () => ({ width: 80, height: 27 }))
   engine.resize(500, 200)

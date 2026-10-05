@@ -10,10 +10,16 @@ import type { PlaybackClock } from '@marchen/playback-core'
 import { DanmakuEngineCore, DanmakuNodePool } from '@marchen/danmaku-engine'
 import { toast } from '@renderer/components/ui/toast/use-toast'
 import { captureFeatureUsed } from '@renderer/services/telemetry/features'
+import { DanmakuHoverToolbar } from './hover-toolbar'
 
 export interface DomDanmakuConfig extends Partial<DanmakuConfig> {
   hoverPause?: boolean
   opacity?: number
+}
+
+export interface DomDanmakuRendererOptions {
+  /** 用户在悬停工具条上点了「屏蔽」；渲染器不接触设置，只把弹幕文本交给调用方 */
+  onBlock?: (text: string) => void
 }
 
 interface ActiveAnimation {
@@ -36,6 +42,7 @@ export class DomDanmakuRenderer {
   private readonly animations = new Map<string, ActiveAnimation>()
   private readonly hoverPaused = new Set<string>()
   private readonly measurementLayer: HTMLDivElement
+  private readonly hoverToolbar: DanmakuHoverToolbar
   private readonly metricsCache = new Map<string, DanmakuMetrics>()
   private readonly resizeObserver: ResizeObserver
   private frameId: number | null = null
@@ -51,12 +58,22 @@ export class DomDanmakuRenderer {
     private readonly container: HTMLElement,
     clock: PlaybackClock,
     config: DomDanmakuConfig = {},
+    private readonly options: DomDanmakuRendererOptions = {},
   ) {
     this.config = config
     this.engine = new DanmakuEngineCore(clock, undefined, config)
     this.pool = new DanmakuNodePool(240, createDanmakuNode, resetNode)
     this.measurementLayer = createMeasurementLayer()
     this.container.append(this.measurementLayer)
+    this.hoverToolbar = new DanmakuHoverToolbar(container, {
+      onCopy: (id) => this.copyText(this.animations.get(id)?.node.textContent ?? ''),
+      onBlock: (id) => {
+        const text = this.animations.get(id)?.node.textContent
+        // 规则生效后该弹幕会经 setBlockedIds 被撤掉，工具条随之隐藏
+        if (text) this.options.onBlock?.(text)
+      },
+      onLeave: (id) => this.endHover(id),
+    })
     this.applyOpacity(config.opacity)
     this.resizeObserver = new ResizeObserver(() => this.scheduleResize())
     this.resizeObserver.observe(container)
@@ -74,6 +91,19 @@ export class DomDanmakuRenderer {
     this.clearNodes()
     this.engine.replaceItems(items, currentTime)
     this.lastRevision = this.engine.revision
+    this.refreshDiagnostics()
+  }
+
+  /**
+   * 更新屏蔽集合：之后的候选由引擎跳过，已在屏的命中条目只撤掉它们自己，
+   * 其余弹幕不清屏、不重排。换弹幕后需要重新调用。
+   */
+  setBlockedIds(ids: ReadonlySet<string>): void {
+    this.engine.setBlockedIds(ids)
+    if (ids.size === 0) return
+    for (const id of [...this.animations.keys()]) {
+      if (ids.has(id)) this.releaseNode(id)
+    }
     this.refreshDiagnostics()
   }
 
@@ -158,6 +188,7 @@ export class DomDanmakuRenderer {
     if (this.resizeFrameId !== null) cancelAnimationFrame(this.resizeFrameId)
     this.resizeObserver.disconnect()
     this.clearNodes()
+    this.hoverToolbar.dispose()
     this.measurementLayer.remove()
   }
 
@@ -265,6 +296,7 @@ export class DomDanmakuRenderer {
     if (!active) return
     this.animations.delete(id)
     this.hoverPaused.delete(id)
+    this.hoverToolbar.release(id)
     if (completed) this.engine.completeItem(id)
     else this.engine.cancelItem(id)
     active.animation.cancel()
@@ -279,39 +311,51 @@ export class DomDanmakuRenderer {
       this.engine.resumeItem(id)
       if (this.playing) active.animation.play()
     }
-    active.node.title = '点击复制弹幕'
-    active.node.onmouseenter = () => {
-      if (this.config.hoverPause) {
+    active.node.onmouseenter = (event) => {
+      if (!this.config.hoverPause) return
+      // 从工具条回到文字上时这条弹幕仍处于暂停，不重复暂停
+      if (!this.hoverPaused.has(id)) {
         this.engine.pauseItem(id)
         this.hoverPaused.add(id)
         active.animation.pause()
       }
+      this.hoverToolbar.attach(id, active.node, event.clientX)
     }
-    active.node.onmouseleave = () => {
-      active.node.title = '点击复制弹幕'
-      if (this.hoverPaused.delete(id)) {
-        this.engine.resumeItem(id)
-        if (this.playing) active.animation.play()
-      }
+    // 工具条出现在鼠标正下方：驻留期间持续记录鼠标位置
+    active.node.onmousemove = (event) => this.hoverToolbar.track(id, event.clientX)
+    active.node.onmouseleave = (event) => {
+      // 工具条属于悬停区域：鼠标从文字移到工具条上时保持暂停
+      if (this.hoverToolbar.contains(event.relatedTarget)) return
+      this.endHover(id)
     }
-    // 点击文字只复制，避免冒泡触发播放器的暂停或双击全屏。
+    // 复制与屏蔽都在悬停工具条上完成，文字本身不响应点击；
+    // 只拦截冒泡，保证单击、双击文字不会触发播放器的任何手势。
     active.node.ondblclick = (event) => event.stopPropagation()
-    active.node.onclick = (event) => {
-      event.stopPropagation()
-      const text = active.node.textContent ?? ''
-      void (navigator.clipboard?.writeText(text) ?? Promise.reject(new Error('剪贴板不可用'))).then(
-        () => {
-          captureFeatureUsed('danmaku_copy', 'success')
-          if (!this.destroyed) toast({ title: '已复制弹幕', duration: 1500 })
-        },
-        () => {
-          if (!this.destroyed) {
-            captureFeatureUsed('danmaku_copy', 'failed')
-            toast({ title: '复制失败，请重试', variant: 'destructive', duration: 3000 })
-          }
-        },
-      )
-    }
+    active.node.onclick = (event) => event.stopPropagation()
+  }
+
+  /** 结束一条弹幕的悬停：收起工具条并恢复运动 */
+  private endHover(id: string): void {
+    this.hoverToolbar.release(id)
+    if (!this.hoverPaused.delete(id)) return
+    this.engine.resumeItem(id)
+    const active = this.animations.get(id)
+    if (active && this.playing) active.animation.play()
+  }
+
+  private copyText(text: string): void {
+    void (navigator.clipboard?.writeText(text) ?? Promise.reject(new Error('剪贴板不可用'))).then(
+      () => {
+        captureFeatureUsed('danmaku_copy', 'success')
+        if (!this.destroyed) toast({ title: '已复制弹幕', duration: 1500 })
+      },
+      () => {
+        if (!this.destroyed) {
+          captureFeatureUsed('danmaku_copy', 'failed')
+          toast({ title: '复制失败，请重试', variant: 'destructive', duration: 3000 })
+        }
+      },
+    )
   }
 
   private releaseUnplacedNode(node: HTMLSpanElement): void {
@@ -321,6 +365,7 @@ export class DomDanmakuRenderer {
 
   private clearNodes(): void {
     for (const id of [...this.animations.keys()]) this.releaseNode(id)
+    this.hoverToolbar.hide()
     this.pool.releaseAll()
   }
 
@@ -508,9 +553,9 @@ export const requiresDanmakuLayoutReset = (previous: DomDanmakuConfig, next: Dom
 const resetNode = (node: HTMLSpanElement) => {
   node.onmouseenter = null
   node.onmouseleave = null
+  node.onmousemove = null
   node.onclick = null
   node.ondblclick = null
-  node.removeAttribute('title')
   node.textContent = ''
   node.className = ''
   node.removeAttribute('style')

@@ -3,6 +3,7 @@ import { memo } from 'react'
 
 import { DanmakuSourceProvider } from '../../danmaku-source-context'
 import { AddDanmaku } from './AddDanmaku'
+import { DanmakuBlock } from './block/DanmakuBlockDialog'
 import { DanmakuSource } from './DanmakuSource'
 import { DanmakuList } from './list/DanmakuListDialog'
 import { MatchInfo } from './MatchInfo'
@@ -15,6 +16,7 @@ export const Danmaku = memo(() => {
         <DanmakuSourceProvider>
           <DanmakuSource />
           <DanmakuList />
+          <DanmakuBlock />
           <AddDanmaku />
         </DanmakuSourceProvider>
       </DanmakuSetting>
