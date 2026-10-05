@@ -24,7 +24,7 @@ export const AboutView = () => {
         <SettingsGroup>
           <div className="flex min-h-28 items-center justify-between gap-6 p-4">
             <div className="flex min-w-0 items-center gap-4">
-              <Logo round clasNames={{ wrapper: 'size-16 shrink-0 border' }} />
+              <Logo className="size-16 shrink-0" />
               <div className="min-w-0">
                 <h3 className="text-base font-semibold">Marchen Player</h3>
                 <p className="mt-1 text-sm text-[var(--settings-muted)]">当前版本 {version}</p>
