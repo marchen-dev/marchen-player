@@ -264,7 +264,7 @@ const DanmakuRow = memo(({ row, current, showSource }: DanmakuRowProps) => {
     <div
       aria-current={current || undefined}
       className={cn(
-        'group grid items-start gap-3 border-b px-4 py-2 leading-5',
+        'group border-border/50 grid items-start gap-3 border-b px-4 py-2 leading-5',
         rowGridClassName(showSource),
         current && 'bg-accent shadow-[inset_2px_0_0_var(--color-primary)]',
       )}

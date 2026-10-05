@@ -55,6 +55,62 @@
   pointer-events: auto;
 }
 
+/*
+ * 播放器弹层色板：播放器内所有弹窗、下拉、提示都挂在这个节点下，
+ * 在此局部重定义应用色板变量，里面的弹层自动换肤，不必逐个组件覆盖样式。
+ * 固定为深色（节点同时带 dark 类），与设置侧栏一致，不跟随应用 light/dark 主题。
+ *
+ * 取值思路参照 Infuse：面板是深灰而不是黑（应用深色主题的 3.9% 压在视频上是一整块纯黑），
+ * 层次靠「比面板亮一档的填充」表达，而不是在暗底上画更暗的线。
+ */
+[data-player-portal-root] {
+  --background: 240 3% 11%;
+  --foreground: 240 6% 93%;
+  --card: 240 3% 11%;
+  --card-foreground: 240 6% 93%;
+  --popover: 240 3% 14%;
+  --popover-foreground: 240 6% 93%;
+  --secondary: 240 2% 20%;
+  --secondary-foreground: 240 6% 93%;
+  --muted: 240 2% 17%;
+  --muted-foreground: 240 4% 62%;
+  --accent: 240 2% 21%;
+  --accent-foreground: 240 6% 96%;
+  --border: 240 2% 22%;
+  --input: 240 2% 22%;
+  --ring: 211 100% 60%;
+  /* 应用深色主题的错误色偏暗，只适合做底色；这里还要当文字用 */
+  --destructive: 0 72% 60%;
+  /* 弹层内容没有显式文字颜色时继承这里，避免浅色主题下从 body 继承到深色文字 */
+  color: hsl(var(--foreground));
+}
+
+/* 视频是主体：遮罩只轻微压暗，把弹窗从画面里托出来即可，不把画面压成一片黑。 */
+[data-player-portal-root] [data-dialog-overlay] {
+  background-color: rgb(0 0 0 / 30%);
+}
+
+/* 只针对居中弹窗：设置侧栏（Sheet）和侧栏里的 Popover 同样是 role=dialog，但各有自己的材质。 */
+[data-player-portal-root] [data-dialog-content] {
+  border-color: hsl(var(--border) / 60%);
+  border-radius: 1rem;
+  box-shadow:
+    0 24px 70px rgb(0 0 0 / 45%),
+    0 2px 10px rgb(0 0 0 / 25%);
+
+  /* 输入框用亮一档的填充表达层级，不再靠描边 */
+  & :is(input, textarea) {
+    background-color: hsl(var(--muted));
+    border-color: transparent;
+  }
+
+  /* 焦点环收成一条细线：弹窗打开即聚焦搜索框时，粗的亮蓝环是面板上最刺眼的元素 */
+  & :is(input, textarea):focus-visible {
+    border-color: hsl(var(--ring) / 55%);
+    box-shadow: 0 0 0 1px hsl(var(--ring) / 55%);
+  }
+}
+
 [data-player-settings-panel] > button[aria-label],
 [data-player-settings-panel] > button:has(.sr-only) {
   color: var(--player-settings-muted);

@@ -13,7 +13,8 @@ export const PlayerPortalRoot = ({ children }: PropsWithChildren) => {
       <div
         ref={setContainer}
         data-player-portal-root
-        className="pointer-events-none absolute inset-0 z-50"
+        // dark 类让弹层内的 dark: 变体始终生效；具体色板在 player.css 中按本节点局部重定义
+        className="dark pointer-events-none absolute inset-0 z-50"
       />
     </PlayerPortalContext>
   )

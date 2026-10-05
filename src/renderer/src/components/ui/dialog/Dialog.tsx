@@ -21,6 +21,8 @@ const DialogOverlay = ({
 }) => (
   <DialogPrimitive.Overlay
     ref={ref}
+    // 供局部场景（如播放器弹层）按属性调整遮罩，不必改动共用的遮罩 token
+    data-dialog-overlay=""
     className={cn(
       'fixed inset-0 z-(--z-dialog) !cursor-default',
       DIALOG_OVERLAY_CLASS_NAME,
@@ -48,6 +50,8 @@ const DialogContent = ({
     <DialogOverlay />
     <DialogPrimitive.Content
       ref={ref}
+      // 与遮罩相同：供局部场景按属性调整面板材质，且不会误伤同为 role=dialog 的 Sheet、Popover
+      data-dialog-content=""
       className={cn(
         'fixed top-[50%] left-[50%] z-(--z-dialog) grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] cursor-default gap-4',
         // 实心面板保证表单可读性；柔和大阴影替代硬边框，突出层级

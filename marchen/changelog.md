@@ -65,4 +65,5 @@
 - 2026-10-03: [client-danmaku-t2s](./archive/2026-10-03-client-danmaku-t2s/) — 弹幕繁体转简体改为客户端 OpenCC 字形转换并恢复播放器侧栏开关，覆盖全部弹幕来源，移除服务端 chConvert 与 SettingsReader
 - 2026-10-04: [add-danmaku-list-dialog](./archive/2026-10-04-add-danmaku-list-dialog/) — 弹幕 tab 新增弹幕列表入口与弹窗，支持搜索、来源筛选和定位当前播放位置，虚拟滚动展示全部弹幕
 - 2026-10-05: [add-playback-history](./archive/2026-10-05-add-playback-history/) — 新增播放记录弹窗：按文件列出最近播放（含未匹配视频），播放器空态加入口按钮，支持续播与删除并清理影视库关联
+- 2026-10-05: [soften-player-dialog-surface](./archive/2026-10-05-soften-player-dialog-surface/) — 播放器弹层改用固定深色的局部色板：面板由近黑提亮为深灰、内层用填充分层、遮罩压暗降到三成，并柔化焦点环与强调色
 - 2026-10-05: [add-danmaku-blocking](./archive/2026-10-05-add-danmaku-blocking/) — 新增全局弹幕屏蔽：关键词、正则与类型规则及管理弹窗，画面悬停工具条承载复制与屏蔽，规则变化不清屏，弹幕列表联动
