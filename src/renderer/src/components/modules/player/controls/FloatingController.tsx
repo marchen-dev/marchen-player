@@ -3,7 +3,16 @@ import type { KeyboardEvent, PointerEvent, ReactNode } from 'react'
 import { usePlayerSettings } from '@renderer/atoms/settings/player'
 import { cn } from '@renderer/lib/utils'
 import { m, useDragControls, useMotionValue } from 'framer-motion'
-import { createContext, use, useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import {
+  createContext,
+  use,
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react'
 import { canStartControllerDrag } from './controller-drag'
 import { resolveControllerPosition, withControllerPosition } from './controller-position'
 
@@ -61,6 +70,17 @@ export const FloatingController = ({
   const [bounds, setBounds] = useState<SafeBounds>({ left: 16, right: 16, top: 56, bottom: 16 })
   const [positioned, setPositioned] = useState(false)
 
+  useEffect(() => {
+    const cancelDrag = () => {
+      // 窗口失焦时可能收不到松开事件，主动取消手势并释放自动隐藏的交互锁。
+      dragControls.cancel()
+      onDraggingChange?.(false)
+      onHoverChange?.(false)
+    }
+    window.addEventListener('blur', cancelDrag)
+    return () => window.removeEventListener('blur', cancelDrag)
+  }, [dragControls, onDraggingChange, onHoverChange])
+
   const reportRect = useCallback(() => {
     const rect = controllerRef.current?.getBoundingClientRect()
     onRectChange?.(visible && rect && rect.width > 0 && rect.height > 0 ? rect : null)
@@ -100,7 +120,7 @@ export const FloatingController = ({
 
   const startDrag = (event: PointerEvent<HTMLElement>) => {
     if (event.button !== 0) return
-    onDraggingChange?.(true)
+    // 按下仅启动手势检测；未达到移动门槛的点击不会收到 onDragEnd。
     dragControls.start(event)
   }
 
@@ -190,6 +210,7 @@ export const FloatingController = ({
         dragElastic={0}
         dragMomentum={false}
         dragConstraints={bounds}
+        onDragStart={() => onDraggingChange?.(true)}
         onDrag={reportRect}
         onDragEnd={persistPosition}
         onPointerDown={startDragFromSurface}

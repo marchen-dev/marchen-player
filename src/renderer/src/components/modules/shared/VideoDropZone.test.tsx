@@ -36,7 +36,7 @@ describe('通用视频拖拽区域', () => {
 
     expect(playerSource).toContain('<VideoDropZone')
     expect(playerSource).toContain('active={!preparedVideo}')
-    expect(playerSource).toContain('点击或拖拽动漫到此处播放')
+    expect(playerSource).toContain('点击或拖拽视频到此处播放')
     expect(librarySource).toContain('<VideoDropZone')
     expect(librarySource).toContain('active={selectedAnime == null}')
     expect(librarySource).toContain('navigate(RouteName.PLAYER)')

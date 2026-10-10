@@ -190,6 +190,6 @@ const DragTips: FC<{ onClick: () => void }> = ({ onClick }) => (
     onClick={onClick}
   >
     <i aria-hidden="true" className="icon-[mingcute--video-line] text-6xl" />
-    <p className="text-xl select-none">点击或拖拽动漫到此处播放</p>
+    <p className="text-xl select-none">点击或拖拽视频到此处播放</p>
   </button>
 )

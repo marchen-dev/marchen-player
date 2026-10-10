@@ -314,13 +314,9 @@ export const PlayerControls = ({
           onRotationChange={onRotationChange ?? (() => {})}
         />
         {enableMiniProgress && playing && !visible && duration > 0 && (
-          <div
-            data-player-mini-progress
-            aria-hidden
-            className="absolute inset-x-0 bottom-0 h-0.5"
-          >
+          <div data-player-mini-progress aria-hidden className="absolute inset-x-0 bottom-0 h-0.5">
             <span
-              className="block h-full bg-[#93bce8]/65"
+              className="block h-full bg-[#60a5fa]"
               style={{ width: `${Math.min(100, Math.max(0, (currentTime / duration) * 100))}%` }}
             />
           </div>
