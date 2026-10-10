@@ -3,35 +3,35 @@
   <channel>
     <title>Marchen</title>
     <item>
-      <title>1.0.4</title>
-      <pubDate>Mon, 05 Oct 2026 10:33:20 +0000</pubDate>
-      <sparkle:version>1.0.4</sparkle:version>
-      <sparkle:shortVersionString>1.0.4</sparkle:shortVersionString>
+      <title>1.0.5</title>
+      <pubDate>Sat, 10 Oct 2026 12:22:59 +0000</pubDate>
+      <sparkle:version>1.0.5</sparkle:version>
+      <sparkle:shortVersionString>1.0.5</sparkle:shortVersionString>
       <sparkle:minimumSystemVersion>13.0.0</sparkle:minimumSystemVersion>
       <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
-      <description sparkle:format="markdown"># Marchen 1.0.4
+      <description sparkle:format="markdown"># Marchen 1.0.5
 
-## 弹幕
+## 网络
 
-- 新增弹幕列表，可搜索弹幕内容、按来源筛选，并查看已屏蔽的弹幕。
-- 新增弹幕屏蔽，支持关键词、正则表达式和按弹幕类型屏蔽，规则对所有视频生效。
-- 悬停弹幕时显示复制、屏蔽工具条，也可直接在弹幕列表中添加屏蔽规则。
+- 新增 API 备用线路，自动模式下请求失败时尝试切换，提高匹配和弹幕加载的可用性。
+- 通用设置新增 API 线路选择，支持自动、Cloudflare 和 EdgeOne，并显示当前线路。
+- 在线体验地址更新为 https://marchen.suemor.com/。
 
-## 播放记录
+## 播放
 
-- 播放器首页新增播放记录入口，可查看最近播放的视频，包括未匹配到弹幕的视频。
-- 支持继续播放、在文件管理器中显示文件，以及删除播放记录。
+- 修复点击控制栏空白区域后，控制栏无法自动隐藏的问题。
+- 提高底部细进度条的颜色对比度。
 
 ## 界面
 
-- 更换应用图标，采用白色底板与青蓝色播放、弹幕元素。
-- 播放器内的弹窗和提示统一使用深色色板，改善浅色主题下的观看体验。
-- 调整弹幕导入区域的文字行距与输入框间距。
+- 调浅弹幕加载步骤的已完成状态配色。
+- 将通用设置中的外观分组移至播放上方，简化线路状态说明。
+- 播放器首页提示改为“点击或拖拽视频到此处播放”。
 </description>
-      <enclosure url="https://github.com/marchen-dev/marchen-player/releases/download/v1.0.4/Marchen-1.0.4-arm64.zip" length="199497960" type="application/octet-stream" sparkle:edSignature="E8QSLhsZaFaQmhBQ6runthHUdEWLg4ZccjksexQ9H++9dPjUYMWbXE85gTE3V8lLYhKkR9/LP/2ol+WrZ2vKDw=="/>
+      <enclosure url="https://github.com/marchen-dev/marchen-player/releases/download/v1.0.5/Marchen-1.0.5-arm64.zip" length="199563263" type="application/octet-stream" sparkle:edSignature="bLygyebNRjU4ZhEaDflxUgNQDVvwD47AniCsl5xUqFFc87PyMoCVWmgnVllqB4OEa9gVf0E6xl9Wvv9NuWldBg=="/>
       <sparkle:deltas>
-        <enclosure url="https://github.com/marchen-dev/marchen-player/releases/download/v1.0.4/Marchen1.0.4-1.0.3.delta" sparkle:deltaFrom="1.0.3" length="385442" type="application/octet-stream" sparkle:deltaFromSparkleExecutableSize="976240" sparkle:deltaFromSparkleLocales="de,he,ar,el,ja,fa,uk" sparkle:edSignature="LaFY44ey1ArwKpC6Gbqf9FaxsHK3J4BO+2TeIgPCgcK+ylqcfF1yDlGinzPTMENrznqSYQWDqYS+6Vc/6PP2DQ=="/>
-        <enclosure url="https://github.com/marchen-dev/marchen-player/releases/download/v1.0.4/Marchen1.0.4-1.0.2.delta" sparkle:deltaFrom="1.0.2" length="402942" type="application/octet-stream" sparkle:deltaFromSparkleExecutableSize="976240" sparkle:deltaFromSparkleLocales="de,he,ar,el,ja,fa,uk" sparkle:edSignature="Uqg/eOyH1xnaTxttjxy6KpufdQKIiwWj3sYNkXXOznLBTUhWfq9mEkcmWuiMCHAsxb4dBrFY4OHrVR7xF++2Aw=="/>
+        <enclosure url="https://github.com/marchen-dev/marchen-player/releases/download/v1.0.5/Marchen1.0.5-1.0.4.delta" sparkle:deltaFrom="1.0.4" length="67226" type="application/octet-stream" sparkle:deltaFromSparkleExecutableSize="976240" sparkle:deltaFromSparkleLocales="de,he,ar,el,ja,fa,uk" sparkle:edSignature="DsnU8Kd181jDkRpvUMGtmBhJJMl940lsTRxHbm+XkOci4RwO7i4rnZ0GULBNjrcjJmII3sbHB7fBvsvyv+zGDA=="/>
+        <enclosure url="https://github.com/marchen-dev/marchen-player/releases/download/v1.0.5/Marchen1.0.5-1.0.3.delta" sparkle:deltaFrom="1.0.3" length="425538" type="application/octet-stream" sparkle:deltaFromSparkleExecutableSize="976240" sparkle:deltaFromSparkleLocales="de,he,ar,el,ja,fa,uk" sparkle:edSignature="vl5DipX3nvsXwMKY2bYDxPElit9zdjW0eDuydKuwJ64KG5bPP3vo0nW7TxfCkvpFLMrYyRQFGOf+uHjNIPkoBw=="/>
       </sparkle:deltas>
     </item>
   </channel>
