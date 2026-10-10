@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict'
 import { spawnSync } from 'node:child_process'
 import { readFileSync } from 'node:fs'
-import { it, vi } from 'vitest'
+import { it } from 'vitest'
+import { readApiRouteConfig } from '../../src/renderer/src/request/api-route-config.ts'
 
 it('缺少正式配置时在构建和上传之前失败，不输出秘密值', () => {
   const env = { ...process.env, SENTRY_AUTH_TOKEN: 'test-secret-never-print', VITE_SENTRY_DSN: '', VITE_POSTHOG_KEY: '' }
@@ -18,26 +19,19 @@ it('edgeOne 只发布 out/web，所有资源声明相同 COEP，HashRouter 不�
   assert.ok(config.headers.find(rule => rule.source === '/*').headers.some(header => header.key === 'Cross-Origin-Embedder-Policy' && header.value === 'credentialless'))
 })
 
-it('web 与 Electron 均直连配置的 API 地址', async () => {
-  vi.stubEnv('DEV', false)
-  vi.stubEnv('VITE_API_URL', 'https://dandan-proxy.suemor.com/api/v2')
-  try {
-    for (const electron of [undefined, {}]) {
-      vi.stubGlobal('window', { electron })
-      vi.resetModules()
-      const { API_URL } = await import('../../src/renderer/src/lib/env.ts')
-      assert.equal(API_URL, 'https://dandan-proxy.suemor.com/api/v2')
+it('两端读取主备环境变量，地址不再写死在请求策略中', () => {
+  const source = readFileSync('src/renderer/src/request/api-route-client.ts', 'utf8')
+  assert.ok(!source.includes('dandan-proxy.suemor'))
+  assert.ok(readFileSync('src/renderer/src/lib/env.ts', 'utf8').includes('readApiRouteConfig(import.meta.env)'))
+})
+
+it('两条线路都必填，合法 HTTPS 地址保留对应身份并移除末尾斜杠', () => {
+  const config = { VITE_API_CLOUDFLARE_URL: ' https://cf.example.com/api/v2/ ', VITE_API_EDGEONE_URL: 'https://eo.example.com/api/v2' }
+  assert.deepEqual(readApiRouteConfig(config), { cloudflare: 'https://cf.example.com/api/v2', edgeone: 'https://eo.example.com/api/v2' })
+  for (const key of Object.keys(config)) {
+    assert.throws(() => readApiRouteConfig({ ...config, [key]: '' }), new RegExp(key))
+    for (const value of ['bad-url', 'http://insecure.example.com/api/v2', 'https://example.com/api/v2?x=1', 'https://example.com/api/v2#x']) {
+      assert.throws(() => readApiRouteConfig({ ...config, [key]: value }), new RegExp(key))
     }
-    vi.stubEnv('DEV', true)
-    vi.stubGlobal('window', {})
-    vi.resetModules()
-    assert.equal((await import('../../src/renderer/src/lib/env.ts')).API_URL, '/api/v2')
-    vi.stubGlobal('window', { electron: {} })
-    vi.resetModules()
-    assert.equal((await import('../../src/renderer/src/lib/env.ts')).API_URL, 'https://dandan-proxy.suemor.com/api/v2')
-  } finally {
-    vi.unstubAllGlobals()
-    vi.unstubAllEnvs()
-    vi.resetModules()
   }
 })

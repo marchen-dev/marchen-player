@@ -38,7 +38,7 @@ try {
       <header><img src="data:image/png;base64,${logo}" />开源动漫弹幕播放器</header>
       <h1>Marchen Player</h1><p>本地视频 · 弹幕 · 字幕</p>
       <img class="logo" src="data:image/png;base64,${logo}" />
-      <footer><span>Web / macOS / Windows</span><span>marchen-play.suemor.com</span></footer>
+      <footer><span>Web / macOS / Windows</span><span>marchen.suemor.com</span></footer>
     </main></body></html>`)
   await page.evaluate(() => document.fonts.ready)
   await page

@@ -10,7 +10,7 @@
 </p>
 
 <p align="center">
-  <a href="https://marchen-play.suemor.com">在线体验</a> | <a href="https://github.com/marchen-dev/marchen-player/releases/latest">下载客户端</a>
+  <a href="https://marchen.suemor.com">在线体验</a> | <a href="https://github.com/marchen-dev/marchen-player/releases/latest">下载客户端</a>
 </p>
 
 ## ✨ 特征

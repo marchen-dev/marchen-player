@@ -102,3 +102,13 @@ Web 端不持久化日志，只在内存保留最近 2000 条，刷新即清空�
 - **已验证**：Electron 发送的 feedback 附件显示在 User Feedback 详情中并可下载。
 - **垃圾识别**：Sentry 默认会把疑似无意义的反馈（如测试文本）自动归入 Spam，排查时注意查看 Spam 分栏，或在项目 User Feedback 设置中关闭。
 - **待核实**：Web 端发送、附件额度与服务端 Data Scrubber 对附件内容的影响。
+
+### API 主备线路与请求口径
+
+- API 线路身份固定为 Cloudflare 主、EdgeOne 备，具体地址由 `VITE_API_CLOUDFLARE_URL` / `VITE_API_EDGEONE_URL` 构建变量提供（默认示例为 `.cc` / `.com`）。设置模式为 `auto/cloudflare/edgeone`，用户选择复用 `feature_used`（`feature=api_route, action=change, value=<mode>`）；读取或恢复设置不计为用户点击。
+- `api_route_changed` 记录实际优先线路变化，原因是 `manual/failover/primary_recovered/cooldown_expired`。冷却结束仅恢复主线路优先级，不表示主线路已验证恢复，也不主动发请求。
+- `api_request_completed` 每一轮 API 请求只发送一次，包含 `request_id`、可取得的加载 `operation_id`、接口类别、模式、首选与最终线路、最终结果、总耗时、尝试次数和 `recovered`。`attempts` 保存每次尝试的 `attempt_id`、线路、结果、耗时、HTTP 状态和稳定错误码。两类事件加入关键事件 outbox。
+- 网络失败、超时、408 和 5xx 才可降级。自动模式每个域名最多尝试一次；匹配 POST 明确允许重放，其他写请求不自动重放。Cloudflare 单次超时 8 秒、EdgeOne 10 秒；用户取消整条链路，结果为 `cancelled`，不计入线路故障。
+- HTTP 200 的业务失败不触发切换，结果标记 `business_error`；无匹配或零弹幕是有效业务返回。浏览器不暴露状态的网络错误仅记 `network_error`，不猜测 CORS、DNS 或 TLS 原因。
+- 备用恢复成功只记录恢复警告与 breadcrumb，不创建 Sentry 异常；最终传输失败在请求层显式上报一次，并保留既有加载流程的可恢复错误 UI。最终失败的同一错误不会再被 TanStack Query 自动重试。用户主动重试属于新一轮请求。
+- 产品聚合字段采用固定枚举；完整请求 URL 与错误明细仍可在异常 context 中查看，遵循现有不脱敏策略。遥测故障不得影响请求与切换。

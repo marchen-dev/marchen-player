@@ -16,7 +16,7 @@
 | 变量 | 用途 |
 | --- | --- |
 | MARCHEN_DEPLOY_ENV | 必填 preview 或 production，须与控制台目标环境一致 |
-| VITE_API_URL | `https://dandan-proxy.suemor.com/api/v2`，Web 与 Electron 直连的 API 基址 |
+| VITE_API_CLOUDFLARE_URL / VITE_API_EDGEONE_URL | 两条 API 基址，分别为 `https://dandan-proxy.suemor.cc/api/v2` / `https://dandan-proxy.suemor.com/api/v2`；都必填，须为有效 HTTPS 地址 |
 | VITE_SENTRY_DSN | 客户端 Sentry 项目配置 |
 | VITE_POSTHOG_KEY / VITE_POSTHOG_HOST | 产品事件采集；Web 的 HOST 填 PostHog 托管反向代理 `https://t.suemor.com`（CNAME 至 proxyhog，规避广告拦截），Electron 发行仍用 GitHub Secrets 中的官方地址 |
 | SENTRY_AUTH_TOKEN / SENTRY_ORG / SENTRY_PROJECT | 构建期 Source Map 上传；禁止添加 VITE_ 前缀 |
@@ -27,10 +27,10 @@ release 为 `Marchen@版本+完整提交SHA`；生产 environment=production、d
 
 ## API 与资源
 
-- 共享 HTML 提供品牌元信息和分享卡片，正式地址固定为 `https://marchen-play.suemor.com/`。仅 `MARCHEN_DEPLOY_ENV=production` 的 Web 构建允许索引，preview 和未声明环境会注入 `noindex`；发布前核对 HTML，避免把预览产物直接复用到生产。不要用 robots.txt 阻止抓取这些页面，否则搜索引擎无法读取 noindex。
+- 共享 HTML 提供品牌元信息和分享卡片，正式地址固定为 `https://marchen.suemor.com/`。仅 `MARCHEN_DEPLOY_ENV=production` 的 Web 构建允许索引，preview 和未声明环境会注入 `noindex`；发布前核对 HTML，避免把预览产物直接复用到生产。不要用 robots.txt 阻止抓取这些页面，否则搜索引擎无法读取 noindex。
 - 分享封面为 `src/renderer/public/og-image.png`（1200×630），修改品牌后可用 `node scripts/web/generate-social-card.mjs` 重新生成；需要本机 Chrome，或通过 `CHROME_EXECUTABLE_PATH` 指定浏览器。字体和图标来自仓库及已安装依赖，构建不启动浏览器。部署后检查 `/og-image.png` 返回 PNG，分享平台缓存可能延迟更新。
 
-- Web 直接请求 `VITE_API_URL`（`https://dandan-proxy.suemor.com/api/v2`），不再部署同源 API 边缘函数，仅本地 Web dev 因 localhost 尚未获 CORS 许可保留 Vite 代理（含重定向跟随），preview 构建仍直连。上游须允许正式、预览和本地开发 Origin 的 CORS，包含 JSON POST 预检；弹幕 302 跳转后的分发地址也须允许跨域。新增域名需先配置并验证上游 CORS。
+- Web / Electron / 本地开发均直连环境变量配置的 API：`VITE_API_CLOUDFLARE_URL` 为主、`VITE_API_EDGEONE_URL` 为备，不使用本地 Vite API 代理。修改本地 `.env` 后重启开发服务；线上修改 EdgeOne 构建变量后重新部署。Electron 地址在打包时注入，GitHub Actions 使用同名 Repository Secrets，不读取旧 `VITE_API_URL` Secret。两条线路须允许正式、预览和本地开发 Origin，以及 `marchen://app`；JSON POST 预检和最终响应均须通过浏览器跨域检查。设置 → 通用可选择自动、Cloudflare 或 EdgeOne；自动模式备用成功后会话内优先备用 5 分钟，再由下一正常请求尝试主线路，手动模式不自动降级。
 - edgeone.json 全路径配置 COOP same-origin / COEP credentialless，保持当前播放器隔离策略。仍需实测平台在 200/304 与缓存命中时均返回一致头。
 - 初期使用 no-cache 重验证策略；不把无 hash 的 libass WASM 或 Worklet 设为一年 immutable。可后续对确定内容寻址的文件细分缓存。
 - 应用是 HashRouter，无需把所有缺失路径重写为 index.html；不存在的 Worker/WASM 应真实返回 404。

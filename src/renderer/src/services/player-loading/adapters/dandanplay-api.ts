@@ -6,7 +6,10 @@
  */
 
 import type { CommentsData, DanmakuAPI, MatchResult } from '@marchen/player-loading'
+import { videoAtom } from '@renderer/atoms/player'
+import { jotaiStore } from '@renderer/atoms/store'
 import { apiClient } from '@renderer/request'
+import { getPlayerOperationId } from '@renderer/services/telemetry/player-loading-observer'
 
 export class DandanplayAPI implements DanmakuAPI {
   async match(
@@ -19,7 +22,7 @@ export class DandanplayAPI implements DanmakuAPI {
         fileSize: params.size,
         fileName: params.name,
       },
-      { signal, silent: true },
+      { signal, silent: true, operationId: getPlayerOperationId(params.hash) },
     )
     if (result.success === false || result.errorCode)
       throw new Error(result.errorMessage || '匹配请求失败')
@@ -41,7 +44,11 @@ export class DandanplayAPI implements DanmakuAPI {
     const data = await apiClient.comment.getDanmu(
       episodeId,
       { withRelated: opts.withRelated },
-      { signal: opts.signal, silent: true },
+      {
+        signal: opts.signal,
+        silent: true,
+        operationId: getPlayerOperationId(jotaiStore.get(videoAtom).hash),
+      },
     )
     if (data.success === false || data.errorCode)
       throw new Error(data.errorMessage || '弹幕请求失败')

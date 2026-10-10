@@ -12,6 +12,16 @@ export default defineConfig({
   },
   test: {
     environment: 'node',
-    include: ['src/main/**/*.test.ts', 'scripts/web/*.test.mjs', 'scripts/desktop/*.test.mjs', 'packages/sparkle-updater/src/*.test.ts'],
+    // 测试专用地址，不读取开发者本地 .env，也不发真实请求。
+    env: {
+      VITE_API_CLOUDFLARE_URL: 'https://cloudflare.example.invalid/api/v2',
+      VITE_API_EDGEONE_URL: 'https://edgeone.example.invalid/api/v2',
+    },
+    include: [
+      'src/main/**/*.test.ts',
+      'scripts/web/*.test.mjs',
+      'scripts/desktop/*.test.mjs',
+      'packages/sparkle-updater/src/*.test.ts',
+    ],
   },
 })

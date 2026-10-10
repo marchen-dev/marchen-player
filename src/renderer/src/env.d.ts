@@ -8,7 +8,8 @@ declare const __MARCHEN_VERSION__: string
 declare const __MARCHEN_ENVIRONMENT__: 'development' | 'preview' | 'production'
 
 interface ImportMetaEnv {
-  readonly VITE_API_URL: string
+  readonly VITE_API_CLOUDFLARE_URL: string
+  readonly VITE_API_EDGEONE_URL: string
   readonly VITE_SENTRY_DSN?: string
   readonly VITE_POSTHOG_KEY?: string
   readonly VITE_POSTHOG_HOST?: string

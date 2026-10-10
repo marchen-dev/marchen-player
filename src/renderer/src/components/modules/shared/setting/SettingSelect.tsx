@@ -17,6 +17,7 @@ export interface SelectOption {
 }
 
 interface SettingSelectProps {
+  ariaLabel?: string
   placeholder?: string
   groups: SelectOption[]
   value: string
@@ -26,11 +27,12 @@ interface SettingSelectProps {
 }
 
 export const SettingSelect: FC<SettingSelectProps> = (props) => {
-  const { placeholder, groups, value, onValueChange, container, playerMaterial } = props
+  const { placeholder, groups, value, onValueChange, container, playerMaterial, ariaLabel } = props
 
   return (
     <Select value={value} onValueChange={onValueChange}>
       <SelectTrigger
+        aria-label={ariaLabel}
         className={cn(
           'h-9 w-[150px]',
           playerMaterial &&

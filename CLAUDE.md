@@ -110,11 +110,11 @@ idle → importing → hashing → matching → [waiting_user] → loading_danma
 
 ### API 请求
 
-`ofetch` 封装于 `request/ofetch.ts`，API 模块在 `request/api/`（match、comment、bangumi、search），类型在 `request/models/`。基础 URL 由 `VITE_API_URL` 配置。
+`ofetch` 封装于 `request/ofetch.ts`，API 模块在 `request/api/`（match、comment、bangumi、search），类型在 `request/models/`。主备 URL 从 `VITE_API_CLOUDFLARE_URL` / `VITE_API_EDGEONE_URL` 读取，在 `request/api-route-config.ts` 统一校验；两端启动与构建都要求有效 HTTPS 地址。
 
 **弹弹play 接口文档**：`https://api.dandanplay.net/swagger/v2/swagger.json`（需要新增/核对接口时通过 WebFetch 读取）。
 
-Web 与 Electron 均直连 `VITE_API_URL`（`https://dandan-proxy.suemor.com/api/v2`），不部署同源 API 边缘代理；仅本地 Web dev 保留 Vite 代理（localhost 尚未获 CORS 许可）。
+Web 与 Electron 均直连环境变量配置的 API 主备线路：Cloudflare 为主，EdgeOne 为备；本地 Web dev 同样直连，不保留 Vite API 代理。通用设置提供自动 / Cloudflare / EdgeOne 模式；自动降级会话内记忆 5 分钟，手动模式固定线路。
 Web 所在的正式、预览及开发 Origin 需由 API 服务允许 CORS，JSON POST 预检和弹幕重定向后的响应也须通过跨域检查。
 
 ### 其他
@@ -184,7 +184,7 @@ docs/                     # 发布、部署、可观测性文档
 
 | 变量                                                  | 说明                                                             |
 | ----------------------------------------------------- | ---------------------------------------------------------------- |
-| `VITE_API_URL`                                        | 弹弹play API 代理（如 `https://dandan-proxy.suemor.com/api/v2`） |
+| `VITE_API_CLOUDFLARE_URL` / `VITE_API_EDGEONE_URL` | API 主备 HTTPS 基址（含 `/api/v2`），构建时注入 |
 | `VITE_SENTRY_DSN`                                     | Sentry DSN                                                       |
 | `VITE_POSTHOG_KEY` / `VITE_POSTHOG_HOST`              | PostHog 客户端配置                                               |
 | `VITE_TELEMETRY_DEBUG`                                | 开发态是否上报遥测，默认 false                                   |

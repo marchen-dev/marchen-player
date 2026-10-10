@@ -12,6 +12,7 @@ import {
   createTelemetryDefine,
   resolveTelemetryBuildMetadata,
 } from './src/main/build/telemetry-metadata'
+import { readApiRouteConfig } from './src/renderer/src/request/api-route-config'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const packageJson = JSON.parse(fs.readFileSync(join(__dirname, 'package.json'), 'utf-8'))
@@ -20,6 +21,7 @@ const ROOT = './src/renderer'
 
 const vite = ({ mode }: { mode: string }) => {
   const env = loadEnv(mode, __dirname, '')
+  readApiRouteConfig(env)
   const telemetryDefine = createTelemetryDefine(
     resolveTelemetryBuildMetadata({ target: 'web', version: packageJson.version, mode }),
   )
@@ -57,14 +59,6 @@ const vite = ({ mode }: { mode: string }) => {
       },
       port: 1106,
       host: true,
-      // 上游尚未放行 localhost，仅本地 dev 使用代理，部署产物直接跨域请求。
-      proxy: {
-        '/api/v2': {
-          target: new URL(env.VITE_API_URL).origin,
-          changeOrigin: true,
-          followRedirects: true,
-        },
-      },
     },
     preview: {
       headers: {

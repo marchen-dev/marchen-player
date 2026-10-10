@@ -1,3 +1,5 @@
+import type { ApiRequestResult, ApiRouteChange } from '@renderer/request/api-route-client'
+
 export type TelemetryRuntime = 'main' | 'preload' | 'renderer'
 export type TelemetryTarget = 'electron' | 'web'
 
@@ -17,6 +19,8 @@ export interface CommonTelemetryProperties {
 }
 
 export interface TelemetryEventMap {
+  api_route_changed: ApiRouteChange
+  api_request_completed: ApiRequestResult
   download_add_result: {
     input: 'http' | 'magnet' | 'torrent'
     stage: 'metadata' | 'create'

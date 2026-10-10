@@ -90,7 +90,7 @@ const StepItem: FC<StepItemProps> = ({ title, index, isLast, currentStep }) => {
         <div
           className={cn(
             'flex size-6 items-center justify-center rounded-full border-2 transition-colors',
-            isCompleted && 'border-primary bg-primary text-primary-foreground',
+            isCompleted && 'border-[#60a5fa] bg-[#60a5fa] text-white',
             isActive && 'border-primary bg-background',
             !isCompleted && !isActive && 'border-muted-foreground/30 bg-background',
           )}
@@ -117,7 +117,7 @@ const StepItem: FC<StepItemProps> = ({ title, index, isLast, currentStep }) => {
         <div
           className={cn(
             'mx-2 mb-5 h-0.5 w-10 rounded-full transition-colors',
-            isCompleted ? 'bg-primary' : 'bg-muted-foreground/20',
+            isCompleted ? 'bg-[#60a5fa]' : 'bg-muted-foreground/20',
           )}
         />
       )}

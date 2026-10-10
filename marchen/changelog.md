@@ -67,3 +67,4 @@
 - 2026-10-05: [add-playback-history](./archive/2026-10-05-add-playback-history/) — 新增播放记录弹窗：按文件列出最近播放（含未匹配视频），播放器空态加入口按钮，支持续播与删除并清理影视库关联
 - 2026-10-05: [soften-player-dialog-surface](./archive/2026-10-05-soften-player-dialog-surface/) — 播放器弹层改用固定深色的局部色板：面板由近黑提亮为深灰、内层用填充分层、遮罩压暗降到三成，并柔化焦点环与强调色
 - 2026-10-05: [add-danmaku-blocking](./archive/2026-10-05-add-danmaku-blocking/) — 新增全局弹幕屏蔽：关键词、正则与类型规则及管理弹窗，画面悬停工具条承载复制与屏蔽，规则变化不清屏，弹幕列表联动
+- 2026-10-10: [add-api-route-failover](./archive/2026-10-10-add-api-route-failover/) — 新增固定 API 主备线路、自动降级与会话记忆、手动选线设置及请求遥测，完成浏览器跨域和回归验证

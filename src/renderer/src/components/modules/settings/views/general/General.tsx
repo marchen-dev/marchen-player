@@ -1,4 +1,5 @@
 import { useAppSettings } from '@renderer/atoms/settings/app'
+import { ApiRouteSetting } from '@renderer/components/modules/shared/setting/ApiRouteSetting'
 import { PlayerEngineSetting } from '@renderer/components/modules/shared/setting/PlayerEngineSetting'
 import { SettingSwitch } from '@renderer/components/modules/shared/setting/SettingSwitch'
 import { Button } from '@renderer/components/ui/button'
@@ -85,14 +86,6 @@ export const GeneralView = () => {
         </SettingsSection>
       )}
 
-      <SettingsSection title="播放">
-        <SettingsGroup>
-          <div className="p-4">
-            <PlayerEngineSetting />
-          </div>
-        </SettingsGroup>
-      </SettingsSection>
-
       <SettingsSection title="外观">
         <SettingsGroup>
           <SettingsRow
@@ -104,6 +97,22 @@ export const GeneralView = () => {
               <DarkModeToggle />
             </div>
           </SettingsRow>
+        </SettingsGroup>
+      </SettingsSection>
+
+      <SettingsSection title="播放">
+        <SettingsGroup>
+          <div className="p-4">
+            <PlayerEngineSetting />
+          </div>
+        </SettingsGroup>
+      </SettingsSection>
+
+      <SettingsSection title="网络">
+        <SettingsGroup>
+          <div className="p-4">
+            <ApiRouteSetting />
+          </div>
         </SettingsGroup>
       </SettingsSection>
 

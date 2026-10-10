@@ -25,7 +25,8 @@ jobs:
             builder_target: win
             builder_arch: x64
     env:
-      VITE_API_URL: ${{ secrets.VITE_API_URL }}
+      VITE_API_CLOUDFLARE_URL: ${{ secrets.VITE_API_CLOUDFLARE_URL }}
+      VITE_API_EDGEONE_URL: ${{ secrets.VITE_API_EDGEONE_URL }}
       VITE_SENTRY_DSN: ${{ secrets.VITE_SENTRY_DSN }}
       VITE_POSTHOG_KEY: ${{ secrets.VITE_POSTHOG_KEY }}
       VITE_POSTHOG_HOST: ${{ secrets.VITE_POSTHOG_HOST }}
@@ -51,7 +52,7 @@ jobs:
       - name: Validate production observability configuration
         shell: bash
         run: |
-          required=(VITE_API_URL VITE_SENTRY_DSN VITE_POSTHOG_KEY VITE_POSTHOG_HOST SENTRY_AUTH_TOKEN SENTRY_ORG SENTRY_PROJECT)
+          required=(VITE_API_CLOUDFLARE_URL VITE_API_EDGEONE_URL VITE_SENTRY_DSN VITE_POSTHOG_KEY VITE_POSTHOG_HOST SENTRY_AUTH_TOKEN SENTRY_ORG SENTRY_PROJECT)
           for name in "${required[@]}"; do
             if [ -z "${!name:-}" ]; then echo "Missing required release variable: $name" >&2; exit 1; fi
           done
