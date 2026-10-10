@@ -28,4 +28,4 @@ allowBuilds:
 
 # Electron 44 需要新版 ABI 映射，仅约束原生模块重建工具的依赖。
 overrides:
-  '@electron/rebuild>node-abi': 4.35.0
+  '@electron/rebuild>node-abi': 4.37.0
