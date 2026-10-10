@@ -1,6 +1,18 @@
 # CHANGELOG
 
 
+## [1.0.5](https://github.com/marchen-dev/marchen-player/compare/v1.0.4...v1.0.5) (2026-10-10)
+
+
+### Bug Fixes
+
+* 同步关于页与分享封面的应用图标 ([889e5a8](https://github.com/marchen-dev/marchen-player/commit/889e5a843d018ecb0c30455e63caa308dc129822))
+
+
+### Features
+
+* 支持 API 主备线路切换并更新站点域名 ([8b2950f](https://github.com/marchen-dev/marchen-player/commit/8b2950f054e0eff1253f56e5a2dd3f878670a6a3))
+
 ## [1.0.4](https://github.com/marchen-dev/marchen-player/compare/v1.0.3...v1.0.4) (2026-10-05)
 
 
