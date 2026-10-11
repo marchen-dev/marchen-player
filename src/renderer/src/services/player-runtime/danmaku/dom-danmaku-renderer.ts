@@ -10,7 +10,9 @@ import type { PlaybackClock } from '@marchen/playback-core'
 import { DanmakuEngineCore, DanmakuNodePool } from '@marchen/danmaku-engine'
 import { toast } from '@renderer/components/ui/toast/use-toast'
 import { captureFeatureUsed } from '@renderer/services/telemetry/features'
+import { reportOperationalError } from '@renderer/services/telemetry/operational-errors'
 import { DanmakuHoverToolbar } from './hover-toolbar'
+import { DanmakuRestoreBudgetError, prepareSeekRestoration } from './seek-restoration'
 
 export interface DomDanmakuConfig extends Partial<DanmakuConfig> {
   hoverPause?: boolean
@@ -52,12 +54,15 @@ export class DomDanmakuRenderer {
   private lastWidth = -1
   private lastHeight = -1
   private styleRevision = 0
+  private recovery: AbortController | null = null
+  private seekTarget: number | null = null
+  private exclusionRect: DanmakuRect | null = null
   private playing = false
   private destroyed = false
 
   constructor(
     private readonly container: HTMLElement,
-    clock: PlaybackClock,
+    private readonly clock: PlaybackClock,
     config: DomDanmakuConfig = {},
     private readonly options: DomDanmakuRendererOptions = {},
   ) {
@@ -97,8 +102,10 @@ export class DomDanmakuRenderer {
   }
 
   replaceItems(items: ReadonlyArray<DanmakuItem>, currentTime: number): void {
+    const recovering = this.cancelRecovery()
     this.clearNodes()
     this.engine.replaceItems(items, currentTime)
+    if (recovering) this.restoreAfterSeek(currentTime)
     this.lastRevision = this.engine.revision
     this.refreshDiagnostics()
   }
@@ -108,7 +115,9 @@ export class DomDanmakuRenderer {
    * 其余弹幕不清屏、不重排。换弹幕后需要重新调用。
    */
   setBlockedIds(ids: ReadonlySet<string>): void {
+    const recovering = this.cancelRecovery()
     this.engine.setBlockedIds(ids)
+    if (recovering) this.restoreAfterSeek(this.clock.now())
     if (ids.size === 0) return
     for (const id of [...this.animations.keys()]) {
       if (ids.has(id)) this.releaseNode(id)
@@ -133,11 +142,142 @@ export class DomDanmakuRenderer {
     this.animations.forEach(({ animation }) => animation.pause())
   }
 
+  /** 开始跳转时立即移除旧画面；最终落点由状态订阅调用 restoreAfterSeek。 */
   seek(time: number): void {
+    if (this.destroyed || this.seekTarget === time) return
+    this.cancelRecovery()
+    this.seekTarget = time
+    this.stopLoop()
     this.clearNodes()
     this.engine.seek(time)
     this.lastRevision = this.engine.revision
     this.refreshDiagnostics()
+  }
+
+  reset(): void {
+    this.cancelRecovery()
+    this.seekTarget = null
+    this.pause()
+    this.clearNodes()
+    this.engine.seek(this.clock.now())
+    this.lastRevision = this.engine.revision
+    this.refreshDiagnostics()
+  }
+
+  restoreAfterSeek(time: number): void {
+    if (this.destroyed) return
+    this.seekTarget = null
+    this.cancelRecovery()
+    this.stopLoop()
+    this.clearNodes()
+    this.engine.seek(time)
+    this.lastRevision = this.engine.revision
+    const controller = new AbortController()
+    this.recovery = controller
+    void this.restoreSnapshot(time, controller)
+  }
+
+  private cancelRecovery(): boolean {
+    const recovering = this.recovery !== null
+    this.recovery?.abort()
+    this.recovery = null
+    return recovering
+  }
+
+  private async restoreSnapshot(target: number, controller: AbortController): Promise<void> {
+    const { signal } = controller
+    try {
+      for (let attempt = 0; attempt < 2; attempt += 1) {
+        try {
+          const { restoration, through } = await prepareSeekRestoration(
+            this.engine,
+            target,
+            () => this.clock.now(),
+            (items) => this.measureRestorationCandidates(items),
+            signal,
+          )
+          signal.throwIfAborted()
+          const at = this.clock.now()
+          if (at < through || at - through > 0.25) throw new DanmakuRestoreBudgetError()
+          // 此同步段内统一提交占用、游标、节点；下一帧之前不暴露半套快照。
+          const placements = this.engine.installRestoration(restoration, through, at)
+          if (!placements) throw new Error('弹幕恢复快照已失效')
+          this.lastRevision = this.engine.revision
+          for (const placement of placements) {
+            const node = this.pool.acquire()
+            if (!node) throw new Error('弹幕恢复节点容量不足')
+            this.renderPlacement(node, placement, placement.elapsed)
+          }
+          this.refreshDiagnostics()
+          return
+        } catch (error) {
+          if (signal.aborted) return
+          if (error instanceof DanmakuRestoreBudgetError && attempt === 0) {
+            target = this.clock.now()
+            continue
+          }
+          throw error
+        }
+      }
+    } catch (error) {
+      if (signal.aborted) return
+      this.clearNodes()
+      this.engine.seek(this.clock.now())
+      this.lastRevision = this.engine.revision
+      this.refreshDiagnostics()
+      reportOperationalError(
+        'player',
+        'danmaku_seek_restore',
+        Object.assign(new Error('弹幕跳转恢复失败，已回退至正常调度', { cause: error }), {
+          code:
+            error instanceof DanmakuRestoreBudgetError
+              ? 'danmaku_restore_budget'
+              : 'danmaku_restore_failed',
+        }),
+        true,
+      )
+    } finally {
+      if (this.recovery === controller) {
+        this.recovery = null
+        this.startLoop()
+      }
+    }
+  }
+
+  /** 历史测量只保留尺寸，每批最多 32 个节点，不占满活动池。 */
+  private measureRestorationCandidates(items: ReadonlyArray<DanmakuItem>) {
+    const pending: MeasuredCandidate[] = []
+    try {
+      for (const item of items) {
+        const metrics = this.metricsCache.get(this.getMetricsKey(item)) ?? null
+        const node = metrics ? null : this.pool.acquire()
+        pending.push({ item, metrics, node })
+        if (node) {
+          prepareMeasureNode(node, item, this.config.fontSize ?? 26)
+          this.measurementLayer.append(node)
+        }
+      }
+      return pending.map(({ item, metrics, node }) => {
+        if (metrics) return { item, metrics }
+        if (!node) throw new Error('弹幕恢复测量节点不足')
+        const measured = normalizeMeasuredMetrics(
+          node.getBoundingClientRect(),
+          item.text,
+          item.fontSize ?? this.config.fontSize ?? 26,
+        )
+        this.cacheMetrics(item, measured)
+        return { item, metrics: measured }
+      })
+    } finally {
+      for (const { node } of pending) if (node) this.releaseUnplacedNode(node)
+    }
+  }
+
+  private cacheMetrics(item: DanmakuItem, metrics: DanmakuMetrics): void {
+    // 长时间反复跳转也不能令测量缓存随全部弹幕无限增长。
+    if (this.metricsCache.size >= 8192)
+      this.metricsCache.delete(this.metricsCache.keys().next().value!)
+    this.metricsCache.set(this.getMetricsKey(item), metrics)
   }
 
   setRate(rate: number): void {
@@ -154,6 +294,13 @@ export class DomDanmakuRenderer {
     const durationChanged = previous.duration !== next.duration
     const hoverPauseChanged = previous.hoverPause !== next.hoverPause
     const opacityChanged = previous.opacity !== next.opacity
+    const layoutChanged =
+      requiresReset ||
+      durationChanged ||
+      previous.fontSize !== next.fontSize ||
+      previous.displayArea !== next.displayArea ||
+      previous.maxOnScreen !== next.maxOnScreen
+    const recovering = layoutChanged && this.cancelRecovery()
     this.config = next
 
     if (previous.fontSize !== next.fontSize) this.invalidateMeasurements()
@@ -168,12 +315,17 @@ export class DomDanmakuRenderer {
       }
     }
     if (opacityChanged) this.applyOpacity(next.opacity)
+    if (recovering) this.restoreAfterSeek(this.clock.now())
     this.refreshDiagnostics()
   }
 
   setExclusionRect(rect: DanmakuRect | null): void {
     // 控制器位置连续变化只更新约束；已有弹幕继续运动，不清空占用。
+    if (sameExclusionRect(this.exclusionRect, rect)) return
+    this.exclusionRect = rect
+    const recovering = this.cancelRecovery()
     this.engine.setExclusionRect(rect)
+    if (recovering) this.restoreAfterSeek(this.clock.now())
   }
 
   setExclusionRectFromViewport(rect: DOMRect | null): void {
@@ -193,6 +345,7 @@ export class DomDanmakuRenderer {
   dispose(): void {
     if (this.destroyed) return
     this.destroyed = true
+    this.cancelRecovery()
     this.stopLoop()
     if (this.resizeFrameId !== null) cancelAnimationFrame(this.resizeFrameId)
     this.resizeObserver.disconnect()
@@ -219,7 +372,14 @@ export class DomDanmakuRenderer {
   }
 
   private startLoop(): void {
-    if (this.frameId !== null || !this.playing) return
+    if (
+      this.frameId !== null ||
+      !this.playing ||
+      this.destroyed ||
+      this.recovery ||
+      this.seekTarget !== null
+    )
+      return
     const frame = () => {
       if (!this.playing || this.destroyed) {
         this.frameId = null
@@ -273,32 +433,52 @@ export class DomDanmakuRenderer {
       const rect = candidate.node.getBoundingClientRect()
       const fontSize = candidate.item.fontSize ?? this.config.fontSize ?? 26
       const metrics = normalizeMeasuredMetrics(rect, candidate.item.text, fontSize)
-      this.metricsCache.set(this.getMetricsKey(candidate.item), metrics)
+      this.cacheMetrics(candidate.item, metrics)
       candidate.metrics = metrics
     }
     return candidates
   }
 
-  private renderPlacement(node: HTMLSpanElement, placement: DanmakuPlacement): void {
-    prepareNode(
-      node,
-      placement,
-      this.container.clientWidth,
-      Boolean(this.config.hoverPause),
-      this.config.fontSize ?? 26,
-    )
-    this.displayLayer.append(node)
-    const animation = createAnimation(node, placement, this.container.clientWidth)
-    node.style.visibility = 'visible'
-    animation.playbackRate = placement.playbackRate
-    const active = { node, animation, duration: placement.duration }
-    this.animations.set(placement.item.id, active)
-    this.bindHoverBehavior(placement.item.id, active)
+  private renderPlacement(
+    node: HTMLSpanElement,
+    placement: DanmakuPlacement,
+    elapsed?: number,
+  ): void {
+    let animation: Animation | undefined
+    try {
+      prepareNode(
+        node,
+        placement,
+        this.container.clientWidth,
+        Boolean(this.config.hoverPause),
+        this.config.fontSize ?? 26,
+      )
+      this.displayLayer.append(node)
+      animation = createAnimation(node, placement, this.container.clientWidth)
+      animation.playbackRate = placement.playbackRate
+      if (elapsed !== undefined) {
+        animation.pause()
+        animation.currentTime = elapsed * 1000
+        if (this.playing) animation.play()
+      }
+      node.style.visibility = 'visible'
+      const active = { node, animation, duration: placement.duration }
+      this.animations.set(placement.item.id, active)
+      this.bindHoverBehavior(placement.item.id, active)
 
-    void animation.finished.then(
-      () => this.releaseNode(placement.item.id, true),
-      () => {},
-    )
+      void animation.finished.then(
+        () => {
+          if (this.animations.get(placement.item.id) === active)
+            this.releaseNode(placement.item.id, true)
+        },
+        () => {},
+      )
+    } catch (error) {
+      animation?.cancel()
+      if (this.animations.has(placement.item.id)) this.releaseNode(placement.item.id)
+      else this.releaseUnplacedNode(node)
+      throw error
+    }
   }
 
   private releaseNode(id: string, completed = false): void {
@@ -393,9 +573,11 @@ export class DomDanmakuRenderer {
     if (!force && width === this.lastWidth && height === this.lastHeight) return
     this.lastWidth = width
     this.lastHeight = height
+    const recovering = this.cancelRecovery()
     this.engine.resize(width, height)
     this.clearNodes()
     this.lastRevision = this.engine.revision
+    if (recovering) this.restoreAfterSeek(this.clock.now())
     this.refreshDiagnostics()
   }
 
@@ -574,3 +756,14 @@ const resetNode = (node: HTMLSpanElement) => {
 
 const clamp = (value: number, minimum: number, maximum: number) =>
   Math.min(maximum, Math.max(minimum, value))
+
+const sameExclusionRect = (left: DanmakuRect | null, right: DanmakuRect | null) =>
+  left === right ||
+  Boolean(
+    left &&
+    right &&
+    left.left === right.left &&
+    left.right === right.right &&
+    left.top === right.top &&
+    left.bottom === right.bottom,
+  )

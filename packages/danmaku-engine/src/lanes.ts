@@ -30,9 +30,19 @@ export class DanmakuLaneAllocator {
   private active = new Map<string, ActiveDanmaku>()
   private readonly laneHeight: number
 
-  constructor(private config: DanmakuConfig) {
+  constructor(
+    private config: DanmakuConfig,
+    laneHeight = config.fontSize * 1.35,
+  ) {
     // 虚拟轨道是稳定的空间量化单位；字号变化由真实高度跨轨表达，不重排旧节点。
-    this.laneHeight = Math.max(1, config.fontSize * 1.35)
+    this.laneHeight = Math.max(1, laneHeight)
+  }
+
+  /** 临时重建沿用同一个轨道空间基准，不继承历史活动条目。 */
+  forkEmpty(config: DanmakuConfig): DanmakuLaneAllocator {
+    const allocator = new DanmakuLaneAllocator(config, this.laneHeight)
+    allocator.resize(this.layout)
+    return allocator
   }
 
   updateConfig(config: DanmakuConfig, reset = true): void {

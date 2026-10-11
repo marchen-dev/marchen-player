@@ -11,13 +11,16 @@ import type {
   DanmakuRect,
 } from './types'
 import { DanmakuLaneAllocator } from './lanes'
+import { DanmakuRestoration } from './restoration'
 import { DanmakuTimeline } from './timeline'
 import { DEFAULT_DANMAKU_CONFIG } from './types'
 
 export class DanmakuEngineCore {
   private config: DanmakuConfig
   private readonly timeline = new DanmakuTimeline()
-  private readonly allocator: DanmakuLaneAllocator
+  private allocator: DanmakuLaneAllocator
+  private restoreVersion = 0
+  private readonly restoreOwner = Symbol('danmaku-restoration')
   private playing = false
   private playbackRate = 1
   private layout: DanmakuLayout = { width: 0, height: 0 }
@@ -59,6 +62,34 @@ export class DanmakuEngineCore {
     this.timeline.seek(time)
   }
 
+  getRestoreCandidates(after: number, through: number): ReadonlyArray<DanmakuItem> {
+    if (!this.config.enabled) return []
+    return this.timeline.range(after, through).filter((item) => !this.blockedIds.has(item.id))
+  }
+
+  beginRestoration(capacity = this.config.maxOnScreen): DanmakuRestoration {
+    const config = { ...this.config, maxOnScreen: Math.min(capacity, this.config.maxOnScreen) }
+    return new DanmakuRestoration(
+      this.restoreOwner,
+      this.restoreVersion,
+      this.allocator.forkEmpty(config),
+      config,
+      this.blockedIds,
+    )
+  }
+
+  installRestoration(restoration: DanmakuRestoration, through: number, at = through) {
+    const snapshot = restoration.take(this.restoreOwner, this.restoreVersion, at, this.playbackRate)
+    if (!snapshot) return null
+    this.allocator = snapshot.allocator
+    this.timeline.seekAfter(through)
+    this.peakActive = Math.max(this.peakActive, snapshot.peak)
+    this.dropped += snapshot.dropped
+    this.resetRevision += 1
+    this.restoreVersion += 1
+    return snapshot.placements
+  }
+
   setRate(rate: number): void {
     this.playbackRate = Number.isFinite(rate) && rate > 0 ? rate : 1
   }
@@ -68,6 +99,7 @@ export class DanmakuEngineCore {
    * 在屏弹幕保持原位；已在屏且新被屏蔽的条目由渲染层按 id 调用 cancelItem 撤掉。
    */
   setBlockedIds(ids: ReadonlySet<string>): void {
+    this.restoreVersion += 1
     this.blockedIds = ids
   }
 
@@ -100,6 +132,12 @@ export class DanmakuEngineCore {
     if (!reset && next.duration !== this.config.duration) {
       this.allocator.rebaseDuration(next.duration, this.clock.now())
     }
+    if (
+      Object.keys(DEFAULT_DANMAKU_CONFIG).some(
+        (key) => next[key as keyof DanmakuConfig] !== this.config[key as keyof DanmakuConfig],
+      )
+    )
+      this.restoreVersion += 1
     this.config = next
     this.allocator.updateConfig(this.config, reset)
     if (reset) this.resetRevision += 1
@@ -111,6 +149,7 @@ export class DanmakuEngineCore {
   }
 
   setExclusionRect(rect: DanmakuRect | null): void {
+    this.restoreVersion += 1
     this.layout = { ...this.layout, exclusionRect: rect }
     this.allocator.updateExclusionRect(rect)
   }
@@ -174,6 +213,7 @@ export class DanmakuEngineCore {
   }
 
   private clearActive(): void {
+    this.restoreVersion += 1
     this.allocator.resize(this.layout)
     this.resetRevision += 1
   }

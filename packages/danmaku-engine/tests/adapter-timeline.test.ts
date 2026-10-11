@@ -46,3 +46,29 @@ it('历史时钟直接前跳时跳过积压，只保留当前附近弹幕', () =
   expect(timeline.collect(400, 0.08).map((item) => item.time)).toEqual([400])
   expect(timeline.collect(400.1, 0.08)).toEqual([])
 })
+
+describe('恢复窗口查询', () => {
+  const items = [0, 1, 1, 2, 3].map((time, index) => ({
+    id: String(index),
+    time,
+    text: '弹幕',
+    mode: 'scroll' as const,
+    color: '#fff',
+  }))
+  it('区间左开右闭，包含零秒和稳定同时间顺序，不移动播放游标', () => {
+    const timeline = new DanmakuTimeline()
+    timeline.replace(items, 0)
+    expect(timeline.range(-15, 0).map((item) => item.id)).toEqual(['0'])
+    expect(timeline.range(0, 1).map((item) => item.id)).toEqual(['1', '2'])
+    expect(timeline.range(2, 1)).toEqual([])
+    expect(timeline.collect(0, 0).map((item) => item.id)).toEqual(['0'])
+  })
+  it('恢复后跳过目标时刻全部条目，后续条目只发射一次', () => {
+    const timeline = new DanmakuTimeline()
+    timeline.replace(items, 0)
+    timeline.seekAfter(1)
+    expect(timeline.collect(1, 0)).toEqual([])
+    expect(timeline.collect(2, 0).map((item) => item.id)).toEqual(['3'])
+    expect(timeline.collect(2, 0)).toEqual([])
+  })
+})

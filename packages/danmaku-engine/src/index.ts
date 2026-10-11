@@ -4,7 +4,10 @@ export { DanmakuEngineCore } from './engine'
 export { DanmakuLaneAllocator } from './lanes'
 export type { LaneAllocation } from './lanes'
 export { DanmakuNodePool } from './pool'
+export { DanmakuRestoration } from './restoration'
+export type { RestoredDanmakuPlacement } from './restoration'
 export { DanmakuTimeline, lowerBoundByTime } from './timeline'
+
 export { DEFAULT_DANMAKU_CONFIG } from './types'
 export type {
   DanmakuClock,

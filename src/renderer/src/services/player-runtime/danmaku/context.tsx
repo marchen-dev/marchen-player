@@ -3,15 +3,12 @@ import type { PlaybackVisualStateBridge } from '../fallback-state'
 import { convertDandanplayComments } from '@marchen/danmaku-engine'
 import { usePlayerSettings } from '@renderer/atoms/settings/player'
 import { usePlayerLoadingSelector } from '@renderer/services/player-loading/hooks'
-import {
-  usePlaybackClock,
-  usePlaybackViewModel,
-  usePlayerRuntime,
-} from '@renderer/services/player-runtime/context'
+import { usePlaybackClock, usePlayerRuntime } from '@renderer/services/player-runtime/context'
 import { createContext, use, useCallback, useEffect, useMemo, useRef } from 'react'
 import { blockDanmakuByText } from './block-danmaku-action'
 import { collectBlockedIds, createDanmakuBlocker, prepareBlockTexts } from './danmaku-block'
 import { DomDanmakuRenderer } from './dom-danmaku-renderer'
+import { bindDanmakuPlayback } from './playback-binding'
 import { convertDanmakuItemsToSimplified } from './traditional-to-simplified'
 
 interface NativeDanmakuContextValue {
@@ -27,7 +24,6 @@ export const NativeDanmakuProvider = ({
 }: PropsWithChildren<{ fallbackState?: PlaybackVisualStateBridge }>) => {
   const runtime = usePlayerRuntime()
   const clock = usePlaybackClock()
-  const playback = usePlaybackViewModel()
   const [settings, setSettings] = usePlayerSettings()
   const {
     danmakuDuration,
@@ -103,9 +99,18 @@ export const NativeDanmakuProvider = ({
         onBlock: (text) => blockDanmakuByText(text, 'hover'),
       })
       rendererRef.current = renderer
-      unregisterRef.current = runtime.registerDisposer('danmaku', () => renderer.dispose())
       renderer.replaceItems(itemsRef.current, clock.now())
       renderer.setBlockedIds(blockedIdsRef.current)
+      const unsubscribe = bindDanmakuPlayback(runtime, renderer)
+      const dispose = () => {
+        unsubscribe()
+        renderer.dispose()
+      }
+      const unregister = runtime.registerDisposer('danmaku', dispose)
+      unregisterRef.current = () => {
+        unregister()
+        dispose()
+      }
     },
     [clock, runtime],
   )
@@ -130,15 +135,6 @@ export const NativeDanmakuProvider = ({
   useEffect(() => {
     rendererRef.current?.updateConfig(rendererConfig)
   }, [rendererConfig])
-
-  useEffect(() => {
-    const renderer = rendererRef.current
-    if (!renderer) return
-    if (playback.status === 'playing') renderer.play()
-    else renderer.pause()
-    if (playback.status === 'seeking') renderer.seek(playback.targetTime)
-    if ('rate' in playback) renderer.setRate(playback.rate)
-  }, [playback])
 
   const value = useMemo<NativeDanmakuContextValue>(
     () => ({

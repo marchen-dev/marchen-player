@@ -11,6 +11,18 @@ export const lowerBoundByTime = (items: ReadonlyArray<DanmakuItem>, time: number
   return low
 }
 
+/** 严格上界：恢复时同一时间已处理的所有条目都必须跳过。 */
+export const upperBoundByTime = (items: ReadonlyArray<DanmakuItem>, time: number) => {
+  let low = 0
+  let high = items.length
+  while (low < high) {
+    const middle = Math.floor((low + high) / 2)
+    if (items[middle]!.time <= time) low = middle + 1
+    else high = middle
+  }
+  return low
+}
+
 export class DanmakuTimeline {
   private items: ReadonlyArray<DanmakuItem> = []
   private index = 0
@@ -22,6 +34,19 @@ export class DanmakuTimeline {
 
   seek(currentTime: number): void {
     this.index = lowerBoundByTime(this.items, Math.max(0, currentTime))
+  }
+
+  /** 查询 (after, through]，不改变实时播放游标；负起点允许恢复零秒条目。 */
+  range(after: number, through: number): ReadonlyArray<DanmakuItem> {
+    if (through < after) return []
+    return this.items.slice(
+      upperBoundByTime(this.items, after),
+      upperBoundByTime(this.items, through),
+    )
+  }
+
+  seekAfter(time: number): void {
+    this.index = upperBoundByTime(this.items, time)
   }
 
   collect(currentTime: number, lookAhead: number): DanmakuItem[] {
