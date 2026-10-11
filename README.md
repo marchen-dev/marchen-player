@@ -13,6 +13,10 @@
   <a href="https://marchen.suemor.com">在线体验</a> | <a href="https://github.com/marchen-dev/marchen-player/releases/latest">下载客户端</a>
 </p>
 
+<p align="center">
+  <img src="https://fastly.jsdelivr.net/gh/marchen-dev/marchen-player@main/docs/images/library-light.png" alt="浅色影视库" width="900" />
+</p>
+
 ## ✨ 特征
 
 ### 弹幕
@@ -42,8 +46,6 @@
 - 应用内反馈，可附带诊断日志
 
 ## 👀 截图
-
-![浅色影视库](https://fastly.jsdelivr.net/gh/marchen-dev/marchen-player@main/docs/images/library-light.png)
 
 ![弹幕播放](https://fastly.jsdelivr.net/gh/marchen-dev/marchen-player@main/docs/images/playback-preview-20261011.png)
 
