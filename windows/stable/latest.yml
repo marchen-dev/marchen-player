@@ -1,23 +1,11 @@
-version: 1.0.5
+version: 1.0.6
 files:
-  - url: https://github.com/marchen-dev/marchen-player/releases/download/v1.0.5/Marchen-1.0.5-setup.exe
-    sha512: +Qaptg+qAhFxlv+pMvinujMKylmUPUNyNry29lVY4hY0bhCWXxrm+VRaWjwPWnkpPexjIxHR+hvqihYXsPMNMA==
-    size: 172082823
-path: https://github.com/marchen-dev/marchen-player/releases/download/v1.0.5/Marchen-1.0.5-setup.exe
-sha512: +Qaptg+qAhFxlv+pMvinujMKylmUPUNyNry29lVY4hY0bhCWXxrm+VRaWjwPWnkpPexjIxHR+hvqihYXsPMNMA==
-releaseNotes: "# Marchen 1.0.5\r
-
-  \r
-
-  ## 网络\r
-
-  \r
-
-  - 新增 API 备用线路，自动模式下请求失败时尝试切换，提高匹配和弹幕加载的可用性。\r
-
-  - 通用设置新增 API 线路选择，支持自动、Cloudflare 和 EdgeOne，并显示当前线路。\r
-
-  - 在线体验地址更新为 https://marchen.suemor.com/。\r
+  - url: https://github.com/marchen-dev/marchen-player/releases/download/v1.0.6/Marchen-1.0.6-setup.exe
+    sha512: GevoLJJL9d8ysxr0wapWIpuEu8i1w9Vsd/0BIf6cjpTLEowZqyvmpuWN55lbK22DF1s3FJ/as3YfCO4oTy31Gg==
+    size: 172100597
+path: https://github.com/marchen-dev/marchen-player/releases/download/v1.0.6/Marchen-1.0.6-setup.exe
+sha512: GevoLJJL9d8ysxr0wapWIpuEu8i1w9Vsd/0BIf6cjpTLEowZqyvmpuWN55lbK22DF1s3FJ/as3YfCO4oTy31Gg==
+releaseNotes: "# Marchen 1.0.6\r
 
   \r
 
@@ -25,9 +13,34 @@ releaseNotes: "# Marchen 1.0.5\r
 
   \r
 
-  - 修复点击控制栏空白区域后，控制栏无法自动隐藏的问题。\r
+  -
+  新增画中画，可在设置面板「播放偏好」中进入或退出。画中画窗口只显示画面，不含弹幕和字幕；仅原生播放内核支持，兼容内核或浏览器不支持时按钮置灰并说明原因。\r
 
-  - 提高底部细进度条的颜色对比度。\r
+  - 新增“点击画面暂停/播放”选项，默认关闭；开启后双击仍可切换全屏。\r
+
+  - 设置面板中的“连续播放”分组更名为“播放偏好”。\r
+
+  \r
+
+  ## 播放列表\r
+
+  \r
+
+  - 播放列表按文件名的公共部分分组折叠，组标题显示作品名，条目只显示集号等差异部分；悬停可查看完整文件名，打开列表时自动定位到当前集。\r
+
+  - 打开播放列表和自动续播下一集前会重新扫描剧集，追更期间新下载的剧集可以直接续播。\r
+
+  - 修复拖入单个视频后不显示同目录播放列表的问题。\r
+
+  \r
+
+  ## 弹幕\r
+
+  \r
+
+  - 新增弹幕不透明度设置，对所有视频生效，调整后立即可见，悬停工具条保持清晰。\r
+
+  - 跳转进度后会立即恢复当前时刻应在屏幕上的弹幕，不再等到新弹幕出现；暂停、倍速和连续跳转时同样生效。\r
 
   \r
 
@@ -35,9 +48,7 @@ releaseNotes: "# Marchen 1.0.5\r
 
   \r
 
-  - 调浅弹幕加载步骤的已完成状态配色。\r
+  - 播放控制器和设置面板改用更通透的毛玻璃材质，画面颜色可以透过面板显示。\r
 
-  - 将通用设置中的外观分组移至播放上方，简化线路状态说明。\r
-
-  - 播放器首页提示改为“点击或拖拽视频到此处播放”。\r\n"
-releaseDate: 2026-10-10T12:22:59.670Z
+  - 播放器内的下拉菜单、提示气泡、匹配提示、关闭按钮和播放中的通知统一使用同一套毛玻璃材质。\r\n"
+releaseDate: 2026-10-11T10:02:23.750Z
