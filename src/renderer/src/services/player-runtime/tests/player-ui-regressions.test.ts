@@ -196,7 +196,7 @@ describe('播放器 UI 回归', () => {
     const playerCss = readFileSync(new URL('../../../styles/player.css', import.meta.url), 'utf8')
     expect(playerCss).not.toContain('prefers-reduced-transparency')
     expect(playerCss).toContain('@supports not (backdrop-filter: blur(1px))')
-    expect(playerCss).toContain('--player-settings-panel: rgb(30 30 35 / 82%)')
+    expect(playerCss).toContain('--player-settings-panel: var(--player-surface)')
   })
 
   it('设置侧栏只有根表面使用单层背景模糊', () => {

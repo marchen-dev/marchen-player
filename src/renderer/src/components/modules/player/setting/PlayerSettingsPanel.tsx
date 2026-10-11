@@ -101,7 +101,7 @@ export const PlayerSettingsPanel = ({
           className={cn(
             'no-drag-region w-[var(--player-settings-width)] max-w-none gap-0 overflow-hidden border-white/11 p-0',
             'bg-[var(--player-settings-panel)] text-[var(--player-settings-fg)] shadow-[-20px_0_60px_rgb(0_0_0/28%)]',
-            'backdrop-blur-[26px] backdrop-saturate-125 sm:max-w-none',
+            'backdrop-blur-[48px] backdrop-saturate-[1.8] sm:max-w-none',
           )}
           closeIcon={<i className="icon-[mingcute--close-line] block text-lg" aria-hidden />}
           closeLabel="关闭播放器设置"
@@ -258,37 +258,6 @@ const PlaybackSettings = ({
         </div>
       </PanelSection>
 
-      {pictureInPicture && (
-        <PanelSection title="画中画">
-          <PanelCard>
-            <div className="flex min-h-12 items-center justify-between gap-4 py-2 text-sm">
-              <div className="min-w-0">
-                <div>画中画</div>
-                {/* 退出始终可用，只有进入受内核与浏览器能力限制 */}
-                {!pictureInPicture.active && pictureInPicture.unavailableReason && (
-                  <div className="mt-0.5 text-xs text-[var(--player-settings-muted)]">
-                    {PICTURE_IN_PICTURE_UNAVAILABLE_TEXT[pictureInPicture.unavailableReason]}
-                  </div>
-                )}
-              </div>
-              <PanelChoice
-                className="shrink-0 disabled:opacity-50 disabled:hover:bg-white/6 disabled:hover:text-[var(--player-settings-muted)]"
-                active={pictureInPicture.active}
-                disabled={!pictureInPicture.active && !!pictureInPicture.unavailableReason}
-                onClick={() => {
-                  const entering = !pictureInPicture.active
-                  pictureInPicture.toggle()
-                  // 进入后用户关注点转到画中画窗口，收起面板避免回到主窗口时仍遮挡画面
-                  if (entering) setPanel((state) => ({ ...state, open: false }))
-                }}
-              >
-                {pictureInPicture.active ? '退出画中画' : '进入画中画'}
-              </PanelChoice>
-            </div>
-          </PanelCard>
-        </PanelSection>
-      )}
-
       <PanelSection title="播放偏好">
         <PanelCard>
           {capabilities.playlist && (
@@ -318,6 +287,32 @@ const PlaybackSettings = ({
               setSettings((current) => ({ ...current, enableClickToTogglePlay: checked }))
             }}
           />
+          {pictureInPicture && (
+            <div className="flex min-h-12 items-center justify-between gap-4 py-2 text-sm">
+              <div className="min-w-0">
+                <div>画中画</div>
+                {/* 退出始终可用，只有进入受内核与浏览器能力限制 */}
+                {!pictureInPicture.active && pictureInPicture.unavailableReason && (
+                  <div className="mt-0.5 text-xs text-[var(--player-settings-muted)]">
+                    {PICTURE_IN_PICTURE_UNAVAILABLE_TEXT[pictureInPicture.unavailableReason]}
+                  </div>
+                )}
+              </div>
+              <PanelChoice
+                className="shrink-0 disabled:opacity-50 disabled:hover:bg-white/6 disabled:hover:text-[var(--player-settings-muted)]"
+                active={pictureInPicture.active}
+                disabled={!pictureInPicture.active && !!pictureInPicture.unavailableReason}
+                onClick={() => {
+                  const entering = !pictureInPicture.active
+                  pictureInPicture.toggle()
+                  // 进入后用户关注点转到画中画窗口，收起面板避免回到主窗口时仍遮挡画面
+                  if (entering) setPanel((state) => ({ ...state, open: false }))
+                }}
+              >
+                {pictureInPicture.active ? '退出画中画' : '进入画中画'}
+              </PanelChoice>
+            </div>
+          )}
         </PanelCard>
       </PanelSection>
 

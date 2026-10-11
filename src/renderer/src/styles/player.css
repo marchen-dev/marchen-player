@@ -1,17 +1,20 @@
 [data-player-root] {
-  /* 用底色保证复杂视频画面上的可读性，背景模糊仅作为材质增强。 */
-  --player-surface: rgb(43 43 51 / 86%);
+  /*
+   * 参考 Infuse 的通透材质：半透明中性灰底 + 强模糊 + 提饱和，让画面颜色透出来。
+   * 底色保留约一半不透明度，保证亮场景下白色图标仍可读。
+   */
+  --player-surface: rgb(60 60 66 / 50%);
   --player-surface-solid: rgb(25 31 37 / 96%);
   --player-fg: rgb(245 248 250 / 96%);
   --player-fg-muted: rgb(220 230 236 / 72%);
-  --player-border: rgb(255 255 255 / 16%);
-  --player-shadow: 0 18px 60px rgb(0 0 0 / 36%), 0 2px 10px rgb(0 0 0 / 24%);
+  --player-border: rgb(255 255 255 / 12%);
+  --player-shadow: 0 12px 40px rgb(0 0 0 / 22%), 0 1px 4px rgb(0 0 0 / 16%);
   --player-focus: #8dd7ff;
   --player-track: rgb(255 255 255 / 16%);
   --player-buffered: rgb(255 255 255 / 30%);
   --player-progress: rgb(238 246 250 / 92%);
-  /* 播放器设置始终使用同一套 IINA 风格材质，不跟随应用 light/dark 主题。 */
-  --player-settings-panel: rgb(30 30 35 / 82%);
+  /* 播放器设置与控制器共用同一套通透材质，不跟随应用 light/dark 主题。 */
+  --player-settings-panel: var(--player-surface);
   --player-settings-raised: rgb(255 255 255 / 8%);
   --player-settings-selected: rgb(255 255 255 / 14%);
   --player-settings-border: rgb(255 255 255 / 11%);
