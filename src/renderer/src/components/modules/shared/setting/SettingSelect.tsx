@@ -43,7 +43,7 @@ export const SettingSelect: FC<SettingSelectProps> = (props) => {
       </SelectTrigger>
       <SelectContent
         container={container}
-        className={cn(playerMaterial && 'border-white/11 bg-[rgb(38_38_44/96%)] text-white')}
+        className={cn(playerMaterial && 'border-white/11 bg-player-popover player-glass text-white')}
       >
         <SelectGroup>
           {groups.map((group) => (

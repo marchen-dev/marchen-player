@@ -19,7 +19,17 @@ export function Toaster() {
   return (
     <ToastProvider>
       {toasts.map(({ id, title, description, action, ...props }) => (
-        <Toast key={id} {...props}>
+        <Toast
+          key={id}
+          {...props}
+          className={cn(
+            // 播放时普通提示接入播放器毛玻璃材质；错误提示保留醒目的红色
+            isPlaying &&
+              props.variant !== 'destructive' &&
+              'border-white/15 bg-player-popover player-glass text-white',
+            props.className,
+          )}
+        >
           <div className="grid gap-1">
             {title && <ToastTitle>{title}</ToastTitle>}
             {description && <ToastDescription>{description}</ToastDescription>}

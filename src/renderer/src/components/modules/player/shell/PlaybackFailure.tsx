@@ -24,7 +24,7 @@ export const PlaybackFailure = ({
     data-player-compatibility-error
     className="absolute inset-0 z-50 flex items-center justify-center bg-black/85 p-6"
   >
-    <div className="w-full max-w-md rounded-2xl border border-white/12 bg-zinc-900 p-6 text-center shadow-xl">
+    <div className="w-full max-w-md rounded-2xl border border-white/12 bg-player-popover p-6 text-center shadow-xl">
       <i className="icon-[mingcute--warning-line] text-4xl text-white/60" aria-hidden />
       <h2 className="mt-4 text-xl font-semibold text-white">无法播放此视频</h2>
       <p className="mt-3 text-sm leading-6 text-white/70">{description}</p>

@@ -131,7 +131,7 @@ function EpisodeSelection({
         </SelectTrigger>
         <SelectContent
           container={portalContainer}
-          className="border-white/11 bg-[rgb(38_38_44/96%)] text-white"
+          className="border-white/11 bg-player-popover player-glass text-white"
         >
           <SelectGroup>
             {selection.episodes.map((item) => (
@@ -250,7 +250,7 @@ function SourceOffset({
           </SelectTrigger>
           <SelectContent
             container={portalContainer}
-            className="border-white/11 bg-[rgb(38_38_44/96%)] text-white"
+            className="border-white/11 bg-player-popover player-glass text-white"
           >
             <SelectGroup>
               {entries.map((entry) => (

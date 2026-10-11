@@ -46,7 +46,7 @@ export const DanmakuSource = memo(() => {
         </PopoverTrigger>
         <PopoverContent
           container={portalContainer}
-          className="mx-2 w-80 border-white/11 bg-[rgb(38_38_44/96%)] text-white shadow-xl"
+          className="mx-2 w-80 border-white/11 bg-player-popover player-glass text-white shadow-xl"
         >
           <PopoverContentLayout title="来源">
             <SourceList />
@@ -128,7 +128,7 @@ const SourceList = memo(() => {
                   container={portalContainer}
                   side="left"
                   sideOffset={10}
-                  className="max-w-80 border border-white/11 bg-[rgb(38_38_44/98%)] text-sm leading-6 break-words whitespace-normal text-white shadow-lg"
+                  className="max-w-80 border border-white/11 bg-player-popover player-glass text-sm leading-6 break-words whitespace-normal text-white shadow-lg"
                 >
                   {danmakuPlatform}
                 </TooltipContent>
@@ -168,11 +168,15 @@ export const PopoverContentLayout: FC<PopoverContentLayoutProps> = ({ children, 
   )
 }
 
+// outline 在播放器深色色板下是近黑实底，与毛玻璃弹层割裂；改用面板内统一的半透明白底
+const sourceActionClass = 'border-white/11 bg-white/8 text-white hover:bg-white/14 hover:text-white'
+
 const RematchDanmaku = () => {
   const video = useAtomValue(videoAtom)
   return (
     <Button
       variant="outline"
+      className={sourceActionClass}
       onClick={() => {
         hidePlayerSettingsPanel()
         showMatchAnimeDialog(true, video.hash)
@@ -192,6 +196,7 @@ const ClearDanmakuCache = () => {
   return (
     <Button
       variant="outline"
+      className={sourceActionClass}
       onClick={async () => {
         present({
           title: '是否清除弹幕缓存? 清除后将重新匹配弹幕库',

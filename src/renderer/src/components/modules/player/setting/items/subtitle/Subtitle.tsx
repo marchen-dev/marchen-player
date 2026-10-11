@@ -44,7 +44,7 @@ export const Subtitle = () => {
           </SelectTrigger>
           <SelectContent
             container={portalContainer}
-            className="border-white/11 bg-[rgb(38_38_44/96%)] text-white"
+            className="border-white/11 bg-player-popover player-glass text-white"
           >
             <SelectGroup>
               <SelectItem value="off" className="focus:bg-white/14 focus:text-white">

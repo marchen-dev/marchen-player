@@ -16,8 +16,11 @@ const OVERLAP = 2
 const ARROW_SIZE = 6
 /** 箭头中心距工具条边缘的最小距离，略大于圆角半径 */
 const ARROW_INSET = 20
-/** 胶囊与箭头必须同色，统一由这里给出；用内联样式而不是类名，保证两者完全一致 */
-const SURFACE_COLOR = 'rgb(28 28 30 / 90%)'
+/**
+ * 胶囊与箭头必须同色，统一由这里给出；用内联样式而不是类名，保证两者完全一致。
+ * 颜色取播放器材质的 popover 档；工具条位于高频增删的弹幕层，不加背景模糊以免拖累渲染。
+ */
+const SURFACE_COLOR = 'var(--color-player-popover)'
 
 export interface DanmakuHoverToolbarHandlers {
   onCopy: (id: string) => void

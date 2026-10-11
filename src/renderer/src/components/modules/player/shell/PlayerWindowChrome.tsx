@@ -36,8 +36,8 @@ export const PlayerWindowChrome = ({
         type="button"
         aria-label="关闭当前播放"
         className={cn(
-          'no-drag-region pointer-events-auto absolute flex h-8 cursor-default items-center gap-1 rounded-lg bg-black/35 px-2 text-xs font-semibold text-white/85 backdrop-blur-xl transition-colors',
-          'hover:bg-black/50 hover:text-white focus-visible:ring-2 focus-visible:ring-[var(--player-focus)] focus-visible:outline-none',
+          'no-drag-region pointer-events-auto absolute flex h-8 cursor-default items-center gap-1 rounded-lg bg-player-popover player-glass px-2 text-xs font-semibold text-white/85 transition-colors',
+          'hover:text-white hover:brightness-125 focus-visible:ring-2 focus-visible:ring-[var(--player-focus)] focus-visible:outline-none',
           isMac && !fullscreen ? 'top-9 left-2' : 'top-4 left-4',
         )}
         onClick={onClose}

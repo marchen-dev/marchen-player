@@ -55,7 +55,7 @@ export const PlayerIconButton = ({
         container={portalContainer}
         side="top"
         sideOffset={8}
-        className="border border-white/11 bg-[rgb(38_38_44/96%)] text-white shadow-lg"
+        className="border border-white/11 bg-player-popover player-glass text-white shadow-lg"
       >
         {label}
       </TooltipContent>

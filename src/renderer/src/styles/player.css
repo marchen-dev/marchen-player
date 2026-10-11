@@ -1,9 +1,23 @@
+/*
+ * 播放器统一毛玻璃材质，参考 Infuse：半透明中性灰底 + 强模糊 + 提饱和，让画面颜色透出来。
+ * 颜色注册为主题色（bg-player-surface / bg-player-popover），定义在全局：
+ * 弹层 portal 到播放器根节点之外也有值，且 cn 能正确覆盖 shadcn 原件默认的 bg-popover。
+ * static：弹幕悬停工具条在 TS 中以 var() 引用，不经类名扫描，必须始终输出变量。
+ */
+@theme static {
+  /* 直接覆盖视频的大面（控制器、设置面板）；保留约一半不透明度，保证亮场景下白色图标可读 */
+  --color-player-surface: rgb(60 60 66 / 50%);
+  /* 叠在其他半透明层之上的下拉、气泡、提示；两层半透明叠加会发虚，因此更实一些 */
+  --color-player-popover: rgb(60 60 66 / 72%);
+}
+
+/* 只负责背景模糊，底色由 bg-player-* 决定；两档材质共用同一模糊参数 */
+@utility player-glass {
+  backdrop-filter: blur(48px) saturate(1.8);
+}
+
 [data-player-root] {
-  /*
-   * 参考 Infuse 的通透材质：半透明中性灰底 + 强模糊 + 提饱和，让画面颜色透出来。
-   * 底色保留约一半不透明度，保证亮场景下白色图标仍可读。
-   */
-  --player-surface: rgb(60 60 66 / 50%);
+  --player-surface: var(--color-player-surface);
   --player-surface-solid: rgb(25 31 37 / 96%);
   --player-fg: rgb(245 248 250 / 96%);
   --player-fg-muted: rgb(220 230 236 / 72%);
@@ -13,8 +27,7 @@
   --player-track: rgb(255 255 255 / 16%);
   --player-buffered: rgb(255 255 255 / 30%);
   --player-progress: rgb(238 246 250 / 92%);
-  /* 播放器设置与控制器共用同一套通透材质，不跟随应用 light/dark 主题。 */
-  --player-settings-panel: var(--player-surface);
+  /* 播放器设置与控制器共用 bg-player-surface 材质，不跟随应用 light/dark 主题。 */
   --player-settings-raised: rgb(255 255 255 / 8%);
   --player-settings-selected: rgb(255 255 255 / 14%);
   --player-settings-border: rgb(255 255 255 / 11%);
@@ -26,14 +39,10 @@
 }
 
 @supports not (backdrop-filter: blur(1px)) {
-  [data-player-floating-controller],
+  /* 无法模糊时半透明底会让画面细节干扰文字，统一退回实心底 */
+  .player-glass,
   [data-player-mobile-dock] > div {
-    background: var(--player-surface-solid);
-  }
-
-  [data-player-settings-panel] {
-    background: rgb(30 30 35);
-    backdrop-filter: none;
+    background: var(--player-surface-solid, rgb(25 31 37 / 96%));
   }
 }
 

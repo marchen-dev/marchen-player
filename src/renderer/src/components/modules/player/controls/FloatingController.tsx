@@ -219,8 +219,8 @@ export const FloatingController = ({
         style={{ x, y }}
         className={cn(
           'absolute top-0 left-0 z-40 w-[min(520px,calc(100%-32px))]',
-          'cursor-default rounded-2xl border border-[var(--player-border)] bg-[var(--player-surface)] px-3 py-2',
-          'text-[var(--player-fg)] shadow-[var(--player-shadow)] backdrop-blur-[48px] backdrop-saturate-[1.8]',
+          'cursor-default rounded-2xl border border-[var(--player-border)] bg-player-surface px-3 py-2',
+          'player-glass text-[var(--player-fg)] shadow-[var(--player-shadow)]',
           'transition-opacity duration-200 motion-reduce:transition-none',
           visible ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0',
           !positioned && 'opacity-0',

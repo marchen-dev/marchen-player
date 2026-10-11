@@ -196,7 +196,7 @@ describe('播放器 UI 回归', () => {
     const playerCss = readFileSync(new URL('../../../styles/player.css', import.meta.url), 'utf8')
     expect(playerCss).not.toContain('prefers-reduced-transparency')
     expect(playerCss).toContain('@supports not (backdrop-filter: blur(1px))')
-    expect(playerCss).toContain('--player-settings-panel: var(--player-surface)')
+    expect(playerCss).toContain('@utility player-glass')
   })
 
   it('设置侧栏只有根表面使用单层背景模糊', () => {
@@ -207,8 +207,8 @@ describe('播放器 UI 回归', () => {
       ),
       'utf8',
     )
-    expect(panelSource.match(/backdrop-blur/g)).toHaveLength(1)
-    expect(panelSource.match(/backdrop-saturate/g)).toHaveLength(1)
+    expect(panelSource.match(/player-glass/g)).toHaveLength(1)
+    expect(panelSource).not.toMatch(/backdrop-(blur|saturate)/)
     expect(panelSource.match(/no-drag-region/g)?.length).toBeGreaterThanOrEqual(4)
 
     const windowChromeSource = readFileSync(

@@ -53,7 +53,7 @@ export const MatchResultToast = () => {
           data-player-match-toast
           open={notice.open}
           onOpenChange={(open) => setNotice((current) => (current ? { ...current, open } : null))}
-          className="no-drag-region gap-3 space-x-0 border-white/15 bg-zinc-900/95 p-4 pr-8 text-white shadow-xl backdrop-blur-xl"
+          className="no-drag-region gap-3 space-x-0 border-white/15 bg-player-popover player-glass p-4 pr-8 text-white shadow-xl"
         >
           <div className="min-w-0 flex-1 space-y-1">
             <ToastTitle>

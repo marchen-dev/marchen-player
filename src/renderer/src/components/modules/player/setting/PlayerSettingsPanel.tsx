@@ -100,8 +100,8 @@ export const PlayerSettingsPanel = ({
           classNames={{ sheetOverlay: 'no-drag-region bg-black/30' }}
           className={cn(
             'no-drag-region w-[var(--player-settings-width)] max-w-none gap-0 overflow-hidden border-white/11 p-0',
-            'bg-[var(--player-settings-panel)] text-[var(--player-settings-fg)] shadow-[-20px_0_60px_rgb(0_0_0/28%)]',
-            'backdrop-blur-[48px] backdrop-saturate-[1.8] sm:max-w-none',
+            'bg-player-surface text-[var(--player-settings-fg)] shadow-[-20px_0_60px_rgb(0_0_0/28%)]',
+            'player-glass sm:max-w-none',
           )}
           closeIcon={<i className="icon-[mingcute--close-line] block text-lg" aria-hidden />}
           closeLabel="关闭播放器设置"

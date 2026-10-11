@@ -112,7 +112,7 @@ const PlayList = ({
                         container={portalContainer}
                         side="left"
                         sideOffset={10}
-                        className="max-w-80 border border-white/11 bg-[rgb(38_38_44/98%)] text-sm leading-6 [overflow-wrap:anywhere] break-words whitespace-normal text-white shadow-lg"
+                        className="max-w-80 border border-white/11 bg-player-popover player-glass text-sm leading-6 [overflow-wrap:anywhere] break-words whitespace-normal text-white shadow-lg"
                       >
                         {entry.name}
                       </TooltipContent>
