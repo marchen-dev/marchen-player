@@ -33,6 +33,7 @@ export const NativeDanmakuProvider = ({
     danmakuDuration,
     danmakuEndArea,
     danmakuFontSize,
+    danmakuOpacity,
     danmakuBlock,
     danmakuMaxOnScreen,
     enableDanmaku,
@@ -48,10 +49,18 @@ export const NativeDanmakuProvider = ({
       hoverPause: true,
       duration: Number(danmakuDuration) / 1_000,
       fontSize: Number(danmakuFontSize),
+      opacity: danmakuOpacity / 100,
       displayArea: Number(danmakuEndArea),
       maxOnScreen: Number(danmakuMaxOnScreen),
     }),
-    [danmakuDuration, danmakuEndArea, danmakuFontSize, danmakuMaxOnScreen, enableDanmaku],
+    [
+      danmakuDuration,
+      danmakuEndArea,
+      danmakuFontSize,
+      danmakuOpacity,
+      danmakuMaxOnScreen,
+      enableDanmaku,
+    ],
   )
   const comments = usePlayerLoadingSelector((state) =>
     state.step === 'ready' || state.step === 'reloading' ? state.mergedComments : [],

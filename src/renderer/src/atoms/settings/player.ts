@@ -9,6 +9,7 @@ import {
   createDefaultDanmakuBlockSettings,
   normalizeDanmakuBlockSettings,
 } from '@renderer/services/player-runtime/danmaku/danmaku-block-settings'
+import { normalizeDanmakuOpacity } from '@renderer/services/player-runtime/danmaku/opacity'
 import { normalizeEnginePreference } from '@renderer/services/player-runtime/engine-policy'
 import { normalizeSubtitleScale } from '@renderer/services/player-runtime/subtitles/font-scale'
 import { useAtom, useAtomValue } from 'jotai'
@@ -27,6 +28,7 @@ const createPlayerDefaultSettings = () => {
     enableAutomaticEpisodeSwitching: false,
     enableDanmaku: true,
     danmakuMaxOnScreen: '80',
+    danmakuOpacity: 100,
     enableMiniProgress: true,
     controllerPosition: { xRatio: 0.5, yRatio: 0.72 },
     danmakuFontSize: getSelectedDefaultValue(danmakuFontSizeList) ?? '26',
@@ -42,6 +44,7 @@ const playerSettingAtom = createSettingATom('player', createPlayerDefaultSetting
   ...settings,
   enginePreference: normalizeEnginePreference(settings?.enginePreference),
   subtitleScale: normalizeSubtitleScale(settings?.subtitleScale),
+  danmakuOpacity: normalizeDanmakuOpacity(settings?.danmakuOpacity),
   danmakuBlock: normalizeDanmakuBlockSettings(settings?.danmakuBlock),
 }))
 

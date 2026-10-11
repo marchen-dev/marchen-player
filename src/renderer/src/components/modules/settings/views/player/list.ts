@@ -85,3 +85,13 @@ export const danmakuDensityList = [
   { label: '中（80 条）', value: '80', default: true },
   { label: '高（120 条）', value: '120' },
 ] satisfies SelectOption[]
+
+// 与其余弹幕设置共用下拉样式，选回 100% 即恢复默认。
+export const danmakuOpacityList: SelectOption[] = Array.from({ length: 19 }, (_, index) => {
+  const value = 100 - index * 5
+  return {
+    label: `${value}%`,
+    value: String(value),
+    default: value === 100,
+  }
+})

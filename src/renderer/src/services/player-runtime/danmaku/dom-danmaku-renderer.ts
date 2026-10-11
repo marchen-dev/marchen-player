@@ -41,6 +41,7 @@ export class DomDanmakuRenderer {
   private readonly pool: DanmakuNodePool<HTMLSpanElement>
   private readonly animations = new Map<string, ActiveAnimation>()
   private readonly hoverPaused = new Set<string>()
+  private readonly displayLayer: HTMLDivElement
   private readonly measurementLayer: HTMLDivElement
   private readonly hoverToolbar: DanmakuHoverToolbar
   private readonly metricsCache = new Map<string, DanmakuMetrics>()
@@ -63,6 +64,14 @@ export class DomDanmakuRenderer {
     this.config = config
     this.engine = new DanmakuEngineCore(clock, undefined, config)
     this.pool = new DanmakuNodePool(240, createDanmakuNode, resetNode)
+    // 不透明度只作用于弹幕文字层，工具条作为同级节点保持清晰；
+    // 容器级合成保留单条固定弹幕自身的淡入淡出动画。
+    this.displayLayer = document.createElement('div')
+    this.displayLayer.dataset.danmakuDisplayLayer = ''
+    this.displayLayer.style.position = 'absolute'
+    this.displayLayer.style.inset = '0'
+    this.displayLayer.style.pointerEvents = 'none'
+    this.container.append(this.displayLayer)
     this.measurementLayer = createMeasurementLayer()
     this.container.append(this.measurementLayer)
     this.hoverToolbar = new DanmakuHoverToolbar(container, {
@@ -190,6 +199,7 @@ export class DomDanmakuRenderer {
     this.clearNodes()
     this.hoverToolbar.dispose()
     this.measurementLayer.remove()
+    this.displayLayer.remove()
   }
 
   get activeNodeCount() {
@@ -277,7 +287,7 @@ export class DomDanmakuRenderer {
       Boolean(this.config.hoverPause),
       this.config.fontSize ?? 26,
     )
-    this.container.append(node)
+    this.displayLayer.append(node)
     const animation = createAnimation(node, placement, this.container.clientWidth)
     node.style.visibility = 'visible'
     animation.playbackRate = placement.playbackRate
@@ -403,7 +413,7 @@ export class DomDanmakuRenderer {
   }
 
   private applyOpacity(opacity: number | undefined): void {
-    this.container.style.opacity = String(clamp(opacity ?? 1, 0, 1))
+    this.displayLayer.style.opacity = String(clamp(opacity ?? 1, 0, 1))
   }
 
   private getMetricsKey(item: DanmakuItem) {

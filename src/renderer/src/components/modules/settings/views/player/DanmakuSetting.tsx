@@ -11,6 +11,7 @@ import {
   danmakuDurationList,
   danmakuEndAreaList,
   danmakuFontSizeList,
+  danmakuOpacityList,
 } from './list'
 
 interface DanmakuSettingProps extends PropsWithChildren {
@@ -57,6 +58,19 @@ export const DanmakuSetting: FC<DanmakuSettingProps> = (props) => {
           value={playerSetting.danmakuFontSize}
           onValueChange={(value) =>
             setPlayerSetting((prev) => ({ ...prev, danmakuFontSize: value }))
+          }
+        />
+      </FieldLayout>
+      <FieldLayout title="不透明度">
+        <SettingSelect
+          container={isPlaying ? portalContainer : undefined}
+          playerMaterial={isPlaying}
+          ariaLabel="弹幕不透明度"
+          placeholder="弹幕不透明度"
+          groups={danmakuOpacityList}
+          value={String(playerSetting.danmakuOpacity)}
+          onValueChange={(value) =>
+            setPlayerSetting((previous) => ({ ...previous, danmakuOpacity: Number(value) }))
           }
         />
       </FieldLayout>
