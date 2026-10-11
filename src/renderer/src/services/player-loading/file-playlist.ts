@@ -19,10 +19,12 @@ export function selectFileBatch(selected: readonly File[]) {
   return accepted
 }
 export function selectPathBatch(selected: readonly string[]) {
-  paths = [...new Set(selected)]
+  const accepted = [...new Set(selected)]
     .filter(isVideoFile)
     .sort((a, b) => compare(basename(a), basename(b)))
-  return [...paths]
+  // 单个文件不构成用户指定的列表，交给主进程扫描同目录；多选时才以选择集合覆盖
+  paths = accepted.length > 1 ? accepted : []
+  return accepted
 }
 export function rememberWebFile(file: File, hash: string) {
   if (!files.includes(file)) files = [file]

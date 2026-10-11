@@ -26,6 +26,11 @@ describe('用户授权的播放列表', () => {
     ])
     expect(getSelectedPathPlaylist('/other/1.mkv')).toBeNull()
   })
+  it('electron 单选或拖入单个文件时回退同目录发现', () => {
+    selectPathBatch(['/video/10.mkv', '/video/2.mkv'])
+    expect(selectPathBatch(['/video/2.mkv'])).toEqual(['/video/2.mkv'])
+    expect(getSelectedPathPlaylist('/video/2.mkv')).toBeNull()
+  })
 })
 
 it('多容器批量导入保留视频、去重并自然排序，File 和路径规则一致', () => {
