@@ -45,9 +45,9 @@
 
 ![浅色影视库](https://fastly.jsdelivr.net/gh/marchen-dev/marchen-player@main/docs/images/library-light.png)
 
-![弹幕播放](https://fastly.jsdelivr.net/gh/marchen-dev/marchen-player@main/docs/images/player.png)
+![弹幕播放](https://fastly.jsdelivr.net/gh/marchen-dev/marchen-player@main/docs/images/player-ee2d9bea.png)
 
-![播放设置](https://fastly.jsdelivr.net/gh/marchen-dev/marchen-player@main/docs/images/player-settings.png)
+![播放设置](https://fastly.jsdelivr.net/gh/marchen-dev/marchen-player@main/docs/images/player-settings-233118e1.png)
 
 ![下载管理](https://fastly.jsdelivr.net/gh/marchen-dev/marchen-player@main/docs/images/downloads.png)
 
