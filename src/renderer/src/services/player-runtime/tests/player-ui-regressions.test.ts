@@ -228,8 +228,10 @@ describe('播放器 UI 回归', () => {
       ),
       'utf8',
     )
-    expect(playlistSource).toContain('max-w-full min-w-0 space-y-3 overflow-hidden')
-    expect(playlistSource).toContain('min-w-0 flex-1 truncate')
+    expect(playlistSource).toContain('max-w-full min-w-0 space-y-5 overflow-hidden')
+    // 文件名常无空格，需允许任意位置断行并限制两行，避免撑开或无限增高
+    expect(playlistSource).toContain('line-clamp-2 leading-5 [overflow-wrap:anywhere]')
+    expect(playlistSource).toContain('<span className="min-w-0 flex-1">')
     expect(playlistSource).toContain('shrink-0 text-xs')
   })
 })
