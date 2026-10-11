@@ -1,6 +1,22 @@
 # CHANGELOG
 
 
+## [1.0.6](https://github.com/marchen-dev/marchen-player/compare/v1.0.5...v1.0.6) (2026-10-11)
+
+
+### Bug Fixes
+
+* **player:** 拖入单个视频时恢复同目录播放列表 ([60327d1](https://github.com/marchen-dev/marchen-player/commit/60327d1aadadf50d99bb54fa1978ee0754f206f5))
+
+
+### Features
+
+* **danmaku:** 恢复 seek 后的弹幕快照与播放进度 ([91a5c22](https://github.com/marchen-dev/marchen-player/commit/91a5c22b721883691e5a3a0b1f7a00ccd42b0659))
+* **danmaku:** 支持全局不透明度调整 ([2d2feed](https://github.com/marchen-dev/marchen-player/commit/2d2feed6c2a770bbc6ddb0cb83d9e3198c26bbc5))
+* **player:** 打开播放列表与连播前重新扫描剧集 ([24d827f](https://github.com/marchen-dev/marchen-player/commit/24d827f323c7408100322817e4c2aee8b126c4d2))
+* **player:** 播放列表按文件名公共部分分组折叠 ([5a089a5](https://github.com/marchen-dev/marchen-player/commit/5a089a56c5ec24d017074c1e58ebfba66875d4fe))
+* **player:** 支持画中画与点击画面暂停播放 ([e0f4951](https://github.com/marchen-dev/marchen-player/commit/e0f4951f7e9d9c55d58f2a14539bba63536461c2))
+
 ## [1.0.5](https://github.com/marchen-dev/marchen-player/compare/v1.0.4...v1.0.5) (2026-10-10)
 
 
