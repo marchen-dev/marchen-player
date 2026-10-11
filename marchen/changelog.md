@@ -72,3 +72,4 @@
 - 2026-10-11: [restore-danmaku-after-seek](./archive/2026-10-11-restore-danmaku-after-seek/) — 新增 seek 后弹幕快照恢复，支持暂停、倍速及连续跳转，并同步动画进度与轨道占用
 - 2026-10-11: [playlist-title-grouping](./archive/2026-10-11-playlist-title-grouping/) — 播放列表按相邻文件名公共前缀分组折叠，条目只显示集号等差异片段，并支持悬停全名与自动定位当前集
 - 2026-10-11: [refresh-playlist-on-demand](./archive/2026-10-11-refresh-playlist-on-demand/) — 打开播放列表时重新扫描，自动连播改为结束时刷新列表再求下一集，追更新下载的剧集可直接续播
+- 2026-10-11: [player-pip-click-toggle](./archive/2026-10-11-player-pip-click-toggle/) — 设置面板新增原生内核画中画入口，支持可选的单击画面暂停/播放，「连续播放」更名为「播放偏好」

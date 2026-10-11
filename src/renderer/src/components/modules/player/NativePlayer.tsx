@@ -1,5 +1,6 @@
 import type { PlayerRotation } from './setting/PlayerSettingsPanel'
 import { playerEngineStateAtom } from '@renderer/atoms/player-engine'
+import { usePlayerSettingsValue } from '@renderer/atoms/settings/player'
 import { mediaFrameQueue } from '@renderer/services/media/frame-queue'
 import { usePlayerLoadingSelector } from '@renderer/services/player-loading/hooks'
 import { getPlayerLoadingService } from '@renderer/services/player-loading/index'
@@ -29,6 +30,8 @@ import {
   SubtitleSurface,
   VideoSurface,
 } from './shell'
+import { useSurfaceClickGestures } from './shell/useSurfaceClickGestures'
+import { usePictureInPicture } from './usePictureInPicture'
 
 /** 双内核共用宿主，控制器、字幕与弹幕跨内核切换保持挂载。 */
 export const NativePlayer = () => {
@@ -54,6 +57,8 @@ export const NativePlayer = () => {
     source: preparedVideo?.source,
   })
   const sessionReady = isPlayerSessionReady(runtime, video, preparedVideo, ports.subtitles)
+  // 画中画只绑定原生 video；兼容内核的静音呈现元素不参与
+  const pictureInPicture = usePictureInPicture(video, engine, sessionReady)
 
   useEffect(() => () => ports.sourceLifecycle.dispose(), [ports])
   useEffect(() => ports.fullscreen.subscribe((snapshot) => setFullscreen(snapshot.active)), [ports])
@@ -76,6 +81,19 @@ export const NativePlayer = () => {
     }
   }
 
+  const { enableClickToTogglePlay } = usePlayerSettingsValue()
+  const togglePlayback = () => {
+    if (!runtime) return
+    if (runtime.state.status === 'playing') runtime.commands.pause()
+    else void runtime.commands.play()
+  }
+  const surfaceGestures = useSurfaceClickGestures({
+    // 会话未就绪时画面上是加载 / 匹配界面，单击不应触发播放
+    clickEnabled: enableClickToTogglePlay && sessionReady,
+    onClick: togglePlayback,
+    onDoubleClick: toggleFullscreen,
+  })
+
   const exitFullscreen = () => {
     captureFeatureUsed('fullscreen', 'exit')
     void ports.fullscreen.exit()
@@ -96,8 +114,8 @@ export const NativePlayer = () => {
         />
         <SubtitleSurface />
         {sessionReady ? <NativeDanmakuSurface /> : <DanmakuSurface />}
-        {/* 全屏手势仅绑定画面层，避免设置菜单、弹窗等 Portal 事件冒泡后误触发。 */}
-        <InteractionSurface onDoubleClick={toggleFullscreen} />
+        {/* 单击播放 / 双击全屏仅绑定画面层，避免设置菜单、弹窗等 Portal 事件冒泡后误触发。 */}
+        <InteractionSurface {...surfaceGestures} />
         {sessionReady && (
           <>
             <PlayerControls
@@ -112,6 +130,7 @@ export const NativePlayer = () => {
               rotation={rotation}
               fullscreen={fullscreen}
               onRotationChange={setRotation}
+              pictureInPicture={pictureInPicture}
               onFullscreen={toggleFullscreen}
               onExitFullscreen={fullscreen ? exitFullscreen : undefined}
             />

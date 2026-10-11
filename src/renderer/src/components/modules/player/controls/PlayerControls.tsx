@@ -1,5 +1,6 @@
 import type { PlayerCapabilities, PlaylistEntry } from '@renderer/services/player-runtime'
 import type { PlayerRotation } from '../setting/PlayerSettingsPanel'
+import type { PictureInPictureControl } from '../usePictureInPicture'
 import { playerSettingsPanelAtom, showPlayerSettingsPanel } from '@renderer/atoms/player'
 import { usePlayerSettings } from '@renderer/atoms/settings/player'
 import { TooltipProvider } from '@renderer/components/ui/Tooltip'
@@ -39,6 +40,7 @@ export interface PlayerControlsProps {
   fullscreen?: boolean
   rotation?: PlayerRotation
   onRotationChange?: (rotation: PlayerRotation) => void
+  pictureInPicture?: PictureInPictureControl
 }
 
 export const PlayerControls = ({
@@ -55,6 +57,7 @@ export const PlayerControls = ({
   fullscreen = false,
   rotation = 0,
   onRotationChange,
+  pictureInPicture,
 }: PlayerControlsProps) => {
   const controlsRef = useRef<HTMLDivElement | null>(null)
   const { setExclusionRect } = useNativeDanmaku()
@@ -315,6 +318,7 @@ export const PlayerControls = ({
             commands.setRate(nextRate)
           }}
           onRotationChange={onRotationChange ?? (() => {})}
+          pictureInPicture={pictureInPicture}
         />
         {enableMiniProgress && playing && !visible && duration > 0 && (
           <div data-player-mini-progress aria-hidden className="absolute inset-x-0 bottom-0 h-0.5">

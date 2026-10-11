@@ -1,6 +1,10 @@
 import type { MediaPresentation } from '@marchen/playback-core'
 import type { PlayerSettingsSection } from '@renderer/atoms/player-settings-state'
 import type { PlayerCapabilities, PlaylistEntry } from '@renderer/services/player-runtime'
+import type {
+  PictureInPictureControl,
+  PictureInPictureUnavailableReason,
+} from '../usePictureInPicture'
 import { playerSettingsPanelAtom } from '@renderer/atoms/player'
 import {
   getAvailablePlayerSettingsSections,
@@ -16,7 +20,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@renderer/components/u
 import { cn } from '@renderer/lib/utils'
 import { usePlayerPortalContainer } from '@renderer/services/player-runtime'
 import { createPlaybackInfoRows } from '@renderer/services/player-runtime/playback-info'
-import { useAtom } from 'jotai'
+import { captureFeatureUsed } from '@renderer/services/telemetry/features'
+import { useAtom, useSetAtom } from 'jotai'
 import { lazy, useEffect, useState } from 'react'
 import { withControllerPosition } from '../controls/controller-position'
 import { AudioTrackSetting } from './items/AudioTrackSetting'
@@ -44,6 +49,7 @@ interface PlayerSettingsPanelProps {
   rotation: PlayerRotation
   onRateChange: (rate: number) => void
   onRotationChange: (rotation: PlayerRotation) => void
+  pictureInPicture?: PictureInPictureControl
 }
 
 const sectionMetadata: Record<PlayerSettingsSection, { label: string; icon: string }> = {
@@ -64,6 +70,7 @@ export const PlayerSettingsPanel = ({
   rotation,
   onRateChange,
   onRotationChange,
+  pictureInPicture,
 }: PlayerSettingsPanelProps) => {
   const [panel, setPanel] = useAtom(playerSettingsPanelAtom)
   const portalContainer = usePlayerPortalContainer()
@@ -146,6 +153,7 @@ export const PlayerSettingsPanel = ({
                     rotation={rotation}
                     onRateChange={onRateChange}
                     onRotationChange={onRotationChange}
+                    pictureInPicture={pictureInPicture}
                   />
                 </TabsContent>
                 <TabsContent value="danmaku" className="mt-0 focus-visible:ring-0">
@@ -178,6 +186,12 @@ export const PlayerSettingsPanel = ({
   )
 }
 
+const PICTURE_IN_PICTURE_UNAVAILABLE_TEXT: Record<PictureInPictureUnavailableReason, string> = {
+  unsupported: '当前浏览器不支持画中画',
+  compat: '兼容内核暂不支持画中画',
+  switching: '播放内核切换中，请稍候',
+}
+
 const PlaybackSettings = ({
   capabilities,
   playbackInfo,
@@ -185,8 +199,10 @@ const PlaybackSettings = ({
   rotation,
   onRateChange,
   onRotationChange,
+  pictureInPicture,
 }: PlayerSettingsPanelProps) => {
   const [settings, setSettings] = usePlayerSettings()
+  const setPanel = useSetAtom(playerSettingsPanelAtom)
   const portalContainer = usePlayerPortalContainer()
   const playbackInfoRows = createPlaybackInfoRows(playbackInfo)
   const positionPresets = [
@@ -242,7 +258,38 @@ const PlaybackSettings = ({
         </div>
       </PanelSection>
 
-      <PanelSection title="连续播放">
+      {pictureInPicture && (
+        <PanelSection title="画中画">
+          <PanelCard>
+            <div className="flex min-h-12 items-center justify-between gap-4 py-2 text-sm">
+              <div className="min-w-0">
+                <div>画中画</div>
+                {/* 退出始终可用，只有进入受内核与浏览器能力限制 */}
+                {!pictureInPicture.active && pictureInPicture.unavailableReason && (
+                  <div className="mt-0.5 text-xs text-[var(--player-settings-muted)]">
+                    {PICTURE_IN_PICTURE_UNAVAILABLE_TEXT[pictureInPicture.unavailableReason]}
+                  </div>
+                )}
+              </div>
+              <PanelChoice
+                className="shrink-0 disabled:opacity-50 disabled:hover:bg-white/6 disabled:hover:text-[var(--player-settings-muted)]"
+                active={pictureInPicture.active}
+                disabled={!pictureInPicture.active && !!pictureInPicture.unavailableReason}
+                onClick={() => {
+                  const entering = !pictureInPicture.active
+                  pictureInPicture.toggle()
+                  // 进入后用户关注点转到画中画窗口，收起面板避免回到主窗口时仍遮挡画面
+                  if (entering) setPanel((state) => ({ ...state, open: false }))
+                }}
+              >
+                {pictureInPicture.active ? '退出画中画' : '进入画中画'}
+              </PanelChoice>
+            </div>
+          </PanelCard>
+        </PanelSection>
+      )}
+
+      <PanelSection title="播放偏好">
         <PanelCard>
           {capabilities.playlist && (
             <PanelSwitchRow
@@ -262,6 +309,14 @@ const PlaybackSettings = ({
             onCheckedChange={(checked) =>
               setSettings((current) => ({ ...current, enableMiniProgress: checked }))
             }
+          />
+          <PanelSwitchRow
+            label="点击画面暂停/播放"
+            checked={settings.enableClickToTogglePlay}
+            onCheckedChange={(checked) => {
+              captureFeatureUsed('click_to_toggle_play', checked ? 'enable' : 'disable')
+              setSettings((current) => ({ ...current, enableClickToTogglePlay: checked }))
+            }}
           />
         </PanelCard>
       </PanelSection>
