@@ -5,7 +5,7 @@ import { usePlayerSettingsValue } from '@renderer/atoms/settings/player'
 import { db } from '@renderer/database/db'
 import { markEpisodeStarted, markEpisodeWatched } from '@renderer/database/lib/library-writer'
 import { ipcClient } from '@renderer/lib/client'
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { registerUpdatePreparation } from '../update-preparation'
 import { PlaybackHistoryAdapter } from './playback-history-adapter'
 import { PlaybackSnapshotAdapter } from './playback-snapshot-adapter'
@@ -27,21 +27,37 @@ export const usePlaybackSessionObservers = ({
 }: PlaybackSessionObserversOptions) => {
   const { enableAutomaticEpisodeSwitching } = usePlayerSettingsValue()
   const [playlist, setPlaylist] = useState<ReadonlyArray<PlaylistEntry>>([])
+  const playlistRef = useRef(playlist)
+  playlistRef.current = playlist
+  // 当前生效的 source；列表读取返回时 source 已切换则丢弃结果，避免旧目录覆盖新列表
+  const activeSourceRef = useRef<DurableMediaSource | undefined>(undefined)
+
+  /** 重新读取列表；结果过期或读取失败时返回 undefined，调用方自行决定回退。 */
+  const refreshPlaylist = useCallback(async () => {
+    const port = ports.playlist
+    if (!port || !source) return undefined
+    try {
+      const items = await port.list(source)
+      if (activeSourceRef.current !== source) return undefined
+      setPlaylist(items)
+      return items
+    } catch (error) {
+      console.error('读取播放列表失败', error)
+      return undefined
+    }
+  }, [ports, source])
 
   useEffect(() => {
     if (!ports.playlist || !source) {
       setPlaylist([])
       return
     }
-    let active = true
-    void ports.playlist
-      .list(source)
-      .then((items) => active && setPlaylist(items))
-      .catch((error) => console.error('读取播放列表失败', error))
+    activeSourceRef.current = source
+    void refreshPlaylist()
     return () => {
-      active = false
+      activeSourceRef.current = undefined
     }
-  }, [ports, source])
+  }, [ports, refreshPlaylist, source])
 
   const { previous, next } = useMemo(
     () => resolvePlaylistNeighbors(playlist, source),
@@ -94,13 +110,18 @@ export const usePlaybackSessionObservers = ({
     }
   }, [hash, ports, runtime, source])
 
+  // 不依赖已知的下一集：追更时最新一集播完，结束时重新扫描才能续上刚下载好的新集
   useEffect(() => {
-    if (!runtime || !ports.playlist || !next || !enableAutomaticEpisodeSwitching) return
-    return subscribeAutomaticNext(runtime, ports.playlist, next)
-  }, [enableAutomaticEpisodeSwitching, next, ports, runtime])
+    if (!runtime || !ports.playlist || !source || !enableAutomaticEpisodeSwitching) return
+    return subscribeAutomaticNext(runtime, ports.playlist, async () => {
+      const items = (await refreshPlaylist()) ?? playlistRef.current
+      return resolvePlaylistNeighbors(items, source).next
+    })
+  }, [enableAutomaticEpisodeSwitching, ports, refreshPlaylist, runtime, source])
 
   return {
     playlist,
+    refreshPlaylist,
     onSelectPlaylist: ports.playlist?.play,
     onPrevious: previous && ports.playlist ? () => ports.playlist?.play(previous) : undefined,
     onNext: next && ports.playlist ? () => ports.playlist?.play(next) : undefined,

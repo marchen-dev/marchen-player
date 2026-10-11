@@ -36,6 +36,8 @@ interface PlayerSettingsPanelProps {
   capabilities: PlayerCapabilities
   playlist?: readonly PlaylistEntry[]
   onSelectPlaylist?: (entry: PlaylistEntry) => void
+  /** 打开播放列表时重新读取，让同一集播放期间新增的剧集也能出现 */
+  onRefreshPlaylist?: () => void
   playbackInfo?: MediaPresentation
   readPlaybackInfo?: () => MediaPresentation | undefined
   rate: number
@@ -55,6 +57,7 @@ export const PlayerSettingsPanel = ({
   capabilities,
   playlist,
   onSelectPlaylist,
+  onRefreshPlaylist,
   playbackInfo,
   readPlaybackInfo,
   rate,
@@ -158,7 +161,11 @@ export const PlayerSettingsPanel = ({
                     value="playlist"
                     className="mt-0 max-w-full min-w-0 overflow-hidden focus-visible:ring-0"
                   >
-                    <PlayList entries={playlist ?? []} onSelect={onSelectPlaylist} />
+                    <PlayList
+                      entries={playlist ?? []}
+                      onSelect={onSelectPlaylist}
+                      onRefresh={onRefreshPlaylist}
+                    />
                   </TabsContent>
                 )}
               </div>

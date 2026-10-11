@@ -193,18 +193,65 @@ describe('playbackSnapshotAdapter', () => {
 })
 
 describe('自动下一集', () => {
-  it('仅在首次进入 ended 时经 PlaylistPort 切换', () => {
+  const next = { id: 'next', name: '下一集', path: '/next.mkv' }
+  const flush = () => new Promise((resolve) => setTimeout(resolve, 0))
+
+  it('仅在首次进入 ended 时解析并经 PlaylistPort 切换', async () => {
     const { runtime, emit } = createRuntime()
-    const next = { id: 'next', name: '下一集', path: '/next.mkv' }
     const play = vi.fn()
-    const unsubscribe = subscribeAutomaticNext(runtime, { list: vi.fn(), play }, next)
+    const resolveNext = vi.fn(async () => next)
+    const unsubscribe = subscribeAutomaticNext(runtime, { list: vi.fn(), play }, resolveNext)
 
     emit('ended', mediaSnapshot({ currentTime: 100, ended: true }))
     emit('ended', mediaSnapshot({ currentTime: 100, ended: true }))
+    await flush()
 
-    expect(play).toHaveBeenCalledOnce()
-    expect(play).toHaveBeenCalledWith(next)
+    expect(resolveNext).toHaveBeenCalledOnce()
+    expect(play).toHaveBeenCalledExactlyOnceWith(next)
     unsubscribe()
+  })
+
+  it('结束时才出现的新集也能续播，没有下一集则停留', async () => {
+    const { runtime, emit } = createRuntime()
+    const play = vi.fn()
+    // 订阅时列表里还没有下一集，模拟追更：结束时重新扫描才拿到新下载的剧集
+    let available: typeof next | undefined
+    const unsubscribe = subscribeAutomaticNext(
+      runtime,
+      { list: vi.fn(), play },
+      async () => available,
+    )
+
+    emit('ended', mediaSnapshot({ currentTime: 100, ended: true }))
+    await flush()
+    expect(play).not.toHaveBeenCalled()
+
+    emit('play', mediaSnapshot({ currentTime: 0, paused: false }))
+    available = next
+    emit('ended', mediaSnapshot({ currentTime: 100, ended: true }))
+    await flush()
+    expect(play).toHaveBeenCalledExactlyOnceWith(next)
+    unsubscribe()
+  })
+
+  it('解析期间离开 ended 或已取消订阅时不切集', async () => {
+    const { runtime, emit } = createRuntime()
+    const play = vi.fn()
+    let resolve!: (entry: typeof next) => void
+    const resolveNext = () => new Promise<typeof next>((done) => (resolve = done))
+    const unsubscribe = subscribeAutomaticNext(runtime, { list: vi.fn(), play }, resolveNext)
+
+    emit('ended', mediaSnapshot({ currentTime: 100, ended: true }))
+    emit('play', mediaSnapshot({ currentTime: 0, paused: false }))
+    resolve(next)
+    await flush()
+    expect(play).not.toHaveBeenCalled()
+
+    emit('ended', mediaSnapshot({ currentTime: 100, ended: true }))
+    unsubscribe()
+    resolve(next)
+    await flush()
+    expect(play).not.toHaveBeenCalled()
   })
 })
 

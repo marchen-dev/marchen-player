@@ -16,9 +16,11 @@ import { useEffect, useMemo, useRef } from 'react'
 const PlayList = ({
   entries,
   onSelect,
+  onRefresh,
 }: {
   entries: readonly PlaylistEntry[]
   onSelect?: (entry: PlaylistEntry) => void
+  onRefresh?: () => void
 }) => {
   // 从 service state 读取匹配信息和视频信息
   const match = usePlayerLoadingSelector((s) => ('match' in s ? s.match : null))
@@ -27,6 +29,11 @@ const PlayList = ({
   const groups = useMemo(() => groupPlaylistForDisplay(entries), [entries])
   const currentRef = useRef<HTMLButtonElement>(null)
   const currentId = entries.find((entry) => samePlaylistSource(entry, video?.source))?.id
+
+  // 标签页内容只在激活时挂载，挂载即"打开播放列表"：重新读取一次，补上播放期间新下载的剧集
+  useEffect(() => {
+    onRefresh?.()
+  }, [onRefresh])
 
   // 打开列表或换集后把当前集滚到可视区域中部，长列表里不用再手动找。
   // 只滚动侧栏自身的 viewport：scrollIntoView 会连带滚动外层 overflow 容器，可能挪动播放器外壳。

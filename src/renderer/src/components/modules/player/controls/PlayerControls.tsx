@@ -30,6 +30,7 @@ export interface PlayerControlsProps {
   capabilities: PlayerCapabilities
   playlist?: readonly PlaylistEntry[]
   onSelectPlaylist?: (entry: PlaylistEntry) => void
+  onRefreshPlaylist?: () => void
   onPreview?: (time: number, signal: AbortSignal) => Promise<string>
   onPrevious?: () => void
   onNext?: () => void
@@ -45,6 +46,7 @@ export const PlayerControls = ({
   capabilities,
   playlist,
   onSelectPlaylist,
+  onRefreshPlaylist,
   onPreview,
   onPrevious,
   onNext,
@@ -303,6 +305,7 @@ export const PlayerControls = ({
           capabilities={capabilities}
           playlist={playlist}
           onSelectPlaylist={onSelectPlaylist}
+          onRefreshPlaylist={onRefreshPlaylist}
           playbackInfo={runtime.playbackInfo}
           readPlaybackInfo={readPlaybackInfo}
           rate={rate}

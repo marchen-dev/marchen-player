@@ -106,6 +106,7 @@ export const NativePlayer = () => {
               onPreview={previewFrame}
               playlist={playlistActions.playlist}
               onSelectPlaylist={playlistActions.onSelectPlaylist}
+              onRefreshPlaylist={playlistActions.refreshPlaylist}
               onPrevious={playlistActions.onPrevious}
               onNext={playlistActions.onNext}
               rotation={rotation}
