@@ -14,7 +14,7 @@
 </p>
 
 <p align="center">
-  <img src="https://fastly.jsdelivr.net/gh/marchen-dev/marchen-player@main/docs/images/library-light.png" alt="浅色影视库" width="900" />
+  <img src="https://fastly.jsdelivr.net/gh/marchen-dev/marchen-player@main/docs/images/hero-20261012.jpg" alt="Marchen 影视库与弹幕播放" width="900" />
 </p>
 
 ## ✨ 特征
