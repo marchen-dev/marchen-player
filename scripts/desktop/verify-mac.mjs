@@ -1,6 +1,7 @@
 import { execFileSync } from 'node:child_process'
 import { access } from 'node:fs/promises'
 import { join, resolve } from 'node:path'
+import { listPackage } from '@electron/asar'
 import { sparkleBuildVersion } from '../../packages/shared/src/update-policy.ts'
 import { verifyPackageResources } from './package-resources.mjs'
 const app = resolve(process.argv[2] || '')
@@ -32,8 +33,6 @@ const architectures = execFileSync(
 ).trim()
 if (architectures !== 'arm64') throw new Error('仅允许 ARM64 应用')
 // ASAR 清单必须包含重构后的解码与音频资源；不读取私密 env 内容。
-const { createRequire } = await import('node:module')
-const require = createRequire(import.meta.url)
-const entries = require('@electron/asar').listPackage(join(app, 'Contents/Resources/app.asar'))
+const entries = listPackage(join(app, 'Contents/Resources/app.asar'))
 verifyPackageResources(entries)
 console.log('最终 Mac 应用的签名、架构、更新和媒体资源检查通过')

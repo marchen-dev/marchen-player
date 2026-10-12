@@ -74,3 +74,4 @@
 - 2026-10-11: [refresh-playlist-on-demand](./archive/2026-10-11-refresh-playlist-on-demand/) — 打开播放列表时重新扫描，自动连播改为结束时刷新列表再求下一集，追更新下载的剧集可直接续播
 - 2026-10-11: [player-pip-click-toggle](./archive/2026-10-11-player-pip-click-toggle/) — 设置面板新增原生内核画中画入口，支持可选的单击画面暂停/播放，「连续播放」更名为「播放偏好」
 - 2026-10-11: [player-glass-material](./archive/2026-10-11-player-glass-material/) — 播放器浮层统一为 bg-player-surface / bg-player-popover 两档主题色加 player-glass 模糊工具类，替换各处写死的深色实底
+- 2026-10-12: [upgrade-minor-dependencies](./archive/2026-10-12-upgrade-minor-dependencies/) — 依赖批次 A：补丁与次版本升至最新（Electron 44.7、Vite 8.3、React 19.3、Mediabunny 1.61 等），移除未用 dotenv，asar 4 改 ESM import，双端构建与测试通过

@@ -1,15 +1,19 @@
+minimumReleaseAgeExcludePrune: true
+
 minimumReleaseAgeExclude:
-  - react-router@8.3.1
   - '@suemor/libav-hevc@0.1.0 || 0.1.1'
-shamefullyHoist: true
-shellEmulator: true
 trustPolicy: no-downgrade
 trustPolicyExclude:
   - prettier-plugin-tailwindcss@0.7.4
   - semver@5.7.2
   - semver@6.3.1
+shamefullyHoist: true
+shellEmulator: true
 packages:
   - 'packages/*'
+# Electron 44 需要新版 ABI 映射，仅约束原生模块重建工具的依赖。
+overrides:
+  '@electron/rebuild>node-abi': 4.35.0
 allowBuilds:
   '@sentry/cli': true
   '@swc/core': true
@@ -26,6 +30,3 @@ allowBuilds:
   utf-8-validate: true
   utp-native: false
 
-# Electron 44 需要新版 ABI 映射，仅约束原生模块重建工具的依赖。
-overrides:
-  '@electron/rebuild>node-abi': 4.35.0
