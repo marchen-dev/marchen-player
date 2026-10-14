@@ -26,13 +26,16 @@
 - 可分别开关各平台弹幕，繁体弹幕可转为简体
 - 可调整字号、持续时间和显示区域，点击弹幕即可复制
 - 缓存弹幕，再次打开时加载更快
+- 自研弹幕引擎，节点池复用，GPU 合成动画，高密度弹幕下保持流畅
 
 ### 播放
 
-- 可播放本地视频，也可直接播放 HTTP/HTTPS 视频直链，不用先下载
-- 原生与兼容双播放内核，可播放 HEVC、AC-3、E-AC-3、DTS 等编码
+- 可播放本地视频，也可直接播放 HTTP/HTTPS 视频直链
 - 支持 MP4、MKV、MOV、WebM、TS 等常见容器，可切换音轨
-- 支持内嵌字幕和外挂 ASS / SSA / SRT / VTT 字幕，字幕大小可调
+- **双播放内核，自动切换**：原生 HTML5 内核优先，播放不了时自动切到兼容内核
+- **兼容内核基于 WebCodecs + WebAssembly**：在 Worker 中完成解封装和解码，不卡界面；视频优先走 WebCodecs 硬解，HEVC 硬解不可用时改用 WASM 多线程软解
+- **音频处理**：用 WASM 解码 AC-3、E-AC-3、DTS 等浏览器原生不支持的音频
+- 支持内嵌字幕和外挂 ASS / SSA / SRT / VTT 字幕
 
 ### 影视库与下载
 
@@ -92,7 +95,6 @@ pnpm dev:web      # Web 开发，端口 1106
 ## ❤️ 致谢 & 许可
 
 - [弹弹play](https://www.dandanplay.com)
-- [libass-wasm](https://github.com/jellyfin/libass-wasm)
 - [MediaBunny](https://mediabunny.dev/)
 
 ![AGPLv3 License](https://img.shields.io/badge/License-AGPLv3-blue.svg)
