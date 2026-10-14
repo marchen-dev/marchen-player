@@ -32,9 +32,9 @@
 
 - 可播放本地视频，也可直接播放 HTTP/HTTPS 视频直链
 - 支持 MP4、MKV、MOV、WebM、TS 等常见容器，可切换音轨
-- **双播放内核，自动切换**：原生 HTML5 内核优先，播放不了时自动切到兼容内核
-- **兼容内核基于 WebCodecs + WebAssembly**：在 Worker 中完成解封装和解码，不卡界面；视频优先走 WebCodecs 硬解，HEVC 硬解不可用时改用 WASM 多线程软解
-- **音频处理**：用 WASM 解码 AC-3、E-AC-3、DTS 等浏览器原生不支持的音频
+- 原生与兼容双播放内核，原生内核播放不了时自动切换到兼容内核
+- 兼容内核基于 WebCodecs 和 WebAssembly，在 Worker 中解码不卡界面，HEVC 硬解不可用时自动改用多线程软解
+- 通过 WebAssembly 解码 AC-3、E-AC-3、DTS 等浏览器原生不支持的音频
 - 支持内嵌字幕和外挂 ASS / SSA / SRT / VTT 字幕
 
 ### 影视库与下载
