@@ -56,13 +56,13 @@ importers:
     devDependencies:
       '@antfu/eslint-config':
         specifier: ^9.5.1
-        version: 9.5.1(@eslint-react/eslint-plugin@5.26.0(@typescript/typescript6@6.0.2)(eslint@10.12.0(jiti@2.7.0)(supports-color@7.2.0))(supports-color@7.2.0))(@typescript-eslint/typescript-estree@8.71.1(@typescript/typescript6@6.0.2)(supports-color@7.2.0))(@typescript-eslint/utils@8.71.1(@typescript/typescript6@6.0.2)(eslint@10.12.0(jiti@2.7.0)(supports-color@7.2.0))(supports-color@7.2.0))(@typescript/typescript6@6.0.2)(@vue/compiler-sfc@3.5.34)(eslint-plugin-react-refresh@0.5.7(eslint@10.12.0(jiti@2.7.0)(supports-color@7.2.0)))(eslint@10.12.0(jiti@2.7.0)(supports-color@7.2.0))(oxlint@1.81.0)(supports-color@7.2.0)(ts-declaration-location@1.0.7(@typescript/typescript6@6.0.2))(vitest@4.1.11(@opentelemetry/api@1.9.1)(@types/node@24.13.3)(vite@8.3.4(@types/node@24.13.3)(esbuild@0.27.7)(jiti@2.7.0)(yaml@2.9.1)))
+        version: 9.5.1(@eslint-react/eslint-plugin@5.26.0(@typescript/typescript6@6.0.2)(eslint@10.12.0(jiti@2.7.0)(supports-color@7.2.0))(supports-color@7.2.0))(@typescript-eslint/typescript-estree@8.71.1(@typescript/typescript6@6.0.2)(supports-color@7.2.0))(@typescript-eslint/utils@8.71.1(@typescript/typescript6@6.0.2)(eslint@10.12.0(jiti@2.7.0)(supports-color@7.2.0))(supports-color@7.2.0))(@typescript/typescript6@6.0.2)(@vue/compiler-sfc@3.5.34)(eslint-plugin-react-refresh@0.5.7(eslint@10.12.0(jiti@2.7.0)(supports-color@7.2.0)))(eslint@10.12.0(jiti@2.7.0)(supports-color@7.2.0))(oxlint@1.81.0)(supports-color@7.2.0)(ts-declaration-location@1.0.7(@typescript/typescript6@6.0.2))(vitest@4.1.11(@opentelemetry/api@1.9.1)(@types/node@26.6.5)(vite@8.3.4(@types/node@26.6.5)(esbuild@0.27.7)(jiti@2.7.0)(yaml@2.9.1)))
       '@electron-toolkit/preload':
         specifier: ^3.0.2
         version: 3.0.2(electron@44.7.0(supports-color@7.2.0))
       '@electron-toolkit/tsconfig':
         specifier: ^2.0.0
-        version: 2.0.0(@types/node@24.13.3)
+        version: 2.0.0(@types/node@26.6.5)
       '@electron-toolkit/utils':
         specifier: ^4.0.0
         version: 4.0.0(electron@44.7.0(supports-color@7.2.0))
@@ -98,7 +98,7 @@ importers:
         version: 5.4.1(rollup@4.60.3)(supports-color@7.2.0)
       '@tailwindcss/vite':
         specifier: ^4.3.3
-        version: 4.3.3(vite@8.3.4(@types/node@24.13.3)(esbuild@0.27.7)(jiti@2.7.0)(yaml@2.9.1))
+        version: 4.3.3(vite@8.3.4(@types/node@26.6.5)(esbuild@0.27.7)(jiti@2.7.0)(yaml@2.9.1))
       '@tanstack/react-query':
         specifier: ^5.104.1
         version: 5.104.1(react@19.3.0)
@@ -109,8 +109,8 @@ importers:
         specifier: 4.17.12
         version: 4.17.12
       '@types/node':
-        specifier: ^24.13.3
-        version: 24.13.3
+        specifier: ^26.0.0
+        version: 26.6.5
       '@types/opencc-js':
         specifier: ^1.0.3
         version: 1.0.3
@@ -131,7 +131,7 @@ importers:
         version: typescript@7.0.2
       '@vitejs/plugin-react':
         specifier: ^6.1.2
-        version: 6.1.2(vite@8.3.4(@types/node@24.13.3)(esbuild@0.27.7)(jiti@2.7.0)(yaml@2.9.1))
+        version: 6.1.2(vite@8.3.4(@types/node@26.6.5)(esbuild@0.27.7)(jiti@2.7.0)(yaml@2.9.1))
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1
@@ -167,7 +167,7 @@ importers:
         version: 6.8.9(supports-color@7.2.0)
       electron-vite:
         specifier: ^6.0.0-beta.8
-        version: 6.0.0-beta.8(supports-color@7.2.0)(vite@8.3.4(@types/node@24.13.3)(esbuild@0.27.7)(jiti@2.7.0)(yaml@2.9.1))
+        version: 6.0.0-beta.8(supports-color@7.2.0)(vite@8.3.4(@types/node@26.6.5)(esbuild@0.27.7)(jiti@2.7.0)(yaml@2.9.1))
       eslint:
         specifier: ^10.12.0
         version: 10.12.0(jiti@2.7.0)(supports-color@7.2.0)
@@ -182,7 +182,7 @@ importers:
         version: 13.1.1(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
       jotai:
         specifier: ^2.20.3
-        version: 2.20.3(@babel/core@7.29.0(supports-color@7.2.0))(@babel/template@7.29.7)(@types/react@19.3.0)(react@19.3.0)
+        version: 2.20.3(@babel/core@7.29.7(supports-color@7.2.0))(@babel/template@7.29.7)(@types/react@19.3.0)(react@19.3.0)
       lint-staged:
         specifier: ^17.6.0
         version: 17.6.0
@@ -230,7 +230,7 @@ importers:
         version: 8.4.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
       react-scan:
         specifier: 0.5.7
-        version: 0.5.7(@opentelemetry/core@2.10.0(@opentelemetry/api@1.9.1))(esbuild@0.27.7)(eslint@10.12.0(jiti@2.7.0)(supports-color@7.2.0))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(rolldown@1.2.13)(rollup@4.60.3)(supports-color@7.2.0)(vite@8.3.4(@types/node@24.13.3)(esbuild@0.27.7)(jiti@2.7.0)(yaml@2.9.1))
+        version: 0.5.7(@opentelemetry/core@2.10.0(@opentelemetry/api@1.9.1))(esbuild@0.27.7)(eslint@10.12.0(jiti@2.7.0)(supports-color@7.2.0))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(rolldown@1.2.13)(rollup@4.60.3)(supports-color@7.2.0)(vite@8.3.4(@types/node@26.6.5)(esbuild@0.27.7)(jiti@2.7.0)(yaml@2.9.1))
       rxjs:
         specifier: 7.8.2
         version: 7.8.2
@@ -257,10 +257,10 @@ importers:
         version: '@typescript/typescript6@6.0.2'
       vite:
         specifier: ^8.3.4
-        version: 8.3.4(@types/node@24.13.3)(esbuild@0.27.7)(jiti@2.7.0)(yaml@2.9.1)
+        version: 8.3.4(@types/node@26.6.5)(esbuild@0.27.7)(jiti@2.7.0)(yaml@2.9.1)
       vite-plugin-static-copy:
         specifier: ^4.1.1
-        version: 4.1.1(vite@8.3.4(@types/node@24.13.3)(esbuild@0.27.7)(jiti@2.7.0)(yaml@2.9.1))
+        version: 4.1.1(vite@8.3.4(@types/node@26.6.5)(esbuild@0.27.7)(jiti@2.7.0)(yaml@2.9.1))
       xml2js:
         specifier: ^0.6.2
         version: 0.6.2
@@ -275,7 +275,7 @@ importers:
     devDependencies:
       vitest:
         specifier: ^4.1.11
-        version: 4.1.11(@opentelemetry/api@1.9.1)(@types/node@24.13.3)(vite@8.3.4(@types/node@24.13.3)(esbuild@0.27.7)(jiti@2.7.0)(yaml@2.9.1))
+        version: 4.1.11(@opentelemetry/api@1.9.1)(@types/node@26.6.5)(vite@8.3.4(@types/node@26.6.5)(esbuild@0.27.7)(jiti@2.7.0)(yaml@2.9.1))
 
   packages/electron-ipc:
     dependencies:
@@ -291,7 +291,7 @@ importers:
     devDependencies:
       vitest:
         specifier: ^4.1.11
-        version: 4.1.11(@opentelemetry/api@1.9.1)(@types/node@24.13.3)(vite@8.3.4(@types/node@24.13.3)(esbuild@0.27.7)(jiti@2.7.0)(yaml@2.9.1))
+        version: 4.1.11(@opentelemetry/api@1.9.1)(@types/node@26.6.5)(vite@8.3.4(@types/node@26.6.5)(esbuild@0.27.7)(jiti@2.7.0)(yaml@2.9.1))
 
   packages/player-loading:
     dependencies:
@@ -304,7 +304,7 @@ importers:
     devDependencies:
       vitest:
         specifier: ^4.1.11
-        version: 4.1.11(@opentelemetry/api@1.9.1)(@types/node@24.13.3)(vite@8.3.4(@types/node@24.13.3)(esbuild@0.27.7)(jiti@2.7.0)(yaml@2.9.1))
+        version: 4.1.11(@opentelemetry/api@1.9.1)(@types/node@26.6.5)(vite@8.3.4(@types/node@26.6.5)(esbuild@0.27.7)(jiti@2.7.0)(yaml@2.9.1))
 
   packages/shared:
     dependencies:
@@ -7416,7 +7416,7 @@ packages:
 
 snapshots:
 
-  '@antfu/eslint-config@9.5.1(@eslint-react/eslint-plugin@5.26.0(@typescript/typescript6@6.0.2)(eslint@10.12.0(jiti@2.7.0)(supports-color@7.2.0))(supports-color@7.2.0))(@typescript-eslint/typescript-estree@8.71.1(@typescript/typescript6@6.0.2)(supports-color@7.2.0))(@typescript-eslint/utils@8.71.1(@typescript/typescript6@6.0.2)(eslint@10.12.0(jiti@2.7.0)(supports-color@7.2.0))(supports-color@7.2.0))(@typescript/typescript6@6.0.2)(@vue/compiler-sfc@3.5.34)(eslint-plugin-react-refresh@0.5.7(eslint@10.12.0(jiti@2.7.0)(supports-color@7.2.0)))(eslint@10.12.0(jiti@2.7.0)(supports-color@7.2.0))(oxlint@1.81.0)(supports-color@7.2.0)(ts-declaration-location@1.0.7(@typescript/typescript6@6.0.2))(vitest@4.1.11(@opentelemetry/api@1.9.1)(@types/node@24.13.3)(vite@8.3.4(@types/node@24.13.3)(esbuild@0.27.7)(jiti@2.7.0)(yaml@2.9.1)))':
+  '@antfu/eslint-config@9.5.1(@eslint-react/eslint-plugin@5.26.0(@typescript/typescript6@6.0.2)(eslint@10.12.0(jiti@2.7.0)(supports-color@7.2.0))(supports-color@7.2.0))(@typescript-eslint/typescript-estree@8.71.1(@typescript/typescript6@6.0.2)(supports-color@7.2.0))(@typescript-eslint/utils@8.71.1(@typescript/typescript6@6.0.2)(eslint@10.12.0(jiti@2.7.0)(supports-color@7.2.0))(supports-color@7.2.0))(@typescript/typescript6@6.0.2)(@vue/compiler-sfc@3.5.34)(eslint-plugin-react-refresh@0.5.7(eslint@10.12.0(jiti@2.7.0)(supports-color@7.2.0)))(eslint@10.12.0(jiti@2.7.0)(supports-color@7.2.0))(oxlint@1.81.0)(supports-color@7.2.0)(ts-declaration-location@1.0.7(@typescript/typescript6@6.0.2))(vitest@4.1.11(@opentelemetry/api@1.9.1)(@types/node@26.6.5)(vite@8.3.4(@types/node@26.6.5)(esbuild@0.27.7)(jiti@2.7.0)(yaml@2.9.1)))':
     dependencies:
       '@antfu/install-pkg': 2.0.1
       '@clack/prompts': 1.7.0
@@ -7426,7 +7426,7 @@ snapshots:
       '@stylistic/eslint-plugin': 5.10.0(eslint@10.12.0(jiti@2.7.0)(supports-color@7.2.0))
       '@typescript-eslint/eslint-plugin': 8.68.0(@typescript-eslint/parser@8.68.0(@typescript/typescript6@6.0.2)(eslint@10.12.0(jiti@2.7.0)(supports-color@7.2.0))(supports-color@7.2.0))(@typescript/typescript6@6.0.2)(eslint@10.12.0(jiti@2.7.0)(supports-color@7.2.0))(supports-color@7.2.0)
       '@typescript-eslint/parser': 8.68.0(@typescript/typescript6@6.0.2)(eslint@10.12.0(jiti@2.7.0)(supports-color@7.2.0))(supports-color@7.2.0)
-      '@vitest/eslint-plugin': 1.6.27(@typescript-eslint/eslint-plugin@8.68.0(@typescript-eslint/parser@8.68.0(@typescript/typescript6@6.0.2)(eslint@10.12.0(jiti@2.7.0)(supports-color@7.2.0))(supports-color@7.2.0))(@typescript/typescript6@6.0.2)(eslint@10.12.0(jiti@2.7.0)(supports-color@7.2.0))(supports-color@7.2.0))(@typescript/typescript6@6.0.2)(eslint@10.12.0(jiti@2.7.0)(supports-color@7.2.0))(supports-color@7.2.0)(vitest@4.1.11(@opentelemetry/api@1.9.1)(@types/node@24.13.3)(vite@8.3.4(@types/node@24.13.3)(esbuild@0.27.7)(jiti@2.7.0)(yaml@2.9.1)))
+      '@vitest/eslint-plugin': 1.6.27(@typescript-eslint/eslint-plugin@8.68.0(@typescript-eslint/parser@8.68.0(@typescript/typescript6@6.0.2)(eslint@10.12.0(jiti@2.7.0)(supports-color@7.2.0))(supports-color@7.2.0))(@typescript/typescript6@6.0.2)(eslint@10.12.0(jiti@2.7.0)(supports-color@7.2.0))(supports-color@7.2.0))(@typescript/typescript6@6.0.2)(eslint@10.12.0(jiti@2.7.0)(supports-color@7.2.0))(supports-color@7.2.0)(vitest@4.1.11(@opentelemetry/api@1.9.1)(@types/node@26.6.5)(vite@8.3.4(@types/node@26.6.5)(esbuild@0.27.7)(jiti@2.7.0)(yaml@2.9.1)))
       ansis: 4.3.1
       cac: 7.0.0
       eslint: 10.12.0(jiti@2.7.0)(supports-color@7.2.0)
@@ -7769,9 +7769,9 @@ snapshots:
     dependencies:
       electron: 44.7.0(supports-color@7.2.0)
 
-  '@electron-toolkit/tsconfig@2.0.0(@types/node@24.13.3)':
+  '@electron-toolkit/tsconfig@2.0.0(@types/node@26.6.5)':
     dependencies:
-      '@types/node': 24.13.3
+      '@types/node': 26.6.5
 
   '@electron-toolkit/utils@4.0.0(electron@44.7.0(supports-color@7.2.0))':
     dependencies:
@@ -10018,12 +10018,12 @@ snapshots:
       '@tailwindcss/oxide-win32-arm64-msvc': 4.3.3
       '@tailwindcss/oxide-win32-x64-msvc': 4.3.3
 
-  '@tailwindcss/vite@4.3.3(vite@8.3.4(@types/node@24.13.3)(esbuild@0.27.7)(jiti@2.7.0)(yaml@2.9.1))':
+  '@tailwindcss/vite@4.3.3(vite@8.3.4(@types/node@26.6.5)(esbuild@0.27.7)(jiti@2.7.0)(yaml@2.9.1))':
     dependencies:
       '@tailwindcss/node': 4.3.3
       '@tailwindcss/oxide': 4.3.3
       tailwindcss: 4.3.3
-      vite: 8.3.4(@types/node@24.13.3)(esbuild@0.27.7)(jiti@2.7.0)(yaml@2.9.1)
+      vite: 8.3.4(@types/node@26.6.5)(esbuild@0.27.7)(jiti@2.7.0)(yaml@2.9.1)
 
   '@tanstack/match-sorter-utils@9.2.6':
     dependencies:
@@ -10106,13 +10106,13 @@ snapshots:
 
   '@types/bittorrent-protocol@3.1.7':
     dependencies:
-      '@types/node': 24.13.3
+      '@types/node': 26.6.5
 
   '@types/cacheable-request@6.0.3':
     dependencies:
       '@types/http-cache-semantics': 4.2.0
       '@types/keyv': 3.1.4
-      '@types/node': 24.13.3
+      '@types/node': 26.6.5
       '@types/responselike': 1.0.3
 
   '@types/chai@5.2.3':
@@ -10141,7 +10141,7 @@ snapshots:
 
   '@types/fs-extra@9.0.13':
     dependencies:
-      '@types/node': 24.13.3
+      '@types/node': 26.6.5
 
   '@types/hast@3.0.4':
     dependencies:
@@ -10155,7 +10155,7 @@ snapshots:
 
   '@types/keyv@3.1.4':
     dependencies:
-      '@types/node': 24.13.3
+      '@types/node': 26.6.5
 
   '@types/lodash-es@4.17.12':
     dependencies:
@@ -10186,7 +10186,7 @@ snapshots:
   '@types/parse-torrent@11.0.1':
     dependencies:
       '@types/magnet-uri': 7.0.0
-      '@types/node': 24.13.3
+      '@types/node': 26.6.5
 
   '@types/react-dom@19.3.0(@types/react@19.3.0)':
     dependencies:
@@ -10198,11 +10198,11 @@ snapshots:
 
   '@types/responselike@1.0.3':
     dependencies:
-      '@types/node': 24.13.3
+      '@types/node': 26.6.5
 
   '@types/simple-peer@9.11.9':
     dependencies:
-      '@types/node': 24.13.3
+      '@types/node': 26.6.5
 
   '@types/string-natural-compare@3.0.4': {}
 
@@ -10214,7 +10214,7 @@ snapshots:
   '@types/webtorrent@3.0.0':
     dependencies:
       '@types/bittorrent-protocol': 3.1.7
-      '@types/node': 24.13.3
+      '@types/node': 26.6.5
       '@types/parse-torrent': 11.0.1
       '@types/simple-peer': 9.11.9
 
@@ -10249,7 +10249,7 @@ snapshots:
   '@typescript-eslint/project-service@8.68.0(@typescript/typescript6@6.0.2)(supports-color@7.2.0)':
     dependencies:
       '@typescript-eslint/tsconfig-utils': 8.68.0(@typescript/typescript6@6.0.2)
-      '@typescript-eslint/types': 8.68.0
+      '@typescript-eslint/types': 8.71.1
       debug: 4.4.3(supports-color@7.2.0)
       typescript: '@typescript/typescript6@6.0.2'
     transitivePeerDependencies:
@@ -10424,12 +10424,12 @@ snapshots:
     dependencies:
       '@typescript/old': typescript@6.0.3
 
-  '@vitejs/plugin-react@6.1.2(vite@8.3.4(@types/node@24.13.3)(esbuild@0.27.7)(jiti@2.7.0)(yaml@2.9.1))':
+  '@vitejs/plugin-react@6.1.2(vite@8.3.4(@types/node@26.6.5)(esbuild@0.27.7)(jiti@2.7.0)(yaml@2.9.1))':
     dependencies:
       '@rolldown/pluginutils': 1.0.1
-      vite: 8.3.4(@types/node@24.13.3)(esbuild@0.27.7)(jiti@2.7.0)(yaml@2.9.1)
+      vite: 8.3.4(@types/node@26.6.5)(esbuild@0.27.7)(jiti@2.7.0)(yaml@2.9.1)
 
-  '@vitest/eslint-plugin@1.6.27(@typescript-eslint/eslint-plugin@8.68.0(@typescript-eslint/parser@8.68.0(@typescript/typescript6@6.0.2)(eslint@10.12.0(jiti@2.7.0)(supports-color@7.2.0))(supports-color@7.2.0))(@typescript/typescript6@6.0.2)(eslint@10.12.0(jiti@2.7.0)(supports-color@7.2.0))(supports-color@7.2.0))(@typescript/typescript6@6.0.2)(eslint@10.12.0(jiti@2.7.0)(supports-color@7.2.0))(supports-color@7.2.0)(vitest@4.1.11(@opentelemetry/api@1.9.1)(@types/node@24.13.3)(vite@8.3.4(@types/node@24.13.3)(esbuild@0.27.7)(jiti@2.7.0)(yaml@2.9.1)))':
+  '@vitest/eslint-plugin@1.6.27(@typescript-eslint/eslint-plugin@8.68.0(@typescript-eslint/parser@8.68.0(@typescript/typescript6@6.0.2)(eslint@10.12.0(jiti@2.7.0)(supports-color@7.2.0))(supports-color@7.2.0))(@typescript/typescript6@6.0.2)(eslint@10.12.0(jiti@2.7.0)(supports-color@7.2.0))(supports-color@7.2.0))(@typescript/typescript6@6.0.2)(eslint@10.12.0(jiti@2.7.0)(supports-color@7.2.0))(supports-color@7.2.0)(vitest@4.1.11(@opentelemetry/api@1.9.1)(@types/node@26.6.5)(vite@8.3.4(@types/node@26.6.5)(esbuild@0.27.7)(jiti@2.7.0)(yaml@2.9.1)))':
     dependencies:
       '@typescript-eslint/scope-manager': 8.68.0
       '@typescript-eslint/utils': 8.68.0(@typescript/typescript6@6.0.2)(eslint@10.12.0(jiti@2.7.0)(supports-color@7.2.0))(supports-color@7.2.0)
@@ -10437,7 +10437,7 @@ snapshots:
     optionalDependencies:
       '@typescript-eslint/eslint-plugin': 8.68.0(@typescript-eslint/parser@8.68.0(@typescript/typescript6@6.0.2)(eslint@10.12.0(jiti@2.7.0)(supports-color@7.2.0))(supports-color@7.2.0))(@typescript/typescript6@6.0.2)(eslint@10.12.0(jiti@2.7.0)(supports-color@7.2.0))(supports-color@7.2.0)
       typescript: '@typescript/typescript6@6.0.2'
-      vitest: 4.1.11(@opentelemetry/api@1.9.1)(@types/node@24.13.3)(vite@8.3.4(@types/node@24.13.3)(esbuild@0.27.7)(jiti@2.7.0)(yaml@2.9.1))
+      vitest: 4.1.11(@opentelemetry/api@1.9.1)(@types/node@26.6.5)(vite@8.3.4(@types/node@26.6.5)(esbuild@0.27.7)(jiti@2.7.0)(yaml@2.9.1))
     transitivePeerDependencies:
       - supports-color
 
@@ -10450,13 +10450,13 @@ snapshots:
       chai: 6.2.2
       tinyrainbow: 3.1.1
 
-  '@vitest/mocker@4.1.11(vite@8.3.4(@types/node@24.13.3)(esbuild@0.27.7)(jiti@2.7.0)(yaml@2.9.1))':
+  '@vitest/mocker@4.1.11(vite@8.3.4(@types/node@26.6.5)(esbuild@0.27.7)(jiti@2.7.0)(yaml@2.9.1))':
     dependencies:
       '@vitest/spy': 4.1.11
       estree-walker: 3.0.3
       magic-string: 0.30.21
     optionalDependencies:
-      vite: 8.3.4(@types/node@24.13.3)(esbuild@0.27.7)(jiti@2.7.0)(yaml@2.9.1)
+      vite: 8.3.4(@types/node@26.6.5)(esbuild@0.27.7)(jiti@2.7.0)(yaml@2.9.1)
 
   '@vitest/pretty-format@4.1.11':
     dependencies:
@@ -11465,7 +11465,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  electron-vite@6.0.0-beta.8(supports-color@7.2.0)(vite@8.3.4(@types/node@24.13.3)(esbuild@0.27.7)(jiti@2.7.0)(yaml@2.9.1)):
+  electron-vite@6.0.0-beta.8(supports-color@7.2.0)(vite@8.3.4(@types/node@26.6.5)(esbuild@0.27.7)(jiti@2.7.0)(yaml@2.9.1)):
     dependencies:
       '@babel/core': 7.29.7(supports-color@7.2.0)
       '@babel/plugin-transform-arrow-functions': 7.29.7(@babel/core@7.29.7(supports-color@7.2.0))
@@ -11473,7 +11473,7 @@ snapshots:
       magic-string: 1.4.3
       picocolors: 1.1.1
       rolldown: 1.2.13
-      vite: 8.3.4(@types/node@24.13.3)(esbuild@0.27.7)(jiti@2.7.0)(yaml@2.9.1)
+      vite: 8.3.4(@types/node@26.6.5)(esbuild@0.27.7)(jiti@2.7.0)(yaml@2.9.1)
     transitivePeerDependencies:
       - supports-color
 
@@ -12503,9 +12503,9 @@ snapshots:
 
   join-async-iterator@1.1.1: {}
 
-  jotai@2.20.3(@babel/core@7.29.0(supports-color@7.2.0))(@babel/template@7.29.7)(@types/react@19.3.0)(react@19.3.0):
+  jotai@2.20.3(@babel/core@7.29.7(supports-color@7.2.0))(@babel/template@7.29.7)(@types/react@19.3.0)(react@19.3.0):
     optionalDependencies:
-      '@babel/core': 7.29.0(supports-color@7.2.0)
+      '@babel/core': 7.29.7(supports-color@7.2.0)
       '@babel/template': 7.29.7
       '@types/react': 19.3.0
       react: 19.3.0
@@ -13874,7 +13874,7 @@ snapshots:
     optionalDependencies:
       react-dom: 19.3.0(react@19.3.0)
 
-  react-scan@0.5.7(@opentelemetry/core@2.10.0(@opentelemetry/api@1.9.1))(esbuild@0.27.7)(eslint@10.12.0(jiti@2.7.0)(supports-color@7.2.0))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(rolldown@1.2.13)(rollup@4.60.3)(supports-color@7.2.0)(vite@8.3.4(@types/node@24.13.3)(esbuild@0.27.7)(jiti@2.7.0)(yaml@2.9.1)):
+  react-scan@0.5.7(@opentelemetry/core@2.10.0(@opentelemetry/api@1.9.1))(esbuild@0.27.7)(eslint@10.12.0(jiti@2.7.0)(supports-color@7.2.0))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(rolldown@1.2.13)(rollup@4.60.3)(supports-color@7.2.0)(vite@8.3.4(@types/node@26.6.5)(esbuild@0.27.7)(jiti@2.7.0)(yaml@2.9.1)):
     dependencies:
       '@babel/core': 7.29.0(supports-color@7.2.0)
       '@babel/types': 7.29.0
@@ -13891,7 +13891,7 @@ snapshots:
       react-grab: 0.2.0(react@19.3.0)
     optionalDependencies:
       esbuild: 0.27.7
-      unplugin: 3.4.0(esbuild@0.27.7)(rolldown@1.2.13)(rollup@4.60.3)(vite@8.3.4(@types/node@24.13.3)(esbuild@0.27.7)(jiti@2.7.0)(yaml@2.9.1))
+      unplugin: 3.4.0(esbuild@0.27.7)(rolldown@1.2.13)(rollup@4.60.3)(vite@8.3.4(@types/node@26.6.5)(esbuild@0.27.7)(jiti@2.7.0)(yaml@2.9.1))
     transitivePeerDependencies:
       - '@farmfe/core'
       - '@opentelemetry/core'
@@ -14586,7 +14586,7 @@ snapshots:
   unordered-set@2.0.1:
     optional: true
 
-  unplugin@3.4.0(esbuild@0.27.7)(rolldown@1.2.13)(rollup@4.60.3)(vite@8.3.4(@types/node@24.13.3)(esbuild@0.27.7)(jiti@2.7.0)(yaml@2.9.1)):
+  unplugin@3.4.0(esbuild@0.27.7)(rolldown@1.2.13)(rollup@4.60.3)(vite@8.3.4(@types/node@26.6.5)(esbuild@0.27.7)(jiti@2.7.0)(yaml@2.9.1)):
     dependencies:
       '@jridgewell/remapping': 2.3.5
       picomatch: 4.0.7
@@ -14595,7 +14595,7 @@ snapshots:
       esbuild: 0.27.7
       rolldown: 1.2.13
       rollup: 4.60.3
-      vite: 8.3.4(@types/node@24.13.3)(esbuild@0.27.7)(jiti@2.7.0)(yaml@2.9.1)
+      vite: 8.3.4(@types/node@26.6.5)(esbuild@0.27.7)(jiti@2.7.0)(yaml@2.9.1)
     optional: true
 
   unzipper@0.12.5:
@@ -14679,15 +14679,15 @@ snapshots:
 
   verkit@0.4.1: {}
 
-  vite-plugin-static-copy@4.1.1(vite@8.3.4(@types/node@24.13.3)(esbuild@0.27.7)(jiti@2.7.0)(yaml@2.9.1)):
+  vite-plugin-static-copy@4.1.1(vite@8.3.4(@types/node@26.6.5)(esbuild@0.27.7)(jiti@2.7.0)(yaml@2.9.1)):
     dependencies:
       chokidar: 3.6.0
       p-map: 7.0.4
       picocolors: 1.1.1
       tinyglobby: 0.2.17
-      vite: 8.3.4(@types/node@24.13.3)(esbuild@0.27.7)(jiti@2.7.0)(yaml@2.9.1)
+      vite: 8.3.4(@types/node@26.6.5)(esbuild@0.27.7)(jiti@2.7.0)(yaml@2.9.1)
 
-  vite@8.3.4(@types/node@24.13.3)(esbuild@0.27.7)(jiti@2.7.0)(yaml@2.9.1):
+  vite@8.3.4(@types/node@26.6.5)(esbuild@0.27.7)(jiti@2.7.0)(yaml@2.9.1):
     dependencies:
       lightningcss: 1.33.0
       picomatch: 4.0.7
@@ -14695,16 +14695,16 @@ snapshots:
       rolldown: 1.2.13
       tinyglobby: 0.2.17
     optionalDependencies:
-      '@types/node': 24.13.3
+      '@types/node': 26.6.5
       esbuild: 0.27.7
       fsevents: 2.3.3
       jiti: 2.7.0
       yaml: 2.9.1
 
-  vitest@4.1.11(@opentelemetry/api@1.9.1)(@types/node@24.13.3)(vite@8.3.4(@types/node@24.13.3)(esbuild@0.27.7)(jiti@2.7.0)(yaml@2.9.1)):
+  vitest@4.1.11(@opentelemetry/api@1.9.1)(@types/node@26.6.5)(vite@8.3.4(@types/node@26.6.5)(esbuild@0.27.7)(jiti@2.7.0)(yaml@2.9.1)):
     dependencies:
       '@vitest/expect': 4.1.11
-      '@vitest/mocker': 4.1.11(vite@8.3.4(@types/node@24.13.3)(esbuild@0.27.7)(jiti@2.7.0)(yaml@2.9.1))
+      '@vitest/mocker': 4.1.11(vite@8.3.4(@types/node@26.6.5)(esbuild@0.27.7)(jiti@2.7.0)(yaml@2.9.1))
       '@vitest/pretty-format': 4.1.11
       '@vitest/runner': 4.1.11
       '@vitest/snapshot': 4.1.11
@@ -14721,11 +14721,11 @@ snapshots:
       tinyexec: 1.3.1
       tinyglobby: 0.2.17
       tinyrainbow: 3.1.1
-      vite: 8.3.4(@types/node@24.13.3)(esbuild@0.27.7)(jiti@2.7.0)(yaml@2.9.1)
+      vite: 8.3.4(@types/node@26.6.5)(esbuild@0.27.7)(jiti@2.7.0)(yaml@2.9.1)
       why-is-node-running: 2.3.0
     optionalDependencies:
       '@opentelemetry/api': 1.9.1
-      '@types/node': 24.13.3
+      '@types/node': 26.6.5
     transitivePeerDependencies:
       - msw
 
