@@ -9,18 +9,22 @@ import {
   LINUX_UPDATE_ARCHES,
   linuxArtifactNames,
   linuxMetadataName,
+  macArtifactNames,
   parseReleaseVersion,
   sparkleBuildVersion,
   windowsMetadataName,
+  windowsSetupName,
 } from '../../packages/shared/src/update-policy.ts'
 
 export async function verifyAssets(root, version) {
   const { channel } = parseReleaseVersion(version)
   const windowsMetadata = windowsMetadataName(channel)
   const files = await readdir(root)
+  const macNames = macArtifactNames(version)
   for (const name of [
-    `Marchen-${version}-arm64.zip`,
-    `Marchen-${version}-arm64.dmg`,
+    macNames.zip,
+    macNames.dmg,
+    windowsSetupName(version),
     windowsMetadata,
     'appcast-macos-arm64.xml',
   ]) {
@@ -85,7 +89,7 @@ export async function verifyAssets(root, version) {
       )
         throw new Error('正式更新包地址不可信')
       const name = decodeURIComponent(basename(url.pathname))
-      if (index === 0 && name !== `Marchen-${version}-arm64.zip`)
+      if (index === 0 && name !== macNames.zip)
         throw new Error('Mac 全量包架构或版本错误')
       if (index > 0 && (!name.endsWith('.delta') || !metadata['sparkle:deltaFrom']))
         throw new Error('差分基线无效')

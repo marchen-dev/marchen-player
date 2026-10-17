@@ -4,7 +4,9 @@ import { join, resolve } from 'node:path'
 import { Readable } from 'node:stream'
 import { pipeline } from 'node:stream/promises'
 import {
+  ARTIFACT_NAMINGS,
   compareReleaseVersions,
+  macArtifactNames,
   parseReleaseVersion,
   RELEASE_REPOSITORY,
 } from '../../packages/shared/src/update-policy.ts'
@@ -40,7 +42,10 @@ const selected = eligibleReleases(releases)
   .map((release) =>
     release.assets.find(
       (asset) =>
-        asset.name === `Marchen-${release.tag_name.slice(1)}-arm64.zip` &&
+        // 基线可能是改名前的历史发行，两种命名都识别。
+        ARTIFACT_NAMINGS.some(
+          (naming) => asset.name === macArtifactNames(release.tag_name.slice(1), naming).zip,
+        ) &&
         asset.state === 'uploaded',
     ),
   )

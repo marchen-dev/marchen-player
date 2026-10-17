@@ -6,24 +6,24 @@ import { afterEach, beforeEach, expect, it } from 'vitest'
 import { verifyAssets } from './verify-assets.mjs'
 let root
 const signature = Buffer.alloc(64, 1).toString('base64')
-const feed = `<rss><channel><item><sparkle:version>1.2.3</sparkle:version><sparkle:shortVersionString>1.2.3</sparkle:shortVersionString><enclosure url="https://github.com/marchen-dev/marchen-player/releases/download/v1.2.3/Marchen-1.2.3-arm64.zip" length="3" sparkle:edSignature="${signature}" /></item></channel></rss>`
+const feed = `<rss><channel><item><sparkle:version>1.2.3</sparkle:version><sparkle:shortVersionString>1.2.3</sparkle:shortVersionString><enclosure url="https://github.com/marchen-dev/marchen-player/releases/download/v1.2.3/Marchen-1.2.3-macos-arm64.zip" length="3" sparkle:edSignature="${signature}" /></item></channel></rss>`
 beforeEach(async () => {
   root = await mkdtemp(join(tmpdir(), 'marchen-assets-'))
   for (const name of [
-    'Marchen-1.2.3-arm64.zip',
-    'Marchen-1.2.3-arm64.dmg',
-    'Marchen-1.2.3.exe',
-    'Marchen-1.2.3.exe.blockmap',
+    'Marchen-1.2.3-macos-arm64.zip',
+    'Marchen-1.2.3-macos-arm64.dmg',
+    'Marchen-1.2.3-windows-x64-setup.exe',
+    'Marchen-1.2.3-windows-x64-setup.exe.blockmap',
   ])
     await writeFile(join(root, name), 'abc')
   await writeFile(
     join(root, 'latest.yml'),
-    `version: 1.2.3\nfiles:\n  - url: Marchen-1.2.3.exe\n    sha512: ${createHash('sha512').update('abc').digest('base64')}\n`,
+    `version: 1.2.3\nfiles:\n  - url: Marchen-1.2.3-windows-x64-setup.exe\n    sha512: ${createHash('sha512').update('abc').digest('base64')}\n`,
   )
   await writeFile(join(root, 'appcast-macos-arm64.xml'), feed)
   for (const [appImage, deb, metadata] of [
-    ['Marchen-1.2.3-x86_64.AppImage', 'Marchen-1.2.3-amd64.deb', 'latest-linux.yml'],
-    ['Marchen-1.2.3-arm64.AppImage', 'Marchen-1.2.3-arm64.deb', 'latest-linux-arm64.yml'],
+    ['Marchen-1.2.3-linux-x86_64.AppImage', 'Marchen-1.2.3-linux-amd64.deb', 'latest-linux.yml'],
+    ['Marchen-1.2.3-linux-arm64.AppImage', 'Marchen-1.2.3-linux-arm64.deb', 'latest-linux-arm64.yml'],
   ]) {
     await writeFile(join(root, appImage), 'abc')
     await writeFile(join(root, deb), 'abc')
@@ -51,7 +51,7 @@ it('拒绝其他仓库的包地址', async () => {
   await expect(verifyAssets(root, '1.2.3')).rejects.toThrow('不可信')
 })
 it('拒绝损坏的 Windows 安装包', async () => {
-  await writeFile(join(root, 'Marchen-1.2.3.exe'), 'changed')
+  await writeFile(join(root, 'Marchen-1.2.3-windows-x64-setup.exe'), 'changed')
   await expect(verifyAssets(root, '1.2.3')).rejects.toThrow('校验值不符')
 })
 it('拒绝旧 Mac 元数据，避免 Intel 路由到 ARM64', async () => {
@@ -59,10 +59,10 @@ it('拒绝旧 Mac 元数据，避免 Intel 路由到 ARM64', async () => {
   await expect(verifyAssets(root, '1.2.3')).rejects.toThrow('停止支持')
 })
 it('拒绝 Intel Mac 产物', async () => {
-  await writeFile(join(root, 'Marchen-1.2.3-x64.dmg'), 'abc')
+  await writeFile(join(root, 'Marchen-1.2.3-macos-x64.dmg'), 'abc')
   await expect(verifyAssets(root, '1.2.3')).rejects.toThrow('停止支持')
 })
-it.each(['Marchen-1.2.3-arm64.deb', 'latest-linux-arm64.yml', 'Marchen-1.2.3-x86_64.AppImage'])(
+it.each(['Marchen-1.2.3-linux-arm64.deb', 'latest-linux-arm64.yml', 'Marchen-1.2.3-linux-x86_64.AppImage'])(
   '缺少 Linux 产物 %s 时拒绝发行',
   async (name) => {
     await rm(join(root, name))
@@ -70,6 +70,13 @@ it.each(['Marchen-1.2.3-arm64.deb', 'latest-linux-arm64.yml', 'Marchen-1.2.3-x86
   },
 )
 it('拒绝与元数据不符的 AppImage', async () => {
-  await writeFile(join(root, 'Marchen-1.2.3-arm64.AppImage'), 'changed')
+  await writeFile(join(root, 'Marchen-1.2.3-linux-arm64.AppImage'), 'changed')
   await expect(verifyAssets(root, '1.2.3')).rejects.toThrow('Linux arm64 更新校验值不符')
 })
+it.each(['Marchen-1.2.3-macos-arm64.dmg', 'Marchen-1.2.3-windows-x64-setup.exe'])(
+  '安装包未使用带系统名的命名时拒绝发行（%s）',
+  async (name) => {
+    await rm(join(root, name))
+    await expect(verifyAssets(root, '1.2.3')).rejects.toThrow(name)
+  },
+)

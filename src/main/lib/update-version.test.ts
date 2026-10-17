@@ -1,11 +1,15 @@
 import {
   canUpdateTo,
   compareReleaseVersions,
+  linuxArtifactNames,
   linuxMetadataName,
+  macArtifactNames,
   parseReleaseVersion,
+  releaseArtifactNaming,
   releaseVersionFromSparkle,
   sparkleBuildVersion,
   updateFeedURL,
+  windowsSetupName,
 } from '@marchen/shared/update-policy'
 import { expect, it } from 'vitest'
 import { isVersionUpgrade } from './update-version'
@@ -74,6 +78,25 @@ it('linux 元数据文件名与 electron-updater 的渠道与架构规则一致'
   expect(linuxMetadataName('stable', 'arm64')).toBe('latest-linux-arm64.yml')
   expect(linuxMetadataName('beta', 'x64')).toBe('beta-linux.yml')
   expect(linuxMetadataName('alpha', 'arm64')).toBe('alpha-linux-arm64.yml')
+})
+
+it('安装包文件名带系统名，历史发行按 dmg 识别旧命名', () => {
+  expect(macArtifactNames('1.0.8')).toEqual({
+    zip: 'Marchen-1.0.8-macos-arm64.zip',
+    dmg: 'Marchen-1.0.8-macos-arm64.dmg',
+  })
+  expect(windowsSetupName('1.0.8')).toBe('Marchen-1.0.8-windows-x64-setup.exe')
+  expect(linuxArtifactNames('1.0.8', 'x64')).toEqual({
+    appImage: 'Marchen-1.0.8-linux-x86_64.AppImage',
+    deb: 'Marchen-1.0.8-linux-amd64.deb',
+  })
+  expect(linuxArtifactNames('1.0.7', 'arm64', 'legacy')).toEqual({
+    appImage: 'Marchen-1.0.7-arm64.AppImage',
+    deb: 'Marchen-1.0.7-arm64.deb',
+  })
+  expect(macArtifactNames('1.0.7', 'legacy').zip).toBe('Marchen-1.0.7-arm64.zip')
+  expect(releaseArtifactNaming('1.0.8', ['Marchen-1.0.8-macos-arm64.dmg'])).toBe('platform')
+  expect(releaseArtifactNaming('1.0.7', ['Marchen-1.0.7-arm64.dmg'])).toBe('legacy')
 })
 
 it('mac 内部构建版本可逆映射并保持公开 SemVer', () => {

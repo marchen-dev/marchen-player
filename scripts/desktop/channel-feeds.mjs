@@ -7,8 +7,10 @@ import {
   LINUX_UPDATE_ARCHES,
   linuxArtifactNames,
   linuxMetadataName,
+  macArtifactNames,
   parseReleaseVersion,
   RELEASE_REPOSITORY,
+  releaseArtifactNaming,
   releaseVersionFromSparkle,
   sparkleBuildVersion,
   UPDATE_CHANNELS,
@@ -56,6 +58,9 @@ export async function normalizeRelease(release, readAsset) {
   const version = release.tag_name.slice(1)
   const { channel } = parseReleaseVersion(version)
   const assets = new Map(release.assets.map((asset) => [asset.name, asset]))
+  // 渠道可能指向改名前的历史发行，按该发行实际使用的命名校验安装包。
+  const naming = releaseArtifactNaming(version, assets.keys())
+  const macNames = macArtifactNames(version, naming)
   const prefix = `https://github.com/${RELEASE_REPOSITORY}/releases/download/${release.tag_name}/`
   const requireAsset = (name) => {
     const asset = assets.get(name)
@@ -70,7 +75,7 @@ export async function normalizeRelease(release, readAsset) {
   }
   const windowsAsset = requireAsset(windowsMetadataName(channel))
   const macAsset = requireAsset('appcast-macos-arm64.xml')
-  requireAsset(`Marchen-${version}-arm64.dmg`)
+  requireAsset(macNames.dmg)
   const windows = parse(await readAsset(windowsAsset))
   if (windows.version !== version || !windows.files?.length)
     throw new Error('Windows 元数据版本或文件为空')
@@ -117,7 +122,7 @@ export async function normalizeRelease(release, readAsset) {
       Buffer.from(meta['sparkle:edSignature'] ?? '', 'base64').length !== 64
     )
       throw new Error('Mac 长度或签名格式错误')
-    if (index === 0 && asset.name !== `Marchen-${version}-arm64.zip`)
+    if (index === 0 && asset.name !== macNames.zip)
       throw new Error('Mac 全量包不匹配')
     if (
       index > 0 &&
@@ -136,7 +141,7 @@ export async function normalizeRelease(release, readAsset) {
     const metadata = parse(await readAsset(requireAsset(name)))
     if (metadata?.version !== version || !metadata.files?.length)
       throw new Error(`Linux ${arch} 元数据版本或文件为空`)
-    const { appImage } = linuxArtifactNames(version, arch)
+    const { appImage } = linuxArtifactNames(version, arch, naming)
     let found = false
     metadata.files = metadata.files.map((file) => {
       const asset = resolveAsset(file.url)

@@ -38,6 +38,12 @@ Mac 的显示版本仍是 `1.0.0-alpha.0`，内部 CFBundleVersion 为 `1.0.0a1`
 
 没有候选版本时 Mac 返回空 appcast，Windows 不生成虚构版本；Linux 是可选平台，渠道选中的版本缺少 Linux 元数据（如 Linux 恢复支持前的版本）时不生成该渠道的 Linux 文件，Linux 客户端把元数据 404 视为"已是最新"，mac / win 渠道照常发布；元数据存在但不完整或引用其他版本时整体拒绝发布。已有公开客户端所属渠道至少包含其自身版本。首个 Alpha Release 公开前固定源可能尚未创建，这是预期状态，不能当成生产更新已可用。
 
+### 安装包命名
+
+1.0.7 之后的安装包文件名带系统名，便于在 Release 页区分平台：`Marchen-<版本>-macos-arm64.{dmg,zip}`、`Marchen-<版本>-windows-x64-setup.exe`、`Marchen-<版本>-linux-{x86_64,arm64}.AppImage`、`Marchen-<版本>-linux-{amd64,arm64}.deb`（Linux 架构名沿用 AppImage / dpkg 习惯）。1.0.7 及更早的发行不带系统名（如 `Marchen-1.0.7-arm64.zip`）。命名集中在 `update-policy.ts` 的 `macArtifactNames` / `windowsSetupName` / `linuxArtifactNames`，须与 `electron-builder.yml` 的 `artifactName` 一致；渠道源与 Mac 差分基线读取历史发行时两种命名都识别，本次构建的校验只接受新命名。更新元数据（`latest.yml`、`latest-linux*.yml`、`appcast-macos-arm64.xml`）与 Sparkle 差分包名不变。
+
+Windows 差分下载优先使用上次更新缓存的 blockmap，没有缓存（如直接安装 1.0.7）时按新文件名替换版本号推算旧 blockmap 地址；改名后该地址不存在，这次升级会回退为全量下载，之后恢复差分。AppImage 读取已安装文件内嵌的 blockmap，Mac 使用 Sparkle 差分，均不受影响。
+
 ## 构建和发布
 
 1. 更新 package.json 并编写 `docs/releases/<version>.md`，Node 24 / pnpm 11 干净安装。现有 `pnpm bump`（nbump）会交互选择版本、提交、打标签并推送，不是只改版本号。

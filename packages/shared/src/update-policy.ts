@@ -53,14 +53,38 @@ export function linuxMetadataName(channel: UpdateChannel, arch: LinuxUpdateArch)
   return `${channel === 'stable' ? 'latest' : channel}-linux${arch === 'x64' ? '' : `-${arch}`}.yml`
 }
 /**
- * electron-builder 按目标格式改写 `${arch}`：AppImage 的 x64 为 x86_64，deb 为 amd64；
- * AppImage 的 blockmap 内嵌在文件中，不单独发布。
+ * 安装包命名：platform 为当前命名，文件名带系统名，便于在 Release 页区分 macOS / Windows / Linux；
+ * legacy 为 1.0.7 及更早的发行，沿用不带系统名的旧命名。读取历史发行（渠道源、差分基线）时两种都要识别，
+ * 校验本次构建产物时只认 platform。必须与 electron-builder.yml 的 artifactName 保持一致。
  */
-export function linuxArtifactNames(version: string, arch: LinuxUpdateArch) {
+export type ArtifactNaming = 'platform' | 'legacy'
+export const ARTIFACT_NAMINGS: readonly ArtifactNaming[] = ['platform', 'legacy']
+export function macArtifactNames(version: string, naming: ArtifactNaming = 'platform') {
+  const base = `Marchen-${version}-${naming === 'platform' ? 'macos-' : ''}arm64`
+  return { zip: `${base}.zip`, dmg: `${base}.dmg` }
+}
+/**
+ * Linux 架构名沿用发行版习惯，由 electron-builder 按目标格式改写 `${arch}`：AppImage 的 x64 为 x86_64，
+ * deb 为 amd64。AppImage 的 blockmap 内嵌在文件中，不单独发布。
+ */
+export function linuxArtifactNames(
+  version: string,
+  arch: LinuxUpdateArch,
+  naming: ArtifactNaming = 'platform',
+) {
+  const base = `Marchen-${version}-${naming === 'platform' ? 'linux-' : ''}`
   return {
-    appImage: `Marchen-${version}-${arch === 'x64' ? 'x86_64' : arch}.AppImage`,
-    deb: `Marchen-${version}-${arch === 'x64' ? 'amd64' : arch}.deb`,
+    appImage: `${base}${arch === 'x64' ? 'x86_64' : arch}.AppImage`,
+    deb: `${base}${arch === 'x64' ? 'amd64' : arch}.deb`,
   }
+}
+export function windowsSetupName(version: string) {
+  return `Marchen-${version}-windows-x64-setup.exe`
+}
+/** 历史发行按 macOS dmg 判断命名：同一发行的所有平台安装包总是使用同一种命名 */
+export function releaseArtifactNaming(version: string, assetNames: Iterable<string>): ArtifactNaming {
+  const names = new Set(assetNames)
+  return names.has(macArtifactNames(version, 'platform').dmg) ? 'platform' : 'legacy'
 }
 export function updateFeedURL(platform: 'mac' | 'windows' | 'linux', channel: UpdateChannel) {
   if (platform === 'mac') return `${UPDATE_FEED_ROOT}/mac/${channel}.xml`

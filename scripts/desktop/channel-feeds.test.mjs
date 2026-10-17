@@ -1,13 +1,20 @@
 import { expect, it } from 'vitest'
 import { parse, stringify } from 'yaml'
-import { sparkleBuildVersion } from '../../packages/shared/src/update-policy.ts'
+import {
+  linuxArtifactNames,
+  macArtifactNames,
+  releaseArtifactNaming,
+  sparkleBuildVersion,
+  windowsSetupName,
+} from '../../packages/shared/src/update-policy.ts'
 import { assertChannelAdvance, buildChannelFeeds, selectChannelReleases } from './channel-feeds.mjs'
 
-function fixture(version, extra = {}) {
+/** naming 为 legacy 时模拟 1.0.7 及更早、文件名不带系统名的历史发行 */
+function fixture(version, { naming = 'platform', ...extra } = {}) {
   const channel = version.includes('alpha') ? 'alpha' : version.includes('beta') ? 'beta' : 'latest'
   const prefix = `https://github.com/marchen-dev/marchen-player/releases/download/v${version}/`
-  const exe = `Marchen-${version}-setup.exe`
-  const zip = `Marchen-${version}-arm64.zip`
+  const exe = naming === 'platform' ? windowsSetupName(version) : `Marchen-${version}-setup.exe`
+  const { zip, dmg } = macArtifactNames(version, naming)
   const windows = stringify({
     version,
     path: exe,
@@ -24,7 +31,7 @@ function fixture(version, extra = {}) {
       exe,
       `${exe}.blockmap`,
       zip,
-      `Marchen-${version}-arm64.dmg`,
+      dmg,
       `${channel}.yml`,
       'appcast-macos-arm64.xml',
     ].map((name) => ({
@@ -44,9 +51,12 @@ function withLinux(release, arches = ['x64', 'arm64']) {
   const version = release.tag_name.slice(1)
   const channel = version.includes('alpha') ? 'alpha' : version.includes('beta') ? 'beta' : 'latest'
   const prefix = `https://github.com/marchen-dev/marchen-player/releases/download/v${version}/`
+  const naming = releaseArtifactNaming(
+    version,
+    release.assets.map((asset) => asset.name),
+  )
   for (const arch of arches) {
-    const appImage = `Marchen-${version}-${arch === 'x64' ? 'x86_64' : arch}.AppImage`
-    const deb = `Marchen-${version}-${arch === 'x64' ? 'amd64' : arch}.deb`
+    const { appImage, deb } = linuxArtifactNames(version, arch, naming)
     const text = stringify({
       version,
       path: appImage,
@@ -144,10 +154,10 @@ it('历史版本没有 Linux 元数据时只留空 Linux 源，mac / win 输出�
   expect(Object.keys(after).filter((name) => name.startsWith('linux/stable/'))).toEqual([])
   expect(parse(after['linux/alpha/alpha-linux.yml'])).toMatchObject({
     version: '1.1.0-alpha.0',
-    path: expect.stringMatching(/\/v1\.1\.0-alpha\.0\/Marchen-1\.1\.0-alpha\.0-x86_64\.AppImage$/),
+    path: expect.stringMatching(/\/v1\.1\.0-alpha\.0\/Marchen-1\.1\.0-alpha\.0-linux-x86_64\.AppImage$/),
   })
   expect(parse(after['linux/alpha/alpha-linux-arm64.yml']).files[0].url).toMatch(
-    /Marchen-1\.1\.0-alpha\.0-arm64\.AppImage$/,
+    /Marchen-1\.1\.0-alpha\.0-linux-arm64\.AppImage$/,
   )
   for (const [name, text] of Object.entries(before)) expect(after[name]).toBe(text)
   expect(after['channels.json']).toBe(before['channels.json'])
@@ -163,7 +173,7 @@ it('稳定版 Linux 元数据使用 latest 前缀，可只发布单一架构', a
 it('linux 元数据存在但残缺时拒绝发布', async () => {
   const missingAppImage = withLinux(fixture('1.1.0-alpha.0'))
   missingAppImage.assets = missingAppImage.assets.filter(
-    (asset) => asset.name !== 'Marchen-1.1.0-alpha.0-arm64.AppImage',
+    (asset) => asset.name !== 'Marchen-1.1.0-alpha.0-linux-arm64.AppImage',
   )
   await expect(buildChannelFeeds([missingAppImage], read)).rejects.toThrow('资产缺失')
   const wrongVersion = withLinux(fixture('1.1.0-alpha.0'))
@@ -183,4 +193,27 @@ it('已有渠道源只允许前进或保持，失败重跑不会降级', () => {
     assertChannelAdvance({ alpha: '1.1.0-beta.0' }, { alpha: '1.1.0-beta.0' }),
   ).not.toThrow()
   expect(() => assertChannelAdvance({ alpha: '1.1.0-beta.0' }, { alpha: '1.1.0' })).not.toThrow()
+})
+
+it('改名前的历史发行与新命名发行可同时作为渠道源', async () => {
+  const files = await buildChannelFeeds(
+    [withLinux(fixture('1.0.7', { naming: 'legacy' })), withLinux(fixture('1.0.8-alpha.0'))],
+    read,
+  )
+  expect(JSON.parse(files['channels.json'])).toEqual({
+    stable: '1.0.7',
+    beta: '1.0.7',
+    alpha: '1.0.8-alpha.0',
+  })
+  expect(parse(files['linux/stable/latest-linux.yml']).path).toMatch(
+    /\/v1\.0\.7\/Marchen-1\.0\.7-x86_64\.AppImage$/,
+  )
+  expect(files['mac/stable.xml']).toContain('/v1.0.7/Marchen-1.0.7-arm64.zip')
+  expect(parse(files['linux/alpha/alpha-linux.yml']).path).toMatch(
+    /\/v1\.0\.8-alpha\.0\/Marchen-1\.0\.8-alpha\.0-linux-x86_64\.AppImage$/,
+  )
+  expect(files['mac/alpha.xml']).toContain('/v1.0.8-alpha.0/Marchen-1.0.8-alpha.0-macos-arm64.zip')
+  expect(parse(files['windows/alpha/alpha.yml']).path).toMatch(
+    /Marchen-1\.0\.8-alpha\.0-windows-x64-setup\.exe$/,
+  )
 })

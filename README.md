@@ -6,7 +6,7 @@
 
 <p align="center">
   Marchen 是一个动漫弹幕播放器。拖入视频或粘贴视频直链，即可自动匹配弹幕。<br />
-  支持 macOS、Windows 客户端，也可以在浏览器中直接使用。
+  支持 macOS、Windows、Linux 客户端，也可以在浏览器中直接使用。
 </p>
 
 <p align="center">
@@ -57,6 +57,19 @@
 ![下载管理](https://fastly.jsdelivr.net/gh/marchen-dev/marchen-player@main/docs/images/downloads.png)
 
 ![深色影视库](https://fastly.jsdelivr.net/gh/marchen-dev/marchen-player@main/docs/images/library-dark.png)
+
+## 📦 下载
+
+在 [Releases](https://github.com/marchen-dev/marchen-player/releases/latest) 中按系统选择安装包：
+
+| 系统 | 安装包 |
+| --- | --- |
+| macOS 13+（Apple Silicon） | `.dmg` |
+| Windows x64 | `setup.exe` |
+| Linux x64 | `amd64.deb`（Ubuntu / Debian）或 `x86_64.AppImage` |
+| Linux arm64 | `arm64.deb` 或 `arm64.AppImage` |
+
+Linux 安装与常见问题见 [Linux 安装说明](docs/linux-install.md)。
 
 ## 🔧 开发
 
