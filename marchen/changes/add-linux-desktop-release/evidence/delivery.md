@@ -55,7 +55,7 @@
 
 ## 桌面手工验收（进行中）
 
-用户在 Ubuntu 虚拟机中安装预览构建（运行 39019151731）的 deb：功能正常，但应用网格中图标显示为默认齿轮。
+用户在 Windows 主机上的 Ubuntu x64 虚拟机中安装预览构建（运行 39019151731）的 x64 deb（任务 9.3）：功能正常，但应用网格中图标显示为默认齿轮。
 
 - 原因：`linux.icon` 指向单张 1024px `build/icon.png`，deb / AppImage 只包含 `hicolor/1024x1024/apps/marchen.png`；hicolor 主题索引标准尺寸最大到 512x512，GNOME 找不到 `Icon=marchen`。
 - 修复：新增 `build/icons/{16…512}x{16…512}.png` 图标集（由 `build/icon.png` 缩放生成），`linux.icon` 改为该目录；`verify-linux.mjs` 新增 `verifyHicolorIcons`，要求 AppImage 与 deb 都包含 48 / 128 / 256 / 512 尺寸。对旧包运行该检查会报出缺失，确认能拦住同类问题。
