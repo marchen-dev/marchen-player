@@ -47,7 +47,7 @@ describe('发行冒烟开关', () => {
   it('首屏较慢时持续轮询，渲染并稳定后以 0 退出', async () => {
     const marker = join(dir, 'ok.json')
     // 前 10 秒根节点为空，模拟 CI 软件渲染下的慢启动
-    const { window, events } = fakeWindow([...Array.from({length: 20}).fill(0), 1])
+    const { window, events } = fakeWindow([...Array.from<number>({ length: 20 }).fill(0), 1])
     attachSmokeTest(window, marker)
     events.get('did-finish-load')!()
     await vi.advanceTimersByTimeAsync(10_000)
