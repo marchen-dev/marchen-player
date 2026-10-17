@@ -1,6 +1,6 @@
 # Linux 安装说明
 
-Marchen 为 Linux 提供 x64（正式支持）与 arm64（实验性支持）两种架构，每种架构有 AppImage 与 deb 两种安装包，均可在 [GitHub Releases](https://github.com/marchen-dev/marchen-player/releases) 下载。
+Marchen 为 Linux 提供 x64 与 arm64 两种架构，每种架构有 AppImage 与 deb 两种安装包，均可在 [GitHub Releases](https://github.com/marchen-dev/marchen-player/releases) 下载。
 
 | 安装包 | 适合 | 更新方式 |
 | --- | --- | --- |
@@ -52,5 +52,5 @@ AppImage 本身不会注册应用菜单和文件关联。可使用 [Gear Lever](
 ## 已知限制
 
 - 大多数 Linux 环境的浏览器内核没有 HEVC 硬件解码，HEVC 视频由兼容内核软件解码播放，对 CPU 要求较高。
-- arm64 为实验性支持：不保证 16K 页内核（如 Asahi Linux）与树莓派等低功耗设备上的播放流畅度。
+- arm64：不保证 16K 页内核（如 Asahi Linux）与树莓派等低功耗设备上的播放流畅度。
 - 不同桌面环境（GNOME / KDE、Wayland / X11）的窗口图标、分数缩放与全屏切换可能存在差异，遇到问题请在 设置 › 关于 › 反馈问题 中附带日志提交。日志位于 `~/.config/Marchen/logs/`。
