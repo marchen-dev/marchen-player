@@ -43,7 +43,7 @@
 - [x] 6.2 `release.yml` matrix 增加 `ubuntu-latest`（linux-x64）与 `ubuntu-24.04-arm`（linux-arm64），执行 `electron-builder --linux --<arch>`、`verify-linux.mjs` 与可观测性构建校验
 - [x] 6.3 Linux job 增加 `xvfb-run` 冒烟步骤，失败时上传日志 artifact
 - [x] 6.4 确认 stage 阶段收集并上传 Linux 产物与元数据；`update-channels.yml` 无需改动或按需调整
-- [ ] 6.5 在分支上用 `workflow_dispatch` 或测试标签跑通一次完整 Linux 构建（不公开 Release）
+- [x] 6.5 在分支上用 `workflow_dispatch` 或测试标签跑通一次完整 Linux 构建（不公开 Release）
 
 ## 7. 遥测
 

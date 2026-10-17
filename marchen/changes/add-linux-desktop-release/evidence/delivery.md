@@ -41,10 +41,21 @@
 
 1.0.6 macOS 正式包 `/Applications/Marchen.app` 的 `app.asar.unpacked` 中存在 `utp-native/build/Release/utp_native.node`：`postinstall` 的 `electron-builder install-app-deps` 会绕过 pnpm `allowBuilds: false` 按 Electron ABI 重编。Linux arm64 deb 同样包含 arm64 的 `utp_native.node`。探索阶段"uTP 已不可用"的推断有误，Linux 与 mac 行为一致。Windows 安装包未拆包确认。
 
+## GitHub Actions 预览构建（任务 6.5）
+
+`.github/workflows/linux-preview.yml`，分支 `feat/linux-desktop-release`：
+
+| 运行 | 结果 | 说明 |
+| --- | --- | --- |
+| [39018672373](https://github.com/marchen-dev/marchen-player/actions/runs/39018672373) | arm64 通过；x64 冒烟失败 | x64 打包与 `verify-linux` 通过；冒烟固定等待 5 秒，`root_not_rendered`，日志无错误 |
+| [39019013095](https://github.com/marchen-dev/marchen-player/actions/runs/39019013095) | 两者失败 | 冒烟改为轮询后，pre-commit `eslint --fix` 改写测试代码导致类型检查失败 |
+| [39019151731](https://github.com/marchen-dev/marchen-player/actions/runs/39019151731) | **两者通过** | 冒烟首屏：arm64 3473 ms、x64 5827 ms，四个启动阶段标记齐全 |
+
+结论：x64 runner 软件渲染下首屏约 5.8 秒，超过最初的 5 秒固定等待；冒烟改为最多轮询 30 秒并在失败时带回控制台错误与启动阶段标记。`ubuntu-24.04` 与 `ubuntu-24.04-arm` 上的 apt 依赖、原生模块安装、electron-builder（含 arm64 fpm）、`verify-linux.mjs` 与 xvfb 冒烟均已在真实 CI 执行通过。`release.yml` 的 Linux job 使用相同步骤，尚未经标签触发实跑。
+
 ## 未完成 / 未验证
 
-- **CI 未实际运行**（任务 6.5）：`release.yml` 的 Linux job、`ubuntu-24.04-arm` runner 上的 apt 依赖与 xvfb 冒烟尚未在 GitHub Actions 执行。
-- **x64 未构建**：本机只能高效运行 arm64 容器；x64 产物与校验依赖 CI 或 x64 环境。
+- `release.yml` 的 Linux job 尚未经 `v*` 标签实跑（步骤与预览构建一致）。
 - **桌面会话手工验收未做**（任务 9.2 / 9.3）：Docker 冒烟只证明打包后可启动并渲染，不覆盖 Wayland / X11 窗口行为、文件关联、二次打开、视频播放、字幕、弹幕、BT 与拖放。
 - **更新链路未验证**（任务 9.4）：需要发布两个连续 Alpha。
 - **Ubuntu 24.04 deb 的 AppArmor 实装行为**仅从 electron-builder 模板源码确认，未在 24.04 实机安装。
