@@ -4,6 +4,7 @@ import fs from 'node:fs/promises'
 import path from 'node:path'
 import { logDirectory, writeLog } from '@main/lib/diagnostic-log'
 import { fileOpenRequests } from '@main/lib/file-open-requests'
+import { resolvePackageType } from '@main/lib/package-type'
 import {
   acknowledgeUpdateSave,
   checkForDesktopUpdates,
@@ -58,6 +59,7 @@ export const appGroup = {
     appSessionId: telemetryAppSessionId,
     platform: process.platform,
     arch: process.arch,
+    packageType: resolvePackageType(),
   })),
 
   windowAction: t.procedure

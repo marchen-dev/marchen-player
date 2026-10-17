@@ -1,0 +1,12 @@
+version: 1.0.6
+files:
+  - url: Marchen-1.0.6-arm64.AppImage
+    sha512: kYbvxFlYitsw3frhU7m4q/yAFdI2HRxhHkMGzNKCudZhtAujb0pRei+lWO2F8nc+qGhf4nmC9B6DitPoRR0iUw==
+    size: 200167466
+    blockMapSize: 207734
+  - url: Marchen-1.0.6-arm64.deb
+    sha512: sbnJJkw4Ixje9LumDQniwAy7XgO4vZsTRFquK3PFOTAtJnYR20zQ0KpM1g09iFski4UMiV+lnwy1VCFrBTNKPA==
+    size: 150908056
+path: Marchen-1.0.6-arm64.AppImage
+sha512: kYbvxFlYitsw3frhU7m4q/yAFdI2HRxhHkMGzNKCudZhtAujb0pRei+lWO2F8nc+qGhf4nmC9B6DitPoRR0iUw==
+releaseDate: '2026-10-17T08:30:38.762Z'

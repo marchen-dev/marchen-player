@@ -1,6 +1,8 @@
 # 桌面发行与更新
 
-目标为 macOS 13+ Apple Silicon（ARM64）及 Windows x64。Linux 和 Intel Mac 不再生成新包，历史发行保留。
+目标为 macOS 13+ Apple Silicon（ARM64）、Windows x64、Linux x64（正式支持）与 Linux arm64（实验性支持）。Intel Mac 不再生成新包，历史发行保留。
+
+Linux 每个架构同时发行 AppImage 与 deb。AppImage 使用 `electron-updater` 应用内自动更新；deb 由包管理器管理文件，应用内只检查新版本并引导打开下载页。arm64 的"实验性"指不承诺 16K 页内核（如 Asahi Linux）与树莓派等低功耗设备上的播放性能，崩溃率与兼容内核回退率稳定后再评估转为正式支持。用户侧安装说明见 [Linux 安装说明](./linux-install.md)。
 
 Mac 使用工作区 @marchen/sparkle-updater 与官方 Sparkle 中文原生窗口。应用 ad-hoc 签名不等于 Apple Developer ID 或公证；第一次从互联网下载后可能被 Gatekeeper 拦截，按 macOS“隐私与安全性 → 仍要打开”的流程处理。
 
@@ -30,20 +32,21 @@ Mac 的显示版本仍是 `1.0.0-alpha.0`，内部 CFBundleVersion 为 `1.0.0a1`
 
 - Mac：`https://raw.githubusercontent.com/marchen-dev/marchen-player/update-feeds/mac/{stable,beta,alpha}.xml`
 - Windows：同一分支下 `windows/stable/latest.yml`、`windows/beta/beta.yml`、`windows/alpha/alpha.yml`
+- Linux AppImage：同一分支下 `linux/<channel>/`，x64 为 `latest-linux.yml` / `beta-linux.yml` / `alpha-linux.yml`，arm64 在文件名后加 `-arm64`（如 `alpha-linux-arm64.yml`）。架构由文件名隔离，客户端按自身 `process.arch` 读取。
 
 更新包继续存放在对应版本 GitHub Release，YAML 内使用版本固定的绝对地址。渠道入口不依赖 GitHub Latest，Alpha/Beta 标记为 Pre-release。各渠道取允许范围内最高版本；例如晚发布 1.0.1 不会覆盖 Alpha 渠道已有的 1.1.0-beta.0。
 
-没有候选版本时 Mac 返回空 appcast，Windows 不生成虚构版本；已有公开客户端所属渠道至少包含其自身版本。首个 Alpha Release 公开前固定源可能尚未创建，这是预期状态，不能当成生产更新已可用。
+没有候选版本时 Mac 返回空 appcast，Windows 不生成虚构版本；Linux 是可选平台，渠道选中的版本缺少 Linux 元数据（如 Linux 恢复支持前的版本）时不生成该渠道的 Linux 文件，Linux 客户端把元数据 404 视为"已是最新"，mac / win 渠道照常发布；元数据存在但不完整或引用其他版本时整体拒绝发布。已有公开客户端所属渠道至少包含其自身版本。首个 Alpha Release 公开前固定源可能尚未创建，这是预期状态，不能当成生产更新已可用。
 
 ## 构建和发布
 
 1. 更新 package.json 并编写 `docs/releases/<version>.md`，Node 24 / pnpm 11 干净安装。现有 `pnpm bump`（nbump）会交互选择版本、提交、打标签并推送，不是只改版本号。
 2. 核对 CI 的 API、Sentry、PostHog 及 Sparkle 配置；执行类型检查、相关测试和构建。`pnpm build` 会准备媒体资源，不能跳过。
 3. 提交经验收的代码和本次版本说明，再推送对应 `v<version>` 标签。默认分支必须先包含 `.github/workflows/update-channels.yml`，才能接收后续 published 事件。
-4. release.yml 生成 ARM64 DMG/ZIP 与 Windows x64 NSIS。动态父配置自动设置 Windows 的 latest/beta/alpha.yml 名称及 Mac 内部构建号，本地和 CI 相同。Mac 需先 `pnpm sparkle:build`。
-5. 构建后验证最终包、生成带签名 appcast 和最多两个旧基线的官方直接差分；首发无基线则全量。基线从同渠道已公开发行选择较低版本，Alpha/Beta 各自支持直接差分。跨渠道晋升使用全量包，避免官方生成器把不同 feed 的基线分组而漏掉或拒绝生成。
+4. release.yml 生成 ARM64 DMG/ZIP、Windows x64 NSIS，以及 Linux x64 / arm64 的 AppImage 与 deb（分别在 `ubuntu-24.04` 与 `ubuntu-24.04-arm` 原生 runner 上安装依赖并打包，因为 `node-datachannel` 按宿主架构下载预编译二进制）。动态父配置自动设置 Windows 的 latest/beta/alpha.yml 名称及 Mac 内部构建号，本地和 CI 相同。Mac 需先 `pnpm sparkle:build`。
+5. 构建后验证最终包：Linux 由 `verify-linux.mjs` 解包 AppImage 与 deb，检查主程序与全部原生模块的 ELF 架构、ASAR 资源与版本、`.desktop`（`%U`、MIME 类型、`StartupWMClass`、不写死 `--no-sandbox`）、deb 控制字段与 AppArmor profile、更新元数据 sha512；再在 xvfb 中启动解包后的应用做冒烟（`MARCHEN_SMOKE_MARKER`，仅 CI 使用，CI 无 SUID / AppArmor 配置所以只在此处 `--no-sandbox`）。Mac 生成带签名 appcast 和最多两个旧基线的官方直接差分；首发无基线则全量。基线从同渠道已公开发行选择较低版本，Alpha/Beta 各自支持直接差分。跨渠道晋升使用全量包，避免官方生成器把不同 feed 的基线分组而漏掉或拒绝生成。
 6. 汇总校验后**只创建 Draft**，不自动公开。下载 Draft 的最终包完成安装/更新验证后，由维护者在 GitHub 公开。Alpha/Beta 保持 Pre-release 且不设 Latest；正式版可手动设 Latest。
-7. 公开触发 `Publish desktop update channels`：读取全部公开发行、校验选中版本的双平台资产和元数据，一次提交更新渠道文件。成功后客户端在下一次检查时可收到更新。Draft 不进入渠道。
+7. 公开触发 `Publish desktop update channels`：读取全部公开发行、校验选中版本的 mac / win 资产和元数据（Linux 存在时一并严格校验），一次提交更新渠道文件。成功后客户端在下一次检查时可收到更新。Draft 不进入渠道。
 
 Sentry release 在构建协调阶段 finalize；对应 production/beta/alpha 部署标记在公开并同步渠道后记录。此流程不需要另建更新服务器，但需客户端能够访问 GitHub 的 raw 域名及发行资产。
 
@@ -64,6 +67,12 @@ node scripts/desktop/publish-channels.mjs
 - 通过 GITHUB_TOKEN 在另一个 workflow 公开 Release 不保证触发新 workflow；当前设计由维护者公开，遗漏事件时手动同步。
 - 自动流程拒绝渠道版本回退，包括删除最高版本后重建。紧急撤回需人工禁用相关 feed/发行资产并单独检查渠道文件；已安装客户端不自动降级，修复用更高版本发布。
 - 私钥丢失或泄露时停止发布，保留旧资产，评估官方密钥迁移或安排用户手动安装可信版本。不能直接换公钥假设旧客户端可继续升级。
+
+## Linux 验收要求
+
+- 每次包含 Linux 的发行：CI 的 `verify-linux.mjs` 与 xvfb 冒烟必须通过。
+- 首个 Linux 版本及打包配置变化时：arm64 在 Apple Silicon 本机虚拟机（Ubuntu 24.04，Wayland 与 X11 会话）手工验收；x64 在云上 x64 虚拟机或由用户 Alpha 实测。覆盖 deb 与 AppImage 安装启动、H.264 / HEVC MKV、ASS 字幕、弹幕、BT、拖放、文件关联、应用运行中再次打开文件、AppImage 应用内升级与 deb 新版本提示。
+- 虚拟机没有 GPU，证据必须注明"GPU 硬件解码未在实体硬件上验证"；Linux 默认不启用任何实验性 VA-API / ANGLE 开关，原生不支持的编码由兼容内核软解。
 
 ## 当前验证边界
 

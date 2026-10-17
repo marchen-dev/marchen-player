@@ -20,7 +20,7 @@
 
 ## Sentry
 
-查询标签：release、dist、app_target、runtime、error_code。字幕主动降级错误使用 SUBTITLE_RESOLVE_FAILED / SUBTITLE_RENDERER_FAILED / SUBTITLE_CATALOG_FAILED / SUBTITLE_IMPORT_FAILED。字幕失败上报目前只构造阶段与错误类型的稳定诊断错误（为聚合而非隐私）。组件捕获错误后不能仅 setError，必须显式经过 telemetry 边界。
+查询标签：release、dist、app_target、runtime、platform、arch、package_type、error_code。字幕主动降级错误使用 SUBTITLE_RESOLVE_FAILED / SUBTITLE_RENDERER_FAILED / SUBTITLE_CATALOG_FAILED / SUBTITLE_IMPORT_FAILED。字幕失败上报目前只构造阶段与错误类型的稳定诊断错误（为聚合而非隐私）。组件捕获错误后不能仅 setError，必须显式经过 telemetry 边界。
 
 Web 使用 @sentry/react；Electron 使用对应 SDK。Source Map 构建期上传，运行时变量不包含上传认证。SDK 接入、日志和单元测试成功不证明线上事件、源码还原或告警已验收。
 
@@ -41,6 +41,8 @@ Web 使用 @sentry/react；Electron 使用对应 SDK。Source Map 构建期上�
 Web 走 [EdgeOne 独立发布](./web-edgeone-release.md)，不再由 Electron tag 协调。release=Marchen@版本+提交，生产 dist=web/environment=production，预览 dist=web-preview/environment=preview。构建校验变量、上传 Source Map 并检查不携带 .map；生产 deploy 记录应晚于实际发布成功。
 
 Electron tag workflow 继续完成桌面各平台的 Source Map、release 和安装包发布。Main/Preload/Renderer 的诊断独立于 Web 发布。
+
+桌面 dist 为 `darwin-arm64`、`win32-x64`、`linux-x64`、`linux-arm64`（Linux arm64 为实验性支持）。`package_type` 区分安装形态：`mac-app`、`nsis`、`appimage`、`deb`，开发态为 `unpackaged`，Web 为 `web`；Sentry main 端作为 tag，renderer 与 PostHog 作为公共属性。Linux 上 `appimage` 走应用内自动更新、`deb` 只提示下载，评估 Linux 版本分布与崩溃率时按 `package_type` 拆开看；兼容内核回退率按 `dist` 分组观察 Linux 软解占比。
 
 ## 本地验证
 
@@ -83,7 +85,7 @@ FFmpeg/Gateway/media.generation 与 compat_fallback_triggered 为历史版本口
 
 ### 本地日志（Electron）
 
-- **位置**：正式版 macOS `~/Library/Logs/Marchen/`，Windows `%APPDATA%\Marchen\logs\`；开发版在 `<userData>/logs/`（appData 为 `Marchen (dev)`），与正式版隔离。设置 › 关于 › 日志位置可直接打开。旧版 `<userData>/log/main.log` 会在首次启动时删除。
+- **位置**：正式版 macOS `~/Library/Logs/Marchen/`，Windows `%APPDATA%\Marchen\logs\`，Linux `~/.config/Marchen/logs/`；开发版在 `<userData>/logs/`（appData 为 `Marchen (dev)`），与正式版隔离。设置 › 关于 › 日志位置可直接打开。旧版 `<userData>/log/main.log` 会在首次启动时删除。
 - **始终开启**：不受 `VITE_TELEMETRY_DEBUG` 与 Sentry 是否配置影响。main 是唯一写入者（electron-log 同步追加），renderer 经 `app.appendLogs` 批量（1 秒或 50 条）交给 main，页面隐藏时立即发送。
 - **格式**：JSON Lines，每行 `{ t, lv, src, cat, msg, op?, data?, repeated?, truncated? }`。`t` 为产生时刻（renderer 自带），`op` 为 operation_id / attempt_id，可与 Sentry、PostHog 的同一次操作对应。electron-updater 等第三方纯文本被包装为 `cat: "updater"`。公共构建属性只出现在 `app_start`（main）与 `renderer_start`（renderer）快照中。
 - **记录范围**：未捕获异常与未处理拒绝、渲染进程 / 子进程退出、窗口无响应、页面加载失败、显式上报错误、组合 telemetry client 收到的全部产品事件与面包屑；不记逐秒进度、弹幕与字幕正文。

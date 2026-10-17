@@ -9,7 +9,7 @@ import {
   ContextMenuTrigger,
 } from '@renderer/components/ui/menu'
 
-import { isWindows } from '@renderer/lib/utils'
+import { getRevealInFileManagerLabel } from '@renderer/lib/utils'
 import { hasLocalSource, isCompleted, pickNextEpisode } from './selectors'
 
 /** 右键菜单可触发的动作；由影视库页面统一实现，卡片只负责转发 */
@@ -25,13 +25,13 @@ export interface LibraryCardActions {
 interface LibraryCardContextMenuProps {
   item: DB_Library
   actions: LibraryCardActions
-  /** 已导入剧集的媒体来源；只有存在本地文件时才提供「在 Finder 中显示」 */
+  /** 已导入剧集的媒体来源；只有存在本地文件时才提供「在文件管理器中显示」 */
   source?: LibrarySource
   children: ReactNode
 }
 
 // 影视库仅 Electron 可见，平台只需区分 Windows 与 macOS
-const revealLabel = isWindows ? '在资源管理器中显示' : '在 Finder 中显示'
+const revealLabel = getRevealInFileManagerLabel()
 
 /**
  * 影视库卡片（继续观看横向卡 / 所有作品海报卡）共用的右键菜单。

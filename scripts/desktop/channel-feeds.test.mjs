@@ -38,6 +38,33 @@ function fixture(version, extra = {}) {
   }
 }
 const read = async (asset) => asset.text
+
+/** 给发行补上 Linux 产物；channelFile 与 electron-builder 生成的文件名一致 */
+function withLinux(release, arches = ['x64', 'arm64']) {
+  const version = release.tag_name.slice(1)
+  const channel = version.includes('alpha') ? 'alpha' : version.includes('beta') ? 'beta' : 'latest'
+  const prefix = `https://github.com/marchen-dev/marchen-player/releases/download/v${version}/`
+  for (const arch of arches) {
+    const appImage = `Marchen-${version}-${arch === 'x64' ? 'x86_64' : arch}.AppImage`
+    const deb = `Marchen-${version}-${arch === 'x64' ? 'amd64' : arch}.deb`
+    const text = stringify({
+      version,
+      path: appImage,
+      sha512: Buffer.alloc(64, 2).toString('base64'),
+      files: [{ url: appImage, size: 3, sha512: Buffer.alloc(64, 2).toString('base64') }],
+    })
+    const metadata = `${channel}-linux${arch === 'x64' ? '' : `-${arch}`}.yml`
+    for (const name of [appImage, deb, metadata])
+      release.assets.push({
+        name,
+        state: 'uploaded',
+        size: name === metadata ? Buffer.byteLength(text) : 3,
+        browser_download_url: prefix + name,
+        text: name === metadata ? text : undefined,
+      })
+  }
+  return release
+}
 it('只发布 Alpha 时稳定和 Beta 没有虚假更新', async () => {
   const files = await buildChannelFeeds([fixture('1.0.0-alpha.0')], read)
   expect(JSON.parse(files['channels.json'])).toEqual({
@@ -104,6 +131,49 @@ it('相同发行清单重复合成完全一致', async () => {
   expect(await buildChannelFeeds(releases, read)).toEqual(
     await buildChannelFeeds(releases.slice().reverse(), read),
   )
+})
+
+it('历史版本没有 Linux 元数据时只留空 Linux 源，mac / win 输出不变', async () => {
+  const history = [fixture('1.0.0'), fixture('1.1.0-alpha.0')]
+  const before = await buildChannelFeeds(history, read)
+  const after = await buildChannelFeeds(
+    [fixture('1.0.0'), withLinux(fixture('1.1.0-alpha.0'))],
+    read,
+  )
+  // 没有 Linux 的渠道（稳定）不出现任何 Linux 文件，客户端按 404 视为已是最新。
+  expect(Object.keys(after).filter((name) => name.startsWith('linux/stable/'))).toEqual([])
+  expect(parse(after['linux/alpha/alpha-linux.yml'])).toMatchObject({
+    version: '1.1.0-alpha.0',
+    path: expect.stringMatching(/\/v1\.1\.0-alpha\.0\/Marchen-1\.1\.0-alpha\.0-x86_64\.AppImage$/),
+  })
+  expect(parse(after['linux/alpha/alpha-linux-arm64.yml']).files[0].url).toMatch(
+    /Marchen-1\.1\.0-alpha\.0-arm64\.AppImage$/,
+  )
+  for (const [name, text] of Object.entries(before)) expect(after[name]).toBe(text)
+  expect(after['channels.json']).toBe(before['channels.json'])
+})
+it('稳定版 Linux 元数据使用 latest 前缀，可只发布单一架构', async () => {
+  const files = await buildChannelFeeds([withLinux(fixture('1.2.0'), ['x64'])], read)
+  expect(files['linux/stable/latest-linux.yml']).toBeDefined()
+  expect(files['linux/stable/latest-linux-arm64.yml']).toBeUndefined()
+  // Alpha 客户端读取 alpha-linux.yml；正式版晋升后按客户端渠道命名，同 Windows。
+  expect(parse(files['linux/alpha/alpha-linux.yml']).version).toBe('1.2.0')
+  expect(files['linux/alpha/latest-linux.yml']).toBeUndefined()
+})
+it('linux 元数据存在但残缺时拒绝发布', async () => {
+  const missingAppImage = withLinux(fixture('1.1.0-alpha.0'))
+  missingAppImage.assets = missingAppImage.assets.filter(
+    (asset) => asset.name !== 'Marchen-1.1.0-alpha.0-arm64.AppImage',
+  )
+  await expect(buildChannelFeeds([missingAppImage], read)).rejects.toThrow('资产缺失')
+  const wrongVersion = withLinux(fixture('1.1.0-alpha.0'))
+  const yml = wrongVersion.assets.find((asset) => asset.name === 'alpha-linux.yml')
+  yml.text = yml.text.replace('version: 1.1.0-alpha.0', 'version: 1.0.0')
+  await expect(buildChannelFeeds([wrongVersion], read)).rejects.toThrow('Linux x64 元数据')
+  const badSha = withLinux(fixture('1.1.0-alpha.0'))
+  const arm = badSha.assets.find((asset) => asset.name === 'alpha-linux-arm64.yml')
+  arm.text = arm.text.replaceAll(Buffer.alloc(64, 2).toString('base64'), 'AAAA')
+  await expect(buildChannelFeeds([badSha], read)).rejects.toThrow('Linux arm64 长度或校验值')
 })
 
 it('已有渠道源只允许前进或保持，失败重跑不会降级', () => {

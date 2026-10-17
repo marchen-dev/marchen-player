@@ -5,14 +5,14 @@ import { toast } from '@renderer/components/ui/toast/use-toast'
 import { useAtomValue } from 'jotai'
 import { createElement, useEffect, useRef } from 'react'
 
-/** Mac 使用官方窗口；Windows 就绪时仅提示一次，完整状态留在关于页。 */
+/** Mac 使用官方窗口；Windows / Linux AppImage 就绪时仅提示一次，完整状态留在关于页。 */
 export function useUpdateToast() {
   const state = useAtomValue(desktopUpdateAtom)
   const notifiedRef = useRef<string | undefined>(undefined)
   const showSettings = useSettingModal()
   useEffect(() => {
     if (
-      state?.platform !== 'windows' ||
+      (state?.platform !== 'windows' && state?.platform !== 'linux') ||
       state.phase !== 'ready' ||
       notifiedRef.current === state.version
     )

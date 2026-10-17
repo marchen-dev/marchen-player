@@ -13,6 +13,7 @@ export interface CommonTelemetryProperties {
   runtime: TelemetryRuntime
   platform: string
   arch: string
+  package_type?: string
   install_id?: string
   app_session_id: string
   playback_session_id?: string

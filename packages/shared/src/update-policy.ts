@@ -42,10 +42,29 @@ export function canUpdateTo(installed: string, candidate: string): boolean {
 export function windowsMetadataName(channel: UpdateChannel) {
   return `${channel === 'stable' ? 'latest' : channel}.yml`
 }
-export function updateFeedURL(platform: 'mac' | 'windows', channel: UpdateChannel) {
-  return platform === 'mac'
-    ? `${UPDATE_FEED_ROOT}/mac/${channel}.xml`
-    : `${UPDATE_FEED_ROOT}/windows/${channel}/`
+/** Linux 只发行这两个架构；arm64 为实验性支持 */
+export type LinuxUpdateArch = 'x64' | 'arm64'
+export const LINUX_UPDATE_ARCHES: readonly LinuxUpdateArch[] = ['x64', 'arm64']
+/**
+ * electron-updater 在 Linux 上读取 `<channel>-linux[-<arch>].yml`，x64 不带架构后缀；
+ * 架构由文件名天然隔离，同一渠道目录可以同时存放两个架构的元数据。
+ */
+export function linuxMetadataName(channel: UpdateChannel, arch: LinuxUpdateArch) {
+  return `${channel === 'stable' ? 'latest' : channel}-linux${arch === 'x64' ? '' : `-${arch}`}.yml`
+}
+/**
+ * electron-builder 按目标格式改写 `${arch}`：AppImage 的 x64 为 x86_64，deb 为 amd64；
+ * AppImage 的 blockmap 内嵌在文件中，不单独发布。
+ */
+export function linuxArtifactNames(version: string, arch: LinuxUpdateArch) {
+  return {
+    appImage: `Marchen-${version}-${arch === 'x64' ? 'x86_64' : arch}.AppImage`,
+    deb: `Marchen-${version}-${arch === 'x64' ? 'amd64' : arch}.deb`,
+  }
+}
+export function updateFeedURL(platform: 'mac' | 'windows' | 'linux', channel: UpdateChannel) {
+  if (platform === 'mac') return `${UPDATE_FEED_ROOT}/mac/${channel}.xml`
+  return `${UPDATE_FEED_ROOT}/${platform}/${channel}/`
 }
 
 /** 显示版本保持 SemVer，Mac 内部构建号使用 Sparkle/系统可比较的 a/b 后缀。 */

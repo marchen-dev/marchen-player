@@ -18,7 +18,8 @@ const releasePage = 'https://github.com/marchen-dev/marchen-player/releases'
 const { autoUpdater } = updater
 let bridge: SparkleBridge | undefined
 let initialized = false
-let windowsConfigured = false
+// Windows / Linux 共用 electron-updater，配置完成前不响应检查、下载与安装。
+let updaterConfigured = false
 let quitting = false
 let installing = false
 let checkPromise: Promise<unknown> | undefined
@@ -31,8 +32,18 @@ let state: DesktopUpdateState = {
       ? 'mac'
       : process.platform === 'win32'
         ? 'windows'
-        : 'unsupported',
+        : process.platform === 'linux'
+          ? // AppImage 运行时注入 APPIMAGE；deb 等系统包没有，由包管理器负责替换文件。
+            process.env.APPIMAGE
+            ? 'linux'
+            : 'linux-manual'
+          : 'unsupported',
 }
+/** 使用 electron-updater 检查更新的平台 */
+const usesElectronUpdater = () =>
+  state.platform === 'windows' || state.platform === 'linux' || state.platform === 'linux-manual'
+/** 可在应用内下载并替换自身的平台 */
+const canInstallInApp = () => state.platform === 'windows' || state.platform === 'linux'
 const barrier = new UpdateSaveBarrier((id) => {
   const win = getMainWindow()
   // 主窗口关闭前已完成同一保存屏障；无窗口时没有仍在播放的会话。
@@ -51,11 +62,28 @@ const fail = (error: unknown) => {
   writeLog({ lv: 'error', cat: 'updater', msg: 'update_failed', data: { message } })
   publish({ phase: 'error', error: message })
 }
+/**
+ * Linux 恢复支持前的渠道版本没有 Linux 元数据，渠道源中对应文件不存在（404）。
+ * 这表示该渠道暂无 Linux 版本，按「已是最新」处理；其他错误与 Windows 一致上报。
+ */
+const failOrUpToDate = (error: unknown) => {
+  if (
+    state.platform !== 'windows' &&
+    (error as { code?: unknown } | null)?.code === 'ERR_UPDATER_CHANNEL_FILE_NOT_FOUND'
+  ) {
+    writeLog({ lv: 'warn', cat: 'updater', msg: 'linux_channel_metadata_missing' })
+    publish({ phase: 'upToDate', version: undefined, notes: undefined, percent: undefined })
+    return
+  }
+  fail(error)
+}
 export const getUpdateState = () => state
 export const acknowledgeUpdateSave = (id: string, success: boolean, message?: string) =>
   barrier.finish(id, success, message)
 export const setUpdatePlaybackState = (playing: boolean) => bridge?.setPlaying(playing)
-export const openUpdateDownloadPage = () => shell.openExternal(releasePage)
+// 已知新版本时直接打开对应 Release，便于 deb 用户找到同版本安装包。
+export const openUpdateDownloadPage = () =>
+  shell.openExternal(state.version ? `${releasePage}/tag/v${state.version}` : releasePage)
 
 async function prepareInstall(resume: () => void) {
   if (installing) return
@@ -160,7 +188,7 @@ export async function autoUpdateInit() {
     })
     return
   }
-  if (process.platform !== 'win32') return
+  if (!usesElectronUpdater()) return
   autoUpdater.logger = logger
   autoUpdater.autoDownload = false
   autoUpdater.autoInstallOnAppQuit = false
@@ -171,14 +199,17 @@ export async function autoUpdateInit() {
     fail(error)
     return
   }
-  autoUpdater.setFeedURL({ provider: 'generic', url: updateFeedURL('windows', channel) })
+  autoUpdater.setFeedURL({
+    provider: 'generic',
+    url: updateFeedURL(state.platform === 'windows' ? 'windows' : 'linux', channel),
+  })
   autoUpdater.channel = channel === 'stable' ? 'latest' : channel
   autoUpdater.allowPrerelease = channel !== 'stable'
   // channel setter 会开启 allowDowngrade，必须在设置渠道后明确关闭。
   autoUpdater.allowDowngrade = false
   autoUpdater.forceDevUpdateConfig = false
-  windowsConfigured = true
-  autoUpdater.on('error', fail)
+  updaterConfigured = true
+  autoUpdater.on('error', failOrUpToDate)
   autoUpdater.on('checking-for-update', () => publish({ phase: 'checking', error: undefined }))
   autoUpdater.on('update-available', (info) =>
     publish({
@@ -222,15 +253,15 @@ export async function checkForDesktopUpdates() {
     return state
   }
   if (
-    state.platform !== 'windows' ||
-    !windowsConfigured ||
+    !usesElectronUpdater() ||
+    !updaterConfigured ||
     ['downloading', 'preparing', 'ready', 'installing'].includes(state.phase)
   )
     return state
   if (!checkPromise)
     checkPromise = autoUpdater
       .checkForUpdates()
-      .catch(fail)
+      .catch(failOrUpToDate)
       .finally(() => {
         checkPromise = undefined
       })
@@ -239,8 +270,8 @@ export async function checkForDesktopUpdates() {
 }
 export async function downloadDesktopUpdate() {
   if (
-    state.platform !== 'windows' ||
-    !windowsConfigured ||
+    !canInstallInApp() ||
+    !updaterConfigured ||
     !['available', 'error'].includes(state.phase) ||
     !state.version
   )
@@ -258,7 +289,7 @@ export async function downloadDesktopUpdate() {
   return state
 }
 export async function installDesktopUpdate() {
-  if (state.platform !== 'windows' || !windowsConfigured || state.phase !== 'ready') return
+  if (!canInstallInApp() || !updaterConfigured || state.phase !== 'ready') return
   await prepareInstall(() => autoUpdater.quitAndInstall())
 }
 

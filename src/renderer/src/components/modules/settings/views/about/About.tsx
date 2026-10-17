@@ -14,6 +14,9 @@ const copyrightYear = new Date().getFullYear()
 
 export const AboutView = () => {
   const update = useAtomValue(desktopUpdateAtom)
+  // deb 等系统包由包管理器替换文件，应用内只提示新版本并引导去下载页。
+  const manualUpdate = update?.platform === 'linux-manual'
+  const inAppUpdate = update?.platform === 'windows' || update?.platform === 'linux'
   const { mutate, isPending } = useMutation({
     mutationFn: async () => ipcClient?.app.checkUpdate(),
   })
@@ -42,8 +45,15 @@ export const AboutView = () => {
         </SettingsGroup>
       </SettingsSection>
 
-      {!isWeb && update?.platform === 'windows' && (
-        <SettingsSection title="软件更新" description="自动检查新版本，由你决定下载和安装。">
+      {!isWeb && (inAppUpdate || manualUpdate) && (
+        <SettingsSection
+          title="软件更新"
+          description={
+            manualUpdate
+              ? '自动检查新版本；当前为系统安装包，请下载新版安装包后覆盖安装。'
+              : '自动检查新版本，由你决定下载和安装。'
+          }
+        >
           <SettingsGroup>
             <div className="space-y-3 p-4">
               <p role="status" aria-live="polite">
@@ -81,16 +91,18 @@ export const AboutView = () => {
                 </p>
               )}
               <div className="flex gap-2">
-                {(update.phase === 'available' || (update.phase === 'error' && update.version)) && (
-                  <Button
-                    onClick={() => {
-                      void ipcClient?.app.downloadUpdate()
-                    }}
-                    size="sm"
-                  >
-                    下载更新
-                  </Button>
-                )}
+                {inAppUpdate &&
+                  (update.phase === 'available' ||
+                    (update.phase === 'error' && update.version)) && (
+                    <Button
+                      onClick={() => {
+                        void ipcClient?.app.downloadUpdate()
+                      }}
+                      size="sm"
+                    >
+                      下载更新
+                    </Button>
+                  )}
                 {update.phase === 'ready' && (
                   <Button
                     onClick={() => {
@@ -101,7 +113,7 @@ export const AboutView = () => {
                     安装并重启
                   </Button>
                 )}
-                {update.phase === 'error' && (
+                {(update.phase === 'error' || (manualUpdate && update.phase === 'available')) && (
                   <Button
                     variant="outline"
                     onClick={() => {

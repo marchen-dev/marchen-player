@@ -6,6 +6,7 @@ import { fileOpenRequests } from '@main/lib/file-open-requests'
 import { app, BrowserWindow, nativeTheme, shell } from 'electron'
 
 import { getIconPath } from '../lib/icon'
+import { attachSmokeTest } from '../lib/smoke-test'
 import { getRendererHandlers } from './setting'
 
 const { platform } = process
@@ -57,6 +58,8 @@ export default function createWindow() {
       break
     }
     default: {
+      // Linux 使用系统原生标题栏。X11 下窗口图标取自这里；Wayland 下由合成器按
+      // .desktop 匹配，依赖 electron-builder 生成的 StartupWMClass 与 executableName 一致。
       Object.assign(baseWindowsConfig, {
         icon: getIconPath(),
       } as Electron.BrowserWindowConstructorOptions)
@@ -68,6 +71,7 @@ export default function createWindow() {
   const { mainWindow } = windows
   mainWindow.webContents.userAgent = `MarchenPlayer/${app.getVersion()}`
   initializeListeningEvent(mainWindow)
+  attachSmokeTest(mainWindow)
 
   // HMR for renderer base on electron-vite cli.
   // Load the remote URL for development or the local html file for production.

@@ -132,6 +132,70 @@ describe('桌面更新服务', () => {
     expect(mocks.download).toHaveBeenCalledTimes(2)
     expect(mocks.install).not.toHaveBeenCalled()
   })
+  it('linux AppImage 使用 Linux 渠道源，保存成功后应用内安装', async () => {
+    vi.stubGlobal('process', {
+      ...process,
+      platform: 'linux',
+      env: { ...process.env, APPIMAGE: '/opt/Marchen.AppImage' },
+    })
+    mocks.version.mockReturnValue('1.0.0-alpha.0')
+    const service = await import('./update')
+    await service.autoUpdateInit()
+    expect(service.getUpdateState().platform).toBe('linux')
+    expect(mocks.feed).toHaveBeenCalledWith({
+      provider: 'generic',
+      url: expect.stringContaining('/linux/alpha/'),
+    })
+    mocks.events.get('update-available')!({ version: '1.0.0-alpha.1' })
+    mocks.download.mockResolvedValueOnce([])
+    await service.downloadDesktopUpdate()
+    expect(mocks.download).toHaveBeenCalledTimes(1)
+    mocks.events.get('update-downloaded')!()
+    const installing = service.installDesktopUpdate()
+    expect(mocks.install).not.toHaveBeenCalled()
+    service.acknowledgeUpdateSave(mocks.prepare.mock.calls[0][0], true)
+    await installing
+    expect(mocks.install).toHaveBeenCalledTimes(1)
+  })
+  it('linux deb 只检查新版本，不在应用内下载或安装', async () => {
+    const env = { ...process.env }
+    delete env.APPIMAGE
+    vi.stubGlobal('process', { ...process, platform: 'linux', env })
+    const service = await import('./update')
+    await service.autoUpdateInit()
+    expect(service.getUpdateState().platform).toBe('linux-manual')
+    mocks.check.mockResolvedValueOnce(null)
+    await service.checkForDesktopUpdates()
+    expect(mocks.check).toHaveBeenCalledTimes(1)
+    mocks.events.get('update-available')!({ version: '1.1.0' })
+    expect(service.getUpdateState()).toMatchObject({ phase: 'available', version: '1.1.0' })
+    await service.downloadDesktopUpdate()
+    await service.installDesktopUpdate()
+    expect(mocks.download).not.toHaveBeenCalled()
+    expect(mocks.install).not.toHaveBeenCalled()
+    const { shell } = await import('electron')
+    await service.openUpdateDownloadPage()
+    expect(shell.openExternal).toHaveBeenCalledWith(expect.stringMatching(/\/tag\/v1\.1\.0$/))
+  })
+  it.each([
+    ['linux', 'upToDate'],
+    ['win32', 'error'],
+  ])('%s 渠道缺少更新元数据时表现为 %s', async (platform, phase) => {
+    vi.stubGlobal('process', {
+      ...process,
+      platform,
+      env: { ...process.env, APPIMAGE: '/opt/Marchen.AppImage' },
+    })
+    const service = await import('./update')
+    await service.autoUpdateInit()
+    mocks.check.mockRejectedValueOnce(
+      Object.assign(new Error('Cannot find channel'), {
+        code: 'ERR_UPDATER_CHANNEL_FILE_NOT_FOUND',
+      }),
+    )
+    await service.checkForDesktopUpdates()
+    expect(service.getUpdateState().phase).toBe(phase)
+  })
   it('mac 原生安装请求在保存失败后保持运行，显式重试保存再恢复', async () => {
     vi.stubGlobal('process', {
       ...process,
