@@ -1,0 +1,22 @@
+version: 1.0.7
+files:
+  - url: https://github.com/marchen-dev/marchen-player/releases/download/v1.0.7/Marchen-1.0.7-x86_64.AppImage
+    sha512: LtBXeBvkyfyN4Z/D5qT9VaeEXdOskk5XsipX2exVFUTtLjSbr+7pHPJdHV9LyD/KxEfb90CZpWEXioahHJDJxw==
+    size: 199101170
+    blockMapSize: 207622
+  - url: https://github.com/marchen-dev/marchen-player/releases/download/v1.0.7/Marchen-1.0.7-amd64.deb
+    sha512: PfifrkOqRo9Mx4h+rLuJtR25iHpDyXIDnvtJ8AIyklQzF0qZyForf6bMaD3A7HbVw1P960R5VT0QwtmU0lIFlw==
+    size: 156034716
+path: https://github.com/marchen-dev/marchen-player/releases/download/v1.0.7/Marchen-1.0.7-x86_64.AppImage
+sha512: LtBXeBvkyfyN4Z/D5qT9VaeEXdOskk5XsipX2exVFUTtLjSbr+7pHPJdHV9LyD/KxEfb90CZpWEXioahHJDJxw==
+releaseNotes: |
+  # Marchen 1.0.7
+
+  ## Linux
+
+  - 新增 Linux 版本，提供 x64 与 arm64 的 deb 和 AppImage 安装包。
+
+  ## 其他
+
+  - 升级 Electron 与播放相关依赖，提升稳定性。
+releaseDate: 2026-10-17T11:48:56.997Z
