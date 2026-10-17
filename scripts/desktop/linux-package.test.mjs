@@ -80,7 +80,7 @@ it('桌面入口拒绝写死无沙箱、缺少 %U、MIME 或窗口关联', () =>
 })
 
 it('更新元数据必须与 AppImage 一致', () => {
-  const appImage = { name: 'Marchen-1.1.0-arm64.AppImage', sha512: 'abc', size: 3 }
+  const appImage = { name: 'Marchen-1.1.0-linux-arm64.AppImage', sha512: 'abc', size: 3 }
   const metadata = {
     version: '1.1.0',
     path: appImage.name,
@@ -93,7 +93,7 @@ it('更新元数据必须与 AppImage 一致', () => {
   ).toThrow('校验值')
   expect(() =>
     verifyLinuxMetadata(
-      { ...metadata, files: [{ ...metadata.files[0], url: 'Marchen-1.1.0-x86_64.AppImage' }] },
+      { ...metadata, files: [{ ...metadata.files[0], url: 'Marchen-1.1.0-linux-x86_64.AppImage' }] },
       { version: '1.1.0', appImage },
     ),
   ).toThrow('缺少')

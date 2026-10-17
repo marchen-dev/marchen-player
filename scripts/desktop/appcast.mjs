@@ -15,6 +15,7 @@ import { basename, join, resolve } from 'node:path'
 
 import {
   compareReleaseVersions,
+  macArtifactNames,
   parseReleaseVersion,
   sparkleBuildVersion,
 } from '../../packages/shared/src/update-policy.ts'
@@ -33,12 +34,13 @@ try {
   await writeFile(keyFile, privateKey, { mode: 0o600 })
   const archive = join(temp, 'archives')
   await mkdir(archive)
-  const filename = `Marchen-${version}-arm64.zip`
+  const filename = macArtifactNames(version).zip
   await copyFile(resolve(output, filename), join(archive, filename))
   // 可选旧基线由 CI 提供；只作为补丁输入，不作为新发行产物上传。
   if (process.env.MARCHEN_DELTA_BASE_DIR) {
     for (const name of await readdir(process.env.MARCHEN_DELTA_BASE_DIR)) {
-      const match = /^Marchen-(.+)-arm64\.zip$/.exec(name)
+      // 基线可能是改名前的历史发行：Marchen-<版本>-arm64.zip 或 Marchen-<版本>-macos-arm64.zip。
+      const match = /^Marchen-(.+?)-(?:macos-)?arm64\.zip$/.exec(name)
       let older = false
       try {
         older =

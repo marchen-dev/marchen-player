@@ -28,15 +28,16 @@ win:
     - ext: [mp4, m4v, mov, qt, mkv, mk3d, webm, ts, mts, m2ts, m2t]
       name: Video Files
       role: Editor
+# 安装包文件名带系统名（macos / windows / linux），与 update-policy.ts 的 *ArtifactNames 保持一致。
 nsis:
-  artifactName: ${productName}-${version}-setup.${ext}
+  artifactName: ${productName}-${version}-windows-${arch}-setup.${ext}
   shortcutName: ${productName}
   uninstallDisplayName: ${productName}
   createDesktopShortcut: always
   allowToChangeInstallationDirectory: true
   oneClick: false
 mac:
-  artifactName: ${productName}-${version}-${arch}.${ext}
+  artifactName: ${productName}-${version}-macos-${arch}.${ext}
   identity: '-'
   minimumSystemVersion: 13.0.0
   entitlementsInherit: build/entitlements.mac.plist
@@ -59,7 +60,7 @@ mac:
       name: Video Files
       role: Editor
 dmg:
-  artifactName: ${productName}-${version}-${arch}.${ext}
+  artifactName: ${productName}-${version}-macos-${arch}.${ext}
 # Linux x64 为正式支持，arm64 为实验性支持；两种架构都必须在对应原生 runner 上构建，
 # 因为 node-datachannel 在安装期按宿主架构下载预编译二进制。
 linux:
@@ -86,7 +87,7 @@ linux:
     - video/mp2t
     - application/x-bittorrent
   # electron-builder 按格式改写 ${arch}：AppImage 为 x86_64 / arm64，deb 为 amd64 / arm64。
-  artifactName: ${productName}-${version}-${arch}.${ext}
+  artifactName: ${productName}-${version}-linux-${arch}.${ext}
   # 不在这里写 arch：配置中的 arch 会与命令行 --x64 / --arm64 合并，导致在一个架构的 runner 上
   # 顺带打出另一架构的包（原生模块却是宿主架构）。架构只由命令行决定，未指定时取宿主架构。
   target:

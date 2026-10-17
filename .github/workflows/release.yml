@@ -115,10 +115,11 @@ jobs:
           MARCHEN_DELTA_BASE_DIR: .tmp/delta-base
         run: |
           mkdir -p .tmp/mac-archive .tmp/delta-base
-          ditto -x -k "dist/Marchen-$(node -p 'require("./package.json").version')-arm64.zip" .tmp/mac-archive
+          MAC_ZIP=$(node --input-type=module -e 'import {macArtifactNames} from "./packages/shared/src/update-policy.ts"; import {readFileSync} from "node:fs"; console.log(macArtifactNames(JSON.parse(readFileSync("package.json")).version).zip)')
+          ditto -x -k "dist/$MAC_ZIP" .tmp/mac-archive
           node scripts/desktop/verify-mac.mjs '.tmp/mac-archive/Marchen.app'
           mkdir -p .tmp/mac-dmg
-          hdiutil attach "dist/Marchen-$(node -p 'require("./package.json").version')-arm64.dmg" -readonly -nobrowse -mountpoint "$PWD/.tmp/mac-dmg"
+          hdiutil attach "dist/${MAC_ZIP%.zip}.dmg" -readonly -nobrowse -mountpoint "$PWD/.tmp/mac-dmg"
           trap 'hdiutil detach "$PWD/.tmp/mac-dmg"' EXIT
           node scripts/desktop/verify-mac.mjs '.tmp/mac-dmg/Marchen.app'
           hdiutil detach "$PWD/.tmp/mac-dmg"
