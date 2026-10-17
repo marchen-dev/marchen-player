@@ -13,6 +13,7 @@ export const startTelemetrySession = async (options: {
     runtime: 'renderer',
     platform: identity.platform,
     arch: identity.arch,
+    packageType: identity.packageType,
     appSessionId: identity.appSessionId,
   })
   const startedAt = Date.now()

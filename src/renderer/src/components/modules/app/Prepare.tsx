@@ -1,7 +1,7 @@
 import { useAppSettings } from '@renderer/atoms/settings/app'
 import { useToast } from '@renderer/components/ui/toast'
 import { appLog } from '@renderer/lib/log'
-import { isWeb, isWindows } from '@renderer/lib/utils'
+import { isMac } from '@renderer/lib/utils'
 import { useEffect } from 'react'
 
 export const Prepare = () => {
@@ -27,9 +27,10 @@ export const Prepare = () => {
     setAppSettings((old) => ({ ...old, firstOpen: false }))
   }, [])
 
-  // Windows 的拖拽与按钮由 AppHeader / PlayerWindowChrome 承担，
-  // 不叠加透明拖拽层，避免原生窗口命中测试吞掉按钮点击。
-  if (isWeb || isWindows) return null
+  // 透明拖拽层只服务 macOS hiddenInset 标题栏。Windows 的拖拽与按钮由 AppHeader /
+  // PlayerWindowChrome 承担；Linux 使用系统原生标题栏。两者叠加拖拽层都会让原生
+  // 窗口命中测试吞掉顶部按钮点击。
+  if (!isMac) return null
 
   return <div className="drag-region absolute inset-x-0 top-0 h-12 shrink-0" aria-hidden />
 }

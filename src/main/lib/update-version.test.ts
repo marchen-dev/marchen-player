@@ -1,6 +1,7 @@
 import {
   canUpdateTo,
   compareReleaseVersions,
+  linuxMetadataName,
   parseReleaseVersion,
   releaseVersionFromSparkle,
   sparkleBuildVersion,
@@ -63,6 +64,16 @@ it('渠道从当前安装版本推导，晋升后收敛', () => {
   expect(updateFeedURL('windows', parseReleaseVersion('1.0.0').channel)).toMatch(
     /\/windows\/stable\/$/,
   )
+  expect(updateFeedURL('linux', parseReleaseVersion('1.0.0-alpha.1').channel)).toMatch(
+    /\/linux\/alpha\/$/,
+  )
+})
+
+it('linux 元数据文件名与 electron-updater 的渠道与架构规则一致', () => {
+  expect(linuxMetadataName('stable', 'x64')).toBe('latest-linux.yml')
+  expect(linuxMetadataName('stable', 'arm64')).toBe('latest-linux-arm64.yml')
+  expect(linuxMetadataName('beta', 'x64')).toBe('beta-linux.yml')
+  expect(linuxMetadataName('alpha', 'arm64')).toBe('alpha-linux-arm64.yml')
 })
 
 it('mac 内部构建版本可逆映射并保持公开 SemVer', () => {

@@ -1,6 +1,7 @@
 import * as Sentry from '@sentry/electron/main'
 
 import { isTelemetryEnabled, SENTRY_DSN } from '../lib/env'
+import { resolvePackageType } from '../lib/package-type'
 import { getOrCreateTelemetryInstallId, telemetryAppSessionId } from './identity'
 import { registerPreloadErrorBridge } from './preload-errors'
 
@@ -11,6 +12,7 @@ const buildTags = {
   commit: __MARCHEN_COMMIT__,
   platform: process.platform,
   arch: process.arch,
+  package_type: resolvePackageType(),
   app_session_id: telemetryAppSessionId,
 }
 

@@ -5,6 +5,7 @@
   "private": true,
   "packageManager": "pnpm@11.24.0",
   "description": "Marchen player",
+  "desktopName": "marchen.desktop",
   "author": "Suemor",
   "license": "AGPL-3.0",
   "homepage": "https://github.com/marchen-dev/marchen-player",
@@ -19,6 +20,7 @@
   },
   "scripts": {
     "build": "pnpm media:prepare && pnpm typecheck && electron-vite build",
+    "build:linux": "pnpm build && electron-builder --linux --publish never",
     "build:mac": "pnpm build && pnpm sparkle:build && electron-builder --mac --arm64 --publish never",
     "build:unpack": "pnpm build && electron-builder --dir",
     "build:web": "pnpm media:prepare && rm -rf out/web && vite build",

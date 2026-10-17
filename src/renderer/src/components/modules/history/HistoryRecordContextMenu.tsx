@@ -8,7 +8,7 @@ import {
   ContextMenuSeparator,
   ContextMenuTrigger,
 } from '@renderer/components/ui/menu'
-import { isWindows } from '@renderer/lib/utils'
+import { getRevealInFileManagerLabel } from '@renderer/lib/utils'
 
 interface HistoryRecordContextMenuProps {
   record: HistoryRecordView
@@ -19,7 +19,7 @@ interface HistoryRecordContextMenuProps {
 }
 
 // 播放记录仅 Electron 可见，平台只需区分 Windows 与 macOS
-const revealLabel = isWindows ? '在资源管理器中显示' : '在 Finder 中显示'
+const revealLabel = getRevealInFileManagerLabel()
 
 /** 播放记录卡片的右键菜单 */
 export const HistoryRecordContextMenu: FC<HistoryRecordContextMenuProps> = ({

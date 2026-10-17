@@ -4,6 +4,9 @@ import { parse, stringify } from 'yaml'
 import {
   acceptsChannel,
   compareReleaseVersions,
+  LINUX_UPDATE_ARCHES,
+  linuxArtifactNames,
+  linuxMetadataName,
   parseReleaseVersion,
   RELEASE_REPOSITORY,
   releaseVersionFromSparkle,
@@ -124,7 +127,32 @@ export async function normalizeRelease(release, readAsset) {
     )
       throw new Error('Mac 差分基线错误')
   }
-  return { version, windows, mac: new Builder().buildObject(mac) }
+  // Linux 是可选平台：恢复支持前的版本没有 Linux 元数据，此时该架构的源留空；
+  // 一旦存在就必须完整、指向本版本的 AppImage，避免发布错误的更新源。
+  const linux = {}
+  for (const arch of LINUX_UPDATE_ARCHES) {
+    const name = linuxMetadataName(channel, arch)
+    if (!assets.has(name)) continue
+    const metadata = parse(await readAsset(requireAsset(name)))
+    if (metadata?.version !== version || !metadata.files?.length)
+      throw new Error(`Linux ${arch} 元数据版本或文件为空`)
+    const { appImage } = linuxArtifactNames(version, arch)
+    let found = false
+    metadata.files = metadata.files.map((file) => {
+      const asset = resolveAsset(file.url)
+      if (
+        Buffer.from(file.sha512 ?? '', 'base64').length !== 64 ||
+        (file.size !== undefined && file.size !== asset.size)
+      )
+        throw new Error(`Linux ${arch} 长度或校验值格式错误`)
+      if (asset.name === appImage) found = true
+      return { ...file, size: asset.size, url: asset.browser_download_url }
+    })
+    if (!found) throw new Error(`缺少 Linux ${arch} AppImage`)
+    if (metadata.path) metadata.path = resolveAsset(metadata.path).browser_download_url
+    linux[arch] = metadata
+  }
+  return { version, windows, mac: new Builder().buildObject(mac), linux }
 }
 
 export async function buildChannelFeeds(releases, readAsset) {
@@ -153,6 +181,8 @@ export async function buildChannelFeeds(releases, readAsset) {
     index[channel] = data.version
     files[`mac/${channel}.xml`] = data.mac
     files[`windows/${channel}/${windowsMetadataName(channel)}`] = stringify(data.windows)
+    for (const [arch, metadata] of Object.entries(data.linux))
+      files[`linux/${channel}/${linuxMetadataName(channel, arch)}`] = stringify(metadata)
   }
   files['channels.json'] = `${JSON.stringify(index, null, 2)}\n`
   return files

@@ -49,6 +49,21 @@ export const isMac = getOS() === 'macOS' && window.electron
 export const isWindows = getOS() === 'Windows' && window.electron
 export const isWeb = !window.electron
 
+/** 「在系统文件管理器中定位文件」的平台文案，历史记录与影视库右键菜单共用 */
+export const getRevealInFileManagerLabel = (os: OS = getOS()) => {
+  switch (os) {
+    case 'macOS': {
+      return '在 Finder 中显示'
+    }
+    case 'Windows': {
+      return '在资源管理器中显示'
+    }
+    default: {
+      return '在文件管理器中显示'
+    }
+  }
+}
+
 export { isVideoFile as checkIsVideoType } from '@marchen/shared/media'
 
 export const isChromiumBased = (): boolean => {

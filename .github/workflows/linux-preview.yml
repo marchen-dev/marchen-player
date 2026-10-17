@@ -1,0 +1,80 @@
+name: Linux preview packages
+
+# 不创建 Release、不上传 Source Map、不写渠道源；只产出可下载的 Linux 安装包供手工验收。
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - feat/linux-*
+
+permissions:
+  contents: read
+
+jobs:
+  linux:
+    name: Linux ${{ matrix.arch }}
+    # 两个架构都在原生 runner 上安装依赖与打包：node-datachannel 按宿主架构下载二进制。
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-24.04
+            arch: x64
+          - os: ubuntu-24.04-arm
+            arch: arm64
+    env:
+      VITE_API_CLOUDFLARE_URL: ${{ secrets.VITE_API_CLOUDFLARE_URL }}
+      VITE_API_EDGEONE_URL: ${{ secrets.VITE_API_EDGEONE_URL }}
+      MARCHEN_COMMIT: ${{ github.sha }}
+      MARCHEN_DIST: linux-${{ matrix.arch }}
+      MARCHEN_ENVIRONMENT: preview
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+      - run: git lfs checkout
+      - uses: pnpm/action-setup@v4.1.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24.x
+          cache: pnpm
+      - name: Install Linux packaging and smoke test tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends xvfb dpkg-dev libasound2t64 libgbm1 libnss3 libgtk-3-0t64
+      - run: pnpm install --frozen-lockfile
+      - name: Build and package
+        run: |
+          pnpm build
+          pnpm exec electron-builder --linux --${{ matrix.arch }} --publish never
+      - name: Verify final Linux packages
+        run: node scripts/desktop/verify-linux.mjs dist ${{ matrix.arch }}
+      # CI 没有 SUID / AppArmor 配置，仅此处关闭沙箱。
+      - name: Smoke test packaged Linux app
+        shell: bash
+        run: |
+          APPIMAGE_NAME=$(node --input-type=module -e 'import {linuxArtifactNames} from "./packages/shared/src/update-policy.ts"; import {readFileSync} from "node:fs"; console.log(linuxArtifactNames(JSON.parse(readFileSync("package.json")).version, process.argv[1]).appImage)' "${{ matrix.arch }}")
+          mkdir -p .tmp/smoke
+          cd .tmp/smoke
+          "$GITHUB_WORKSPACE/dist/$APPIMAGE_NAME" --appimage-extract > /dev/null
+          MARCHEN_SMOKE_MARKER="$PWD/marker.json" xvfb-run -a timeout 120 ./squashfs-root/marchen --no-sandbox
+          cat marker.json
+          node -e 'if (!JSON.parse(require("fs").readFileSync("marker.json")).ok) process.exit(1)'
+      - name: Upload smoke test logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: smoke-logs-linux-${{ matrix.arch }}
+          path: |
+            ~/.config/Marchen/logs
+            .tmp/smoke/marker.json
+          if-no-files-found: ignore
+      - uses: actions/upload-artifact@v4
+        with:
+          name: marchen-linux-${{ matrix.arch }}
+          path: |
+            dist/*.AppImage
+            dist/*.deb
+          retention-days: 14
+          if-no-files-found: error

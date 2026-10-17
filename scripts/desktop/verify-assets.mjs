@@ -6,6 +6,9 @@ import { parseStringPromise } from 'xml2js'
 import { parse } from 'yaml'
 
 import {
+  LINUX_UPDATE_ARCHES,
+  linuxArtifactNames,
+  linuxMetadataName,
   parseReleaseVersion,
   sparkleBuildVersion,
   windowsMetadataName,
@@ -23,8 +26,24 @@ export async function verifyAssets(root, version) {
   ]) {
     if (!files.includes(name)) throw new Error(`缺少发行产物 ${name}`)
   }
-  if (files.some((name) => /AppImage|latest-mac\.yml|linux|arm64-mac\.zip/.test(name)))
+  // Linux 恢复为发行平台；Intel Mac 与旧 electron-updater Mac 元数据仍然停止支持。
+  if (files.some((name) => /latest-mac\.yml|-mac\.zip$|x64\.(?:dmg|zip)$/.test(name)))
     throw new Error('包含已停止支持的平台元数据或产物')
+  for (const arch of LINUX_UPDATE_ARCHES) {
+    const { appImage, deb } = linuxArtifactNames(version, arch)
+    const metadataName = linuxMetadataName(channel, arch)
+    for (const name of [appImage, deb, metadataName])
+      if (!files.includes(name)) throw new Error(`缺少发行产物 ${name}`)
+    const metadata = parse(await readFile(join(root, metadataName), 'utf8'))
+    const file = metadata?.files?.find((item) => item.url === appImage)
+    if (metadata?.version !== version || !file) throw new Error(`Linux ${arch} 更新元数据无效`)
+    if (
+      createHash('sha512')
+        .update(await readFile(join(root, appImage)))
+        .digest('base64') !== file.sha512
+    )
+      throw new Error(`Linux ${arch} 更新校验值不符`)
+  }
   const windows = parse(await readFile(join(root, windowsMetadata), 'utf8'))
   if (windows.version !== version || !windows.files?.length)
     throw new Error('Windows 更新版本或元数据无效')
@@ -83,5 +102,5 @@ if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1]
     resolve(process.argv[2] || 'dist'),
     JSON.parse(await readFile('package.json', 'utf8')).version,
   )
-  console.log('发行版本、架构、元数据引用和 Windows 校验值通过')
+  console.log('发行版本、架构、元数据引用和 Windows / Linux 校验值通过')
 }

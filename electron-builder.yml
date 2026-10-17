@@ -60,6 +60,45 @@ mac:
       role: Editor
 dmg:
   artifactName: ${productName}-${version}-${arch}.${ext}
+# Linux x64 为正式支持，arm64 为实验性支持；两种架构都必须在对应原生 runner 上构建，
+# 因为 node-datachannel 在安装期按宿主架构下载预编译二进制。
+linux:
+  # 小写可执行名决定 /usr/bin/marchen、AppArmor profile 名与图标名。
+  executableName: marchen
+  # 未指定时会回退到 Electron 默认图标；由 1024px 源图生成各尺寸 hicolor 图标。
+  icon: build/icon.png
+  # 与 package.json desktopName 同步 .desktop 文件名，使 Wayland app_id / X11 WM_CLASS
+  # 能关联到启动项和图标。
+  syncDesktopName: true
+  category: AudioVideo
+  synopsis: 本地动漫视频弹幕播放器
+  maintainer: Suemor <suemor233@outlook.com>
+  # 只声明系统已有的标准 MIME 类型；不用 fileAssociations，避免 electron-builder 生成
+  # 覆盖系统定义的 MIME XML（会把视频图标改成文档图标）。
+  mimeTypes:
+    - video/mp4
+    - video/x-m4v
+    - video/quicktime
+    - video/x-matroska
+    - video/x-matroska-3d
+    - video/webm
+    - video/mp2t
+    - application/x-bittorrent
+  # electron-builder 按格式改写 ${arch}：AppImage 为 x86_64 / arm64，deb 为 amd64 / arm64。
+  artifactName: ${productName}-${version}-${arch}.${ext}
+  # 不在这里写 arch：配置中的 arch 会与命令行 --x64 / --arm64 合并，导致在一个架构的 runner 上
+  # 顺带打出另一架构的包（原生模块却是宿主架构）。架构只由命令行决定，未指定时取宿主架构。
+  target:
+    - AppImage
+    - deb
+appImage:
+  # 上游默认在 .desktop 的 Exec 写死 --no-sandbox，集成到菜单后始终无沙箱；清空后由 AppRun
+  # 探测 user namespace，只在系统不允许时（如 Ubuntu 24.04 的 AppArmor 限制）才降级。
+  executableArgs: []
+# deb 使用 electron-builder 默认安装脚本：按内核 user namespace 能力设置 chrome-sandbox，
+# 并在 Ubuntu 24+ 安装 AppArmor profile，无需关闭沙箱。
+deb:
+  packageName: marchen
 npmRebuild: false
 publish:
   provider: github

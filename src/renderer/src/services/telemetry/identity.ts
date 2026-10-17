@@ -25,6 +25,7 @@ export const getRendererTelemetryIdentity = async (): Promise<{
   appSessionId: string
   platform: string
   arch: string
+  packageType: string
 }> => {
   // 避免测试和 Web 构建在模块求值阶段加载会读取 window 的 Electron IPC 客户端。
   if (typeof window !== 'undefined' && window.electron) {
@@ -36,5 +37,6 @@ export const getRendererTelemetryIdentity = async (): Promise<{
     appSessionId: nanoid(),
     platform: navigator.platform || 'web',
     arch: 'browser',
+    packageType: 'web',
   }
 }

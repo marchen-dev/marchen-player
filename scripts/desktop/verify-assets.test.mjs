@@ -21,6 +21,17 @@ beforeEach(async () => {
     `version: 1.2.3\nfiles:\n  - url: Marchen-1.2.3.exe\n    sha512: ${createHash('sha512').update('abc').digest('base64')}\n`,
   )
   await writeFile(join(root, 'appcast-macos-arm64.xml'), feed)
+  for (const [appImage, deb, metadata] of [
+    ['Marchen-1.2.3-x86_64.AppImage', 'Marchen-1.2.3-amd64.deb', 'latest-linux.yml'],
+    ['Marchen-1.2.3-arm64.AppImage', 'Marchen-1.2.3-arm64.deb', 'latest-linux-arm64.yml'],
+  ]) {
+    await writeFile(join(root, appImage), 'abc')
+    await writeFile(join(root, deb), 'abc')
+    await writeFile(
+      join(root, metadata),
+      `version: 1.2.3\nfiles:\n  - url: ${appImage}\n    sha512: ${createHash('sha512').update('abc').digest('base64')}\n`,
+    )
+  }
 })
 afterEach(async () => {
   await rm(root, { recursive: true, force: true })
@@ -46,4 +57,19 @@ it('拒绝损坏的 Windows 安装包', async () => {
 it('拒绝旧 Mac 元数据，避免 Intel 路由到 ARM64', async () => {
   await writeFile(join(root, 'latest-mac.yml'), 'old')
   await expect(verifyAssets(root, '1.2.3')).rejects.toThrow('停止支持')
+})
+it('拒绝 Intel Mac 产物', async () => {
+  await writeFile(join(root, 'Marchen-1.2.3-x64.dmg'), 'abc')
+  await expect(verifyAssets(root, '1.2.3')).rejects.toThrow('停止支持')
+})
+it.each(['Marchen-1.2.3-arm64.deb', 'latest-linux-arm64.yml', 'Marchen-1.2.3-x86_64.AppImage'])(
+  '缺少 Linux 产物 %s 时拒绝发行',
+  async (name) => {
+    await rm(join(root, name))
+    await expect(verifyAssets(root, '1.2.3')).rejects.toThrow(name)
+  },
+)
+it('拒绝与元数据不符的 AppImage', async () => {
+  await writeFile(join(root, 'Marchen-1.2.3-arm64.AppImage'), 'changed')
+  await expect(verifyAssets(root, '1.2.3')).rejects.toThrow('Linux arm64 更新校验值不符')
 })

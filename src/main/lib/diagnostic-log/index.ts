@@ -23,7 +23,7 @@ class StructuredLog {
 }
 
 /**
- * 日志目录：正式版用系统惯用位置（macOS ~/Library/Logs/Marchen，Windows %APPDATA%\Marchen\logs）；
+ * 日志目录：正式版用系统惯用位置（macOS ~/Library/Logs/Marchen，Windows %APPDATA%\Marchen\logs，Linux ~/.config/Marchen/logs）；
  * 开发版放进已隔离的 userData（appData 为 Marchen (dev)），避免与正式版混写。
  */
 export const logDirectory = () =>

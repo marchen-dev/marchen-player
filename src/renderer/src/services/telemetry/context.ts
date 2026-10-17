@@ -25,6 +25,8 @@ export const createTelemetryContextStore = (options: {
   runtime: TelemetryRuntime
   platform: string
   arch: string
+  /** 桌面安装形态（appimage / deb / nsis / mac-app 等），Web 为 web */
+  packageType?: string
   build?: TelemetryBuildInfo
   appSessionId?: string
 }) => {
@@ -52,6 +54,7 @@ export const createTelemetryContextStore = (options: {
         runtime: options.runtime,
         platform: options.platform,
         arch: options.arch,
+        package_type: options.packageType,
         install_id: installId,
         app_session_id: appSessionId,
         playback_session_id: playbackSessionId,

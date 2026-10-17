@@ -2,7 +2,7 @@ import { registerIpc } from '@marchen/electron-ipc/main'
 import { app } from 'electron'
 
 import { router } from '../ipc'
-import { isDev, isWindows } from '../lib/env'
+import { isDev, isMacOS } from '../lib/env'
 import { fileOpenRequests } from '../lib/file-open-requests'
 import { getMainWindow } from '../windows/main'
 import { registerLog } from './log'
@@ -16,8 +16,10 @@ export const initializeApp = () => {
   registerIpc(router)
   registerAppMenu()
   registerLog()
-  // windows 当主窗口已经创建情况下, 通过视频文件快捷打开
-  if (isWindows) {
+  // Windows / Linux 在主窗口已存在时再次打开文件，系统会启动第二个进程并经 argv 传入路径；
+  // 第二个进程拿不到单实例锁会退出，必须由已有实例接收 argv，否则文件会丢失。
+  // macOS 通过 open-file 事件传递，不走这里。
+  if (!isMacOS) {
     app.on('second-instance', (_event, commandLine) => {
       const mainWindow = getMainWindow()
       if (mainWindow) {
