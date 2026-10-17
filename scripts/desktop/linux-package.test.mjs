@@ -6,6 +6,7 @@ import {
   isLoadableNativeModule,
   parseDesktopEntry,
   verifyDesktopEntry,
+  verifyHicolorIcons,
   verifyLinuxMetadata,
 } from './linux-package.mjs'
 
@@ -113,4 +114,15 @@ it('只校验运行时会加载的原生模块', () => {
     false,
   )
   expect(isLoadableNativeModule(`${base}/bufferutil/prebuilds/linux-x64/b.node`, 'x64')).toBe(true)
+})
+
+it('hicolor 图标只有 1024px 时判为缺失，标准尺寸齐全时通过', () => {
+  const icon = (size) => `/tmp/deb/usr/share/icons/hicolor/${size}x${size}/apps/marchen.png`
+  expect(() => verifyHicolorIcons([icon(1024)], 'marchen')).toThrow('48x48、128x128、256x256、512x512')
+  expect(() =>
+    verifyHicolorIcons([16, 48, 128, 256, 512].map(icon), 'marchen'),
+  ).not.toThrow()
+  expect(() =>
+    verifyHicolorIcons([48, 128, 256].map(icon).concat(icon(512).replace('marchen', 'other')), 'marchen'),
+  ).toThrow('512x512')
 })

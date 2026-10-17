@@ -53,6 +53,14 @@
 
 结论：x64 runner 软件渲染下首屏约 5.8 秒，超过最初的 5 秒固定等待；冒烟改为最多轮询 30 秒并在失败时带回控制台错误与启动阶段标记。`ubuntu-24.04` 与 `ubuntu-24.04-arm` 上的 apt 依赖、原生模块安装、electron-builder（含 arm64 fpm）、`verify-linux.mjs` 与 xvfb 冒烟均已在真实 CI 执行通过。`release.yml` 的 Linux job 使用相同步骤，尚未经标签触发实跑。
 
+## 桌面手工验收（进行中）
+
+用户在 Ubuntu 虚拟机中安装预览构建（运行 39019151731）的 deb：功能正常，但应用网格中图标显示为默认齿轮。
+
+- 原因：`linux.icon` 指向单张 1024px `build/icon.png`，deb / AppImage 只包含 `hicolor/1024x1024/apps/marchen.png`；hicolor 主题索引标准尺寸最大到 512x512，GNOME 找不到 `Icon=marchen`。
+- 修复：新增 `build/icons/{16…512}x{16…512}.png` 图标集（由 `build/icon.png` 缩放生成），`linux.icon` 改为该目录；`verify-linux.mjs` 新增 `verifyHicolorIcons`，要求 AppImage 与 deb 都包含 48 / 128 / 256 / 512 尺寸。对旧包运行该检查会报出缺失，确认能拦住同类问题。
+- 待复验：新的预览构建安装后图标是否正常显示。
+
 ## 未完成 / 未验证
 
 - `release.yml` 的 Linux job 尚未经 `v*` 标签实跑（步骤与预览构建一致）。

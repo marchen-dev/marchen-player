@@ -9,6 +9,12 @@ export const REQUIRED_LINUX_MIME_TYPES = [
   'application/x-bittorrent',
 ]
 
+/**
+ * 桌面环境只在 hicolor 主题索引列出的尺寸目录中查找图标，标准尺寸最大到 512x512；
+ * 只有 1024x1024 时 GNOME 应用网格会退回默认齿轮图标。
+ */
+export const REQUIRED_HICOLOR_SIZES = [48, 128, 256, 512]
+
 const ELF_MACHINE = { 0x3E: 'x64', 0xB7: 'arm64' }
 
 /** 读取 ELF 头中的目标架构；不是 64 位小端 ELF 时返回 null */
@@ -73,6 +79,17 @@ export function verifyDesktopEntry(entry, { executable, format }) {
   const mimeTypes = new Set((entry.MimeType ?? '').split(';').filter(Boolean))
   for (const type of REQUIRED_LINUX_MIME_TYPES)
     if (!mimeTypes.has(type)) throw new Error(`.desktop 缺少 MIME 类型 ${type}`)
+}
+
+/** 校验包内 hicolor 图标覆盖菜单、任务栏常用的标准尺寸 */
+export function verifyHicolorIcons(paths, executable) {
+  const pattern = new RegExp(`/hicolor/(\\d+)x\\1/apps/${executable}\\.png$`)
+  const sizes = new Set(
+    paths.map((path) => pattern.exec(path.replaceAll('\\', '/'))?.[1]).filter(Boolean).map(Number),
+  )
+  const missing = REQUIRED_HICOLOR_SIZES.filter((size) => !sizes.has(size))
+  if (missing.length > 0)
+    throw new Error(`缺少 hicolor 图标尺寸 ${missing.map((size) => `${size}x${size}`).join('、')}`)
 }
 
 /** 更新元数据必须指向本版本、本架构的 AppImage，且校验值与实际文件一致 */

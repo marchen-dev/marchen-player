@@ -65,8 +65,9 @@ dmg:
 linux:
   # 小写可执行名决定 /usr/bin/marchen、AppArmor profile 名与图标名。
   executableName: marchen
-  # 未指定时会回退到 Electron 默认图标；由 1024px 源图生成各尺寸 hicolor 图标。
-  icon: build/icon.png
+  # 未指定时会回退到 Electron 默认图标。必须是按尺寸命名的图标集：hicolor 主题索引最大只到
+  # 512x512，只给 1024px 单图时 GNOME 找不到图标，菜单显示默认齿轮。各尺寸由 build/icon.png 缩放生成。
+  icon: build/icons
   # 与 package.json desktopName 同步 .desktop 文件名，使 Wayland app_id / X11 WM_CLASS
   # 能关联到启动项和图标。
   syncDesktopName: true

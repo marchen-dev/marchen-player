@@ -17,6 +17,7 @@ import {
   isLoadableNativeModule,
   parseDesktopEntry,
   verifyDesktopEntry,
+  verifyHicolorIcons,
   verifyLinuxMetadata,
 } from './linux-package.mjs'
 import { verifyPackageResources } from './package-resources.mjs'
@@ -85,6 +86,7 @@ try {
     parseDesktopEntry(await readFile(join(squashfs, `${EXECUTABLE}.desktop`), 'utf8')),
     { executable: EXECUTABLE, format: 'appimage' },
   )
+  verifyHicolorIcons(await walk(join(squashfs, 'usr/share/icons')), EXECUTABLE)
 
   // deb 控制字段决定 apt 能否安装到正确架构，并与应用内版本对应。
   const debPath = join(root, names.deb)
@@ -112,8 +114,9 @@ try {
     ),
     { executable: EXECUTABLE, format: 'deb' },
   )
+  verifyHicolorIcons(await walk(join(debDir, 'usr/share/icons')), EXECUTABLE)
   await readFile(join(debDir, 'opt/Marchen/resources/apparmor-profile'))
-  console.log(`最终 Linux ${arch} AppImage / deb 的架构、元数据、桌面入口与媒体资源检查通过`)
+  console.log(`最终 Linux ${arch} AppImage / deb 的架构、元数据、桌面入口、图标与媒体资源检查通过`)
 } finally {
   await rm(temp, { recursive: true, force: true })
 }
