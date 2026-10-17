@@ -60,8 +60,8 @@
 ## 9. 验收与证据
 
 - [x] 9.1 `pnpm typecheck`、`pnpm lint`、`pnpm test:main`、`pnpm test:player-runtime` 全部通过
-- [ ] 9.2 arm64：本机虚拟机 Ubuntu 24.04（Wayland 与 X11 会话）分别安装 deb 与 AppImage，验证启动、H.264 / HEVC MKV 播放、ASS 字幕、弹幕、BT、拖放、文件关联、二次打开、顶部按钮点击、"在文件管理器中显示"
-- [ ] 9.3 x64：CI 冒烟结果 + 云虚拟机或用户 Alpha 的同组手工验收
-- [ ] 9.4 更新链路：发布两个连续 Alpha，验证 AppImage 应用内升级（含播放中保存进度）与 deb 的新版本提示
+- [x] 9.2 arm64：本机虚拟机 Ubuntu 24.04（Wayland 与 X11 会话）分别安装 deb 与 AppImage，验证启动、H.264 / HEVC MKV 播放、ASS 字幕、弹幕、BT、拖放、文件关联、二次打开、顶部按钮点击、"在文件管理器中显示"
+- [x] 9.3 x64：CI 冒烟结果 + 云虚拟机或用户 Alpha 的同组手工验收
+- [x] 9.4 更新链路：发布两个连续 Alpha，验证 AppImage 应用内升级（含播放中保存进度）与 deb 的新版本提示
 - [x] 9.5 确认 mac / win 安装包中 uTP 的现状，与 Linux 结论一并记录
-- [ ] 9.6 写入 `evidence/`，明确标注"GPU 硬件解码未在实体硬件上验证"与"x64 播放性能仅在无 GPU 虚拟机上观察"
+- [x] 9.6 写入 `evidence/`，明确标注"GPU 硬件解码未在实体硬件上验证"与"x64 播放性能仅在无 GPU 虚拟机上观察"

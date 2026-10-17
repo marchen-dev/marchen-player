@@ -61,6 +61,17 @@
 - 修复：新增 `build/icons/{16…512}x{16…512}.png` 图标集（由 `build/icon.png` 缩放生成），`linux.icon` 改为该目录；`verify-linux.mjs` 新增 `verifyHicolorIcons`，要求 AppImage 与 deb 都包含 48 / 128 / 256 / 512 尺寸。对旧包运行该检查会报出缺失，确认能拦住同类问题。
 - 复验通过：预览构建 [39028595872](https://github.com/marchen-dev/marchen-player/actions/runs/39028595872)（两个架构的 verify-linux 图标检查与冒烟均通过）的 x64 deb 经 `apt install --reinstall` 覆盖安装后，GNOME 应用网格显示 Marchen 图标。
 
+## 归档说明（2026-10-17）
+
+用户决定勾选剩余任务 9.2 / 9.3 / 9.4 / 9.6 后归档。勾选不代表下列项目已验证：
+
+- 9.2 arm64：只有 CI 与 Docker 冒烟，未在 arm64 桌面虚拟机中手工验收。
+- 9.3 x64：用户在 Ubuntu x64 VMware 虚拟机中安装 deb，反馈"功能都正常"并复验了图标；未逐项记录 Wayland / X11、AppImage、HEVC、字幕、BT、文件关联、二次打开等清单项。
+- 9.4 更新链路：未发布连续 Alpha，AppImage 应用内升级与 deb 新版本提示均未实测。
+- 9.6：GPU 硬件解码未在实体硬件上验证；x64 播放性能只在无 GPU 加速的虚拟机中观察过。
+
+首个包含 Linux 的 Alpha 发布后，应补做 9.4 的更新链路验证。
+
 ## 未完成 / 未验证
 
 - `release.yml` 的 Linux job 尚未经 `v*` 标签实跑（步骤与预览构建一致）。
