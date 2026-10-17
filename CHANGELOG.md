@@ -1,6 +1,13 @@
 # CHANGELOG
 
 
+## [1.0.7](https://github.com/marchen-dev/marchen-player/compare/v1.0.6...v1.0.7) (2026-10-17)
+
+
+### Features
+
+* **desktop:** 新增 Linux x64 / arm64 桌面发行 ([#171](https://github.com/marchen-dev/marchen-player/issues/171)) ([8d0d06f](https://github.com/marchen-dev/marchen-player/commit/8d0d06f116ac4c0b207bea4ebc9743bd2d783c50))
+
 ## [1.0.6](https://github.com/marchen-dev/marchen-player/compare/v1.0.5...v1.0.6) (2026-10-11)
 
 
