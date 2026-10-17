@@ -59,7 +59,7 @@
 
 - 原因：`linux.icon` 指向单张 1024px `build/icon.png`，deb / AppImage 只包含 `hicolor/1024x1024/apps/marchen.png`；hicolor 主题索引标准尺寸最大到 512x512，GNOME 找不到 `Icon=marchen`。
 - 修复：新增 `build/icons/{16…512}x{16…512}.png` 图标集（由 `build/icon.png` 缩放生成），`linux.icon` 改为该目录；`verify-linux.mjs` 新增 `verifyHicolorIcons`，要求 AppImage 与 deb 都包含 48 / 128 / 256 / 512 尺寸。对旧包运行该检查会报出缺失，确认能拦住同类问题。
-- 待复验：新的预览构建安装后图标是否正常显示。
+- 复验通过：预览构建 [39028595872](https://github.com/marchen-dev/marchen-player/actions/runs/39028595872)（两个架构的 verify-linux 图标检查与冒烟均通过）的 x64 deb 经 `apt install --reinstall` 覆盖安装后，GNOME 应用网格显示 Marchen 图标。
 
 ## 未完成 / 未验证
 
