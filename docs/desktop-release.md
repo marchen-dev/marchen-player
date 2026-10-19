@@ -1,8 +1,8 @@
 # 桌面发行与更新
 
-目标为 macOS 13+ Apple Silicon（ARM64）、Windows x64、Linux x64（正式支持）与 Linux arm64（实验性支持）。Intel Mac 不再生成新包，历史发行保留。
+目标为 macOS 13+ Apple Silicon（ARM64）、Windows x64、Linux x64 与 Linux arm64。Intel Mac 不再生成新包，历史发行保留。
 
-Linux 每个架构同时发行 AppImage 与 deb。AppImage 使用 `electron-updater` 应用内自动更新；deb 由包管理器管理文件，应用内只检查新版本并引导打开下载页。arm64 的"实验性"指不承诺 16K 页内核（如 Asahi Linux）与树莓派等低功耗设备上的播放性能，崩溃率与兼容内核回退率稳定后再评估转为正式支持。用户侧安装说明见 [Linux 安装说明](./linux-install.md)。
+Linux 每个架构同时发行 AppImage 与 deb。AppImage 使用 `electron-updater` 应用内自动更新；deb 由包管理器管理文件，应用内只检查新版本并引导打开下载页。用户侧安装说明见 [Linux 安装说明](./linux-install.md)。
 
 Mac 使用工作区 @marchen/sparkle-updater 与官方 Sparkle 中文原生窗口。应用 ad-hoc 签名不等于 Apple Developer ID 或公证；第一次从互联网下载后可能被 Gatekeeper 拦截，按 macOS“隐私与安全性 → 仍要打开”的流程处理。
 
@@ -51,7 +51,7 @@ Windows 差分下载优先使用上次更新缓存的 blockmap，没有缓存（
 3. 提交经验收的代码和本次版本说明，再推送对应 `v<version>` 标签。默认分支必须先包含 `.github/workflows/update-channels.yml`，才能接收后续 published 事件。
 4. release.yml 生成 ARM64 DMG/ZIP、Windows x64 NSIS，以及 Linux x64 / arm64 的 AppImage 与 deb（分别在 `ubuntu-24.04` 与 `ubuntu-24.04-arm` 原生 runner 上安装依赖并打包，因为 `node-datachannel` 按宿主架构下载预编译二进制）。动态父配置自动设置 Windows 的 latest/beta/alpha.yml 名称及 Mac 内部构建号，本地和 CI 相同。Mac 需先 `pnpm sparkle:build`。
 5. 构建后验证最终包：Linux 由 `verify-linux.mjs` 解包 AppImage 与 deb，检查主程序与全部原生模块的 ELF 架构、ASAR 资源与版本、`.desktop`（`%U`、MIME 类型、`StartupWMClass`、不写死 `--no-sandbox`）、deb 控制字段与 AppArmor profile、更新元数据 sha512；再在 xvfb 中启动解包后的应用做冒烟（`MARCHEN_SMOKE_MARKER`，仅 CI 使用，CI 无 SUID / AppArmor 配置所以只在此处 `--no-sandbox`）。Mac 生成带签名 appcast 和最多两个旧基线的官方直接差分；首发无基线则全量。基线从同渠道已公开发行选择较低版本，Alpha/Beta 各自支持直接差分。跨渠道晋升使用全量包，避免官方生成器把不同 feed 的基线分组而漏掉或拒绝生成。
-6. 汇总校验后**只创建 Draft**，不自动公开。下载 Draft 的最终包完成安装/更新验证后，由维护者在 GitHub 公开。Alpha/Beta 保持 Pre-release 且不设 Latest；正式版可手动设 Latest。
+6. 汇总校验后**只创建 Draft**，不自动公开。Release 正文为 `docs/releases/<version>.md` 加上 `scripts/desktop/release-body.mjs` 追加的「下载地址」（按平台直链本次版本安装包）；下载地址只进 GitHub 正文，源文件同时是应用内更新说明，不要在其中手写下载链接。下载 Draft 的最终包完成安装/更新验证后，由维护者在 GitHub 公开。Alpha/Beta 保持 Pre-release 且不设 Latest；正式版可手动设 Latest。
 7. 公开触发 `Publish desktop update channels`：读取全部公开发行、校验选中版本的 mac / win 资产和元数据（Linux 存在时一并严格校验），一次提交更新渠道文件。成功后客户端在下一次检查时可收到更新。Draft 不进入渠道。
 
 Sentry release 在构建协调阶段 finalize；对应 production/beta/alpha 部署标记在公开并同步渠道后记录。此流程不需要另建更新服务器，但需客户端能够访问 GitHub 的 raw 域名及发行资产。

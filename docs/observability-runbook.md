@@ -42,7 +42,7 @@ Web 走 [EdgeOne 独立发布](./web-edgeone-release.md)，不再由 Electron ta
 
 Electron tag workflow 继续完成桌面各平台的 Source Map、release 和安装包发布。Main/Preload/Renderer 的诊断独立于 Web 发布。
 
-桌面 dist 为 `darwin-arm64`、`win32-x64`、`linux-x64`、`linux-arm64`（Linux arm64 为实验性支持）。`package_type` 区分安装形态：`mac-app`、`nsis`、`appimage`、`deb`，开发态为 `unpackaged`，Web 为 `web`；Sentry main 端作为 tag，renderer 与 PostHog 作为公共属性。Linux 上 `appimage` 走应用内自动更新、`deb` 只提示下载，评估 Linux 版本分布与崩溃率时按 `package_type` 拆开看；兼容内核回退率按 `dist` 分组观察 Linux 软解占比。
+桌面 dist 为 `darwin-arm64`、`win32-x64`、`linux-x64`、`linux-arm64`。`package_type` 区分安装形态：`mac-app`、`nsis`、`appimage`、`deb`，开发态为 `unpackaged`，Web 为 `web`；Sentry main 端作为 tag，renderer 与 PostHog 作为公共属性。Linux 上 `appimage` 走应用内自动更新、`deb` 只提示下载，评估 Linux 版本分布与崩溃率时按 `package_type` 拆开看；兼容内核回退率按 `dist` 分组观察 Linux 软解占比。
 
 ## 本地验证
 

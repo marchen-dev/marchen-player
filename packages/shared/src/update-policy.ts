@@ -42,7 +42,7 @@ export function canUpdateTo(installed: string, candidate: string): boolean {
 export function windowsMetadataName(channel: UpdateChannel) {
   return `${channel === 'stable' ? 'latest' : channel}.yml`
 }
-/** Linux 只发行这两个架构；arm64 为实验性支持 */
+/** Linux 只发行这两个架构 */
 export type LinuxUpdateArch = 'x64' | 'arm64'
 export const LINUX_UPDATE_ARCHES: readonly LinuxUpdateArch[] = ['x64', 'arm64']
 /**

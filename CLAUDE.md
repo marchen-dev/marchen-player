@@ -198,7 +198,7 @@ docs/                     # 发布、部署、可观测性文档
 
 ## 桌面发布入口
 
-发布 macOS 13+ ARM64、Windows x64、Linux x64（正式）与 Linux arm64（实验性），不再生成 Intel Mac 新包。Linux 每个架构发行 AppImage + deb，须在对应架构的原生 runner 上构建（`node-datachannel` 安装期按宿主架构下载二进制），最终包由 `scripts/desktop/verify-linux.mjs` 校验并经 xvfb 冒烟（`MARCHEN_SMOKE_MARKER`）。Mac 当前使用 ad-hoc 签名、不做 Apple 公证；`.env.example` 中的 Apple 开发者账号变量不是当前发行流程的必要配置。
+发布 macOS 13+ ARM64、Windows x64、Linux x64 与 arm64，不再生成 Intel Mac 新包。Linux 每个架构发行 AppImage + deb，须在对应架构的原生 runner 上构建（`node-datachannel` 安装期按宿主架构下载二进制），最终包由 `scripts/desktop/verify-linux.mjs` 校验并经 xvfb 冒烟（`MARCHEN_SMOKE_MARKER`）。Mac 当前使用 ad-hoc 签名、不做 Apple 公证；`.env.example` 中的 Apple 开发者账号变量不是当前发行流程的必要配置。
 
 Mac 使用 `@marchen/sparkle-updater` 与 Sparkle 原生更新窗口，Windows 与 Linux AppImage 使用 `electron-updater`；Linux deb 只检查新版本并引导下载（`platform: 'linux-manual'`），不在应用内替换自身。渠道源中 Linux 为可选平台，缺少 Linux 元数据的版本不影响 mac / win，客户端把 Linux 元数据 404 视为已是最新。Linux 不启用实验性 VA-API / ANGLE 开关，AppImage 不写死 `--no-sandbox`（仅 AppRun 在系统禁止 user namespace 时降级）。按安装版本自动选择稳定 / Beta / Alpha 渠道，只升级到允许渠道内的更高版本。标签构建仅创建 Draft；公开 Release 后由 `.github/workflows/update-channels.yml` 同步渠道元数据。禁止覆盖已公开版本的标签或安装包。
 

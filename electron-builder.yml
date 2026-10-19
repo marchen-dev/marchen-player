@@ -61,7 +61,7 @@ mac:
       role: Editor
 dmg:
   artifactName: ${productName}-${version}-macos-${arch}.${ext}
-# Linux x64 为正式支持，arm64 为实验性支持；两种架构都必须在对应原生 runner 上构建，
+# Linux x64 与 arm64 均为正式支持；两种架构都必须在对应原生 runner 上构建，
 # 因为 node-datachannel 在安装期按宿主架构下载预编译二进制。
 linux:
   # 小写可执行名决定 /usr/bin/marchen、AppArmor profile 名与图标名。
