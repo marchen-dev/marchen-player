@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 1024 1024">
+  <!-- 网页专用图标：白底铺满画布，无透明留边、阴影和描边，图形收在内切圆内，适配搜索结果的圆形裁切 -->
+  <defs><linearGradient id="m" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#27c4ed"/><stop offset="1" stop-color="#009fd8"/></linearGradient></defs>
+  <rect width="1024" height="1024" rx="224" fill="#fff"/>
+  <g transform="translate(512 512) scale(1.32) translate(-491 -512)">
+    <rect x="250" y="369" width="150" height="54" rx="27" fill="#08a9df" opacity="0.72"/>
+    <rect x="206" y="485" width="210" height="54" rx="27" fill="url(#m)"/>
+    <rect x="270" y="601" width="120" height="54" rx="27" fill="#08a9df" opacity="0.60"/>
+    <path d="M492 340L736 512L492 684Z" fill="#08a9df" stroke="#08a9df" stroke-width="80" stroke-linejoin="round"/>
+  </g>
+</svg>

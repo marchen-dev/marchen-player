@@ -31,9 +31,22 @@
         margin: 0;
       }
     </style>
-    <!-- favicon -->
-    <link rel="icon" href="/favicon.ico" type="image/x-icon" />
+    <!-- 网页图标独立于桌面图标，由 scripts/web/generate-favicons.mjs 从 favicon.svg 生成；
+         搜索引擎偏好 48 倍数的大尺寸，因此同时提供 SVG 与 192px PNG，ico 仅作旧浏览器兜底。 -->
+    <link rel="icon" href="/favicon.ico" sizes="48x48" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href="/icon-192.png" type="image/png" sizes="192x192" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <title>Marchen Player</title>
+    <!-- 告诉搜索引擎站点名称，避免搜索结果把站点名显示成根域名 -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "Marchen Player",
+        "url": "https://marchen.suemor.com/"
+      }
+    </script>
     <!-- 两端共用品牌信息；canonical 与分享地址始终指向正式 Web 入口。 -->
     <meta
       name="description"
