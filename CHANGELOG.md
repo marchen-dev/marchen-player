@@ -1,6 +1,17 @@
 # CHANGELOG
 
 
+# [1.1.0](https://github.com/marchen-dev/marchen-player/compare/v1.0.7...v1.1.0) (2026-10-25)
+
+
+### Features
+
+* **labs:** 「通过 URL 播放」默认开启 ([0a8bed7](https://github.com/marchen-dev/marchen-player/commit/0a8bed7e8b46857732cc409325a3ebc15f5afc14))
+* **media-sources:** 新增 Jellyfin、Emby、WebDAV 媒体源 ([b9b9de9](https://github.com/marchen-dev/marchen-player/commit/b9b9de99baa5ed1dd2860b21168bf236547001b5))
+* **player:** 新增优先播放视频开关，弹幕在后台加载后接入 ([ec39108](https://github.com/marchen-dev/marchen-player/commit/ec39108a72dfb055f758ca573b342eb4d4149f53))
+* **web:** 网页图标改为独立 SVG 来源并补充站点结构化数据 ([833ab07](https://github.com/marchen-dev/marchen-player/commit/833ab07f06812572c8bdbc73f8d2eae9749c2697))
+* **web:** 首次访问时推荐下载桌面客户端 ([ff0e07c](https://github.com/marchen-dev/marchen-player/commit/ff0e07c515004a905708e327eb857d4acafa0c62))
+
 ## [1.0.7](https://github.com/marchen-dev/marchen-player/compare/v1.0.6...v1.0.7) (2026-10-17)
 
 
