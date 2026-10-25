@@ -71,8 +71,6 @@
 | Linux x64 | `amd64.deb`（Ubuntu / Debian）或 `x86_64.AppImage` |
 | Linux arm64 | `arm64.deb` 或 `arm64.AppImage` |
 
-Linux 安装与常见问题见 [Linux 安装说明](docs/linux-install.md)。
-
 ## 🔧 开发
 
 ```bash
