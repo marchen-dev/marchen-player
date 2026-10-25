@@ -16,6 +16,7 @@ import { ElectronImporter } from './adapters/electron-importer'
 import { IndexedDBHistoryStore } from './adapters/history-store'
 import { IndexedDBCache } from './adapters/indexeddb-cache'
 import { WebImporter } from './adapters/web-importer'
+import { readPlayFirst } from './play-first-policy'
 
 // 全局单例（SPA 生命周期内不销毁）
 let serviceInstance: PlayerLoadingService | null = null
@@ -31,9 +32,11 @@ export function getPlayerLoadingService(): PlayerLoadingService {
       cache: new IndexedDBCache(),
       importer: isWeb ? new WebImporter() : new ElectronImporter(),
       history: new IndexedDBHistoryStore(),
+      // 读取最新偏好；service 在每次加载开始时调用一次，播放中切换只影响下一次加载
+      policy: { playFirst: readPlayFirst },
     })
 
-    installPlayerLoadingTelemetry(serviceInstance)
+    installPlayerLoadingTelemetry(serviceInstance, readPlayFirst)
 
     // 同步 service state 中的 video 信息到 videoAtom
     // 这样 SettingProvider、Event.tsx 等仍然从 videoAtom 读取 hash 的组件能正常工作

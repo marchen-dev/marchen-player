@@ -84,10 +84,77 @@ export function reduce(state: LoadingState, event: PipelineEvent): LoadingState 
         mergedComments: event.mergedComments,
       }
 
-    case 'reloading': {
-      // ready 数据重新加载弹幕
+    case 'playFirstReady':
+      // 优先播放只从本地探测阶段进入；其他状态说明加载已被切走
+      if (state.step !== 'matching' || state.video !== event.video) return state
+      return {
+        step: 'ready',
+        video: event.video,
+        match: event.match,
+        matchOrigin: event.matchOrigin,
+        danmakuStatus: event.background ? undefined : 'loaded',
+        background: event.background ? { phase: event.background } : undefined,
+        danmaku: event.danmaku,
+        mergedComments: event.mergedComments,
+      }
+
+    case 'backgroundStarted':
       if (state.step !== 'ready') return state
-      return { ...state, step: 'reloading', recovery: { target: event.target ?? state.match } }
+      return {
+        ...state,
+        background: { phase: event.phase },
+        matchError: undefined,
+        danmakuStatus: undefined,
+      }
+
+    case 'backgroundPhase':
+      if (state.step !== 'ready' || !state.background) return state
+      return { ...state, background: { phase: event.phase } }
+
+    case 'backgroundSettled':
+      // 只接受仍在后台阶段的 ready；用户操作或切集后到达的结果一律丢弃
+      if (state.step !== 'ready' || !state.background) return state
+      return {
+        ...state,
+        match: event.match,
+        matchOrigin: event.matchOrigin,
+        background: undefined,
+        matchCandidates: undefined,
+        matchError: undefined,
+        danmakuLoadFailed: event.danmakuLoadFailed,
+        danmakuStatus: event.danmakuLoadFailed ? 'failed' : 'loaded',
+        danmaku: event.danmaku,
+        mergedComments: event.mergedComments,
+      }
+
+    case 'backgroundUnmatched':
+      if (state.step !== 'ready' || !state.background) return state
+      return {
+        ...state,
+        background: undefined,
+        matchCandidates: event.candidates,
+        danmakuStatus: 'unmatched',
+      }
+
+    case 'backgroundMatchFailed':
+      if (state.step !== 'ready' || !state.background) return state
+      return {
+        ...state,
+        background: undefined,
+        matchError: { message: event.message },
+        danmakuStatus: 'failed',
+      }
+
+    case 'reloading': {
+      // ready 数据重新加载弹幕；用户操作优先于后台阶段，进入后即结束后台展示
+      if (state.step !== 'ready') return state
+      return {
+        ...state,
+        step: 'reloading',
+        background: undefined,
+        matchError: undefined,
+        recovery: { target: event.target ?? state.match },
+      }
     }
 
     case 'reloaded': {
@@ -101,6 +168,7 @@ export function reduce(state: LoadingState, event: PipelineEvent): LoadingState 
         danmakuLoadFailed: false,
         danmakuStatus: 'loaded',
         recovery: undefined,
+        matchCandidates: undefined,
         danmaku: event.danmaku,
         mergedComments: event.mergedComments,
       }

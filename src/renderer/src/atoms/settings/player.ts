@@ -5,6 +5,7 @@ import {
   danmakuEndAreaList,
   danmakuFontSizeList,
 } from '@renderer/components/modules/settings/views/player/list'
+import { setPlayFirstReader } from '@renderer/services/player-loading/play-first-policy'
 import {
   createDefaultDanmakuBlockSettings,
   normalizeDanmakuBlockSettings,
@@ -14,6 +15,7 @@ import { normalizeEnginePreference } from '@renderer/services/player-runtime/eng
 import { normalizeSubtitleScale } from '@renderer/services/player-runtime/subtitles/font-scale'
 import { useAtom, useAtomValue } from 'jotai'
 
+import { jotaiStore } from '../store'
 import { createSettingATom } from './helper'
 
 const getSelectedDefaultValue = (list: SelectOption[]) => {
@@ -26,6 +28,8 @@ const createPlayerDefaultSettings = () => {
     subtitleScale: 100,
     enableTraditionalToSimplified: false,
     enableAutomaticEpisodeSwitching: false,
+    // 优先播放：导入后先开播，匹配与在线弹幕在后台接入；默认关闭以保证开头弹幕完整
+    enablePlayFirst: false,
     enableDanmaku: true,
     danmakuMaxOnScreen: '80',
     danmakuOpacity: 100,
@@ -49,6 +53,9 @@ const playerSettingAtom = createSettingATom('player', createPlayerDefaultSetting
   danmakuOpacity: normalizeDanmakuOpacity(settings?.danmakuOpacity),
   danmakuBlock: normalizeDanmakuBlockSettings(settings?.danmakuBlock),
 }))
+
+// 加载服务每次加载开始时读取最新偏好，播放中切换只影响下一次加载
+setPlayFirstReader(() => jotaiStore.get(playerSettingAtom).enablePlayFirst)
 
 export { playerSettingAtom }
 export const usePlayerSettings = () => useAtom(playerSettingAtom)

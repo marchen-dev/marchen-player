@@ -4,17 +4,19 @@
 
 所有安装数按匿名 install_id 去重。Web 清除站点数据或重置会产生新 ID，不等于自然人身份。筛选 environment=production、app_target=web，避免混入预览。
 
-| 指标                  | 当前事件                                                                                                                                            |
-| --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
-| DAU / WAU / MAU、留存 | app_session_started 的唯一 install_id                                                                                                               |
-| 启动到播放漏斗        | 同一 app_session_id 下 video_import_started → video_import_completed → media_prepare_completed → playback_started，按 operation_id 关联一次导入     |
-| 功能使用率            | feature_used 的 feature/action                                                                                                                      |
-| 自动切兼容率          | playback_engine_changed，trigger=automatic、to=compat、result=success；按唯一 operation_id 去重，分母为同窗口唯一 video_import_started operation_id |
-| 播放失败              | playback_failed；区分 attempt_id 的失败尝试与用户最终未能播放，恢复成功不可直接计为最终失败                                                         |
-| 首帧                  | playback_started.time_to_first_frame_ms，按 engine/backend/dist 分组                                                                                |
-| seek                  | playback_seek_completed 的 result、duration_ms                                                                                                      |
-| 卡顿                  | playback_ended 的 stall_count、stall_duration_ms、watched_ms，显著卡顿阈值 1 秒                                                                     |
-| 字幕失败              | subtitle_failed.stage：resolve / renderer / catalog / import；用户取消不计故障                                                                      |
+| 指标                  | 当前事件                                                                                                                                                                                                           |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| DAU / WAU / MAU、留存 | app_session_started 的唯一 install_id                                                                                                                                                                              |
+| 启动到播放漏斗        | 同一 app_session_id 下 video_import_started → video_import_completed → media_prepare_completed → playback_started，按 operation_id 关联一次导入                                                                    |
+| 功能使用率            | feature_used 的 feature/action                                                                                                                                                                                     |
+| 自动切兼容率          | playback_engine_changed，trigger=automatic、to=compat、result=success；按唯一 operation_id 去重，分母为同窗口唯一 video_import_started operation_id                                                                |
+| 播放失败              | playback_failed；区分 attempt_id 的失败尝试与用户最终未能播放，恢复成功不可直接计为最终失败                                                                                                                        |
+| 加载模式              | video_import_completed / danmaku_match_completed / playback_ready 的 load_mode：complete 等弹幕就绪再播放，play_first 先开播、后台接入弹幕；两种模式分开对比                                                       |
+| 开播与弹幕到达        | playback_ready.duration_ms 为导入开始到可播放；danmaku_match_completed.duration_ms 为导入开始到匹配结果确定。complete 下两者同时发生，play_first 下后者晚于前者；result 的 unmatched / failed 只在 play_first 出现 |
+| 首帧                  | playback_started.time_to_first_frame_ms，按 engine/backend/dist 分组                                                                                                                                               |
+| seek                  | playback_seek_completed 的 result、duration_ms                                                                                                                                                                     |
+| 卡顿                  | playback_ended 的 stall_count、stall_duration_ms、watched_ms，显著卡顿阈值 1 秒                                                                                                                                    |
+| 字幕失败              | subtitle_failed.stage：resolve / renderer / catalog / import；用户取消不计故障                                                                                                                                     |
 
 关键事件有本地 outbox（见 outbox.ts），并不代表服务端一定已收妥。终端关闭、网络及采集拦截会造成缺失，漏斗应按相同时间窗与操作去重，不混用事件条数和安装数。
 

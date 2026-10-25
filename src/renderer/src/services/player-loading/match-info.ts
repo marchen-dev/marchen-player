@@ -14,5 +14,9 @@ export function getMatchInfo(state: ReadyState | ReloadingState) {
     skipped: state.danmakuStatus === 'skipped',
     canRetry: (state.recovery?.target.episodeId ?? state.match.episodeId) > 0,
     recoveryFailed: Boolean(state.recovery?.message),
+    // 优先播放的后台阶段：episodeId 为 0 时可能仍在匹配，不能据此判定为未匹配
+    pending: state.background?.phase,
+    unmatched: state.danmakuStatus === 'unmatched',
+    matchFailed: Boolean(state.matchError),
   }
 }

@@ -1,4 +1,5 @@
 import { useAppSettings } from '@renderer/atoms/settings/app'
+import { usePlayerSettings } from '@renderer/atoms/settings/player'
 import { ApiRouteSetting } from '@renderer/components/modules/shared/setting/ApiRouteSetting'
 import { PlayerEngineSetting } from '@renderer/components/modules/shared/setting/PlayerEngineSetting'
 import { SettingSwitch } from '@renderer/components/modules/shared/setting/SettingSwitch'
@@ -25,6 +26,7 @@ import { DarkModeToggle } from './DarkMode'
 
 export const GeneralView = () => {
   const [appSettings, setAppSettings] = useAppSettings()
+  const [playerSettings, setPlayerSettings] = usePlayerSettings()
   const { toast } = useToast()
   const showConfirmationDialog = useConfirmationDialog()
 
@@ -105,6 +107,23 @@ export const GeneralView = () => {
           <div className="p-4">
             <PlayerEngineSetting />
           </div>
+          {/* 只影响之后打开的视频，加载开始时读取一次 */}
+          <SettingsRow
+            label="优先播放视频"
+            description="先播放视频，弹幕在后台加载完成后接入；开头可能缺少弹幕"
+            labelId="play-first-label"
+            descriptionId="play-first-description"
+          >
+            <SettingSwitch
+              value={playerSettings.enablePlayFirst}
+              aria-labelledby="play-first-label"
+              aria-describedby="play-first-description"
+              onCheckedChange={(checked) => {
+                captureFeatureUsed('play_first', checked ? 'enable' : 'disable')
+                setPlayerSettings((prev) => ({ ...prev, enablePlayFirst: checked }))
+              }}
+            />
+          </SettingsRow>
         </SettingsGroup>
       </SettingsSection>
 

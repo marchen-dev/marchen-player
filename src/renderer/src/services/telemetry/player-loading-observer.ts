@@ -1,7 +1,7 @@
 import type { LoadingState, PlayerLoadingService } from '@marchen/player-loading'
 import type { Subscription } from 'rxjs'
 
-import type { TelemetryEventMap, TelemetryEventName, TelemetrySpan } from './contracts'
+import type { LoadMode, TelemetryEventMap, TelemetryEventName, TelemetrySpan } from './contracts'
 import { telemetry } from './client'
 
 export type VideoImportSource = TelemetryEventMap['video_import_started']['source']
@@ -29,6 +29,9 @@ interface ActiveLoadingOperation {
   startedAt: number
   importCompleted: boolean
   waitedForUser: boolean
+  loadMode: LoadMode
+  /** 优先播放已开播、弹幕仍在后台：等后台结束才记录匹配结果 */
+  awaitingBackground: boolean
   lastStep?: LoadingState['step']
   finishOperationSpan: () => void
   finishMatchSpan?: () => void
@@ -57,6 +60,8 @@ export class PlayerLoadingTelemetryObserver {
     private readonly sink: LoadingTelemetrySink = defaultSink,
     private readonly now: () => number = () => Date.now(),
     private readonly createId: () => string = () => crypto.randomUUID(),
+    // 与 service 在同一命令时刻读取偏好，保证口径与实际加载策略一致
+    private readonly readPlayFirst: () => boolean = () => false,
   ) {}
 
   noteCommand(source: VideoImportSource) {
@@ -76,6 +81,8 @@ export class PlayerLoadingTelemetryObserver {
         startedAt: this.now(),
         importCompleted: false,
         waitedForUser: false,
+        loadMode: this.#readLoadMode(),
+        awaitingBackground: false,
         lastStep: 'importing',
         finishOperationSpan: deferredSpan(this.sink, {
           name: 'video import and danmaku match',
@@ -89,6 +96,10 @@ export class PlayerLoadingTelemetryObserver {
     }
 
     const active = this.#active
+    if (active?.awaitingBackground) {
+      this.#observeBackground(active, state)
+      return
+    }
     if (!active || active.lastStep === state.step) return
     active.lastStep = state.step
     this.sink.breadcrumb(state.step, active.id)
@@ -103,6 +114,7 @@ export class PlayerLoadingTelemetryObserver {
       latestOperation = { id: active.id, hash: state.video.hash }
       this.sink.capture('video_import_completed', {
         operation_id: active.id,
+        load_mode: active.loadMode,
         duration_ms: this.now() - active.startedAt,
         container: containerFromName(state.video.name),
       })
@@ -116,14 +128,17 @@ export class PlayerLoadingTelemetryObserver {
     if (state.step === 'waiting_user') active.waitedForUser = true
 
     if (state.step === 'ready') {
-      const skipped = state.match.episodeId === 0
-      this.sink.capture('danmaku_match_completed', {
+      this.sink.capture('playback_ready', {
         operation_id: active.id,
-        result: skipped ? 'none' : active.waitedForUser ? 'manual' : 'automatic',
+        load_mode: active.loadMode,
         duration_ms: this.now() - active.startedAt,
-        comment_count: state.mergedComments.length,
+        has_danmaku: state.mergedComments.length > 0,
       })
-      this.#finishActive()
+      if (state.background) {
+        active.awaitingBackground = true
+        return
+      }
+      this.#completeMatch(active, state)
       return
     }
 
@@ -140,12 +155,53 @@ export class PlayerLoadingTelemetryObserver {
     if (state.step === 'idle') this.#cancelActive()
   }
 
+  /** 后台阶段的 ready→ready 变化不经过 step 去重，需要单独判断结束时机 */
+  #observeBackground(active: ActiveLoadingOperation, state: LoadingState) {
+    if (state.step === 'ready') {
+      if (!state.background) this.#completeMatch(active, state)
+      return
+    }
+    // 后台未结束就被用户的重新匹配接管或取消（新加载在 importing 分支处理），按取消记录
+    this.#cancelActive()
+  }
+
+  #completeMatch(active: ActiveLoadingOperation, state: Extract<LoadingState, { step: 'ready' }>) {
+    // background 存在时 episodeId 为 0 表示仍在匹配；此处 background 已结束，可按未匹配判断
+    const result =
+      state.danmakuStatus === 'unmatched'
+        ? 'unmatched'
+        : state.matchError
+          ? 'failed'
+          : state.match.episodeId === 0
+            ? 'none'
+            : active.waitedForUser
+              ? 'manual'
+              : 'automatic'
+    this.sink.capture('danmaku_match_completed', {
+      operation_id: active.id,
+      load_mode: active.loadMode,
+      result,
+      duration_ms: this.now() - active.startedAt,
+      comment_count: state.mergedComments.length,
+    })
+    this.#finishActive()
+  }
+
+  #readLoadMode(): LoadMode {
+    try {
+      return this.readPlayFirst() ? 'play_first' : 'complete'
+    } catch {
+      return 'complete'
+    }
+  }
+
   #cancelActive() {
     const active = this.#active
     if (!active) return
     if (active.importCompleted) {
       this.sink.capture('danmaku_match_completed', {
         operation_id: active.id,
+        load_mode: active.loadMode,
         result: 'cancelled',
         duration_ms: this.now() - active.startedAt,
       })
@@ -171,8 +227,16 @@ export const markNextPlayerImportSource = (source: VideoImportSource) => {
   nextImportSource = source
 }
 
-export const installPlayerLoadingTelemetry = (service: PlayerLoadingService): Subscription => {
-  const observer = new PlayerLoadingTelemetryObserver()
+export const installPlayerLoadingTelemetry = (
+  service: PlayerLoadingService,
+  readPlayFirst?: () => boolean,
+): Subscription => {
+  const observer = new PlayerLoadingTelemetryObserver(
+    undefined,
+    undefined,
+    undefined,
+    readPlayFirst,
+  )
   const loadFromFile = service.loadFromFile.bind(service)
   const loadFromPath = service.loadFromPath.bind(service)
 

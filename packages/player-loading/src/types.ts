@@ -122,9 +122,27 @@ export interface MatchFailedState {
 interface MatchFeedback {
   matchOrigin?: 'auto' | 'history' | 'manual'
   danmakuLoadFailed?: boolean
-  danmakuStatus?: 'loaded' | 'skipped' | 'failed'
+  /** unmatched：优先播放模式下后台匹配没有精确结果，区别于用户主动跳过的 skipped */
+  danmakuStatus?: 'loaded' | 'skipped' | 'failed' | 'unmatched'
   /** 恢复失败不能覆盖当前匹配；保留本次目标供再次重试。 */
   recovery?: { target: MatchedVideo; message?: string }
+}
+
+/** 优先播放阶段：视频已开播，匹配或在线弹幕仍在后台进行 */
+export type BackgroundPhase = 'matching' | 'loading_danmaku'
+
+/**
+ * 优先播放模式附加在可播放状态上的后台信息。
+ * 不新增 step：媒体会话、弹幕上下文和控制栏都以 ready/reloading 判断可播放，
+ * 后台阶段一旦离开 ready 就会拆掉正在播放的视频。
+ */
+interface PlayFirstFeedback {
+  /** 存在即表示后台仍在进行；用来区分「正在匹配」与「确认未匹配」（两者 episodeId 都为 0） */
+  background?: { phase: BackgroundPhase }
+  /** 后台匹配的非精确候选，只保存在内存，供手动匹配弹窗展示 */
+  matchCandidates?: MatchResult
+  /** 后台匹配接口失败，允许在播放中原地重试匹配 */
+  matchError?: { message: string }
 }
 
 export interface LoadingDanmakuState extends MatchFeedback {
@@ -133,7 +151,7 @@ export interface LoadingDanmakuState extends MatchFeedback {
   match: MatchedVideo
 }
 
-export interface ReadyState extends MatchFeedback {
+export interface ReadyState extends MatchFeedback, PlayFirstFeedback {
   step: 'ready'
   video: VideoInfo
   match: MatchedVideo
@@ -141,7 +159,7 @@ export interface ReadyState extends MatchFeedback {
   mergedComments: CommentModel[]
 }
 
-export interface ReloadingState extends MatchFeedback {
+export interface ReloadingState extends MatchFeedback, PlayFirstFeedback {
   step: 'reloading'
   video: VideoInfo
   match: MatchedVideo
@@ -206,6 +224,30 @@ export type PipelineEvent =
     }
   | { type: 'ready' }
   | { type: 'skipped'; video: VideoInfo; danmaku: DanmakuEntry[]; mergedComments: CommentModel[] }
+  /** 优先播放：本地数据就绪即开播，background 存在时后台继续匹配或加载弹幕 */
+  | {
+      type: 'playFirstReady'
+      video: VideoInfo
+      match: MatchedVideo
+      matchOrigin?: MatchFeedback['matchOrigin']
+      danmaku: DanmakuEntry[]
+      mergedComments: CommentModel[]
+      background?: BackgroundPhase
+    }
+  /** 播放中重新开始后台阶段（例如匹配失败后重试） */
+  | { type: 'backgroundStarted'; phase: BackgroundPhase }
+  | { type: 'backgroundPhase'; phase: BackgroundPhase }
+  /** 后台匹配与弹幕一起提交；danmakuLoadFailed 表示弹幕请求失败、沿用已有弹幕 */
+  | {
+      type: 'backgroundSettled'
+      match: MatchedVideo
+      matchOrigin?: MatchFeedback['matchOrigin']
+      danmaku: DanmakuEntry[]
+      mergedComments: CommentModel[]
+      danmakuLoadFailed: boolean
+    }
+  | { type: 'backgroundUnmatched'; candidates: MatchResult }
+  | { type: 'backgroundMatchFailed'; message: string }
   | { type: 'reloading'; target?: MatchedVideo }
   | { type: 'reloadFailed'; target: MatchedVideo; message: string }
   | {
@@ -277,10 +319,18 @@ export interface HistoryStore {
 // Service 构造参数
 // ============================================================
 
+/** 加载策略接口：由宿主提供用户偏好，包内不依赖任何状态管理库 */
+export interface LoadingPolicy {
+  /** 是否先开播再在后台匹配和加载弹幕；每次加载开始时读取一次 */
+  playFirst: () => boolean
+}
+
 /** PlayerLoadingService 的依赖注入参数 */
 export interface ServiceDeps {
   api: DanmakuAPI
   cache: DanmakuCache
   importer: VideoImporter
   history: HistoryStore
+  /** 未提供时等同于关闭优先播放，保持先加载弹幕再播放 */
+  policy?: LoadingPolicy
 }

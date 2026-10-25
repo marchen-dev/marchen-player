@@ -19,7 +19,7 @@ const video = {
 }
 const match = { episodeId: 1, animeId: 2, animeTitle: 'anime', episodeTitle: 'episode' }
 
-const createHarness = () => {
+const createHarness = (playFirst = false) => {
   const events: Array<{ name: TelemetryEventName; properties: object }> = []
   let now = 1_000
   const finishes: Array<() => void> = []
@@ -35,6 +35,7 @@ const createHarness = () => {
     },
     () => now,
     () => 'operation-1',
+    () => playFirst,
   )
   return { observer, events, tick: (ms: number) => void (now += ms), finishes }
 }
@@ -66,12 +67,27 @@ describe('player-loading telemetry observer', () => {
       },
       {
         name: 'video_import_completed',
-        properties: { operation_id: 'operation-1', duration_ms: 20, container: 'mkv' },
+        properties: {
+          operation_id: 'operation-1',
+          load_mode: 'complete',
+          duration_ms: 20,
+          container: 'mkv',
+        },
+      },
+      {
+        name: 'playback_ready',
+        properties: {
+          operation_id: 'operation-1',
+          load_mode: 'complete',
+          duration_ms: 100,
+          has_danmaku: true,
+        },
       },
       {
         name: 'danmaku_match_completed',
         properties: {
           operation_id: 'operation-1',
+          load_mode: 'complete',
           result: 'automatic',
           duration_ms: 100,
           comment_count: 1,
@@ -107,6 +123,85 @@ describe('player-loading telemetry observer', () => {
     cancelled.observer.observe({ step: 'idle' })
     cancelled.observer.observe({ step: 'ready', video, match, danmaku: [], mergedComments: [] })
     expect(cancelled.events.filter((event) => event.name === 'danmaku_match_completed')).toEqual([
+      expect.objectContaining({ properties: expect.objectContaining({ result: 'cancelled' }) }),
+    ])
+  })
+
+  it('records play-first readiness before the background match result', () => {
+    const { observer, events, tick } = createHarness(true)
+    observer.observe({ step: 'importing' })
+    tick(10)
+    observer.observe({ step: 'matching', video })
+    tick(5)
+    const unmatched = { episodeId: 0, animeId: 0, animeTitle: '', episodeTitle: '' }
+    const pending: LoadingState = {
+      step: 'ready',
+      video,
+      match: unmatched,
+      background: { phase: 'matching' },
+      danmaku: [],
+      mergedComments: [],
+    }
+    observer.observe(pending)
+    observer.observe({ ...pending, background: { phase: 'loading_danmaku' } })
+    expect(events.map((event) => event.name)).toEqual([
+      'video_import_started',
+      'video_import_completed',
+      'playback_ready',
+    ])
+    expect(events.at(-1)).toMatchObject({
+      properties: { load_mode: 'play_first', duration_ms: 15, has_danmaku: false },
+    })
+
+    tick(200)
+    const settled: LoadingState = {
+      step: 'ready',
+      video,
+      match,
+      matchOrigin: 'auto',
+      danmakuStatus: 'loaded',
+      danmaku: [],
+      mergedComments: [{ cid: 1, m: 'hello', p: '1,1,1,1' }],
+    }
+    observer.observe(settled)
+    observer.observe(settled)
+    expect(events.filter((event) => event.name === 'danmaku_match_completed')).toEqual([
+      {
+        name: 'danmaku_match_completed',
+        properties: {
+          operation_id: 'operation-1',
+          load_mode: 'play_first',
+          result: 'automatic',
+          duration_ms: 215,
+          comment_count: 1,
+        },
+      },
+    ])
+  })
+
+  it('classifies play-first unmatched, failed and superseded background results', () => {
+    const base = {
+      step: 'ready' as const,
+      video,
+      match: { episodeId: 0, animeId: 0, animeTitle: '', episodeTitle: '' },
+      danmaku: [],
+      mergedComments: [],
+    }
+    const run = (final: LoadingState) => {
+      const harness = createHarness(true)
+      harness.observer.observe({ step: 'importing' })
+      harness.observer.observe({ step: 'matching', video })
+      harness.observer.observe({ ...base, background: { phase: 'matching' } })
+      harness.observer.observe(final)
+      return harness.events.filter((event) => event.name === 'danmaku_match_completed')
+    }
+    expect(run({ ...base, danmakuStatus: 'unmatched' })).toEqual([
+      expect.objectContaining({ properties: expect.objectContaining({ result: 'unmatched' }) }),
+    ])
+    expect(run({ ...base, matchError: { message: 'timeout' } })).toEqual([
+      expect.objectContaining({ properties: expect.objectContaining({ result: 'failed' }) }),
+    ])
+    expect(run({ ...base, step: 'reloading', recovery: { target: match } })).toEqual([
       expect.objectContaining({ properties: expect.objectContaining({ result: 'cancelled' }) }),
     ])
   })

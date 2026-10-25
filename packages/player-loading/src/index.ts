@@ -12,6 +12,7 @@ export { VISIBLE_STEPS } from './types'
 
 // 导出所有类型
 export type {
+  BackgroundPhase,
   // 命令
   Command,
   // 数据
@@ -28,6 +29,7 @@ export type {
   IdleState,
   ImportingState,
   LoadingDanmakuState,
+  LoadingPolicy,
   // 状态
   LoadingState,
   MatchedVideo,

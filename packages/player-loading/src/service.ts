@@ -13,7 +13,9 @@
 
 import type { Observable, Subscription } from 'rxjs'
 import type {
+  BackgroundPhase,
   Command,
+  CommentsData,
   DanmakuEntry,
   LoadingState,
   MatchedVideo,
@@ -23,7 +25,7 @@ import type {
 } from './types'
 import { validateOffset } from '@marchen/shared/danmaku'
 import { BehaviorSubject, concat, defer, EMPTY, firstValueFrom, of, Subject } from 'rxjs'
-import { catchError, filter, map, switchMap, takeUntil } from 'rxjs/operators'
+import { catchError, filter, ignoreElements, map, switchMap, takeUntil } from 'rxjs/operators'
 
 import { LoadingOperations } from './operation'
 import {
@@ -35,6 +37,9 @@ import {
 import { createRematchPipeline } from './pipelines/rematch'
 import { INITIAL_STATE, mergeDanmakuEntries, reduce } from './state-machine'
 import { getPersistentMediaSource } from './types'
+
+/** 未匹配时的占位，与跳过弹幕的约定一致 */
+const UNMATCHED: MatchedVideo = { episodeId: 0, animeTitle: '', episodeTitle: '', animeId: 0 }
 
 export class PlayerLoadingService {
   // 命令输入流
@@ -118,6 +123,8 @@ export class PlayerLoadingService {
       case 'skipDanmaku':
         return ['matching', 'loading_danmaku', 'waiting_user', 'match_failed'].includes(state.step)
       case 'retryMatch':
+        // 优先播放模式的匹配失败发生在播放中，原地重试不离开 ready
+        return state.step === 'match_failed' || (state.step === 'ready' && !!state.matchError)
       case 'manualMatch':
         return state.step === 'match_failed'
       case 'selectMatch':
@@ -156,6 +163,11 @@ export class PlayerLoadingService {
         }
         return EMPTY
       case 'retryMatch':
+        if (state.step === 'ready')
+          return concat(
+            of<PipelineEvent>({ type: 'backgroundStarted', phase: 'matching' }),
+            this.backgroundMatch(state.video, deps),
+          )
         return state.step === 'match_failed'
           ? concat(
               of<PipelineEvent>({ type: 'hashed', video: state.video }),
@@ -369,6 +381,8 @@ export class PlayerLoadingService {
     deps: ServiceDeps,
   ): Observable<PipelineEvent> {
     let video: VideoInfo
+    // 在命令开始时固化策略，播放中切换设置只影响下一次加载
+    const playFirst = this.readPlayFirst(deps)
     return concat(
       of<PipelineEvent>({ type: 'started' }),
       defer(async () => {
@@ -380,8 +394,199 @@ export class PlayerLoadingService {
               : await deps.importer.importFromPath(cmd.path)
         return { type: 'hashed' as const, video }
       }),
-      defer(() => this.matchAndLoad(video, deps)),
+      defer(() => (playFirst ? this.playFirstLoad(video, deps) : this.matchAndLoad(video, deps))),
     )
+  }
+
+  private readPlayFirst(deps: ServiceDeps): boolean {
+    try {
+      return deps.policy?.playFirst() ?? false
+    } catch {
+      // 读取偏好失败按默认关闭处理，不影响加载
+      return false
+    }
+  }
+
+  /** 当前命令分支仍然有效：新命令会替换 activeDeps，切集/取消还会递增 session */
+  private isActive(deps: ServiceDeps, session: number) {
+    return this.activeDeps === deps && this.session === session
+  }
+
+  /**
+   * 优先播放：只读本地匹配与缓存决定开播时带的数据，网络部分留在后台。
+   * 后台段与开播事件处于同一个 Observable，新命令经 switchMap 切走时一并终止。
+   */
+  private playFirstLoad(video: VideoInfo, deps: ServiceDeps): Observable<PipelineEvent> {
+    let known: MatchedVideo | undefined
+    let phase: BackgroundPhase | undefined
+    return concat(
+      defer(async (): Promise<PipelineEvent> => {
+        // Operation 包装的读取失败会降级为空结果，本地数据异常时仍按无数据开播
+        const history = await deps.history.get(video.hash)
+        known =
+          history?.episodeId && history?.animeId
+            ? {
+                episodeId: history.episodeId,
+                animeTitle: history.animeTitle || '',
+                episodeTitle: history.episodeTitle || '',
+                animeId: history.animeId,
+              }
+            : undefined
+        const danmaku = await getAvailableDanmaku(video, deps, known)
+        const hasOnline = danmaku.some((entry) => entry.type === 'auto')
+        const fresh = known && hasOnline && !(await deps.cache.isStale(video.hash))
+        phase = !known ? 'matching' : fresh ? undefined : 'loading_danmaku'
+        // 开播即保存可恢复来源，开播后立刻关闭也能从历史重新打开
+        await deps.history.save({
+          hash: video.hash,
+          source: getPersistentMediaSource(video),
+          animeId: known?.animeId ?? 0,
+          episodeId: known?.episodeId ?? 0,
+          animeTitle: known?.animeTitle || video.name,
+          episodeTitle: known?.episodeTitle ?? '',
+          danmaku,
+        })
+        return {
+          type: 'playFirstReady',
+          video,
+          match: known ?? UNMATCHED,
+          matchOrigin: known ? 'history' : undefined,
+          danmaku,
+          mergedComments: mergeDanmakuEntries(danmaku),
+          background: phase,
+        }
+      }),
+      defer(() => {
+        if (!phase) return EMPTY
+        return known
+          ? this.backgroundDanmaku(known, 'history', video, deps)
+          : this.backgroundMatch(video, deps)
+      }),
+    )
+  }
+
+  /** 后台匹配：无精确结果或接口失败都停留在 ready，不打断播放 */
+  private backgroundMatch(video: VideoInfo, deps: ServiceDeps): Observable<PipelineEvent> {
+    const session = this.session
+    return executeMatch(video, deps).pipe(
+      map((event) => ({ event })),
+      catchError((error) => of({ error })),
+      switchMap((result): Observable<PipelineEvent> => {
+        if ('error' in result) {
+          // 已失效的分支（含 AbortError）静默结束，不产生失败提示
+          if (!this.isActive(deps, session)) return EMPTY
+          const { error } = result
+          return of({
+            type: 'backgroundMatchFailed',
+            message: error instanceof Error ? error.message : '匹配失败',
+          })
+        }
+        const { event } = result
+        if (event.type === 'matched')
+          return concat(
+            of<PipelineEvent>({ type: 'backgroundPhase', phase: 'loading_danmaku' }),
+            this.backgroundDanmaku(event.match, event.matchOrigin ?? 'auto', video, deps),
+          )
+        if (event.type === 'waitingUser')
+          return of({ type: 'backgroundUnmatched', candidates: event.matchData })
+        return EMPTY
+      }),
+    )
+  }
+
+  /** 后台弹幕：请求失败沿用已有弹幕，结果统一经来源写入队列提交 */
+  private backgroundDanmaku(
+    match: MatchedVideo,
+    matchOrigin: 'auto' | 'history' | 'manual',
+    video: VideoInfo,
+    deps: ServiceDeps,
+  ): Observable<PipelineEvent> {
+    const session = this.session
+    return defer(async () => {
+      let content: CommentsData | undefined
+      try {
+        content = await deps.api.getDanmu(match.episodeId, { withRelated: true })
+      } catch (error) {
+        // 被新命令切走时请求会被中止，此时不能把中止当成失败提交
+        if (!this.isActive(deps, session)) return
+        console.error('后台加载弹幕失败:', error)
+      }
+      if (!this.isActive(deps, session)) return
+      await this.commitBackground(deps, session, video, match, matchOrigin, content)
+    }).pipe(ignoreElements())
+  }
+
+  /**
+   * 后台结果在来源写入队列中提交：基于提交时的当前弹幕合并，
+   * 保证后台请求期间导入的本地弹幕和来源开关不被开播时的快照覆盖。
+   */
+  private commitBackground(
+    deps: ServiceDeps,
+    session: number,
+    video: VideoInfo,
+    match: MatchedVideo,
+    matchOrigin: 'auto' | 'history' | 'manual',
+    content: CommentsData | undefined,
+  ): Promise<void> {
+    this.sourceWriteCount++
+    const isCurrent = () => this.isActive(deps, session)
+    const isPending = () => {
+      const state = this.currentState
+      return state.step === 'ready' && state.video === video && !!state.background
+    }
+    const pending = this.sourceWrites
+      .then(async () => {
+        if (!isCurrent() || !isPending()) return
+        const state = this.currentState as Extract<LoadingState, { step: 'ready' }>
+        let danmaku = state.danmaku
+        if (content) {
+          const selected =
+            state.danmaku.find((entry) => entry.type === 'auto' && entry.source === 'dandanplay')
+              ?.selected ?? true
+          danmaku = [
+            { type: 'auto', source: 'dandanplay', content, selected },
+            ...state.danmaku.filter((entry) => entry.type !== 'auto'),
+          ]
+        }
+        try {
+          // 匹配已确认即写入历史，下次打开直接使用本地匹配
+          await deps.history.save({
+            hash: video.hash,
+            source: getPersistentMediaSource(video),
+            animeId: match.animeId,
+            episodeId: match.episodeId,
+            animeTitle: match.animeTitle,
+            episodeTitle: match.episodeTitle,
+            danmaku,
+          })
+          if (content) {
+            if (deps.cache.commit) await deps.cache.commit(video.hash, danmaku, isCurrent)
+            else await deps.cache.set(video.hash, danmaku)
+          }
+        } catch (error) {
+          // 持久化失败不影响本次会话接入弹幕，也不误报为上游请求失败
+          if (isCurrent()) console.error('保存后台弹幕失败:', error)
+        }
+        if (!isCurrent() || !isPending()) return
+        this.applyEvent({
+          type: 'backgroundSettled',
+          match,
+          matchOrigin,
+          danmaku,
+          mergedComments: mergeDanmakuEntries(danmaku),
+          danmakuLoadFailed: !content,
+        })
+      })
+      .finally(() => {
+        this.sourceWriteCount--
+      })
+    this.sourceWrites = pending.catch(() => {})
+    return pending
+  }
+
+  /** 队列内的提交直接推进状态，避免与其他来源写入在微任务间交错 */
+  private applyEvent(event: PipelineEvent) {
+    this.stateSubject.next(reduce(this.currentState, event))
   }
 
   private matchAndLoad(video: VideoInfo, deps: ServiceDeps): Observable<PipelineEvent> {

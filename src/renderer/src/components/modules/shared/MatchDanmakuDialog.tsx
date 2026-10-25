@@ -11,6 +11,7 @@ import { handleRematchLibraryUpdate } from '@renderer/database/lib/library-write
 import { ipcClient } from '@renderer/lib/client'
 import { apiClient } from '@renderer/request'
 import { RouteName, useCurrentRoute } from '@renderer/router'
+import { usePlayerLoadingState } from '@renderer/services/player-loading/hooks'
 import { getPlayerLoadingService } from '@renderer/services/player-loading/index'
 import { usePlayerPortalContainer } from '@renderer/services/player-runtime'
 import { useQuery } from '@tanstack/react-query'
@@ -24,6 +25,12 @@ export const MatchDanmakuDialog = () => {
   const routes = useCurrentRoute()
   const portalContainer = usePlayerPortalContainer()
   const isLibraryPage = routes?.path === RouteName.LIBRARY
+  const loading = usePlayerLoadingState()
+  // 播放中沿用优先播放后台匹配得到的非精确候选，免去重新搜索；只在内存中，不重复请求
+  const playingCandidates =
+    !isLibraryPage && loading.step === 'ready' && loading.video.hash === hash
+      ? loading.matchCandidates
+      : undefined
 
   // 仅在影视库页面获取匹配数据（播放中由 service 管理）
   const { data: matchData } = useQuery({
@@ -79,7 +86,8 @@ export const MatchDanmakuDialog = () => {
   return (
     <MatchAnimeDialog
       container={isLibraryPage ? undefined : portalContainer}
-      matchData={matchData}
+      // 不传 isLoading，避免候选为非精确匹配时弹窗被自动打开
+      matchData={isLibraryPage ? matchData : playingCandidates}
       onSelected={handleUpdateHistory}
     />
   )

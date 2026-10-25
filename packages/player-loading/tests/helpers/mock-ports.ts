@@ -129,5 +129,6 @@ export function createMockDeps(overrides?: Partial<ServiceDeps>): ServiceDeps {
     cache: createMockCache(overrides?.cache as any),
     importer: createMockImporter(overrides?.importer as any),
     history: createMockHistory(overrides?.history as any),
+    policy: overrides?.policy,
   }
 }

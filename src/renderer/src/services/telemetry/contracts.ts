@@ -19,6 +19,8 @@ export interface CommonTelemetryProperties {
   playback_session_id?: string
 }
 
+export type LoadMode = 'complete' | 'play_first'
+
 export interface TelemetryEventMap {
   api_route_changed: ApiRouteChange
   api_request_completed: ApiRequestResult
@@ -70,6 +72,8 @@ export interface TelemetryEventMap {
   }
   video_import_completed: {
     operation_id: string
+    /** complete：等弹幕就绪再播放；play_first：先开播、后台接入弹幕 */
+    load_mode: LoadMode
     duration_ms: number
     container?: string
     duration_bucket?: string
@@ -77,9 +81,18 @@ export interface TelemetryEventMap {
   video_import_failed: { operation_id: string; error_code: string; duration_ms: number }
   danmaku_match_completed: {
     operation_id: string
-    result: 'automatic' | 'manual' | 'none' | 'cancelled'
+    load_mode: LoadMode
+    /** unmatched：后台匹配无精确结果；failed：后台匹配接口失败（仅优先播放模式产生） */
+    result: 'automatic' | 'manual' | 'none' | 'cancelled' | 'unmatched' | 'failed'
     duration_ms: number
     comment_count?: number
+  }
+  /** 加载流程进入可播放状态；优先播放模式下早于 danmaku_match_completed */
+  playback_ready: {
+    operation_id: string
+    load_mode: LoadMode
+    duration_ms: number
+    has_danmaku: boolean
   }
   media_prepare_completed: {
     operation_id: string
