@@ -77,3 +77,4 @@
 - 2026-10-12: [upgrade-minor-dependencies](./archive/2026-10-12-upgrade-minor-dependencies/) — 依赖批次 A：补丁与次版本升至最新（Electron 44.7、Vite 8.3、React 19.3、Mediabunny 1.61 等），移除未用 dotenv，asar 4 改 ESM import，双端构建与测试通过
 - 2026-10-17: [add-linux-desktop-release](./archive/2026-10-17-add-linux-desktop-release/) — 恢复 Linux x64/arm64 桌面发行：AppImage+deb、AppImage 自动更新、渠道源可选平台、桌面集成与最终包校验
 - 2026-10-25: [add-play-first-danmaku-loading](./archive/2026-10-25-add-play-first-danmaku-loading/) — 新增默认关闭的优先播放开关：导入后先开播，后台匹配与加载弹幕并接入，未精确匹配以 Toast 提示手动匹配
+- 2026-10-25: [add-media-sources](./archive/2026-10-25-add-media-sources/) — 新增桌面端媒体源：连接 WebDAV、Jellyfin、Emby 浏览播放，主进程持凭证，支持续播连播字幕与海报代理

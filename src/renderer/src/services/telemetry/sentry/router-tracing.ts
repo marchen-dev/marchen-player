@@ -18,6 +18,8 @@ interface RouterTracingSink {
 export const normalizeTelemetryRoute = (pathname: string): string => {
   if (pathname === '/downloads') return '/downloads'
   if (pathname === '/library') return '/library'
+  // 当前来源放在查询参数里，pathname 恒为 /media-sources，路由维度保持低基数
+  if (pathname === '/media-sources') return '/media-sources'
   if (pathname === '/player' || pathname === '/') return '/player'
   return '/unknown'
 }

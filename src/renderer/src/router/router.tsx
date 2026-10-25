@@ -4,6 +4,7 @@ import ErrorView from '@renderer/components/common/ErrorView'
 import { isWeb } from '@renderer/lib/utils'
 import Downloads from '@renderer/page/downloads'
 import Library from '@renderer/page/library'
+import MediaSources from '@renderer/page/media-sources'
 import VideoPlayer from '@renderer/page/player'
 import { createHashRouter, Navigate, useLocation } from 'react-router'
 
@@ -43,6 +44,12 @@ const allSidebarRoutes = [
     element: <Library />,
   },
   {
+    path: RouteName.MEDIA_SOURCES,
+    meta: { icon: 'icon-[mingcute--server-line]', title: '媒体源' },
+    errorElement: <ErrorView />,
+    element: <MediaSources />,
+  },
+  {
     path: RouteName.DOWNLOADS,
     meta: { icon: 'icon-[mingcute--download-2-line]', title: '下载' },
     errorElement: <ErrorView />,
@@ -79,6 +86,10 @@ export const router = [
             { path: RouteName.LIBRARY, element: <Navigate to={RouteName.PLAYER} replace /> },
             {
               path: RouteName.DOWNLOADS,
+              element: <Navigate to={RouteName.PLAYER} replace />,
+            },
+            {
+              path: RouteName.MEDIA_SOURCES,
               element: <Navigate to={RouteName.PLAYER} replace />,
             },
           ]

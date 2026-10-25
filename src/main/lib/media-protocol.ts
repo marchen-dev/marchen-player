@@ -4,11 +4,12 @@ import { randomUUID } from 'node:crypto'
 import { realpath, stat } from 'node:fs/promises'
 import { extname, resolve, sep } from 'node:path'
 import { isVideoFile } from '@marchen/shared/media'
+import { SOURCE_IMAGE_HOST } from '@marchen/shared/media-sources'
 import { openRemoteRangeSource, REMOTE_LIMITS } from '@marchen/shared/media/remote'
 import { isDownloadedMediaAvailable } from '../services/downloads/availability'
 import { fileRangeResponse } from './file-range-response'
 import { fromFilename } from './mime-utils'
-import { fetchRemoteMedia } from './remote-media'
+import { createAuthorizedFetcher, fetchRemoteMedia } from './remote-media'
 import { cacheRemotePrefix } from './remote-prefix-cache'
 import { RemoteTransferMeter, trackRemoteTransfer } from './remote-transfer'
 
@@ -20,6 +21,8 @@ const leases = new Map<
     owner: number
     controller: AbortController
     meter?: RemoteTransferMeter
+    /** 媒体源租约所属来源，用于移除来源时撤销 */
+    sourceId?: string
   }
 >()
 const generations = new Map<number, number>()
@@ -40,6 +43,45 @@ export const isApplicationUrl = (value: string) => {
 }
 /** 请求 id 由调用者持有，IPC 尚未完成时也可取消探测。 */
 export async function createRemoteMediaLease(url: string, id: string, owner: WebContents) {
+  return openRemoteLease(id, owner, (signal) =>
+    openRemoteRangeSource(url, signal, fetchRemoteMedia),
+  )
+}
+
+/** provider 解析出的上游请求；只在主进程内流转，renderer 拿到的只有 marchen://media 地址。 */
+export interface ProviderPlaybackTarget {
+  url: string
+  headers: Record<string, string>
+  /** 鉴权头只发往这个 origin */
+  origin: string
+  /** Jellyfin 的 /stream 路径推不出真实文件名，弹幕匹配需要 provider 给出的文件名 */
+  name: string
+  sourceId: string
+}
+
+export async function createProviderMediaLease(
+  target: ProviderPlaybackTarget,
+  id: string,
+  owner: WebContents,
+) {
+  const fetcher = createAuthorizedFetcher(target.headers, target.origin)
+  return openRemoteLease(
+    id,
+    owner,
+    async (signal) => ({
+      ...(await openRemoteRangeSource(target.url, signal, fetcher)),
+      name: target.name,
+    }),
+    target.sourceId,
+  )
+}
+
+async function openRemoteLease(
+  id: string,
+  owner: WebContents,
+  open: (signal: AbortSignal) => Promise<RemoteRangeSource>,
+  sourceId?: string,
+) {
   if (owner.isDestroyed() || !isApplicationUrl(owner.getURL())) throw new Error('媒体请求来源无效')
   if (!/^[a-z0-9-]{36}$/i.test(id) || leases.has(id)) throw new Error('媒体租约无效')
   if ([...leases.values()].filter((lease) => lease.owner === owner.id).length >= 32)
@@ -47,20 +89,31 @@ export async function createRemoteMediaLease(url: string, id: string, owner: Web
   registerOwner(owner)
   const controller = new AbortController()
   const meter = new RemoteTransferMeter()
-  const remote = openRemoteRangeSource(url, controller.signal, fetchRemoteMedia).then((source) => {
+  const remote = open(controller.signal).then((source) => {
     controller.signal.throwIfAborted()
     return cacheRemotePrefix(trackRemoteTransfer(source, meter), controller.signal)
   })
-  leases.set(id, { owner: owner.id, controller, remote, meter })
+  leases.set(id, { owner: owner.id, controller, remote, meter, sourceId })
   try {
     const source = await remote
     controller.signal.throwIfAborted()
     return { id, url: `marchen://media/${id}`, size: source.size, name: source.name }
-  } catch {
+  } catch (error) {
     leases.delete(id)
     controller.abort()
+    // 媒体源需要区分「不支持范围读取」「登录失效」等，由调用方映射错误码
+    if (sourceId) throw error
     throw new Error('视频链接无法访问或不支持按需读取')
   }
+}
+
+/** 移除来源或重置应用时撤销该来源的全部租约，正在进行的读取随之中止。 */
+export function releaseSourceMediaLeases(sourceId?: string) {
+  for (const [id, lease] of leases)
+    if (lease.sourceId && (sourceId === undefined || lease.sourceId === sourceId)) {
+      lease.controller.abort()
+      leases.delete(id)
+    }
 }
 
 async function remoteResponse(source: RemoteRangeSource, id: string, request: Request) {
@@ -200,6 +253,12 @@ export function releaseMediaLease(id: string, owner: number) {
   }
 }
 
+/** 海报代理由媒体源服务注册，协议层不直接依赖 services，避免循环引用。 */
+let sourceImageHandler: ((url: URL) => Promise<Response>) | undefined
+export function setSourceImageHandler(handler: (url: URL) => Promise<Response>) {
+  sourceImageHandler = handler
+}
+
 export function createApplicationProtocol(rendererRoot: string) {
   return async (request: Request) => {
     try {
@@ -257,6 +316,14 @@ export function createApplicationProtocol(rendererRoot: string) {
         )
         response.headers.set('Vary', 'Origin')
         response.headers.set('Cache-Control', 'no-store')
+      } else if (url.host === SOURCE_IMAGE_HOST && sourceImageHandler) {
+        // 只服务应用页面里的 <img>，不允许被当作文档打开或被其他来源读取
+        if (request.destination !== 'image' && request.destination !== '')
+          return new Response(null, { status: 403 })
+        const origin = request.headers.get('Origin')
+        if (origin && !isApplicationUrl(origin)) return new Response(null, { status: 403 })
+        if (request.method !== 'GET') return new Response(null, { status: 405 })
+        response = await sourceImageHandler(url)
       } else return new Response(null, { status: 404 })
       response.headers.set('Cross-Origin-Resource-Policy', 'cross-origin')
       response.headers.set('X-Content-Type-Options', 'nosniff')

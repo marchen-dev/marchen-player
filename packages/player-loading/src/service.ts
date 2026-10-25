@@ -70,7 +70,11 @@ export class PlayerLoadingService {
       .pipe(
         filter((cmd) => this.canExecute(cmd)),
         switchMap((cmd) => {
-          if (['loadFromUrl', 'loadFromFile', 'loadFromPath', 'cancel'].includes(cmd.type))
+          if (
+            ['loadFromUrl', 'loadFromProvider', 'loadFromFile', 'loadFromPath', 'cancel'].includes(
+              cmd.type,
+            )
+          )
             this.session++
           const state = this.currentState
           const operationDeps = this.operations.start(this.deps)
@@ -83,6 +87,10 @@ export class PlayerLoadingService {
                 previousStep: this.currentState.step,
                 remoteRequest:
                   cmd.type === 'loadFromUrl' ? { url: cmd.url, recordId: cmd.recordId } : undefined,
+                providerRequest:
+                  cmd.type === 'loadFromProvider'
+                    ? { sourceId: cmd.sourceId, itemRef: cmd.itemRef }
+                    : undefined,
               }),
             ),
           )
@@ -116,6 +124,7 @@ export class PlayerLoadingService {
     const state = this.currentState
     switch (cmd.type) {
       case 'loadFromUrl':
+      case 'loadFromProvider':
       case 'loadFromFile':
       case 'loadFromPath':
       case 'cancel':
@@ -147,6 +156,7 @@ export class PlayerLoadingService {
   ): Observable<PipelineEvent> {
     switch (cmd.type) {
       case 'loadFromUrl':
+      case 'loadFromProvider':
       case 'loadFromFile':
       case 'loadFromPath':
         return this.executeFullLoad(cmd, deps)
@@ -214,6 +224,11 @@ export class PlayerLoadingService {
 
   loadFromUrl(url: string, recordId?: string): void {
     this.command$.next({ type: 'loadFromUrl', url, recordId })
+  }
+
+  /** 从媒体源条目加载（媒体源浏览、播放列表、续播） */
+  loadFromProvider(sourceId: string, itemRef: string): void {
+    this.command$.next({ type: 'loadFromProvider', sourceId, itemRef })
   }
 
   /** 从 File 对象加载（拖拽/点击选择） */
@@ -377,7 +392,10 @@ export class PlayerLoadingService {
    * 通过闭包传递中间数据，不依赖 this.currentState 的时序
    */
   private executeFullLoad(
-    cmd: Extract<Command, { type: 'loadFromFile' | 'loadFromPath' | 'loadFromUrl' }>,
+    cmd: Extract<
+      Command,
+      { type: 'loadFromFile' | 'loadFromPath' | 'loadFromUrl' | 'loadFromProvider' }
+    >,
     deps: ServiceDeps,
   ): Observable<PipelineEvent> {
     let video: VideoInfo
@@ -389,9 +407,11 @@ export class PlayerLoadingService {
         video =
           cmd.type === 'loadFromUrl'
             ? await deps.importer.importFromUrl!(cmd.url, cmd.recordId)
-            : cmd.type === 'loadFromFile'
-              ? await deps.importer.importFromFile(cmd.file)
-              : await deps.importer.importFromPath(cmd.path)
+            : cmd.type === 'loadFromProvider'
+              ? await deps.importer.importFromProvider!(cmd.sourceId, cmd.itemRef)
+              : cmd.type === 'loadFromFile'
+                ? await deps.importer.importFromFile(cmd.file)
+                : await deps.importer.importFromPath(cmd.path)
         return { type: 'hashed' as const, video }
       }),
       defer(() => (playFirst ? this.playFirstLoad(video, deps) : this.matchAndLoad(video, deps))),

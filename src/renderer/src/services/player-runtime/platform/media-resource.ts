@@ -1,7 +1,9 @@
 import type { DurableMediaSource } from '@marchen/shared/media'
 import type { CompatResource } from '../../media/compat/media-adapter'
+import { isRemoteKind } from '@marchen/shared/media'
 import { RemoteMediaError } from '@marchen/shared/media/remote'
 import { jotaiStore } from '@renderer/atoms/store'
+import { openProviderSource } from '../../media/provider-source'
 import { openRangeSource } from '../../media/range-source'
 import { takeRemoteImport } from '../../media/remote-handoff'
 import { activeRemoteLeaseAtom } from '../../media/remote-progress'
@@ -20,11 +22,13 @@ export async function openPlaybackResource(
   let owner: MediaSourceOwner
   let remoteLeaseId: string | null = null
   let compatSource: CompatResource['source']
-  if (source.kind === 'remote-url') {
+  if (isRemoteKind(source)) {
     // 只有主播放会话可以领取导入资源，缩略图等短任务不能提前消费并释放它。
     const range =
       (reuseImport ? takeRemoteImport(source, signal) : undefined) ??
-      (await openRemoteSource(source.url, signal))
+      (source.kind === 'remote-url'
+        ? await openRemoteSource(source.url, signal)
+        : await openProviderSource(source.sourceId, source.itemRef, signal))
     if (range.size !== source.size) {
       range.close()
       throw new RemoteMediaError('changed', '视频内容已变化，请重新打开')

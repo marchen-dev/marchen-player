@@ -1,7 +1,13 @@
 import type { LoadingState, PlayerLoadingService } from '@marchen/player-loading'
 import type { Subscription } from 'rxjs'
 
-import type { LoadMode, TelemetryEventMap, TelemetryEventName, TelemetrySpan } from './contracts'
+import type {
+  LoadMode,
+  MediaKind,
+  TelemetryEventMap,
+  TelemetryEventName,
+  TelemetrySpan,
+} from './contracts'
 import { telemetry } from './client'
 
 export type VideoImportSource = TelemetryEventMap['video_import_started']['source']
@@ -116,6 +122,7 @@ export class PlayerLoadingTelemetryObserver {
         operation_id: active.id,
         load_mode: active.loadMode,
         duration_ms: this.now() - active.startedAt,
+        media_kind: mediaKindOf(state.video.source?.kind),
         container: containerFromName(state.video.name),
       })
       active.finishMatchSpan = deferredSpan(this.sink, {
@@ -250,6 +257,23 @@ export const installPlayerLoadingTelemetry = (
     nextImportSource = undefined
     loadFromPath(path)
   }
+  const loadFromProvider = service.loadFromProvider.bind(service)
+  service.loadFromProvider = (sourceId, itemRef) => {
+    observer.noteCommand(nextImportSource ?? 'media_source')
+    nextImportSource = undefined
+    loadFromProvider(sourceId, itemRef)
+  }
 
   return service.state$.subscribe((state) => observer.observe(state))
 }
+
+const MEDIA_KINDS: Record<string, MediaKind> = {
+  'electron-file': 'local',
+  'web-file': 'web_file',
+  'remote-url': 'remote_url',
+  'provider-item': 'media_source',
+}
+
+/** 未知或缺失的来源类型不上报，避免把新类型误记成已有类型 */
+const mediaKindOf = (kind: string | undefined): MediaKind | undefined =>
+  kind ? MEDIA_KINDS[kind] : undefined

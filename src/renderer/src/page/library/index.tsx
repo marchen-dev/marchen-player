@@ -1,6 +1,7 @@
 import type { DB_Library, DB_LibraryEpisode } from '@renderer/database/schemas/library'
 import type { LibraryCardActions } from './LibraryCardContextMenu'
 import type { LibrarySource } from './selectors'
+import { isRemoteKind } from '@marchen/shared/media'
 import { MatchDanmakuDialog } from '@renderer/components/modules/shared/MatchDanmakuDialog'
 import { VideoDropZone } from '@renderer/components/modules/shared/VideoDropZone'
 import { useToast } from '@renderer/components/ui/toast'
@@ -21,8 +22,8 @@ import { usePlayerLoadingService } from '@renderer/services/player-loading/hooks
 import { captureFeatureUsed } from '@renderer/services/telemetry/features'
 import { reportOperationalError } from '@renderer/services/telemetry/operational-errors'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { useCallback, useMemo, useState } from 'react'
 
+import { useCallback, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router'
 import { DetailOverlay } from './DetailOverlay'
 import { EmptyState } from './EmptyState'
@@ -100,7 +101,7 @@ async function loadLibrarySources(items: DB_Library[]): Promise<Map<number, Libr
       if (animeId == null) return
       if (kind === 'electron-file') {
         sources.set(animeId, mergeLibrarySource(sources.get(animeId), 'local'))
-      } else if (kind === 'remote-url') {
+      } else if (isRemoteKind(rec.source)) {
         sources.set(animeId, mergeLibrarySource(sources.get(animeId), 'remote'))
       }
     })

@@ -5,7 +5,10 @@ export type {
   DurableMediaSource,
   ElectronDurableMediaSource,
   PersistentMediaSource,
+  ProviderMediaSource,
   RemoteMediaSource,
   SerializableDurableMediaSource,
   WebDurableMediaSource,
 } from './source'
+
+export { isRemoteKind, PROVIDER_HISTORY_PREFIX, providerHistoryKey } from './source'

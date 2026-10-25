@@ -1,3 +1,4 @@
+import type { MediaSourceErrorCode, MediaSourceKind } from '@marchen/shared/media-sources'
 import type { ApiRequestResult, ApiRouteChange } from '@renderer/request/api-route-client'
 
 export type TelemetryRuntime = 'main' | 'preload' | 'renderer'
@@ -20,6 +21,9 @@ export interface CommonTelemetryProperties {
 }
 
 export type LoadMode = 'complete' | 'play_first'
+
+/** 视频的实际来源类型，对应 HISTORY source.kind */
+export type MediaKind = 'local' | 'web_file' | 'remote_url' | 'media_source'
 
 export interface TelemetryEventMap {
   api_route_changed: ApiRouteChange
@@ -62,19 +66,53 @@ export interface TelemetryEventMap {
     received_bytes: number
     error_code?: 'remote_import_failed'
   }
+  /** 媒体源的添加、编辑与重新登录结果；地址、账号等高基数值不进属性 */
+  media_source_saved: {
+    provider: MediaSourceKind
+    action: 'add' | 'update' | 'relogin'
+    result: 'success' | 'failed'
+    error_code?: MediaSourceErrorCode
+  }
+  media_source_browse_failed: {
+    provider: MediaSourceKind
+    error_code: MediaSourceErrorCode
+  }
+  /** 媒体源条目打开结果（租约 + 识别前缀），与 remote_import_result 同口径 */
+  media_source_open_result: {
+    provider: MediaSourceKind
+    result: 'success' | 'failed' | 'cancelled'
+    duration_ms: number
+    fingerprint: boolean
+    restoring: boolean
+    received_bytes: number
+    error_code?: MediaSourceErrorCode
+  }
   app_session_started: { launch_source?: string }
   app_session_ended: { duration_ms: number; reason: 'quit' | 'reload' | 'reset' | 'unknown' }
   page_viewed: { route: string; previous_route?: string }
   feature_used: { feature: string; action: string; value?: string | number | boolean }
   video_import_started: {
     operation_id: string
-    source: 'click' | 'drop' | 'library' | 'history' | 'association' | 'remote_url' | 'download'
+    source:
+      | 'click'
+      | 'drop'
+      | 'library'
+      | 'history'
+      | 'association'
+      | 'remote_url'
+      | 'download'
+      | 'media_source'
   }
   video_import_completed: {
     operation_id: string
     /** complete：等弹幕就绪再播放；play_first：先开播、后台接入弹幕 */
     load_mode: LoadMode
     duration_ms: number
+    /**
+     * 视频实际来自哪里，与入口 source 正交：从播放记录续播时 source 为 history，
+     * 靠它区分本地文件、URL 直链和媒体源，按来源对比开播与卡顿
+     */
+    media_kind?: MediaKind
     container?: string
     duration_bucket?: string
   }

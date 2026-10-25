@@ -23,6 +23,15 @@ export const PlayerCompatibilityNotice = ({
   const support = getCompatSupport()
   if (engine?.switching) return null
   const source = 'video' in loading ? loading.video.source : undefined
+  if (source?.kind === 'provider-item' && (state.status === 'error' || engine?.error))
+    return (
+      <PlaybackFailure
+        description="媒体源视频播放失败，请检查服务器连接或重试。"
+        detail={state.status === 'error' ? state.error.message : engine?.error}
+        onExit={onExit}
+        onRetry={() => service.loadFromProvider(source.sourceId, source.itemRef)}
+      />
+    )
   if (source?.kind === 'remote-url' && (state.status === 'error' || engine?.error))
     return (
       <PlaybackFailure

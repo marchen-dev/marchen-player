@@ -4,6 +4,7 @@ import { resetMainTelemetryIdentity } from '@main/telemetry/sentry'
 import { getMainWindow } from '@main/windows/main'
 import { app } from 'electron'
 import { clearDownloads } from '../services/downloads/service'
+import { clearMediaSources } from '../services/media-sources'
 
 export const clearAllData = async () => {
   const win = getMainWindow()
@@ -12,6 +13,8 @@ export const clearAllData = async () => {
 
   try {
     await clearDownloads()
+    // 媒体源配置与凭证是 userData 下的普通文件，session 清理不会删除，需单独清除；失败则整体失败
+    await clearMediaSources()
     await ses.clearCache()
 
     await ses.clearStorageData({

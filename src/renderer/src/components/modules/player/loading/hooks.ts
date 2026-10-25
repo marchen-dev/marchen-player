@@ -12,6 +12,7 @@ import {
   loadHistoricalVideo,
   parseHistoricalImportSource,
 } from '@renderer/services/player-loading/load-history'
+import { reportOperationalError } from '@renderer/services/telemetry/operational-errors'
 import { useEffect, useRef } from 'react'
 import { useLocation, useNavigate } from 'react-router'
 
@@ -43,6 +44,16 @@ export const useLoadingHistoricalAnime = () => {
     navigate(location.pathname, { replace: true })
     void loadHistoricalVideo(hash, { service, importSource }).then((result) => {
       if (result.status === 'loaded' || result.status === 'cancelled') return
+      // 续播失败只弹提示不够：来源被移除、记录失效都要经遥测边界，便于看续播成功率。
+      // 媒体源的环境类错误（已移除、离线）在归一化时会降为 warning，不进 Sentry 异常
+      reportOperationalError(
+        'player',
+        `history.resume.${importSource}`,
+        result.status === 'error'
+          ? result.error
+          : Object.assign(new Error('播放记录缺少可用路径'), { code: 'missing_path' }),
+        result.status !== 'error',
+      )
       showFailedToast({
         title: '无法继续播放',
         description:

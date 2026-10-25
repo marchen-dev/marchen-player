@@ -9,10 +9,12 @@ import type { VideoImporter, VideoInfo } from '@marchen/player-loading'
 import { calculateFileHash } from '@marchen/shared/lib/calc-file-hash'
 import { ipcClient } from '@renderer/lib/client'
 import { releaseRemoteImport } from '@renderer/services/media/remote-handoff'
+import { importProviderVideo } from './provider-importer'
 import { importRemoteVideo } from './remote-importer'
 
 export class ElectronImporter implements VideoImporter {
   importFromUrl = importRemoteVideo
+  importFromProvider = importProviderVideo
   releaseImportedVideo = (video: VideoInfo) => releaseRemoteImport(video.source)
   /**
    * 从 File 对象导入（Electron 环境下的拖拽导入）

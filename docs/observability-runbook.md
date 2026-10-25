@@ -62,8 +62,26 @@ FFmpeg/Gateway/media.generation 与 compat_fallback_triggered 为历史版本口
 - `video_import_started.source` 增加 `remote_url` / `download`，影视库远程记录仍标为 `library`。
 - `feature_used` 补充弹幕复制结果、节点详情打开、文件列表展开及下载设置保存；不包含弹幕原文或保存目录。
 
+## 媒体源事件
+
+媒体源（WebDAV / Jellyfin / Emby）仅桌面端提供，`provider` 取 `webdav` / `jellyfin` / `emby`。错误码取自 `@marchen/shared/media-sources` 的 `MEDIA_SOURCE_ERROR_CODES`：`auth_failed`（仅 401）、`forbidden`（403，账号有效但无该项权限，不标记重新登录）、`unreachable`、`certificate`、`unsupported_version`、`range_unsupported`、`not_found`、`content_changed`、`source_removed`、`invalid_input`、`invalid_response`。
+
+- `media_source_saved`：添加、编辑、重新登录（`action` 为 `add` / `update` / `relogin`）的结果；失败时带 `error_code`。保存前必须测试连接通过，所以失败基本代表连接测试失败。
+- `media_source_browse_failed`：浏览某一层级失败。`auth_failed` 之后来源会被标记为需要重新登录，同一来源后续浏览不再发请求，直到重新登录。
+- `media_source_open_result`（关键事件，走 outbox）：打开条目（provider 租约 + 16MB 识别前缀）的结果，与 `remote_import_result` 同口径：`duration_ms`、`restoring`（命中已有播放记录）、`fingerprint`（是否取得指纹）、`received_bytes`；取消不算失败。来源已被移除时查不到 `provider`，不上报这条事件。
+- `video_import_started.source` 增加 `media_source`（从媒体源页面或媒体源播放列表打开）；从影视库、播放记录续播媒体源条目仍分别标为 `library` / `history`。
+- `video_import_completed.media_kind`：视频的实际来源类型，`local` / `web_file` / `remote_url` / `media_source`，与入口 `source` 正交。按来源对比开播、首帧与卡顿时用它，经 `operation_id` 关联播放事件；该字段上线前的数据没有它。
+- `feature_used(media_source, action, value)`：`open_source`（进入来源，value 为 provider）、`enter`（进入下一层，value 为节点类型）、`switch_view`（value 为 `grid` / `list`）、`refresh`、`remove`（value 为 provider）、`open_from_player`（播放器空态入口）。
+- 运营错误（`reportOperationalError`，`ipc` 域，error_code 形如 `IPC_AUTH_FAILED`）：
+  - 涉及操作：`media_source_add` / `media_source_update` / `media_source_relogin`、`media_source_remove`、`media_source_browse`、`media_source_open`。
+  - 用户环境造成的错误码（`auth_failed`、`forbidden`、`unreachable`、`certificate`、`unsupported_version`、`not_found`、`content_changed`、`source_removed`）只记 warning 日志，不作为 Sentry 异常，避免 NAS 关机、输错密码刷屏；`invalid_response`、`range_unsupported`、`invalid_input` 更可能是自身缺陷，仍上报异常。该分类只对 `MediaSourceError` 生效。产品事件的 `error_code` 不受影响，照常统计。
+  - 已降级、只记 warning 日志：`media_source_siblings`（没有上一集 / 下一集）、`media_source_subtitles`（字幕列表读取失败）、`media_source_read_subtitle`（异常本身已由 `SUBTITLE_RESOLVE_FAILED` 上报，这里补上带错误码的诊断记录）。
+- 海报代理（`marchen://source-image`）失败只返回 404，界面显示占位图，不上报，以免浏览一页产生大量错误。
+- 服务器地址、条目路径、标题都属于高基数值，不放进事件属性；排障时看 Sentry context 和 breadcrumb。凭证只保存在主进程的 `media-sources.json`，不会出现在 renderer 的请求或日志中。
+
 ## 播放记录事件
 
+- 从播放记录或影视库续播失败（来源已移除、记录无可用路径等）按 `player` 域的 `history.resume.history` / `history.resume.library` 上报；记录缺少路径标记为已恢复，媒体源环境类错误按上条降为 warning。
 - `video_import_started.source` 增加 `history`（从播放记录弹窗续播）；从影视库作品续播仍标为 `library`。
 - `feature_used(playback_history, action, value)`：`action` 为 `open` / `play` / `reveal` / `delete`，均不带 value。不包含文件名或路径。
 - 删除记录失败按 `player` 域的 `history.delete` 上报，在文件管理器中定位失败按 `ipc` 域的 `history.show_item_in_folder` 上报（已提示用户，标记为已恢复）。

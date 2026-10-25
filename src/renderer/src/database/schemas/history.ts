@@ -1,12 +1,13 @@
 import type { MediaAudioTrack } from '@marchen/playback-core'
 import type { DanmakuEntry } from '@marchen/shared/danmaku'
-import type { RemoteMediaSource } from '@marchen/shared/media'
+import type { ProviderMediaSource, RemoteMediaSource } from '@marchen/shared/media'
 
 export interface DB_History {
   audioTrack?: MediaAudioTrack
   hash: string
   source?:
     | RemoteMediaSource
+    | ProviderMediaSource
     | {
         kind: 'web-file'
         name: string

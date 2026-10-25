@@ -59,7 +59,7 @@ export interface HistoryEntry {
 
 /** 媒体来源在加载时写入一次，后续弹幕更新不重写来源。 */
 export const getPersistentMediaSource = (video: VideoInfo): PersistentMediaSource =>
-  video.source.kind === 'remote-url'
+  video.source.kind === 'remote-url' || video.source.kind === 'provider-item'
     ? video.source
     : video.source.kind === 'web-file'
       ? {
@@ -171,6 +171,8 @@ export interface ErrorState {
   step: 'error'
   error: { message: string; previousStep: string }
   remoteRequest?: { url: string; recordId?: string }
+  /** 媒体源条目打开失败时保留请求，供界面重试 */
+  providerRequest?: { sourceId: string; itemRef: string }
 }
 
 // ============================================================
@@ -196,6 +198,8 @@ export type Command =
   | { type: 'loadFromFile'; file: File }
   | { type: 'loadFromPath'; path: string }
   | { type: 'loadFromUrl'; url: string; recordId?: string }
+  /** 媒体源（WebDAV / Jellyfin / Emby）条目，地址与凭证由平台层解析 */
+  | { type: 'loadFromProvider'; sourceId: string; itemRef: string }
   | { type: 'selectMatch'; match: MatchedVideo }
   | { type: 'skipDanmaku' }
   | { type: 'retryMatch' }
@@ -261,6 +265,7 @@ export type PipelineEvent =
       message: string
       previousStep: string
       remoteRequest?: { url: string; recordId?: string }
+      providerRequest?: { sourceId: string; itemRef: string }
     }
   | { type: 'cancelled' }
 
@@ -301,6 +306,11 @@ export interface VideoImporter {
   /** 释放加载会话持有的临时导入资源引用；播放层独立管理自己的引用。 */
   releaseImportedVideo?: (video: VideoInfo) => void
   importFromUrl?: (url: string, recordId?: string, signal?: AbortSignal) => Promise<VideoInfo>
+  importFromProvider?: (
+    sourceId: string,
+    itemRef: string,
+    signal?: AbortSignal,
+  ) => Promise<VideoInfo>
   /** 从 File 对象导入（拖拽/点击选择） */
   importFromFile: (file: File) => Promise<VideoInfo>
   /** 从文件路径导入（IPC/历史记录） */

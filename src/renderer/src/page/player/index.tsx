@@ -17,23 +17,27 @@ import { usePageHeader } from '@renderer/hooks/use-page-header'
 import { usePlayAnimeFailedToast } from '@renderer/hooks/use-toast'
 import { ipcClient } from '@renderer/lib/client'
 import { checkIsVideoType, cn, isWeb } from '@renderer/lib/utils'
+import { RouteName } from '@renderer/router/name'
 import { selectFileBatch, selectPathBatch } from '@renderer/services/player-loading/file-playlist'
 import {
   usePlayerLoadingSelector,
   usePlayerLoadingService,
 } from '@renderer/services/player-loading/hooks'
+import { captureFeatureUsed } from '@renderer/services/telemetry/features'
 import { markNextPlayerImportSource } from '@renderer/services/telemetry/player-loading-observer'
 import { AnimatePresence } from 'framer-motion'
 import { useCallback, useMemo, useRef } from 'react'
+import { useNavigate } from 'react-router'
 
 const PLAYER_HEADER = { title: '视频播放', actions: null }
 
-/** 空态下方次级入口（URL 播放、播放记录）共用的按钮样式 */
+/** 空态下方次级入口（媒体源、URL 播放、播放记录）共用的按钮样式 */
 const SECONDARY_ENTRY_CLASS =
   'gap-2 bg-neutral-200/60 hover:bg-neutral-200/90 dark:bg-neutral-800 dark:hover:bg-neutral-700'
 
 export default function VideoPlayer() {
   const service = usePlayerLoadingService()
+  const navigate = useNavigate()
   const { showFailedToast } = usePlayAnimeFailedToast()
   const fileInputRef = useRef<HTMLInputElement | null>(null)
   // 实验室开关只控制新建入口；失败重试、更换链接和历史远程记录不受影响
@@ -43,6 +47,8 @@ export default function VideoPlayer() {
   const hasHistory = useHasHistoryRecords()
   const showRemoteEntry = !isWeb && remoteUrlPlayback
   const showHistoryEntry = !isWeb && hasHistory
+  // 媒体源只在桌面端提供
+  const showMediaSourceEntry = !isWeb
 
   usePageHeader(PLAYER_HEADER)
 
@@ -52,6 +58,10 @@ export default function VideoPlayer() {
 
   const remoteRequest = usePlayerLoadingSelector((state) =>
     state.step === 'error' ? state.remoteRequest : undefined,
+  )
+
+  const providerRequest = usePlayerLoadingSelector((state) =>
+    state.step === 'error' ? state.providerRequest : undefined,
   )
 
   const loadError = usePlayerLoadingSelector((state) =>
@@ -100,12 +110,16 @@ export default function VideoPlayer() {
           description={
             remoteRequest
               ? '视频链接无法打开，请重试或更换链接。'
-              : '视频打开失败，请检查文件是否可访问，或重新选择视频。'
+              : providerRequest
+                ? '媒体源视频无法打开，请检查服务器连接后重试。'
+                : '视频打开失败，请检查文件是否可访问，或重新选择视频。'
           }
           onRetry={
             remoteRequest && !isWeb
               ? () => service.loadFromUrl(remoteRequest.url, remoteRequest.recordId)
-              : undefined
+              : providerRequest && !isWeb
+                ? () => service.loadFromProvider(providerRequest.sourceId, providerRequest.itemRef)
+                : undefined
           }
           onChangeSource={
             remoteRequest && !isWeb
@@ -121,8 +135,21 @@ export default function VideoPlayer() {
         <div key="empty-player" className="flex flex-col items-center gap-5">
           <DragTips onClick={manualImport} />
           {/* 次级入口并排放在提示下方；都不满足条件时整行不渲染，空态与最初一致 */}
-          {(showRemoteEntry || showHistoryEntry) && (
+          {(showRemoteEntry || showHistoryEntry || showMediaSourceEntry) && (
             <div className="flex items-center gap-3">
+              {showMediaSourceEntry && (
+                <Button
+                  variant="secondary"
+                  className={SECONDARY_ENTRY_CLASS}
+                  onClick={() => {
+                    captureFeatureUsed('media_source', 'open_from_player')
+                    navigate(RouteName.MEDIA_SOURCES)
+                  }}
+                >
+                  <i aria-hidden="true" className="icon-[mingcute--server-line] text-base" />
+                  从媒体源打开
+                </Button>
+              )}
               {showRemoteEntry && (
                 <Button
                   variant="secondary"
@@ -152,9 +179,12 @@ export default function VideoPlayer() {
       manualImport,
       loadError,
       remoteRequest,
+      providerRequest,
       service,
       showRemoteEntry,
       showHistoryEntry,
+      showMediaSourceEntry,
+      navigate,
     ],
   )
 

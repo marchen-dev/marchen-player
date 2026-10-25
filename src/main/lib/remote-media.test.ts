@@ -2,8 +2,13 @@ import type { WebContents } from 'electron'
 import { EventEmitter } from 'node:events'
 import { openRemoteRangeSource, validateRemoteUrl } from '@marchen/shared/media/remote'
 import { describe, expect, it, vi } from 'vitest'
-import { createApplicationProtocol, createRemoteMediaLease } from './media-protocol'
-import { fetchRemoteMedia } from './remote-media'
+import {
+  createApplicationProtocol,
+  createProviderMediaLease,
+  createRemoteMediaLease,
+  releaseSourceMediaLeases,
+} from './media-protocol'
+import { createAuthorizedFetcher, fetchRemoteMedia } from './remote-media'
 const data = new Uint8Array(1024)
 const rangeFetch = () =>
   vi.fn<typeof fetch>(async (_url, options) => {
@@ -388,4 +393,121 @@ it('有持续进度的缓冲读取不在 15 秒整体期限被重试', async () 
     source.close()
     vi.useRealTimers()
   }
+})
+
+describe('媒体源鉴权请求', () => {
+  const auth = { Authorization: 'Basic dXNlcjpwYXNz' }
+  const authOf = (call: Parameters<typeof fetch>) =>
+    new Headers(call[1]?.headers).get('Authorization')
+
+  it('同源跳转保留鉴权头，跨域跳转去掉鉴权头', async () => {
+    const fetcher = vi.fn<typeof fetch>(async (url) => {
+      const href = String(url)
+      if (href === 'https://nas.local/dav/a.mkv')
+        return new Response(null, { status: 302, headers: { Location: '/dav/b.mkv' } })
+      if (href === 'https://nas.local/dav/b.mkv')
+        return new Response(null, {
+          status: 302,
+          headers: { Location: 'https://cdn.example.com/signed?x=1' },
+        })
+      return new Response('ok')
+    })
+    vi.stubGlobal('fetch', fetcher)
+    try {
+      const authorized = createAuthorizedFetcher(auth, 'https://nas.local/dav/')
+      const response = await authorized('https://nas.local/dav/a.mkv', {
+        headers: { Range: 'bytes=0-1' },
+      })
+      expect(await response.text()).toBe('ok')
+      expect(fetcher.mock.calls.map(authOf)).toEqual([auth.Authorization, auth.Authorization, null])
+      // 调用方自己的请求头每一跳都保留
+      expect(new Headers(fetcher.mock.calls[2][1]?.headers).get('Range')).toBe('bytes=0-1')
+    } finally {
+      vi.unstubAllGlobals()
+    }
+  })
+
+  it('跳转次数仍受上限约束', async () => {
+    const fetcher = vi.fn<typeof fetch>(
+      async () => new Response(null, { status: 302, headers: { Location: '/again' } }),
+    )
+    vi.stubGlobal('fetch', fetcher)
+    try {
+      const authorized = createAuthorizedFetcher(auth, 'https://nas.local')
+      await expect(authorized('https://nas.local/a.mkv')).rejects.toThrow('重定向失败')
+      expect(fetcher).toHaveBeenCalledTimes(6)
+    } finally {
+      vi.unstubAllGlobals()
+    }
+  })
+})
+
+describe('媒体源租约', () => {
+  it('携带鉴权头读取，使用 provider 给出的文件名，并可按来源撤销', async () => {
+    const owner = Object.assign(new EventEmitter(), {
+      id: 912,
+      isDestroyed: () => false,
+      getURL: (): string => 'marchen://app/index.html',
+    })
+    const fetcher = rangeFetch()
+    vi.stubGlobal('fetch', fetcher)
+    try {
+      const lease = await createProviderMediaLease(
+        {
+          url: 'https://jf.local/Videos/abc/stream?static=true',
+          headers: { 'X-Emby-Token': 'token' },
+          origin: 'https://jf.local',
+          name: '[Sub] Frieren - 01.mkv',
+          sourceId: 'src-a',
+        },
+        crypto.randomUUID(),
+        owner as unknown as WebContents,
+      )
+      expect(lease.name).toBe('[Sub] Frieren - 01.mkv')
+      expect(new Headers(fetcher.mock.calls[0][1]?.headers).get('X-Emby-Token')).toBe('token')
+      const handle = createApplicationProtocol('/tmp')
+      expect(
+        (await handle(new Request(lease.url, { headers: { Range: 'bytes=0-9' } }))).status,
+      ).toBe(206)
+      releaseSourceMediaLeases('src-other')
+      expect(
+        (await handle(new Request(lease.url, { headers: { Range: 'bytes=0-9' } }))).status,
+      ).toBe(206)
+      releaseSourceMediaLeases('src-a')
+      expect((await handle(new Request(lease.url))).status).toBe(404)
+    } finally {
+      owner.emit('destroyed')
+      vi.unstubAllGlobals()
+    }
+  })
+
+  it('打开失败时保留原始错误，便于映射错误码', async () => {
+    const owner = Object.assign(new EventEmitter(), {
+      id: 913,
+      isDestroyed: () => false,
+      getURL: (): string => 'marchen://app/index.html',
+    })
+    vi.stubGlobal(
+      'fetch',
+      vi.fn<typeof fetch>(async () => new Response('full', { status: 200 })),
+    )
+    try {
+      await expect(
+        createProviderMediaLease(
+          {
+            url: 'https://dav.local/a.mkv',
+            headers: {},
+            origin: 'https://dav.local',
+            name: 'a.mkv',
+            sourceId: 's',
+          },
+          crypto.randomUUID(),
+          owner as unknown as WebContents,
+        ),
+      ).rejects.toMatchObject({ code: 'range' })
+    } finally {
+      owner.emit('destroyed')
+      vi.unstubAllGlobals()
+    }
+  })
 })

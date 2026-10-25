@@ -1,3 +1,4 @@
+import { isRemoteKind } from '@marchen/shared/media'
 import { ipcClient } from '@renderer/lib/client'
 import { activeRemoteLeaseAtom, formatMediaBytes } from '@renderer/services/media/remote-progress'
 import { usePlayerLoadingSelector } from '@renderer/services/player-loading/hooks'
@@ -6,7 +7,7 @@ import { useEffect, useState } from 'react'
 
 export function MediaTransferRows() {
   const remote = usePlayerLoadingSelector(
-    (state) => 'video' in state && state.video.source?.kind === 'remote-url',
+    (state) => 'video' in state && isRemoteKind(state.video.source),
   )
   const lease = useAtomValue(activeRemoteLeaseAtom)?.id
   const [sample, setSample] = useState<{ lease: string; received: number; speed: number } | null>(

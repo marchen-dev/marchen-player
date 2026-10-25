@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  Marchen is an anime danmaku (bullet comment) player. Drop in a video or paste a direct video link, and danmaku are matched automatically.<br />
+  Marchen is an anime danmaku (bullet comment) player. Drop in a video, paste a direct video link, or connect to Jellyfin, Emby or WebDAV to browse your anime, and danmaku are matched automatically.<br />
   Available as a desktop app for macOS, Windows and Linux, or right in your browser.
 </p>
 
@@ -40,6 +40,13 @@
 - The compatibility engine is built on WebCodecs and WebAssembly, decoding in a Worker without blocking the UI, and falls back to multi-threaded software decoding when HEVC hardware decoding is unavailable
 - Decodes audio that browsers don't support natively, such as AC-3, E-AC-3 and DTS, via WebAssembly
 - Supports embedded subtitles and external ASS / SSA / SRT / VTT subtitles
+
+### Media Sources
+
+- Connect to Jellyfin, Emby and WebDAV, browse folders in the app and play directly
+- Reads original files without server-side transcoding, so danmaku matching works just like local videos
+- Episodes in the same season or folder form a playlist with previous / next episode and autoplay
+- Loads subtitles from the server or matching external subtitles in the same folder; shows watch progress while browsing and resumes from history or the library
 
 ### Library & Downloads
 

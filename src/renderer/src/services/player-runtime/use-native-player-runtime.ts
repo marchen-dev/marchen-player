@@ -1,6 +1,7 @@
 import type { MediaAudioTrack, PlaybackMediaRestoreState } from '@marchen/playback-core'
 import type { EnginePreference, PlayerEngine } from './engine-policy'
 import type { PlaybackResource } from './platform/media-resource'
+import { isRemoteKind } from '@marchen/shared/media'
 import { REMOTE_LIMITS, RemoteMediaError } from '@marchen/shared/media/remote'
 import { playerEngineStateAtom } from '@renderer/atoms/player-engine'
 import { playerSettingAtom } from '@renderer/atoms/settings/player'
@@ -52,7 +53,7 @@ export const useNativePlayerRuntime = (
     const adapter = new DualMediaAdapter(
       (engine) =>
         engine === 'native'
-          ? new HtmlVideoMediaAdapter(video, preparedRef.current?.source.kind === 'remote-url')
+          ? new HtmlVideoMediaAdapter(video, isRemoteKind(preparedRef.current?.source))
           : new CompatMediaAdapter(new VideoFramePresenter(compatVideo), async (id) => {
               const resource = bindingRef.current?.resource
               if (!resource || resource.id !== id) throw new Error('媒体来源已关闭')
@@ -193,8 +194,7 @@ export const useNativePlayerRuntime = (
             state.currentTime <= 0 && runtime.presentation?.firstFrame
               ? Promise.resolve()
               : waitForBrowserFirstFrame(video, {
-                  deadlineMs:
-                    media.source.kind === 'remote-url' ? REMOTE_LIMITS.playbackTimeout : 8000,
+                  deadlineMs: isRemoteKind(media.source) ? REMOTE_LIMITS.playbackTimeout : 8000,
                   signal,
                 })
           void firstFrame.catch(() => {})
@@ -483,7 +483,7 @@ export const useNativePlayerRuntime = (
       controller.signal.throwIfAborted()
       current.resource = resource
       // 远程文件先取得首帧，再进行可选的帧率采样，避免争抢启动带宽。
-      if (media.source.kind !== 'remote-url') void resource.metadata.readVideoFrameRate()
+      if (!isRemoteKind(media.source)) void resource.metadata.readVideoFrameRate()
       const [description, primaryAudio, history] = await Promise.all([
         resource.metadata.describe(),
         resource.input.getPrimaryAudioTrack(),
@@ -530,7 +530,7 @@ export const useNativePlayerRuntime = (
             ? 'native-incompatible'
             : 'native-trial',
       )
-      if (media.source.kind === 'remote-url') void resource.metadata.readVideoFrameRate()
+      if (isRemoteKind(media.source)) void resource.metadata.readVideoFrameRate()
       publish()
     })()
       .catch((error) => {

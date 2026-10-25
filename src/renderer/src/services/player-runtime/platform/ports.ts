@@ -18,7 +18,10 @@ export interface FullscreenPort {
 }
 
 export type PlaylistEntry = { id: string; name: string; fileHash?: string } & (
-  { path: string; file?: never } | { file: File; path?: never }
+  | { path: string; file?: never; provider?: never }
+  | { file: File; path?: never; provider?: never }
+  /** 媒体源条目：同目录或同季视频，播放时由主进程重新解析地址 */
+  | { provider: { sourceId: string; itemRef: string }; path?: never; file?: never }
 )
 
 export interface PlaylistPort {
@@ -44,6 +47,11 @@ export interface SubtitleTrackDescriptor {
   origin: 'embedded' | 'external'
   embedded?: { number: number; uid: string; codec: string }
   supported?: boolean
+  /**
+   * 外挂轨道在 HISTORY 中的稳定标识（写入 tag.path）。
+   * 媒体源字幕每次重新列出，靠它把列表中的轨道与历史选择对上，而不是重新分配 id。
+   */
+  persistenceKey?: string
 }
 
 export interface ResolvedSubtitleTrack extends SubtitleTrackDescriptor {

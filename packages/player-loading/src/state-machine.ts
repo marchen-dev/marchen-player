@@ -183,6 +183,7 @@ export function reduce(state: LoadingState, event: PipelineEvent): LoadingState 
         step: 'error',
         error: { message: event.message, previousStep: event.previousStep },
         remoteRequest: event.remoteRequest,
+        providerRequest: event.providerRequest,
       }
 
     case 'cancelled':

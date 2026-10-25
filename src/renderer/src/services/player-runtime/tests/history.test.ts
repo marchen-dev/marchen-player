@@ -4,7 +4,11 @@ import { Subject } from 'rxjs'
 import { describe, expect, it, vi } from 'vitest'
 import { PlaybackHistoryAdapter } from '../history/playback-history-adapter'
 import { PlaybackSnapshotAdapter } from '../history/playback-snapshot-adapter'
-import { subscribeAutomaticNext } from '../history/playlist'
+import {
+  resolvePlaylistNeighbors,
+  samePlaylistSource,
+  subscribeAutomaticNext,
+} from '../history/playlist'
 import { PlayerRuntime } from '../runtime'
 
 const mediaSnapshot = (overrides: Partial<PlaybackMediaSnapshot> = {}): PlaybackMediaSnapshot => ({
@@ -288,4 +292,59 @@ it('更新前 flush 必须传播写入失败，不能把日志降级当作保存
   })
   emit('metadata', mediaSnapshot({ duration: 100 }))
   await expect(adapter.flush()).rejects.toThrow('磁盘写入失败')
+})
+
+describe('媒体源播放列表', () => {
+  const source = (itemRef: string) => ({
+    kind: 'provider-item' as const,
+    hash: `provider:s:${itemRef}`,
+    sourceId: 's',
+    provider: 'jellyfin' as const,
+    itemRef,
+    name: `${itemRef}.mkv`,
+    size: 1,
+  })
+  const entry = (itemRef: string, sourceId = 's') => ({
+    id: `${sourceId}:${itemRef}`,
+    name: itemRef,
+    provider: { sourceId, itemRef },
+  })
+  const playlist = [entry('ep1'), entry('ep2'), entry('ep3')]
+
+  it('按来源与条目定位当前集及前后集', () => {
+    expect(resolvePlaylistNeighbors(playlist, source('ep2'))).toEqual({
+      currentIndex: 1,
+      previous: playlist[0],
+      next: playlist[2],
+    })
+    expect(samePlaylistSource(entry('ep2', 'other'), source('ep2'))).toBe(false)
+  })
+
+  it('最后一集没有下一集，播完停留', async () => {
+    const { runtime, emit } = createRuntime()
+    const play = vi.fn()
+    const unsubscribe = subscribeAutomaticNext(
+      runtime,
+      { list: vi.fn(), play },
+      async () => resolvePlaylistNeighbors(playlist, source('ep3')).next,
+    )
+    emit('ended', mediaSnapshot({ currentTime: 100, ended: true }))
+    await new Promise((resolve) => setTimeout(resolve, 0))
+    expect(play).not.toHaveBeenCalled()
+    unsubscribe()
+  })
+
+  it('播完自动切到同季下一集', async () => {
+    const { runtime, emit } = createRuntime()
+    const play = vi.fn()
+    const unsubscribe = subscribeAutomaticNext(
+      runtime,
+      { list: vi.fn(), play },
+      async () => resolvePlaylistNeighbors(playlist, source('ep1')).next,
+    )
+    emit('ended', mediaSnapshot({ currentTime: 100, ended: true }))
+    await new Promise((resolve) => setTimeout(resolve, 0))
+    expect(play).toHaveBeenCalledExactlyOnceWith(playlist[1])
+    unsubscribe()
+  })
 })

@@ -1,6 +1,7 @@
 import type { ErrorContext } from '../contracts'
 
 import type { OutboxItem, OutboxStorage } from '../outbox'
+import { MediaSourceError } from '@marchen/shared/media-sources'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { boundTelemetryString, boundTelemetryValue } from '../bound'
 import {
@@ -130,6 +131,29 @@ describe('operational error mapping', () => {
       }),
     )
   })
+
+  it('媒体源的用户环境类失败只记日志，自身缺陷类失败仍上报异常', () => {
+    const captureException = vi.fn()
+    const log = vi.fn()
+    configureTelemetry({
+      contextProvider: context,
+      client: { ...createNoopTelemetryClient(), captureException, log },
+    })
+
+    reportOperationalError('ipc', 'media_source_browse', new MediaSourceError('unreachable'))
+    reportOperationalError('ipc', 'media_source_add', new MediaSourceError('auth_failed'))
+    expect(captureException).not.toHaveBeenCalled()
+    expect(log).toHaveBeenCalledTimes(2)
+
+    reportOperationalError('ipc', 'media_source_open', new MediaSourceError('invalid_response'))
+    expect(captureException).toHaveBeenCalledWith(
+      expect.any(Error),
+      expect.objectContaining({ errorCode: 'IPC_INVALID_RESPONSE' }),
+    )
+    // 只认 MediaSourceError：其他领域里同名的 code 不受影响
+    reportOperationalError('ipc', 'other', Object.assign(new Error('x'), { code: 'not_found' }))
+    expect(captureException).toHaveBeenCalledTimes(2)
+  })
 })
 
 describe('react root error classification', () => {
@@ -224,6 +248,7 @@ describe('stable router tracing', () => {
     expect(pageLoad).toHaveBeenCalledWith('/player')
     expect(navigation).toHaveBeenCalledOnce()
     expect(navigation).toHaveBeenCalledWith('/library')
+    expect(normalizeTelemetryRoute('/media-sources')).toBe('/media-sources')
     expect(normalizeTelemetryRoute('/unexpected/path')).toBe('/unknown')
   })
 })

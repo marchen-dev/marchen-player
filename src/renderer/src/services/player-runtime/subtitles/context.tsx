@@ -13,7 +13,11 @@ import { captureFeatureUsed } from '@renderer/services/telemetry/features'
 import { reportSubtitleFailure } from '@renderer/services/telemetry/subtitles'
 import { createContext, use, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { LibassSubtitleAdapter } from './libass-subtitle-adapter'
-import { allocateExternalHistoryId, selectPreferredSubtitleTrack } from './preferences'
+import {
+  allocateExternalHistoryId,
+  resolveTrackHistoryId,
+  selectPreferredSubtitleTrack,
+} from './preferences'
 import { supportsEmbeddedSubtitles } from './source-policy'
 
 export interface SubtitleTrackOption extends SubtitleTrackDescriptor {
@@ -283,13 +287,7 @@ export const NativeSubtitleProvider = ({
         const historyTags = history?.subtitles?.tags ?? []
         const usedHistoryIds = new Set<number>()
         const options: SubtitleTrackOption[] = catalogTracks.map((track) => {
-          const embeddedId =
-            track.origin === 'embedded'
-              ? (track.embedded?.number ?? Number(track.id.replace('embedded:', '')))
-              : NaN
-          const historyId = Number.isInteger(embeddedId)
-            ? embeddedId
-            : allocateExternalHistoryId(historyTags, usedHistoryIds)
+          const historyId = resolveTrackHistoryId(track, historyTags, usedHistoryIds)
           usedHistoryIds.add(historyId)
           return { ...track, historyId }
         })

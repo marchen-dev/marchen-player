@@ -1,3 +1,4 @@
+import type { MediaSourceErrorCode } from '@marchen/shared/media-sources'
 import type {
   FullscreenPort,
   PlayerPorts,
@@ -7,10 +8,14 @@ import type {
   SubtitleCatalogPort,
   SubtitleTrackDescriptor,
 } from './ports'
+import { providerHistoryKey } from '@marchen/shared/media'
+import { MediaSourceError } from '@marchen/shared/media-sources'
 import { jotaiStore } from '@renderer/atoms/store'
 import { windowFullscreenAtom } from '@renderer/atoms/window'
 import { handlers, ipcClient } from '@renderer/lib/client'
 import { getPlayerLoadingService } from '@renderer/services/player-loading/index'
+import { reportOperationalError } from '@renderer/services/telemetry/operational-errors'
+import { markNextPlayerImportSource } from '@renderer/services/telemetry/player-loading-observer'
 import { mediaFrameQueue } from '../../media/frame-queue'
 import { parseTextSubtitles, textSubtitlesToAss } from '../../media/subtitles/text'
 import { getSelectedPathPlaylist } from '../../player-loading/file-playlist'
@@ -76,6 +81,26 @@ export const createElectronSourceLifecyclePort = createResourceLifecyclePort
 
 const createElectronPlaylistPort = (): PlaylistPort => ({
   list: async (currentSource) => {
+    if (currentSource.kind === 'provider-item') {
+      const { sourceId } = currentSource
+      const result = await ipcClient?.mediaSources.siblings({
+        sourceId,
+        itemRef: currentSource.itemRef,
+      })
+      if (!result?.ok) {
+        // 拿不到同目录列表只是没有上一集 / 下一集，当前视频照常播放
+        if (result)
+          reportOperationalError('ipc', 'media_source_siblings', toSourceError(result), true)
+        return []
+      }
+      return result.value.map((node) => ({
+        id: `${sourceId}:${node.ref}`,
+        name: node.title,
+        // 与播放记录主键一致，播放列表可以直接显示每集进度
+        fileHash: providerHistoryKey(sourceId, node.ref),
+        provider: { sourceId, itemRef: node.ref },
+      }))
+    }
     if (currentSource.kind !== 'electron-file') return []
     const selected = getSelectedPathPlaylist(currentSource.path)
     if (selected) return selected
@@ -87,6 +112,11 @@ const createElectronPlaylistPort = (): PlaylistPort => ({
     }))
   },
   play: (entry) => {
+    if (entry.provider) {
+      markNextPlayerImportSource('media_source')
+      getPlayerLoadingService().loadFromProvider(entry.provider.sourceId, entry.provider.itemRef)
+      return
+    }
     if (entry.path) getPlayerLoadingService().loadFromPath(entry.path)
   },
 })
@@ -96,12 +126,43 @@ const createElectronSnapshotPort = (): SnapshotPort => ({
     mediaFrameQueue.request(`history:${request.source.hash}`, { ...request, maxWidth: 640 }, 0),
 })
 
-const createElectronSubtitleCatalogPort = (): SubtitleCatalogPort => {
+export const createElectronSubtitleCatalogPort = (): SubtitleCatalogPort => {
   const externalTracks = new Map<string, { track: SubtitleTrackDescriptor; path: string }>()
   const nearbyTracks = new Map<string, { fileName: string; filePath: string }>()
+  const providerTracks = new Map<
+    string,
+    { sourceId: string; itemRef: string; subtitleId: string; format: string }
+  >()
 
   return {
     list: async (source, signal) => {
+      if (source.kind === 'provider-item') {
+        nearbyTracks.clear()
+        providerTracks.clear()
+        const { sourceId, itemRef } = source
+        const result = await ipcClient?.mediaSources.subtitles({ sourceId, itemRef })
+        signal?.throwIfAborted()
+        // 字幕列表读取失败不影响播放，手动导入的外挂字幕仍然可用
+        if (result && !result.ok)
+          reportOperationalError('ipc', 'media_source_subtitles', toSourceError(result), true)
+        const tracks = (result?.ok ? result.value : []).map((subtitle) => {
+          const id = `${PROVIDER_SUBTITLE_PREFIX}${subtitle.id}`
+          providerTracks.set(id, {
+            sourceId,
+            itemRef,
+            subtitleId: subtitle.id,
+            format: subtitle.format,
+          })
+          return {
+            id,
+            title: subtitle.title,
+            language: subtitle.language,
+            origin: 'external' as const,
+            persistenceKey: id,
+          }
+        })
+        return [...tracks, ...[...externalTracks.values()].map(({ track }) => track)]
+      }
       if (source.kind === 'remote-url') {
         nearbyTracks.clear()
         return [
@@ -139,6 +200,9 @@ const createElectronSubtitleCatalogPort = (): SubtitleCatalogPort => {
     },
     restoreExternal: async (path, title, id = `external:${path}`) => {
       if (!path) throw new Error(`请重新选择外挂字幕：${title}`)
+      // 媒体源字幕只能从当前列表读取；走到这里说明本次没能列出该字幕
+      if (path.startsWith(PROVIDER_SUBTITLE_PREFIX))
+        throw new Error(`媒体源字幕暂时无法读取：${title}`)
       const track: SubtitleTrackDescriptor = {
         id,
         title,
@@ -149,6 +213,22 @@ const createElectronSubtitleCatalogPort = (): SubtitleCatalogPort => {
     },
     resolve: async (source, track, signal) => {
       if (track.origin === 'external') {
+        const provider = providerTracks.get(track.id)
+        if (provider) {
+          const result = await ipcClient?.mediaSources.readSubtitle({
+            sourceId: provider.sourceId,
+            itemRef: provider.itemRef,
+            subtitleId: provider.subtitleId,
+          })
+          signal?.throwIfAborted()
+          if (!result?.ok) {
+            const error = result ? toSourceError(result) : new Error('字幕加载失败')
+            // 异常本身由字幕上下文经 reportSubtitleFailure 上报，这里只补带稳定错误码的诊断记录
+            reportOperationalError('ipc', 'media_source_read_subtitle', error, true)
+            throw error
+          }
+          return resolveSubtitleText(track, result.value, provider.format, track.id)
+        }
         const external = externalTracks.get(track.id)
         if (external) return resolveSubtitleFile(external.track, external.path)
         const nearby = nearbyTracks.get(track.id)
@@ -168,16 +248,31 @@ const resolveSubtitleFile = async (
 ): Promise<ResolvedSubtitleTrack> => {
   const result = await ipcClient?.player.readSubtitleText({ path })
   if (!result?.ok || !result.data) throw new Error(result?.message || '字幕文件读取失败')
-  const format = path.toLowerCase().split('.').pop()
+  return resolveSubtitleText(track, result.data, path.toLowerCase().split('.').pop(), path)
+}
+
+const PROVIDER_SUBTITLE_PREFIX = 'provider:'
+
+/** IPC 失败结果转为带稳定错误码的异常，供遥测按错误码聚合 */
+const toSourceError = (result: { code: MediaSourceErrorCode; message: string }) =>
+  new MediaSourceError(result.code, result.message)
+
+/** srt / vtt 先转换为 ASS，统一交给 libass 渲染；persistencePath 写入 HISTORY 以便恢复选择 */
+const resolveSubtitleText = (
+  track: SubtitleTrackDescriptor,
+  data: string,
+  format: string | undefined,
+  persistencePath: string,
+): ResolvedSubtitleTrack => {
   const converted =
-    format === 'srt' || format === 'vtt' ? parseTextSubtitles(result.data, format) : undefined
-  const text = converted ? textSubtitlesToAss(converted.cues) : result.data
+    format === 'srt' || format === 'vtt' ? parseTextSubtitles(data, format) : undefined
+  const text = converted ? textSubtitlesToAss(converted.cues) : data
   const url = URL.createObjectURL(new Blob([text], { type: 'text/plain;charset=utf-8' }))
   let released = false
   return {
     ...track,
     url,
-    persistencePath: path,
+    persistencePath,
     warning: converted?.warnings.join('；') || undefined,
     release: () => {
       if (released) return

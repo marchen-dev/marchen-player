@@ -6,6 +6,7 @@ import type {
   SubtitleCatalogPort,
   SubtitleTrackDescriptor,
 } from './ports'
+import { isRemoteKind } from '@marchen/shared/media'
 import { mediaFrameQueue } from '../../media/frame-queue'
 import { parseTextSubtitles, textSubtitlesToAss } from '../../media/subtitles/text'
 import { getWebPlaylist } from '../../player-loading/file-playlist'
@@ -20,7 +21,7 @@ export const createWebPlayerPorts = (): PlayerPorts => {
     fullscreen: createBrowserFullscreenPort(),
     sourceLifecycle,
     playlist: {
-      list: async (source) => (source.kind === 'remote-url' ? [] : getWebPlaylist()),
+      list: async (source) => (isRemoteKind(source) ? [] : getWebPlaylist()),
       play: (entry) => {
         if (entry.file)
           void import('../../player-loading').then(({ getPlayerLoadingService }) =>

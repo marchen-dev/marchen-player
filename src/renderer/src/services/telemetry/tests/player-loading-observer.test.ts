@@ -41,6 +41,31 @@ const createHarness = (playFirst = false) => {
 }
 
 describe('player-loading telemetry observer', () => {
+  it('从播放记录续播媒体源时，入口记 history，media_kind 记 media_source', () => {
+    const { observer, events } = createHarness()
+    observer.noteCommand('history')
+    observer.observe({ step: 'importing' })
+    observer.observe({
+      step: 'matching',
+      video: {
+        ...video,
+        source: {
+          kind: 'provider-item',
+          hash: 'provider:s1:ep1',
+          sourceId: 's1',
+          provider: 'jellyfin',
+          itemRef: 'ep1',
+          name: 'ep1.mkv',
+          size: 1,
+        },
+      },
+    })
+    expect(events.map((event) => event.properties)).toEqual([
+      expect.objectContaining({ source: 'history' }),
+      expect.objectContaining({ media_kind: 'media_source' }),
+    ])
+  })
+
   it('emits every successful stage once across duplicate ready states', () => {
     const { observer, events, tick } = createHarness()
     observer.noteCommand('click')
@@ -71,6 +96,7 @@ describe('player-loading telemetry observer', () => {
           operation_id: 'operation-1',
           load_mode: 'complete',
           duration_ms: 20,
+          media_kind: 'local',
           container: 'mkv',
         },
       },

@@ -86,7 +86,11 @@ export function executeMatch(video: VideoInfo, deps: ServiceDeps): Observable<Pi
       }
     }
 
-    if (video.source.kind === 'remote-url' && !video.matchHash)
+    // 远程来源没读到识别前缀时没有可靠 hash，直接交给用户手动匹配
+    if (
+      (video.source.kind === 'remote-url' || video.source.kind === 'provider-item') &&
+      !video.matchHash
+    )
       return { type: 'waitingUser' as const, video, matchData: { isMatched: false, matches: [] } }
 
     // 调 API 匹配

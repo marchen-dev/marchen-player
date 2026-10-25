@@ -60,6 +60,14 @@ export class LoadingOperations {
           check()
           return result
         },
+        importFromProvider: async (sourceId, itemRef) => {
+          check()
+          if (!deps.importer.importFromProvider) throw new Error('当前环境不支持媒体源')
+          const result = await deps.importer.importFromProvider(sourceId, itemRef, signal)
+          if (signal.aborted) deps.importer.releaseImportedVideo?.(result)
+          check()
+          return result
+        },
       },
       api: {
         match: async (params) => {

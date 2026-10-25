@@ -3,6 +3,7 @@ import type { PlayerLoadingService } from '@renderer/services/player-loading'
 import type { VideoImportSource } from '@renderer/services/telemetry/player-loading-observer'
 import { calculateFileHash } from '@marchen/shared/lib/calc-file-hash'
 import { VIDEO_FILE_ACCEPT } from '@marchen/shared/media'
+import { MediaSourceError } from '@marchen/shared/media-sources'
 import { db } from '@renderer/database/db'
 import { isWeb } from '@renderer/lib/utils'
 import { markNextPlayerImportSource } from '@renderer/services/telemetry/player-loading-observer'
@@ -21,8 +22,10 @@ interface HistoryReader {
 interface HistoricalVideoLoaderDeps {
   history?: HistoryReader
   service: Pick<PlayerLoadingService, 'loadFromPath'> &
-    Partial<Pick<PlayerLoadingService, 'loadFromFile' | 'loadFromUrl'>>
+    Partial<Pick<PlayerLoadingService, 'loadFromFile' | 'loadFromUrl' | 'loadFromProvider'>>
   selectFile?: () => Promise<File | null>
+  /** 媒体源是否仍存在；默认经 IPC 查询，测试可替换 */
+  hasMediaSource?: (sourceId: string) => Promise<boolean>
   /** 续播入口，用于区分导入漏斗来源；默认按影视库记 */
   importSource?: HistoricalImportSource
 }
@@ -49,6 +52,7 @@ export async function loadHistoricalVideo(
     history = db.history,
     service,
     selectFile = selectHistoricalFile,
+    hasMediaSource = mediaSourceExists,
     importSource = 'library',
   }: HistoricalVideoLoaderDeps,
 ): Promise<HistoricalVideoLoadResult> {
@@ -60,6 +64,16 @@ export async function loadHistoricalVideo(
       if (!service.loadFromUrl) throw new Error('当前加载器不支持网络视频')
       markNextPlayerImportSource(importSource)
       service.loadFromUrl(record.source.url, hash)
+      return { status: 'loaded', path: record.source.name }
+    }
+    if (record.source?.kind === 'provider-item') {
+      if (isWeb) throw new Error('网页版不支持媒体源，请使用桌面版')
+      if (!service.loadFromProvider) throw new Error('当前加载器不支持媒体源')
+      // 来源已被移除时立即提示，不进入加载流程；离线、登录失效由加载链路给出对应提示
+      if (!(await hasMediaSource(record.source.sourceId)))
+        throw new MediaSourceError('source_removed')
+      markNextPlayerImportSource(importSource)
+      service.loadFromProvider(record.source.sourceId, record.source.itemRef)
       return { status: 'loaded', path: record.source.name }
     }
     if (record.source?.kind === 'web-file') {
@@ -87,6 +101,13 @@ export async function loadHistoricalVideo(
   } catch (error) {
     return { status: 'error', error }
   }
+}
+
+async function mediaSourceExists(sourceId: string) {
+  const { ipcClient } = await import('@renderer/lib/client')
+  const result = await ipcClient?.mediaSources.list()
+  // 列表读取失败时不拦截，交给加载链路给出具体错误
+  return !result?.ok || result.value.some((source) => source.id === sourceId)
 }
 
 function selectHistoricalFile() {

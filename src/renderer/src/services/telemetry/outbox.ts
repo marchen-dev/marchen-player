@@ -10,6 +10,7 @@ export const CRITICAL_TELEMETRY_EVENTS = new Set<TelemetryEventName>([
   'download_state_changed',
   'download_progress_stalled',
   'remote_import_result',
+  'media_source_open_result',
   'app_session_started',
   'app_session_ended',
   'video_import_completed',

@@ -1,3 +1,4 @@
+import { providerHistoryKey } from '@marchen/shared/media'
 import {
   assertPersistentMediaPath,
   isForbiddenPersistentMediaPath,
@@ -41,5 +42,34 @@ describe('hISTORY 媒体路径持久化边界', () => {
         },
       }),
     ).toThrow()
+  })
+
+  describe('媒体源条目', () => {
+    const source = (itemRef: string, hash = providerHistoryKey('src-1', itemRef)) => ({
+      kind: 'provider-item' as const,
+      hash,
+      sourceId: 'src-1',
+      provider: 'webdav' as const,
+      itemRef,
+      name: 'EP01.mkv',
+      size: 1,
+    })
+
+    it('允许确定性主键与相对路径', () => {
+      expect(() => assertPersistentMediaPath({ source: source('/番剧/EP01.mkv') })).not.toThrow()
+    })
+
+    it.each(['https://nas.local/dav/EP01.mkv', 'marchen://media/abc', 'blob:x'])(
+      '拒绝地址形式的条目引用：%s',
+      (itemRef) => {
+        expect(() => assertPersistentMediaPath({ source: source(itemRef) })).toThrow('条目引用')
+      },
+    )
+
+    it('拒绝与来源和条目不一致的主键', () => {
+      expect(() =>
+        assertPersistentMediaPath({ source: source('/EP01.mkv', 'remote:abc') }),
+      ).toThrow('标识无效')
+    })
   })
 })
