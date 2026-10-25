@@ -25,39 +25,30 @@
 
 ### Danmaku
 
-- Automatically identifies the anime and episode of a video and loads its danmaku
-- Import local XML / JSON danmaku files, or add third-party danmaku from a link
-- Toggle danmaku per source platform; Traditional Chinese danmaku can be converted to Simplified
-- Adjust font size, duration and display area; click a comment to copy it
-- Danmaku are cached so videos load faster the next time
-- In-house danmaku engine with node pooling and GPU-composited animation, staying smooth even under dense danmaku
+- Identifies the anime and episode automatically and loads matching danmaku
+- Import local danmaku files or third-party links; convert Traditional Chinese to Simplified
+- In-house danmaku engine that stays smooth under dense danmaku
 
 ### Playback
 
-- Play local videos or HTTP/HTTPS direct video links
-- Supports common containers such as MP4, MKV, MOV, WebM and TS, with audio track switching
-- Dual playback engines: when the native engine can't play a file, it falls back to the compatibility engine automatically
-- The compatibility engine is built on WebCodecs and WebAssembly, decoding in a Worker without blocking the UI, and falls back to multi-threaded software decoding when HEVC hardware decoding is unavailable
-- Decodes audio that browsers don't support natively, such as AC-3, E-AC-3 and DTS, via WebAssembly
-- Supports embedded subtitles and external ASS / SSA / SRT / VTT subtitles
+- Plays local videos and HTTP/HTTPS direct links in common formats such as MP4 and MKV
+- Dual playback engines: when the native engine can't play a file, it switches to a compatibility engine built on WebCodecs + WebAssembly, decoding in a Worker so the UI stays responsive
+- Falls back to multi-threaded software decoding when HEVC hardware decoding is unavailable; AC-3 / E-AC-3 / DTS audio is decoded via WebAssembly
+- Embedded subtitles and external ASS / SSA / SRT / VTT
 
 ### Media Sources
 
-- Connect to Jellyfin, Emby and WebDAV, browse folders in the app and play directly
-- Reads original files without server-side transcoding, so danmaku matching works just like local videos
-- Episodes in the same season or folder form a playlist with previous / next episode and autoplay
-- Loads subtitles from the server or matching external subtitles in the same folder; shows watch progress while browsing and resumes from history or the library
+- Connect to Jellyfin, Emby and WebDAV, then browse and play without server-side transcoding
+- Autoplay next episode, load subtitles and remember watch progress
 
 ### Library & Downloads
 
-- The library remembers playback progress and thumbnails so you can pick up where you left off
-- Downloads support magnet links, BT torrents and HTTP direct links; pick individual episodes from a batch and play them as soon as they finish
+- The library remembers your progress so you can pick up where you left off
+- Download via magnet, BT or HTTP and play as soon as it finishes
 
 ### Others
 
-- Light / dark themes, optionally following the system
-- In-app update checks
-- In-app feedback with optional diagnostic logs
+- Dark mode, in-app updates and feedback
 
 ## 👀 Screenshots
 
