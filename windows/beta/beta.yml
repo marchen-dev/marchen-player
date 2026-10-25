@@ -1,19 +1,39 @@
-version: 1.0.7
+version: 1.1.0
 files:
-  - url: https://github.com/marchen-dev/marchen-player/releases/download/v1.0.7/Marchen-1.0.7-setup.exe
-    sha512: 6kYqv9Ve5f3IxX1WUuQSveUuIeQdQtqbUO4tQRxNPjcdaT2dQngSrwYT1JUIBBqReXWrY2jC39CSkgr+wNoXUA==
-    size: 173294549
-path: https://github.com/marchen-dev/marchen-player/releases/download/v1.0.7/Marchen-1.0.7-setup.exe
-sha512: 6kYqv9Ve5f3IxX1WUuQSveUuIeQdQtqbUO4tQRxNPjcdaT2dQngSrwYT1JUIBBqReXWrY2jC39CSkgr+wNoXUA==
-releaseNotes: "# Marchen 1.0.7\r
+  - url: https://github.com/marchen-dev/marchen-player/releases/download/v1.1.0/Marchen-1.1.0-windows-x64-setup.exe
+    sha512: +0ScwZlxMVnVqQIgi3HTM4pS4G9c0/7GJ0c1/EQUvhEm8iOOrav0V0F1bhKaIvH3pok7WJdqVQnzSQ9+Tri1jQ==
+    size: 173455196
+path: https://github.com/marchen-dev/marchen-player/releases/download/v1.1.0/Marchen-1.1.0-windows-x64-setup.exe
+sha512: +0ScwZlxMVnVqQIgi3HTM4pS4G9c0/7GJ0c1/EQUvhEm8iOOrav0V0F1bhKaIvH3pok7WJdqVQnzSQ9+Tri1jQ==
+releaseNotes: "# Marchen 1.1.0\r
 
   \r
 
-  ## Linux\r
+  ## 媒体源\r
 
   \r
 
-  - 新增 Linux 版本，提供 x64 与 arm64 的 deb 和 AppImage 安装包。\r
+  - 新增「媒体源」，可连接 Jellyfin、Emby 和 WebDAV，在应用内浏览目录并直接播放，弹幕自动匹配与本地视频一致。\r
+
+  - 直接读取原文件，不经服务端转码；Jellyfin、Emby 显示海报和剧集信息，只有一季的剧集直接列出单集。\r
+
+  - 同一季或同一目录自动组成播放列表，支持上一集、下一集和自动连播。\r
+
+  - 自动加载服务端字幕或同目录的外挂字幕，字幕选择随播放记录保存。\r
+
+  - 浏览时显示观看进度和「已看完」，可从播放记录和影视库继续观看；服务器离线、登录失效或来源已移除时给出对应提示。\r
+
+  - 播放器首页新增「从媒体源打开」入口。\r
+
+  \r
+
+  ## 播放\r
+
+  \r
+
+  - 通用设置新增「优先播放视频」，默认关闭；开启后导入即开始播放，弹幕在后台匹配和加载后接入，不打断当前进度。\r
+
+  - 「通过 URL 播放」改为默认开启，此前手动关闭过的保持关闭。\r
 
   \r
 
@@ -21,5 +41,7 @@ releaseNotes: "# Marchen 1.0.7\r
 
   \r
 
-  - 升级 Electron 与播放相关依赖，提升稳定性。\r\n"
-releaseDate: 2026-10-17T11:48:57.835Z
+  - 安装包文件名带上系统名称，方便区分不同平台的下载。\r
+
+  - 升级播放相关依赖，提升稳定性。"
+releaseDate: 2026-10-25T13:01:52.737Z
