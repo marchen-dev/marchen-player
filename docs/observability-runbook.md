@@ -79,6 +79,11 @@ FFmpeg/Gateway/media.generation 与 compat_fallback_triggered 为历史版本口
 - 海报代理（`marchen://source-image`）失败只返回 404，界面显示占位图，不上报，以免浏览一页产生大量错误。
 - 服务器地址、条目路径、标题都属于高基数值，不放进事件属性；排障时看 Sentry context 和 breadcrumb。凭证只保存在主进程的 `media-sources.json`，不会出现在 renderer 的请求或日志中。
 
+## 网页端客户端推荐
+
+- `feature_used(desktop_promo, action)`：网页端首次访问时右下角的「下载桌面客户端」卡片。`shown` 为展示（播放器空闲 3 秒后出现），`download` 为点击下载，`dismiss` 为关闭或「以后再说」。
+- 点击下载或关闭后在 localStorage 写入 `marchen:desktop-promo-seen`，不再出现；展示中开始播放会暂时收起，不算看过，所以同一安装可能出现多次 `shown`，转化率按唯一 install_id 去重计算。
+
 ## 播放记录事件
 
 - 从播放记录或影视库续播失败（来源已移除、记录无可用路径等）按 `player` 域的 `history.resume.history` / `history.resume.library` 上报；记录缺少路径标记为已恢复，媒体源环境类错误按上条降为 warning。

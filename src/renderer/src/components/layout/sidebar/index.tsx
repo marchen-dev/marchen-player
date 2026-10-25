@@ -1,6 +1,5 @@
 import type { SidebarRouteObject } from '@renderer/router'
 import type { FC } from 'react'
-import { Button } from '@renderer/components/ui/button'
 import {
   Tooltip,
   TooltipContent,
@@ -80,29 +79,5 @@ const SidebarNavItem: FC<SidebarRouteObject> = ({ path, meta }) => {
         {title}
       </TooltipContent>
     </Tooltip>
-  )
-}
-
-/**
- * 「下载客户端」按钮。
- *
- * 当前不在 sidebar 内渲染，但仍然导出 —— `src/renderer/src/components/modules/app/Prepare.tsx`
- * 在 Web 首次启动时通过 toast action 引用它。删除会破坏 web 端首次引导。
- */
-export const DownloadClient = () => {
-  return (
-    <div className="text-center">
-      <Button variant="outline" asChild>
-        <a
-          href="https://github.com/marchen-dev/marchen-player/releases/latest"
-          target="_blank"
-          rel="noreferrer"
-          className="cursor-default"
-        >
-          <i className={cn('icon-[mingcute--download-2-fill]', 'mr-1 text-lg')} />
-          下载客户端
-        </a>
-      </Button>
-    </div>
   )
 }

@@ -3,6 +3,7 @@ import type { JSX } from 'react'
 import { AppHeader } from './components/layout/app-header/AppHeader'
 import { RootLayout } from './components/layout/root/RootLayout'
 import { Sidebar } from './components/layout/sidebar'
+import { DesktopPromo } from './components/modules/app/DesktopPromo'
 import { Prepare } from './components/modules/app/Prepare'
 import { PlaybackHistoryDialog } from './components/modules/history/PlaybackHistoryDialog'
 import { FeedbackDialog } from './components/modules/shared/FeedbackDialog'
@@ -23,6 +24,8 @@ function App(): JSX.Element {
         <Sidebar />
         <Content />
         <FeedbackDialog />
+        {/* 网页端首次访问推荐桌面客户端，只出现一次 */}
+        {isWeb && <DesktopPromo />}
         {!isWeb && (
           <>
             <IpcListener />
