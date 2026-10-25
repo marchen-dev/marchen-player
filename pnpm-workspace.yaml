@@ -1,7 +1,7 @@
 minimumReleaseAgeExcludePrune: true
 
 minimumReleaseAgeExclude:
-  - '@suemor/libav-hevc@0.1.0 || 0.1.1'
+  - '@suemor/libav-hevc@0.1.1'
 trustPolicy: no-downgrade
 trustPolicyExclude:
   - prettier-plugin-tailwindcss@0.7.4
@@ -29,4 +29,3 @@ allowBuilds:
   simple-git-hooks: true
   utf-8-validate: true
   utp-native: false
-
