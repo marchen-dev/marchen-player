@@ -9,8 +9,8 @@
 </p>
 
 <p align="center">
-  Marchen 是一个动漫弹幕播放器。拖入视频、粘贴视频直链，或连接 Jellyfin、Emby、WebDAV 直接浏览番剧，即可自动匹配弹幕。<br />
-  支持 macOS、Windows、Linux 客户端，也可以在浏览器中直接使用。
+  动漫弹幕播放器，打开视频即自动匹配弹幕。<br />
+  支持本地视频、视频直链与 Jellyfin / Emby / WebDAV，提供桌面客户端和网页版。
 </p>
 
 <p align="center">
