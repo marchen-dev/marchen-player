@@ -5,6 +5,10 @@
 <h1 align="center">Marchen</h1>
 
 <p align="center">
+  简体中文 | <a href="README.en.md">English</a>
+</p>
+
+<p align="center">
   Marchen 是一个动漫弹幕播放器。拖入视频或粘贴视频直链，即可自动匹配弹幕。<br />
   支持 macOS、Windows、Linux 客户端，也可以在浏览器中直接使用。
 </p>
