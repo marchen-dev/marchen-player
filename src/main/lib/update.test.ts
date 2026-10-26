@@ -106,6 +106,19 @@ describe('桌面更新服务', () => {
     const download = service.downloadDesktopUpdate()
     await service.downloadDesktopUpdate()
     expect(mocks.download).toHaveBeenCalledTimes(1)
+    mocks.events.get('download-progress')!({
+      percent: 40,
+      transferred: 40,
+      total: 100,
+      bytesPerSecond: 20,
+    })
+    expect(service.getUpdateState()).toMatchObject({
+      phase: 'downloading',
+      percent: 40,
+      transferred: 40,
+      total: 100,
+      bytesPerSecond: 20,
+    })
     mocks.events.get('download-progress')!({ percent: 100 })
     expect(service.getUpdateState().phase).toBe('preparing')
     mocks.events.get('update-downloaded')!()

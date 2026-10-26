@@ -53,6 +53,13 @@ const barrier = new UpdateSaveBarrier((id) => {
   }
   getRendererHandlers()?.prepareUpdate.send(id)
 })
+/** 下载进度的空值，开始新下载或已是最新时清掉上一次的残留数值 */
+const emptyProgress = {
+  percent: undefined,
+  transferred: undefined,
+  total: undefined,
+  bytesPerSecond: undefined,
+}
 const publish = (patch: Partial<DesktopUpdateState>) => {
   state = { ...state, ...patch, revision: state.revision + 1 }
   getRendererHandlers()?.desktopUpdate.send(state)
@@ -72,7 +79,7 @@ const failOrUpToDate = (error: unknown) => {
     (error as { code?: unknown } | null)?.code === 'ERR_UPDATER_CHANNEL_FILE_NOT_FOUND'
   ) {
     writeLog({ lv: 'warn', cat: 'updater', msg: 'linux_channel_metadata_missing' })
-    publish({ phase: 'upToDate', version: undefined, notes: undefined, percent: undefined })
+    publish({ phase: 'upToDate', version: undefined, notes: undefined, ...emptyProgress })
     return
   }
   fail(error)
@@ -219,12 +226,15 @@ export async function autoUpdateInit() {
     }),
   )
   autoUpdater.on('update-not-available', () =>
-    publish({ phase: 'upToDate', version: undefined, notes: undefined, percent: undefined }),
+    publish({ phase: 'upToDate', version: undefined, notes: undefined, ...emptyProgress }),
   )
   autoUpdater.on('download-progress', (progress) =>
     publish({
       phase: progress.percent >= 100 ? 'preparing' : 'downloading',
       percent: Math.min(100, Math.max(0, progress.percent)),
+      transferred: progress.transferred,
+      total: progress.total,
+      bytesPerSecond: progress.bytesPerSecond,
     }),
   )
   autoUpdater.on('update-downloaded', () => publish({ phase: 'ready', percent: 100 }))
@@ -277,7 +287,7 @@ export async function downloadDesktopUpdate() {
   )
     return state
   if (!downloadPromise) {
-    publish({ phase: 'downloading', percent: 0, error: undefined })
+    publish({ ...emptyProgress, phase: 'downloading', percent: 0, error: undefined })
     downloadPromise = autoUpdater
       .downloadUpdate()
       .catch(fail)

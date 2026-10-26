@@ -19,5 +19,11 @@ export interface DesktopUpdateState {
   version?: string
   notes?: string
   percent?: number
+  /** 下载阶段已接收字节数，来自 electron-updater 的 download-progress 事件 */
+  transferred?: number
+  /** 下载阶段安装包总字节数 */
+  total?: number
+  /** 下载阶段即时速度（字节 / 秒），用于展示速度与估算剩余时间 */
+  bytesPerSecond?: number
   error?: string
 }

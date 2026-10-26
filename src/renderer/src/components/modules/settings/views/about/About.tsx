@@ -1,9 +1,11 @@
+import type { DesktopUpdateState } from '@marchen/shared/types/update'
 import { version } from '@pkg'
 import { openFeedbackDialog } from '@renderer/atoms/feedback'
 import { desktopUpdateAtom } from '@renderer/atoms/progress'
 import { Logo } from '@renderer/components/icons/Logo'
 import { Button } from '@renderer/components/ui/button'
 import { ipcClient } from '@renderer/lib/client'
+import { formatBytes } from '@renderer/lib/format-bytes'
 import { cn, isWeb } from '@renderer/lib/utils'
 import { useMutation } from '@tanstack/react-query'
 import { useAtomValue } from 'jotai'
@@ -77,13 +79,8 @@ export const AboutView = () => {
                   {update.notes}
                 </p>
               )}
-              {update.phase === 'downloading' && (
-                <progress
-                  aria-label="更新下载进度"
-                  className="w-full"
-                  max={100}
-                  value={update.percent ?? 0}
-                />
+              {(update.phase === 'downloading' || update.phase === 'preparing') && (
+                <UpdateProgress update={update} />
               )}
               {update.error && (
                 <p role="alert" className="text-sm">
@@ -168,6 +165,57 @@ export const AboutView = () => {
         </div>
       </SettingsSection>
     </SettingsPage>
+  )
+}
+
+/** 剩余时间按秒估算，不足一分钟显示秒，避免小安装包一直显示「约 1 分钟」 */
+const formatEta = (seconds: number) =>
+  seconds < 60 ? `约 ${Math.max(1, Math.ceil(seconds))} 秒` : `约 ${Math.ceil(seconds / 60)} 分钟`
+
+/**
+ * 更新下载进度条，样式与下载页一致；
+ * 下载到 100% 后进入 preparing（校验安装包），保持满条并脉冲，提示仍在处理而不是卡住。
+ */
+const UpdateProgress = ({ update }: { update: DesktopUpdateState }) => {
+  const preparing = update.phase === 'preparing'
+  const percent = preparing ? 100 : Math.floor(update.percent ?? 0)
+  const { transferred, total, bytesPerSecond } = update
+  const eta =
+    total && transferred !== undefined && bytesPerSecond
+      ? (total - transferred) / bytesPerSecond
+      : undefined
+  return (
+    <div className="space-y-1.5">
+      <div
+        role="progressbar"
+        aria-label="更新下载进度"
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-valuenow={percent}
+        className="bg-muted h-1.5 overflow-hidden rounded-full"
+      >
+        <div
+          className={cn(
+            'bg-primary h-full rounded-full transition-[width] duration-300 ease-out',
+            preparing && 'animate-pulse',
+          )}
+          style={{ width: `${percent}%` }}
+        />
+      </div>
+      <div className="flex justify-between gap-4 text-xs text-[var(--settings-muted)] tabular-nums">
+        <span>
+          {total ? `${formatBytes(transferred ?? 0)} / ${formatBytes(total)} · ` : ''}
+          {percent}%
+        </span>
+        {!preparing && (
+          <span>
+            {bytesPerSecond
+              ? `${formatBytes(bytesPerSecond)}/s${eta === undefined ? '' : ` · ${formatEta(eta)}`}`
+              : '估算中'}
+          </span>
+        )}
+      </div>
+    </div>
   )
 }
 
