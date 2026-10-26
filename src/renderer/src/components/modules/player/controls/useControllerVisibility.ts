@@ -33,7 +33,11 @@ export const useControllerVisibility = ({ playing, locked }: ControllerVisibilit
       markActivity()
     }
 
-    const handleKeyboardActivity = () => markActivity()
+    const handleKeyboardActivity = (event: KeyboardEvent) => {
+      // 左右方向键是快进 / 快退快捷键：隐藏时不唤起控制栏，进度反馈交给迷你进度条，避免遮挡画面。
+      if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') return
+      markActivity()
+    }
     window.addEventListener('pointermove', handlePointerMove, { passive: true })
     window.addEventListener('pointerdown', handlePointerDown, { capture: true })
     window.addEventListener('keydown', handleKeyboardActivity)

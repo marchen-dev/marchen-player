@@ -95,8 +95,11 @@ export const PlayerControls = ({
   const rate = 'rate' in state ? state.rate : initialSnapshot.rate
   const controllerLocked =
     dragging || seeking || focused || hovered || chromeHovered || settingsPanelOpen
+  // seek 期间状态会短暂变为 seeking：若会恢复播放，仍按播放中计算自动隐藏，
+  // 否则键盘快进 / 快退会因"非播放态"强制唤起控制栏。
+  const autoHidePlaying = playing || (state.status === 'seeking' && state.resumeAfterSeek)
   const { visible, markActivity } = useControllerVisibility({
-    playing,
+    playing: autoHidePlaying,
     locked: controllerLocked,
   })
 
