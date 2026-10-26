@@ -1,3 +1,4 @@
+import type { GpuAcceleration } from '@marchen/shared/constants/telemetry'
 import { nanoid } from 'nanoid'
 
 const WEB_INSTALL_ID_KEY = 'marchen:telemetry-install-id'
@@ -26,6 +27,8 @@ export const getRendererTelemetryIdentity = async (): Promise<{
   platform: string
   arch: string
   packageType: string
+  /** 仅桌面端可知；Web 无法可靠判断浏览器是否软件渲染 */
+  gpuAcceleration?: GpuAcceleration
 }> => {
   // 避免测试和 Web 构建在模块求值阶段加载会读取 window 的 Electron IPC 客户端。
   if (typeof window !== 'undefined' && window.electron) {

@@ -1,6 +1,8 @@
 import * as Sentry from '@sentry/electron/main'
+import { app } from 'electron'
 
 import { isTelemetryEnabled, SENTRY_DSN } from '../lib/env'
+import { resolveGpuAcceleration } from '../lib/gpu-acceleration'
 import { resolvePackageType } from '../lib/package-type'
 import { getOrCreateTelemetryInstallId, telemetryAppSessionId } from './identity'
 import { registerPreloadErrorBridge } from './preload-errors'
@@ -33,6 +35,8 @@ export const initializeMainTelemetry = async (): Promise<void> => {
     tracesSampleRate: 1,
   })
   Sentry.setTags(buildTags)
+  // GPU 状态在 ready 之后才有效；主进程 scope 的 tag 会合并到 renderer 事件，便于按软件渲染筛选。
+  void app.whenReady().then(() => Sentry.setTag('gpu_acceleration', resolveGpuAcceleration()))
   registerPreloadErrorBridge()
 
   const installId = await getOrCreateTelemetryInstallId()

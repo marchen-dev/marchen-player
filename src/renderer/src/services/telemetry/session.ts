@@ -23,7 +23,10 @@ export const startTelemetrySession = async (options: {
   configureTelemetry({ client: options.client, contextProvider: context.get })
   configurePlaybackSessionContext(context.setPlaybackSessionId)
   telemetry.identify({ installId: identity.installId, appSessionId: context.appSessionId })
-  telemetry.capture('app_session_started', { launch_source: options.launchSource })
+  telemetry.capture('app_session_started', {
+    launch_source: options.launchSource,
+    gpu_acceleration: identity.gpuAcceleration,
+  })
 
   const end = async (
     reason: 'quit' | 'reload' | 'reset' | 'unknown' = 'unknown',

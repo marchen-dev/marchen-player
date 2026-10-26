@@ -4,6 +4,7 @@ import fs from 'node:fs/promises'
 import path from 'node:path'
 import { logDirectory, writeLog } from '@main/lib/diagnostic-log'
 import { fileOpenRequests } from '@main/lib/file-open-requests'
+import { resolveGpuAcceleration } from '@main/lib/gpu-acceleration'
 import { resolvePackageType } from '@main/lib/package-type'
 import {
   acknowledgeUpdateSave,
@@ -60,6 +61,7 @@ export const appGroup = {
     platform: process.platform,
     arch: process.arch,
     packageType: resolvePackageType(),
+    gpuAcceleration: resolveGpuAcceleration(),
   })),
 
   windowAction: t.procedure

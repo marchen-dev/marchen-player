@@ -1,3 +1,4 @@
+import type { GpuAcceleration } from '@marchen/shared/constants/telemetry'
 import type { SubtitleFailureReason } from '@marchen/shared/media'
 import type { MediaSourceErrorCode, MediaSourceKind } from '@marchen/shared/media-sources'
 import type { ApiRequestResult, ApiRouteChange } from '@renderer/request/api-route-client'
@@ -88,7 +89,7 @@ export interface TelemetryEventMap {
     received_bytes: number
     error_code?: MediaSourceErrorCode
   }
-  app_session_started: { launch_source?: string }
+  app_session_started: { launch_source?: string; gpu_acceleration?: GpuAcceleration }
   app_session_ended: { duration_ms: number; reason: 'quit' | 'reload' | 'reset' | 'unknown' }
   page_viewed: { route: string; previous_route?: string }
   feature_used: { feature: string; action: string; value?: string | number | boolean }

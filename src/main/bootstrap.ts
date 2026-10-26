@@ -8,6 +8,7 @@ import { initializeApp } from './initialize'
 import { writeLog } from './lib/diagnostic-log'
 import { isDev } from './lib/env'
 import { fileOpenRequests } from './lib/file-open-requests'
+import { resolveGpuAcceleration } from './lib/gpu-acceleration'
 import { getIconPath } from './lib/icon'
 import { createApplicationProtocol } from './lib/media-protocol'
 import { autoUpdateInit } from './lib/update'
@@ -111,6 +112,7 @@ function writeStartupSnapshot() {
       chrome: process.versions.chrome,
       locale: app.getLocale(),
       gpu: app.getGPUFeatureStatus(),
+      gpu_acceleration: resolveGpuAcceleration(),
     },
   })
 }
