@@ -22,6 +22,7 @@ export const createSentryTelemetryClient = (): TelemetryClient => ({
       if (context?.errorCode) scope.setTag('error_code', context.errorCode)
       if (context?.mechanism) scope.setTag('mechanism', context.mechanism)
       if (typeof context?.handled === 'boolean') scope.setTag('handled', context.handled)
+      if (context?.tags) scope.setTags(context.tags)
       if (context?.contexts) {
         const bounded = boundTelemetryValue(context.contexts)
         scope.setContext('diagnostics', bounded.value as Record<string, unknown>)

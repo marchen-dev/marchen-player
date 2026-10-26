@@ -6,7 +6,7 @@ import type {
   SubtitleCatalogPort,
   SubtitleTrackDescriptor,
 } from './ports'
-import { isRemoteKind } from '@marchen/shared/media'
+import { isRemoteKind, SubtitleError } from '@marchen/shared/media'
 import { mediaFrameQueue } from '../../media/frame-queue'
 import { parseTextSubtitles, textSubtitlesToAss } from '../../media/subtitles/text'
 import { getWebPlaylist } from '../../player-loading/file-playlist'
@@ -71,8 +71,10 @@ export const createWebSubtitleCatalogPort = (
 
   const createResolvedFileTrack = async (id: string, file: File) => {
     const format = file.name.toLowerCase().split('.').pop()
-    if (file.size > 8 * 1024 * 1024) throw new Error('外挂字幕超过 8 MiB')
-    const content = await file.text()
+    if (file.size > 8 * 1024 * 1024) throw new SubtitleError('too_large', '外挂字幕超过 8 MiB')
+    const content = await file.text().catch((cause: unknown) => {
+      throw new SubtitleError('read_failed', cause instanceof Error ? cause.message : '字幕文件读取失败')
+    })
     const converted =
       format === 'srt' || format === 'vtt' ? parseTextSubtitles(content, format) : undefined
     const source = await sourceLifecycle.prepareResource(

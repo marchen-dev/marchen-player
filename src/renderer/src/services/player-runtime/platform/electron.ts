@@ -8,7 +8,7 @@ import type {
   SubtitleCatalogPort,
   SubtitleTrackDescriptor,
 } from './ports'
-import { providerHistoryKey } from '@marchen/shared/media'
+import { providerHistoryKey, SubtitleError } from '@marchen/shared/media'
 import { MediaSourceError } from '@marchen/shared/media-sources'
 import { jotaiStore } from '@renderer/atoms/store'
 import { windowFullscreenAtom } from '@renderer/atoms/window'
@@ -247,7 +247,9 @@ const resolveSubtitleFile = async (
   path: string,
 ): Promise<ResolvedSubtitleTrack> => {
   const result = await ipcClient?.player.readSubtitleText({ path })
-  if (!result?.ok || !result.data) throw new Error(result?.message || '字幕文件读取失败')
+  if (!result) throw new SubtitleError('read_failed', '字幕文件读取失败')
+  if (!result.ok) throw new SubtitleError(result.reason, result.message)
+  if (!result.data) throw new SubtitleError('empty', '字幕文件为空')
   return resolveSubtitleText(track, result.data, path.toLowerCase().split('.').pop(), path)
 }
 

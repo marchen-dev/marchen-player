@@ -12,3 +12,6 @@ export type {
 } from './source'
 
 export { isRemoteKind, PROVIDER_HISTORY_PREFIX, providerHistoryKey } from './source'
+
+export type { SubtitleFailureReason } from './subtitle-errors'
+export { getSubtitleFailureReason, SubtitleError } from './subtitle-errors'

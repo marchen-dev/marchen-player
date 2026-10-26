@@ -1,3 +1,4 @@
+import type { SubtitleFailureReason } from '@marchen/shared/media'
 import type { MediaSourceErrorCode, MediaSourceKind } from '@marchen/shared/media-sources'
 import type { ApiRequestResult, ApiRouteChange } from '@renderer/request/api-route-client'
 
@@ -186,7 +187,11 @@ export interface TelemetryEventMap {
     video_queue_peak?: number
     audio_ahead_peak_s?: number
   }
-  subtitle_failed: { stage: 'resolve' | 'renderer' | 'catalog' | 'import'; error_code: string }
+  subtitle_failed: {
+    stage: 'resolve' | 'renderer' | 'catalog' | 'import'
+    error_code: string
+    reason: SubtitleFailureReason
+  }
   playback_failed: {
     operation_id: string
     attempt_id?: string
@@ -208,6 +213,8 @@ export interface ErrorContext {
   level?: 'warning' | 'error' | 'fatal'
   errorCode?: string
   fingerprint?: string[]
+  /** 仅放稳定的低基数枚举值，便于在 Sentry 中按维度筛选 */
+  tags?: Record<string, string>
   contexts?: Record<string, unknown>
 }
 

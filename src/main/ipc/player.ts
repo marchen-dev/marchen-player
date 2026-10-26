@@ -1,12 +1,13 @@
+import type { SubtitleFailureReason } from '@marchen/shared/media'
 import fs from 'node:fs'
 import path from 'node:path'
+
 import {
   createMediaLease,
   createRemoteMediaLease,
   getRemoteTransfer,
   releaseMediaLease,
 } from '@main/lib/media-protocol'
-
 import { showFileSelectionDialog } from '@main/modules/showDialog'
 import { tipc } from '@marchen/electron-ipc/main'
 import { calculateFileHashByBuffer } from '@marchen/shared/lib/calc-file-hash'
@@ -151,23 +152,23 @@ export const playerGroup = {
   }),
 
   readSubtitleText: t.procedure.input<{ path: string }>().action(async ({ input }) => {
+    // 失败时附带低基数 reason，renderer 只上报原因、不上报含路径的 message。
+    const fail = (reason: SubtitleFailureReason, message: string) =>
+      ({ ok: 0, reason, message }) as const
     try {
       const filePath = input.path
-      if (!(await getDownloads().available(filePath))) return { ok: 0, message: '字幕尚未下载完成' }
+      if (!(await getDownloads().available(filePath)))
+        return fail('not_downloaded', '字幕尚未下载完成')
       const extension = path.extname(filePath).toLowerCase()
       if (!['.ass', '.ssa', '.srt', '.vtt'].includes(extension)) {
-        return { ok: 0, message: '字幕文件格式不受支持' }
+        return fail('unsupported_format', '字幕文件格式不受支持')
       }
       const stats = fs.statSync(filePath)
-      if (!stats.isFile() || stats.size > 8 * 1024 * 1024) {
-        return { ok: 0, message: '字幕文件无效或过大' }
-      }
-      return { ok: 1, data: fs.readFileSync(filePath, 'utf-8') }
+      if (!stats.isFile()) return fail('read_failed', '字幕文件无效')
+      if (stats.size > 8 * 1024 * 1024) return fail('too_large', '字幕文件过大')
+      return { ok: 1, data: fs.readFileSync(filePath, 'utf-8') } as const
     } catch (error) {
-      return {
-        ok: 0,
-        message: error instanceof Error ? error.message : '字幕文件读取失败',
-      }
+      return fail('read_failed', error instanceof Error ? error.message : '字幕文件读取失败')
     }
   }),
 

@@ -1,3 +1,4 @@
+import { SubtitleError } from '@marchen/shared/media'
 import { expect, it } from 'vitest'
 import { parseTextSubtitles, textSubtitlesToAss } from '../subtitles/text'
 
@@ -22,4 +23,39 @@ it('拒绝损坏时间，不悄悄产生空轨或倒退时长', () => {
   expect(() => parseTextSubtitles('1\n00:70:00,000 --> 00:71:00,000\n坏时间', 'srt')).toThrow()
   expect(() => parseTextSubtitles('WEBVTT\n\n00:05.000 --> 00:04.000\n倒退', 'vtt')).toThrow()
   expect(() => parseTextSubtitles('WEBVTT\n\n', 'vtt')).toThrow()
+})
+it('sRT 接受一位小时、点号分隔与不足三位的毫秒', () => {
+  const doc = parseTextSubtitles(
+    '1\n0:00:01.5 --> 0:00:02,25 \n短格式\n\n2\n00:00:03,000 --> 00:00:04.000\n混用分隔',
+    'srt',
+  )
+  expect(doc.cues.map(({ start, end }) => [start, end])).toEqual([
+    [1.5, 2.25],
+    [3, 4],
+  ])
+  expect(doc.warnings).toEqual([])
+})
+it('跳过坏块并记录 warning，而不是整份失败', () => {
+  const doc = parseTextSubtitles(
+    '1\n00:00:01,000 --> 00:00:02,000\n正常\n\n2\nxx --> yy\n坏时间\n\n3\n00:00:05,000 --> 00:00:05,000\n零时长\n\n4\n00:00:06,000 --> 00:00:07,000\n正常二',
+    'srt',
+  )
+  expect(doc.cues.map((cue) => cue.text)).toEqual(['正常', '正常二'])
+  expect(doc.warnings).toEqual(['已跳过 2 条时间格式无效的字幕'])
+})
+it('失败时携带稳定原因', () => {
+  const reason = (run: () => unknown) => {
+    try {
+      run()
+    } catch (error) {
+      return error instanceof SubtitleError ? error.reason : 'not-subtitle-error'
+    }
+    return 'not-thrown'
+  }
+  expect(reason(() => parseTextSubtitles('1\n00:70:00,000 --> 00:71:00,000\n坏时间', 'srt'))).toBe(
+    'timestamp_invalid',
+  )
+  expect(reason(() => parseTextSubtitles('00:01.000 --> 00:02.000\n缺头', 'vtt'))).toBe('vtt_header')
+  expect(reason(() => parseTextSubtitles('WEBVTT\n\n', 'vtt'))).toBe('empty')
+  expect(reason(() => parseTextSubtitles('x'.repeat(8 * 1024 * 1024 + 1), 'srt'))).toBe('too_large')
 })
