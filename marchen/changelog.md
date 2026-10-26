@@ -79,3 +79,4 @@
 - 2026-10-25: [add-play-first-danmaku-loading](./archive/2026-10-25-add-play-first-danmaku-loading/) — 新增默认关闭的优先播放开关：导入后先开播，后台匹配与加载弹幕并接入，未精确匹配以 Toast 提示手动匹配
 - 2026-10-25: [add-media-sources](./archive/2026-10-25-add-media-sources/) — 新增桌面端媒体源：连接 WebDAV、Jellyfin、Emby 浏览播放，主进程持凭证，支持续播连播字幕与海报代理
 - 2026-10-25: [polish-update-download-progress](./archive/2026-10-25-polish-update-download-progress/) — 关于页更新下载进度改为与下载页一致的细进度条，补充大小、百分比、速度与剩余时间，校验阶段脉冲提示
+- 2026-10-26: [harden-subtitle-import-diagnostics](./archive/2026-10-26-harden-subtitle-import-diagnostics/) — 字幕失败上报低基数原因、SRT/VTT 解析跳过坏块并放宽时间戳、启动时标记 GPU 软件渲染
