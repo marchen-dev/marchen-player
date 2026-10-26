@@ -52,7 +52,7 @@ jobs:
           fetch-depth: 0
           lfs: true
       - run: git lfs checkout
-      - uses: pnpm/action-setup@v4.1.0
+      - uses: pnpm/action-setup@v6.1.0
       - uses: actions/setup-node@v4
         with:
           node-version: 24.x
@@ -207,7 +207,7 @@ jobs:
       # 下载地址只追加到 GitHub Release 正文；源文件同时是应用内更新说明，保持不含下载链接。
       - name: Append download links to release notes
         run: node scripts/desktop/release-body.mjs release-notes.md
-      - uses: pnpm/action-setup@v4.1.0
+      - uses: pnpm/action-setup@v6.1.0
       - name: Install release validation tools
         run: pnpm install --frozen-lockfile --ignore-scripts
       - name: Validate release assets
