@@ -71,6 +71,14 @@ Pick the installer for your system from [Releases](https://github.com/marchen-de
 | Linux x64 | `amd64.deb` (Ubuntu / Debian) or `x86_64.AppImage` |
 | Linux arm64 | `arm64.deb` or `arm64.AppImage` |
 
+### macOS: "Marchen is damaged and can't be opened"
+
+After moving the app to Applications, run in Terminal:
+
+```bash
+xattr -dr com.apple.quarantine /Applications/Marchen.app
+```
+
 ## 🔧 Development
 
 ```bash

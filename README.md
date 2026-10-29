@@ -71,6 +71,14 @@
 | Linux x64 | `amd64.deb`（Ubuntu / Debian）或 `x86_64.AppImage` |
 | Linux arm64 | `arm64.deb` 或 `arm64.AppImage` |
 
+### macOS 提示「已损坏，无法打开」
+
+把应用拖进「应用程序」后，在终端执行：
+
+```bash
+xattr -dr com.apple.quarantine /Applications/Marchen.app
+```
+
 ## 🔧 开发
 
 ```bash
