@@ -2,6 +2,7 @@ import type { LoadingState, PlayerLoadingService } from '@marchen/player-loading
 import type { Subscription } from 'rxjs'
 
 import type {
+  LoadingExitStep,
   LoadMode,
   MediaKind,
   TelemetryEventMap,
@@ -39,8 +40,29 @@ interface ActiveLoadingOperation {
   /** 优先播放已开播、弹幕仍在后台：等后台结束才记录匹配结果 */
   awaitingBackground: boolean
   lastStep?: LoadingState['step']
+  /** 当前所处的可计时阶段；优先播放的后台阶段也映射到 matching / loading_danmaku */
+  phase?: LoadingExitStep
+  phaseEnteredAt: number
+  /** 各阶段累计停留时长，重新匹配等回退路径会多次进入同一阶段 */
+  phaseMs: Partial<Record<LoadingExitStep, number>>
+  /** 最近一次非精确匹配给出的候选数 */
+  candidateCount?: number
   finishOperationSpan: () => void
   finishMatchSpan?: () => void
+}
+
+const EXIT_STEPS = new Set<LoadingState['step']>([
+  'hashing',
+  'matching',
+  'waiting_user',
+  'match_failed',
+  'loading_danmaku',
+])
+
+/** 把状态映射为可计时阶段：ready 只有在优先播放后台仍在进行时才算阶段 */
+const phaseOf = (state: LoadingState): LoadingExitStep | undefined => {
+  if (state.step === 'ready') return state.background?.phase
+  return EXIT_STEPS.has(state.step) ? (state.step as LoadingExitStep) : undefined
 }
 
 const deferredSpan = (sink: LoadingTelemetrySink, span: TelemetrySpan) => {
@@ -90,6 +112,8 @@ export class PlayerLoadingTelemetryObserver {
         loadMode: this.#readLoadMode(),
         awaitingBackground: false,
         lastStep: 'importing',
+        phaseEnteredAt: this.now(),
+        phaseMs: {},
         finishOperationSpan: deferredSpan(this.sink, {
           name: 'video import and danmaku match',
           op: 'player.loading',
@@ -108,6 +132,9 @@ export class PlayerLoadingTelemetryObserver {
     }
     if (!active || active.lastStep === state.step) return
     active.lastStep = state.step
+    // 先结算上一阶段，后续 hash_ms 与跳过来源都依赖结算前的阶段
+    const previousPhase = active.phase
+    this.#enterPhase(active, phaseOf(state))
     this.sink.breadcrumb(state.step, active.id)
 
     if (
@@ -124,6 +151,7 @@ export class PlayerLoadingTelemetryObserver {
         duration_ms: this.now() - active.startedAt,
         media_kind: mediaKindOf(state.video.source?.kind),
         container: containerFromName(state.video.name),
+        hash_ms: active.phaseMs.hashing,
       })
       active.finishMatchSpan = deferredSpan(this.sink, {
         name: 'danmaku match and load',
@@ -132,7 +160,10 @@ export class PlayerLoadingTelemetryObserver {
       })
     }
 
-    if (state.step === 'waiting_user') active.waitedForUser = true
+    if (state.step === 'waiting_user') {
+      active.waitedForUser = true
+      active.candidateCount = state.matchData.matches.length
+    }
 
     if (state.step === 'ready') {
       this.sink.capture('playback_ready', {
@@ -145,7 +176,7 @@ export class PlayerLoadingTelemetryObserver {
         active.awaitingBackground = true
         return
       }
-      this.#completeMatch(active, state)
+      this.#completeMatch(active, state, previousPhase)
       return
     }
 
@@ -159,20 +190,28 @@ export class PlayerLoadingTelemetryObserver {
       return
     }
 
-    if (state.step === 'idle') this.#cancelActive()
+    // 进入 idle 时阶段已结算，取消记录要用离开前的阶段
+    if (state.step === 'idle') this.#cancelActive(previousPhase)
   }
 
   /** 后台阶段的 ready→ready 变化不经过 step 去重，需要单独判断结束时机 */
   #observeBackground(active: ActiveLoadingOperation, state: LoadingState) {
     if (state.step === 'ready') {
-      if (!state.background) this.#completeMatch(active, state)
+      const previousPhase = active.phase
+      const next = phaseOf(state)
+      if (next !== previousPhase) this.#enterPhase(active, next)
+      if (!state.background) this.#completeMatch(active, state, previousPhase)
       return
     }
     // 后台未结束就被用户的重新匹配接管或取消（新加载在 importing 分支处理），按取消记录
     this.#cancelActive()
   }
 
-  #completeMatch(active: ActiveLoadingOperation, state: Extract<LoadingState, { step: 'ready' }>) {
+  #completeMatch(
+    active: ActiveLoadingOperation,
+    state: Extract<LoadingState, { step: 'ready' }>,
+    exitStep: LoadingExitStep | undefined,
+  ) {
     // background 存在时 episodeId 为 0 表示仍在匹配；此处 background 已结束，可按未匹配判断
     const result =
       state.danmakuStatus === 'unmatched'
@@ -190,6 +229,11 @@ export class PlayerLoadingTelemetryObserver {
       result,
       duration_ms: this.now() - active.startedAt,
       comment_count: state.mergedComments.length,
+      // 只有用户主动跳过才记录来源；播放记录里本就没有匹配的 none 不算跳过
+      skip_from_step: state.danmakuStatus === 'skipped' ? exitStep : undefined,
+      candidate_count: state.matchCandidates?.matches.length ?? active.candidateCount,
+      match_origin: state.matchOrigin,
+      ...this.#phaseDurations(active),
     })
     this.#finishActive()
   }
@@ -202,18 +246,42 @@ export class PlayerLoadingTelemetryObserver {
     }
   }
 
-  #cancelActive() {
+  #cancelActive(exitStep = this.#active?.phase) {
     const active = this.#active
     if (!active) return
     if (active.importCompleted) {
+      this.#enterPhase(active, undefined)
       this.sink.capture('danmaku_match_completed', {
         operation_id: active.id,
         load_mode: active.loadMode,
         result: 'cancelled',
         duration_ms: this.now() - active.startedAt,
+        skip_from_step: exitStep,
+        candidate_count: active.candidateCount,
+        ...this.#phaseDurations(active),
       })
     }
     this.#finishActive()
+  }
+
+  /** 结算当前阶段的停留时长并切换到下一阶段 */
+  #enterPhase(active: ActiveLoadingOperation, next: LoadingExitStep | undefined) {
+    const now = this.now()
+    if (active.phase) {
+      active.phaseMs[active.phase] =
+        (active.phaseMs[active.phase] ?? 0) + now - active.phaseEnteredAt
+    }
+    active.phase = next
+    active.phaseEnteredAt = now
+  }
+
+  /** 只输出经过的阶段，未经过的字段保持缺省，查询时与旧客户端一样按空值处理 */
+  #phaseDurations(active: ActiveLoadingOperation) {
+    return {
+      matching_ms: active.phaseMs.matching,
+      user_wait_ms: active.phaseMs.waiting_user,
+      danmaku_load_ms: active.phaseMs.loading_danmaku,
+    }
   }
 
   #finishActive() {

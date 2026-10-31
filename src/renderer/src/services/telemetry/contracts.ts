@@ -26,6 +26,9 @@ export type LoadMode = 'complete' | 'play_first'
 
 /** 视频的实际来源类型，对应 HISTORY source.kind */
 export type MediaKind = 'local' | 'web_file' | 'remote_url' | 'media_source'
+/** 加载流程中可被跳过或取消的步骤；优先播放的后台阶段沿用 matching / loading_danmaku */
+export type LoadingExitStep =
+  'hashing' | 'matching' | 'waiting_user' | 'match_failed' | 'loading_danmaku'
 
 export interface TelemetryEventMap {
   api_route_changed: ApiRouteChange
@@ -117,6 +120,8 @@ export interface TelemetryEventMap {
     media_kind?: MediaKind
     container?: string
     duration_bucket?: string
+    /** 停留在 hashing 步骤的耗时；远程来源需要读取识别前缀，用来区分导入慢在哪 */
+    hash_ms?: number
   }
   video_import_failed: { operation_id: string; error_code: string; duration_ms: number }
   danmaku_match_completed: {
@@ -126,6 +131,19 @@ export interface TelemetryEventMap {
     result: 'automatic' | 'manual' | 'none' | 'cancelled' | 'unmatched' | 'failed'
     duration_ms: number
     comment_count?: number
+    /**
+     * 仅 result 为 none（用户跳过弹幕）或 cancelled 时出现：离开时所处的步骤。
+     * matching 多为等不及，waiting_user 多为候选不合适，match_failed 为接口失败后放弃
+     */
+    skip_from_step?: LoadingExitStep
+    /** 出现过非精确匹配候选时的候选数；0 通常说明弹弹play 不认识这个视频 */
+    candidate_count?: number
+    /** 弹幕匹配的来源：auto 自动匹配、history 播放记录、manual 用户选择 */
+    match_origin?: 'auto' | 'history' | 'manual'
+    /** 以下为各步骤停留耗时，用来把接口耗时与用户犹豫时间分开；未经过该步骤时不出现 */
+    matching_ms?: number
+    user_wait_ms?: number
+    danmaku_load_ms?: number
   }
   /** 加载流程进入可播放状态；优先播放模式下早于 danmaku_match_completed */
   playback_ready: {

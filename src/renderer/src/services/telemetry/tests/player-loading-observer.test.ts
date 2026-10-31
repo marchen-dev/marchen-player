@@ -117,6 +117,8 @@ describe('player-loading telemetry observer', () => {
           result: 'automatic',
           duration_ms: 100,
           comment_count: 1,
+          matching_ms: 30,
+          danmaku_load_ms: 50,
         },
       },
     ])
@@ -200,6 +202,9 @@ describe('player-loading telemetry observer', () => {
           result: 'automatic',
           duration_ms: 215,
           comment_count: 1,
+          match_origin: 'auto',
+          matching_ms: 5,
+          danmaku_load_ms: 200,
         },
       },
     ])
@@ -230,6 +235,182 @@ describe('player-loading telemetry observer', () => {
     expect(run({ ...base, step: 'reloading', recovery: { target: match } })).toEqual([
       expect.objectContaining({ properties: expect.objectContaining({ result: 'cancelled' }) }),
     ])
+  })
+
+  it('记录 hashing 耗时、候选数与等待用户的时长', () => {
+    const { observer, events, tick } = createHarness()
+    observer.observe({ step: 'importing' })
+    tick(10)
+    observer.observe({ step: 'hashing', video: { name: 'anime.mkv' } })
+    tick(400)
+    observer.observe({ step: 'matching', video })
+    tick(800)
+    observer.observe({
+      step: 'waiting_user',
+      video,
+      matchData: { isMatched: false, matches: [match, match, match] },
+    })
+    tick(5_000)
+    observer.observe({ step: 'loading_danmaku', video, match })
+    tick(300)
+    observer.observe({
+      step: 'ready',
+      video,
+      match,
+      matchOrigin: 'manual',
+      danmaku: [],
+      mergedComments: [],
+    })
+
+    expect(events.find((event) => event.name === 'video_import_completed')).toMatchObject({
+      properties: { duration_ms: 410, hash_ms: 400 },
+    })
+    expect(events.at(-1)).toEqual({
+      name: 'danmaku_match_completed',
+      properties: {
+        operation_id: 'operation-1',
+        load_mode: 'complete',
+        result: 'manual',
+        duration_ms: 6_510,
+        comment_count: 0,
+        candidate_count: 3,
+        match_origin: 'manual',
+        matching_ms: 800,
+        user_wait_ms: 5_000,
+        danmaku_load_ms: 300,
+      },
+    })
+  })
+
+  it('跳过弹幕时记录离开前的步骤', () => {
+    const skipFrom = (before: LoadingState[]) => {
+      const harness = createHarness()
+      harness.observer.observe({ step: 'importing' })
+      harness.observer.observe({ step: 'matching', video })
+      for (const state of before) harness.observer.observe(state)
+      harness.tick(100)
+      harness.observer.observe({
+        step: 'ready',
+        video,
+        match: { episodeId: 0, animeId: 0, animeTitle: '', episodeTitle: '' },
+        danmakuStatus: 'skipped',
+        danmaku: [],
+        mergedComments: [],
+      })
+      return harness.events.at(-1)?.properties
+    }
+
+    expect(skipFrom([])).toMatchObject({ result: 'none', skip_from_step: 'matching' })
+    expect(
+      skipFrom([{ step: 'waiting_user', video, matchData: { isMatched: false, matches: [] } }]),
+    ).toMatchObject({ result: 'none', skip_from_step: 'waiting_user', candidate_count: 0 })
+    expect(
+      skipFrom([{ step: 'match_failed', video, error: { message: 'timeout' } }]),
+    ).toMatchObject({ result: 'none', skip_from_step: 'match_failed' })
+    // 已选定剧集、弹幕加载中跳过：保留匹配结果，result 不是 none，但仍记录跳过来源
+    const loading = createHarness()
+    loading.observer.observe({ step: 'importing' })
+    loading.observer.observe({ step: 'matching', video })
+    loading.observer.observe({ step: 'loading_danmaku', video, match })
+    loading.observer.observe({
+      step: 'ready',
+      video,
+      match,
+      danmakuStatus: 'skipped',
+      danmaku: [],
+      mergedComments: [],
+    })
+    expect(loading.events.at(-1)?.properties).toMatchObject({
+      skip_from_step: 'loading_danmaku',
+    })
+  })
+
+  it('没有跳过的未匹配结果不记录跳过来源', () => {
+    const { observer, events } = createHarness()
+    observer.observe({ step: 'importing' })
+    observer.observe({ step: 'matching', video })
+    observer.observe({
+      step: 'ready',
+      video,
+      match: { episodeId: 0, animeId: 0, animeTitle: '', episodeTitle: '' },
+      danmaku: [],
+      mergedComments: [],
+    })
+    expect(events.at(-1)?.properties).toMatchObject({ result: 'none' })
+    expect(events.at(-1)?.properties).not.toHaveProperty('skip_from_step', expect.anything())
+  })
+
+  it('取消时记录当时所处步骤和已停留时长', () => {
+    const { observer, events, tick } = createHarness()
+    observer.observe({ step: 'importing' })
+    observer.observe({ step: 'matching', video })
+    tick(1_200)
+    observer.observe({ step: 'idle' })
+    expect(events.at(-1)?.properties).toMatchObject({
+      result: 'cancelled',
+      skip_from_step: 'matching',
+      matching_ms: 1_200,
+    })
+
+    // 新加载打断等待选择时，同样按旧加载离开前的步骤记录
+    const replaced = createHarness()
+    replaced.observer.observe({ step: 'importing' })
+    replaced.observer.observe({ step: 'matching', video })
+    replaced.observer.observe({
+      step: 'waiting_user',
+      video,
+      matchData: { isMatched: false, matches: [match] },
+    })
+    replaced.tick(3_000)
+    replaced.observer.observe({ step: 'importing' })
+    expect(
+      replaced.events.filter((event) => event.name === 'danmaku_match_completed').at(-1),
+    ).toMatchObject({
+      properties: {
+        result: 'cancelled',
+        skip_from_step: 'waiting_user',
+        candidate_count: 1,
+        user_wait_ms: 3_000,
+      },
+    })
+  })
+
+  it('优先播放后台阶段按后台 phase 计时，并读取后台候选数', () => {
+    const { observer, events, tick } = createHarness(true)
+    observer.observe({ step: 'importing' })
+    observer.observe({ step: 'matching', video })
+    tick(20)
+    const base = {
+      step: 'ready' as const,
+      video,
+      match: { episodeId: 0, animeId: 0, animeTitle: '', episodeTitle: '' },
+      danmaku: [],
+      mergedComments: [],
+    }
+    observer.observe({ ...base, background: { phase: 'matching' } })
+    tick(600)
+    observer.observe({
+      ...base,
+      danmakuStatus: 'unmatched',
+      matchCandidates: { isMatched: false, matches: [match, match] },
+    })
+    expect(events.at(-1)?.properties).toMatchObject({
+      result: 'unmatched',
+      candidate_count: 2,
+      matching_ms: 620,
+    })
+
+    const cancelled = createHarness(true)
+    cancelled.observer.observe({ step: 'importing' })
+    cancelled.observer.observe({ step: 'matching', video })
+    cancelled.observer.observe({ ...base, background: { phase: 'loading_danmaku' } })
+    cancelled.tick(900)
+    cancelled.observer.observe({ step: 'idle' })
+    expect(cancelled.events.at(-1)?.properties).toMatchObject({
+      result: 'cancelled',
+      skip_from_step: 'loading_danmaku',
+      danmaku_load_ms: 900,
+    })
   })
 
   it('emits one bounded failure event', () => {
