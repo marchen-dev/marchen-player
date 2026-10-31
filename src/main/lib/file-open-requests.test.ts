@@ -2,6 +2,17 @@ import { describe, expect, it, vi } from 'vitest'
 import { FileOpenRequests } from './file-open-requests'
 
 describe('系统文件打开请求', () => {
+  it('二次启动早于窗口创建时保留激活意图，之后可直接唤醒窗口', () => {
+    const requests = new FileOpenRequests()
+    const wake = vi.fn()
+    requests.activateWindow()
+    requests.setWindowOpener(wake)
+    expect(wake).toHaveBeenCalledOnce()
+    requests.setWindowOpener(wake)
+    expect(wake).toHaveBeenCalledOnce()
+    requests.activateWindow()
+    expect(wake).toHaveBeenCalledTimes(2)
+  })
   it('冷启动先缓存，窗口创建后仍等待渲染监听就绪，且只投递一次', () => {
     const requests = new FileOpenRequests()
     const wake = vi.fn()

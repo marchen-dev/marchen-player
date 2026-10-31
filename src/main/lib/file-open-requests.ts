@@ -10,6 +10,12 @@ export class FileOpenRequests {
   private pending: string | undefined
   private deliver: ((path: string) => void) | undefined
   private wake: (() => void) | undefined
+  private pendingActivation = false
+
+  activateWindow() {
+    if (this.wake) this.wake()
+    else this.pendingActivation = true
+  }
 
   request(path: string) {
     if (/\.torrent$/i.test(path)) {
@@ -31,7 +37,8 @@ export class FileOpenRequests {
 
   setWindowOpener(wake: () => void) {
     this.wake = wake
-    if (this.pending || this.torrents.length) wake()
+    if (this.pendingActivation || this.pending || this.torrents.length) wake()
+    this.pendingActivation = false
   }
 
   rendererReady(deliver: (path: string) => void) {

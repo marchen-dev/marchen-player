@@ -6,6 +6,7 @@ import { app } from 'electron'
 import { writeLog } from './lib/diagnostic-log'
 import { isDev } from './lib/env'
 import { fileOpenRequests } from './lib/file-open-requests'
+import { acquireSingleInstance } from './lib/single-instance'
 import './register-schemes'
 
 // userData、身份与离线状态都依赖 appData；开发目录必须在任何遥测模块加载前确定。
@@ -34,6 +35,8 @@ app.on('open-file', (event, path) => {
 fileOpenRequests.requestFromArgv(process.argv)
 
 const start = async () => {
+  if (!acquireSingleInstance()) return
+
   try {
     const { initializeMainTelemetry } = await import('./telemetry/sentry')
     await initializeMainTelemetry()

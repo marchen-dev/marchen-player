@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs'
 
 import { describe, expect, it } from 'vitest'
 
-const source = readFileSync(new URL('./index.ts', import.meta.url), 'utf8')
+const source = readFileSync(new URL('../lib/single-instance.ts', import.meta.url), 'utf8')
 
 describe('linux 桌面集成', () => {
   it('windows 与 Linux 都由已有实例接收再次打开文件的 argv', () => {
