@@ -1,33 +1,29 @@
-version: 1.1.0
+version: 1.1.1
 files:
-  - url: https://github.com/marchen-dev/marchen-player/releases/download/v1.1.0/Marchen-1.1.0-linux-x86_64.AppImage
-    sha512: 6O/DrGTnc43rKh4Aice8rWIlt6xN/18GfJsBoIM9b0dSwrdE34dLELCmmfRdfV2uvInUffELrwieUDAhLgNrXg==
-    size: 199244468
-    blockMapSize: 207560
-  - url: https://github.com/marchen-dev/marchen-player/releases/download/v1.1.0/Marchen-1.1.0-linux-amd64.deb
-    sha512: tpER2t2u1vaWrfeauvvY6cqNrlfF+eJq6DgFDbxZsHC9qyeNb88FNrbyxZWM4G1uHfHOhdQMJOCh5X20rsERwg==
-    size: 156142032
-path: https://github.com/marchen-dev/marchen-player/releases/download/v1.1.0/Marchen-1.1.0-linux-x86_64.AppImage
-sha512: 6O/DrGTnc43rKh4Aice8rWIlt6xN/18GfJsBoIM9b0dSwrdE34dLELCmmfRdfV2uvInUffELrwieUDAhLgNrXg==
-releaseNotes: |-
-  # Marchen 1.1.0
+  - url: https://github.com/marchen-dev/marchen-player/releases/download/v1.1.1/Marchen-1.1.1-linux-x86_64.AppImage
+    sha512: yhzZTkdOVSv4jeOO8B/n+sEN+9I1ZoNNJ6sTXb/+NMzhoYQ1gETQJ4V/RNVaaYF4hONEOmFi0igN+OMR1IWXAQ==
+    size: 199248595
+    blockMapSize: 207591
+  - url: https://github.com/marchen-dev/marchen-player/releases/download/v1.1.1/Marchen-1.1.1-linux-amd64.deb
+    sha512: +H8XLQaZ5JxBd4zvKBNT5BVLGVtl060tt+pWmEMB8lzPyjJpn/6weHalX+cMjbvMjO7ZsULUW6t/AJVr4PWWxw==
+    size: 155908792
+path: https://github.com/marchen-dev/marchen-player/releases/download/v1.1.1/Marchen-1.1.1-linux-x86_64.AppImage
+sha512: yhzZTkdOVSv4jeOO8B/n+sEN+9I1ZoNNJ6sTXb/+NMzhoYQ1gETQJ4V/RNVaaYF4hONEOmFi0igN+OMR1IWXAQ==
+releaseNotes: |
+  # Marchen 1.1.1
 
-  ## 媒体源
+  ## 加载与弹幕
 
-  - 新增「媒体源」，可连接 Jellyfin、Emby 和 WebDAV，在应用内浏览目录并直接播放，弹幕自动匹配与本地视频一致。
-  - 直接读取原文件，不经服务端转码；Jellyfin、Emby 显示海报和剧集信息，只有一季的剧集直接列出单集。
-  - 同一季或同一目录自动组成播放列表，支持上一集、下一集和自动连播。
-  - 自动加载服务端字幕或同目录的外挂字幕，字幕选择随播放记录保存。
-  - 浏览时显示观看进度和「已看完」，可从播放记录和影视库继续观看；服务器离线、登录失效或来源已移除时给出对应提示。
-  - 播放器首页新增「从媒体源打开」入口。
+  - 加载界面改为一条连续的进度条，匹配到番剧后显示作品名和集数；加载很快时（如已匹配过的视频）不再闪出加载界面。
+  - 加载中的「直接播放」改为「先播放，弹幕稍后加载」：视频立即开始播放，未完成的匹配和弹幕在后台继续加载并自动接入；选集弹窗中可点「稍后选择」先播放，之后在弹幕设置中再选剧集。
+  - 手动指定 API 线路时，弹幕和匹配请求的等待时间更长，服务端响应较慢时不再轻易出现弹幕加载失败。
 
   ## 播放
 
-  - 通用设置新增「优先播放视频」，默认关闭；开启后导入即开始播放，弹幕在后台匹配和加载后接入，不打断当前进度。
-  - 「通过 URL 播放」改为默认开启，此前手动关闭过的保持关闭。
+  - 控制栏自动隐藏更快，用方向键快进快退时不再唤起控制栏。
+  - SRT / VTT 字幕遇到个别格式错误的段落时跳过该段继续显示，时间格式不规范的字幕也能正常加载。
 
   ## 其他
 
-  - 安装包文件名带上系统名称，方便区分不同平台的下载。
-  - 升级播放相关依赖，提升稳定性。
-releaseDate: 2026-10-25T13:01:52.249Z
+  - 关于页的更新下载进度显示已下载大小、下载速度和剩余时间。
+releaseDate: 2026-10-31T13:37:28.239Z

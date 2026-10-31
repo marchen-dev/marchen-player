@@ -1,29 +1,25 @@
-version: 1.1.0
+version: 1.1.1
 files:
-  - url: https://github.com/marchen-dev/marchen-player/releases/download/v1.1.0/Marchen-1.1.0-windows-x64-setup.exe
-    sha512: +0ScwZlxMVnVqQIgi3HTM4pS4G9c0/7GJ0c1/EQUvhEm8iOOrav0V0F1bhKaIvH3pok7WJdqVQnzSQ9+Tri1jQ==
-    size: 173455196
-path: https://github.com/marchen-dev/marchen-player/releases/download/v1.1.0/Marchen-1.1.0-windows-x64-setup.exe
-sha512: +0ScwZlxMVnVqQIgi3HTM4pS4G9c0/7GJ0c1/EQUvhEm8iOOrav0V0F1bhKaIvH3pok7WJdqVQnzSQ9+Tri1jQ==
-releaseNotes: "# Marchen 1.1.0\r
+  - url: https://github.com/marchen-dev/marchen-player/releases/download/v1.1.1/Marchen-1.1.1-windows-x64-setup.exe
+    sha512: dOjuN7jnMUtvM4vWqkIaxk6Dpw15ksN1ZHCWFuBmr9Uiabkij9TM9A1ghIyocZXiA1Q6S4K9N7kNg82AR74fUQ==
+    size: 173456910
+path: https://github.com/marchen-dev/marchen-player/releases/download/v1.1.1/Marchen-1.1.1-windows-x64-setup.exe
+sha512: dOjuN7jnMUtvM4vWqkIaxk6Dpw15ksN1ZHCWFuBmr9Uiabkij9TM9A1ghIyocZXiA1Q6S4K9N7kNg82AR74fUQ==
+releaseNotes: "# Marchen 1.1.1\r
 
   \r
 
-  ## 媒体源\r
+  ## 加载与弹幕\r
 
   \r
 
-  - 新增「媒体源」，可连接 Jellyfin、Emby 和 WebDAV，在应用内浏览目录并直接播放，弹幕自动匹配与本地视频一致。\r
+  - 加载界面改为一条连续的进度条，匹配到番剧后显示作品名和集数；加载很快时（如已匹配过的视频）不再闪出加载界面。\r
 
-  - 直接读取原文件，不经服务端转码；Jellyfin、Emby 显示海报和剧集信息，只有一季的剧集直接列出单集。\r
+  -
+  加载中的「直接播放」改为「先播放，弹幕稍后加载」：视频立即开始播放，未完成的匹配和弹幕在后台继续加载并自动接入；选集弹窗中可点「稍后选择」先播放，之后在弹\
+  幕设置中再选剧集。\r
 
-  - 同一季或同一目录自动组成播放列表，支持上一集、下一集和自动连播。\r
-
-  - 自动加载服务端字幕或同目录的外挂字幕，字幕选择随播放记录保存。\r
-
-  - 浏览时显示观看进度和「已看完」，可从播放记录和影视库继续观看；服务器离线、登录失效或来源已移除时给出对应提示。\r
-
-  - 播放器首页新增「从媒体源打开」入口。\r
+  - 手动指定 API 线路时，弹幕和匹配请求的等待时间更长，服务端响应较慢时不再轻易出现弹幕加载失败。\r
 
   \r
 
@@ -31,9 +27,9 @@ releaseNotes: "# Marchen 1.1.0\r
 
   \r
 
-  - 通用设置新增「优先播放视频」，默认关闭；开启后导入即开始播放，弹幕在后台匹配和加载后接入，不打断当前进度。\r
+  - 控制栏自动隐藏更快，用方向键快进快退时不再唤起控制栏。\r
 
-  - 「通过 URL 播放」改为默认开启，此前手动关闭过的保持关闭。\r
+  - SRT / VTT 字幕遇到个别格式错误的段落时跳过该段继续显示，时间格式不规范的字幕也能正常加载。\r
 
   \r
 
@@ -41,7 +37,5 @@ releaseNotes: "# Marchen 1.1.0\r
 
   \r
 
-  - 安装包文件名带上系统名称，方便区分不同平台的下载。\r
-
-  - 升级播放相关依赖，提升稳定性。"
-releaseDate: 2026-10-25T13:01:52.737Z
+  - 关于页的更新下载进度显示已下载大小、下载速度和剩余时间。\r\n"
+releaseDate: 2026-10-31T13:37:51.006Z
