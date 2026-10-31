@@ -34,8 +34,19 @@
   --animate-dialog-out: dialog-out 120ms ease-in forwards;
   --animate-dialog-overlay-in: dialog-overlay-in 180ms cubic-bezier(0.16, 1, 0.3, 1);
   --animate-dialog-overlay-out: dialog-overlay-out 120ms ease-in forwards;
+  /* 加载进度条已填充部分上扫过的高光，传达「正在推进」 */
+  --animate-loading-shimmer: loading-shimmer 1.4s ease-in-out infinite;
 
   /* 使用 transform 而非 translate 属性，与 Tailwind 4 的 translate-* 居中叠加互不覆盖 */
+  @keyframes loading-shimmer {
+    from {
+      transform: translateX(-100%);
+    }
+    to {
+      transform: translateX(100%);
+    }
+  }
+
   @keyframes dialog-in {
     from {
       opacity: 0;

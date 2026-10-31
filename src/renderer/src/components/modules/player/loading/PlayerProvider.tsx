@@ -7,7 +7,7 @@
 
 import type { FC, PropsWithChildren } from 'react'
 import { MatchAnimeDialog } from '@renderer/components/modules/player/loading/dialog/MatchAnimeDialog'
-import { LoadingDanmuTimeLine } from '@renderer/components/modules/player/loading/Timeline'
+import { LoadingProgress } from '@renderer/components/modules/player/loading/LoadingProgress'
 import {
   usePlayerLoadingSelector,
   usePlayerLoadingService,
@@ -22,9 +22,10 @@ export const VideoProvider: FC<PropsWithChildren> = ({ children }) => {
   useLoadingHistoricalAnime()
 
   const step = usePlayerLoadingSelector((s) => s.step)
+  const service = usePlayerLoadingService()
 
-  // 加载中：显示 stepper
-  // waiting_user：显示 stepper + 对话框
+  // 加载中：显示进度条
+  // waiting_user：显示进度条 + 对话框
   // ready/idle：显示 children；reloading 时保持当前播放器可见
   if (step === 'idle' || step === 'ready' || step === 'reloading') {
     return children
@@ -37,7 +38,8 @@ export const VideoProvider: FC<PropsWithChildren> = ({ children }) => {
 
   return (
     <>
-      <LoadingDanmuTimeLine />
+      {/* 每次新加载按会话重新挂载：进度从 0 开始，延迟显示与按钮计时重新计算 */}
+      <LoadingProgress key={service.sessionId} />
       {step === 'waiting_user' && <WaitingUserDialog />}
     </>
   )
