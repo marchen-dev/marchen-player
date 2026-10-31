@@ -1,6 +1,25 @@
 # CHANGELOG
 
 
+## [1.1.1](https://github.com/marchen-dev/marchen-player/compare/v1.1.0...v1.1.1) (2026-10-31)
+
+
+### Bug Fixes
+
+* **player:** 方向键快进快退不再唤起控制栏 ([10da286](https://github.com/marchen-dev/marchen-player/commit/10da2861e692bf37e984c924f51e2cefdd26e4cf))
+* **request:** 最后一次尝试按接口放宽超时，避免手动线路弹幕超时，归档变更 ([d0803e4](https://github.com/marchen-dev/marchen-player/commit/d0803e433e4caa5250f4b52f586acf7a8785154e))
+* **subtitle:** SRT/VTT 跳过坏块并放宽时间戳，字幕失败上报低基数原因 ([c5583f7](https://github.com/marchen-dev/marchen-player/commit/c5583f78ebbb556c2c75a3a85d85ef4760d03092))
+
+
+### Features
+
+* **about:** 更新下载进度改为细进度条并补充大小、速度与剩余时间 ([bf9151f](https://github.com/marchen-dev/marchen-player/commit/bf9151f67ce2a62dfb7957653466e6a24aba0984))
+* **player:** 加载中直接播放改为先播放、弹幕在后台继续加载，归档变更 ([7fd86c5](https://github.com/marchen-dev/marchen-player/commit/7fd86c5ddd6423ce98015a37e43ddbbd26ace886))
+* **player:** 加载界面改为按耗时分段的总进度条，归档变更 ([0ce9594](https://github.com/marchen-dev/marchen-player/commit/0ce9594be365adea73f314f5799a7f8b0e2d3a82))
+* **player:** 控制栏自动隐藏延迟从 2.8s 降到 2.5s，归档变更 ([f0f6528](https://github.com/marchen-dev/marchen-player/commit/f0f65280a27ee523a351a17d37227edd7ef36366))
+* **telemetry:** 启动时标记 GPU 加速状态，统计软件渲染用户 ([b590c8b](https://github.com/marchen-dev/marchen-player/commit/b590c8ba81cd02a8f1c1fde8bbdf0ff06ac8ac07))
+* **telemetry:** 弹幕匹配补充跳过来源、候选数与各阶段耗时，归档匹配遥测变更 ([473c44a](https://github.com/marchen-dev/marchen-player/commit/473c44a153d674f083838129462b4fddf556ab9a))
+
 # [1.1.0](https://github.com/marchen-dev/marchen-player/compare/v1.0.7...v1.1.0) (2026-10-25)
 
 
