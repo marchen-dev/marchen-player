@@ -229,20 +229,26 @@ const emptyEventFixture = (codec: string, payload: string, duration?: number, in
 }
 
 it.each(['S_TEXT/ASS', 'S_TEXT/SSA', 'S_ASS', 'S_SSA'])(
-  '%s 扫描和索引均跳过显式零时长空事件，保留后续文本和逗号', async (codec) => {
+  '%s 扫描和索引均跳过显式零时长事件，保留后续文本和逗号', async (codec) => {
     for (const indexed of [false, true]) {
-      const reader = await open(emptyEventFixture(codec, '16,0,Default,,0,0,0,,', 0, indexed))
-      const cues: SubtitleCue[] = []
-      for await (const cue of reader.cues(1)) cues.push(cue)
-      expect(cues).toEqual([{ start: 9.9, end: 11.4, text: '1,0,Test,,0,0,0,,你好,世界' }])
+      for (const payload of [
+        '16,0,Default,,0,0,0,,',
+        '2119,0,注释 - 1,,0,0,0,,{\\3c&H0A0BFF&\\an7\\pos(868,200)}【警告】检测到作弊',
+        '16,0,Default,,0,0,0,,正文,含逗号',
+      ]) {
+        const reader = await open(emptyEventFixture(codec, payload, 0, indexed))
+        const cues: SubtitleCue[] = []
+        for await (const cue of reader.cues(1)) cues.push(cue)
+        expect(cues).toEqual([{ start: 9.9, end: 11.4, text: '1,0,Test,,0,0,0,,你好,世界' }])
+      }
     }
   },
 )
 
 it.each([
   ['S_TEXT/ASS', '16,0,Default,,0,0,0,,', undefined],
-  ['S_TEXT/ASS', '16,0,Default,,0,0,0,,正文', 0],
-  ['S_TEXT/ASS', '16,0,Default,,0,0,0,,,', 0],
+  ['S_TEXT/ASS', '16,0,Default,,0,0,0,,正文', undefined],
+  ['S_TEXT/ASS', 'bad,0,Default,,0,0,0,,正文', 0],
   ['S_TEXT/ASS', 'broken', 0],
   ['S_TEXT/UTF8', '', 0],
 ] as const)('不忽略异常事件 %s %s %s', async (codec, payload, duration) => {

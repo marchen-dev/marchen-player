@@ -226,7 +226,7 @@ export class MatroskaSubtitles {
               const start = (timestamp + relative) * this.timestampScale
               const payload = { ...block, start: block.start + number.width + 3 }
               const text = await reader.text(payload)
-              if (!skipEmptyEvent(track.codec, text, duration, explicitDuration))
+              if (!skipZeroDurationEvent(track.codec, text, duration, explicitDuration))
                 yield { start, end: start + duration, text }
             }
           }
@@ -348,7 +348,7 @@ export class MatroskaSubtitles {
             const text = await reader.text({ ...block, start: block.start + number.width + 3 })
             size += text.length
             if (size > 8 * 1024 * 1024) throw new Error('字幕文本超过预算')
-            if (skipEmptyEvent(track.codec, text, duration, explicitDuration)) continue
+            if (skipZeroDurationEvent(track.codec, text, duration, explicitDuration)) continue
             const start = target.time * this.timestampScale
             cues[i] = { start, end: start + duration, text }
           }
@@ -364,12 +364,13 @@ export class MatroskaSubtitles {
   }
 }
 
-/** 零时长空 ASS/SSA 事件没有显示效果；缺失时长及有内容的异常事件仍须报错。 */
-function skipEmptyEvent(codec: string, text: string, duration: number, explicit: boolean) {
+/** 显式零时长 ASS/SSA 事件即使有文本也没有显示区间，不应导致整条字幕轨失败。 */
+function skipZeroDurationEvent(codec: string, text: string, duration: number, explicit: boolean) {
   if (duration > 0) return false
   if (explicit && duration === 0 && supportedCodecs.has(codec) && codec !== 'S_TEXT/UTF8') {
     const fields = text.split(',')
-    if (fields.length === 9 && /^\d+$/.test(fields[0]) && fields[8] === '') return true
+    // 仍校验事件结构；缺失时长不等同于显式零时长，也不猜测显示时间。
+    if (fields.length >= 9 && /^\d+$/.test(fields[0])) return true
   }
   throw new Error('字幕块缺少有效时长')
 }
