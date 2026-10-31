@@ -50,34 +50,52 @@ describe('加载恢复与异步隔离', () => {
     vi.restoreAllMocks()
   })
 
-  it.each(['resolve', 'reject'] as const)('匹配等待时直接播放，忽略迟到 %s', async (completion) => {
-    const pending = deferred<MatchResult>()
-    const deps = createMockDeps({ api: { match: vi.fn(() => pending.promise), getDanmu: vi.fn() } })
-    vi.mocked(deps.cache.get).mockResolvedValue([local])
-    service = new PlayerLoadingService(deps)
-    service.loadFromPath('/a.mkv')
-    await vi.waitFor(() => expect(deps.api.match).toHaveBeenCalled())
-    const signal = vi.mocked(deps.api.match).mock.calls[0][1]
-    service.skipDanmaku()
-    await wait(service, 'ready')
-    const before = ready(service)
-    expect(signal?.aborted).toBe(true)
-    expect(before.danmaku).toEqual([local])
-    expect(before.danmakuStatus).toBe('skipped')
-    expect(deps.history.save).toHaveBeenCalledWith(
-      expect.objectContaining({
-        source: expect.objectContaining({ kind: 'electron-file' }),
-        episodeId: 0,
-      }),
-    )
-    if (completion === 'resolve') pending.resolve(createMatchedResult())
-    else pending.reject(new Error('迟到网络错误'))
-    await new Promise((resolve) => setTimeout(resolve, 20))
-    expect(service.currentState).toBe(before)
-    expect(deps.api.getDanmu).not.toHaveBeenCalled()
-  })
+  it.each(['resolve', 'reject'] as const)(
+    '匹配中直接播放：先带本地弹幕开播，后台重新匹配接入，忽略迟到 %s',
+    async (completion) => {
+      const pending = deferred<MatchResult>()
+      const deps = createMockDeps({
+        api: {
+          match: vi
+            .fn()
+            .mockImplementationOnce(() => pending.promise)
+            .mockResolvedValue(createMatchedResult()),
+          getDanmu: vi.fn().mockResolvedValue(comments),
+        },
+      })
+      vi.mocked(deps.cache.get).mockResolvedValue([local])
+      service = new PlayerLoadingService(deps)
+      service.loadFromPath('/a.mkv')
+      await vi.waitFor(() => expect(deps.api.match).toHaveBeenCalled())
+      const signal = vi.mocked(deps.api.match).mock.calls[0][1]
+      service.playNow()
+      const started = (await wait(service, 'ready')) as ReadyState
+      expect(signal?.aborted).toBe(true)
+      expect(started.playNowFrom).toBe('matching')
+      expect(started.background).toEqual({ phase: 'matching' })
+      expect(started.danmaku).toEqual([local])
+      expect(deps.history.save).toHaveBeenCalledWith(
+        expect.objectContaining({
+          source: expect.objectContaining({ kind: 'electron-file' }),
+          episodeId: 0,
+        }),
+      )
+      await vi.waitFor(() => expect(ready(service).background).toBeUndefined())
+      const settled = ready(service)
+      expect(settled.match).toEqual(match)
+      expect(settled.danmakuStatus).toBe('loaded')
+      expect(settled.playNowFrom).toBe('matching')
+      expect(settled.mergedComments).toEqual(expect.arrayContaining(comments.comments))
+      expect(settled.danmaku).toEqual(expect.arrayContaining([local]))
+      if (completion === 'resolve') pending.resolve(createMatchedResult())
+      else pending.reject(new Error('迟到网络错误'))
+      await new Promise((resolve) => setTimeout(resolve, 20))
+      expect(service.currentState).toBe(settled)
+      expect(deps.api.getDanmu).toHaveBeenCalledTimes(1)
+    },
+  )
 
-  it('等待弹幕时跳过保留匹配，主动重试仅获取该集弹幕', async () => {
+  it('获取弹幕时直接播放保留匹配，后台重新获取该集弹幕', async () => {
     const pending = deferred<CommentsData>()
     const deps = createMockDeps()
     vi.mocked(deps.api.getDanmu)
@@ -86,21 +104,21 @@ describe('加载恢复与异步隔离', () => {
     service = new PlayerLoadingService(deps)
     service.loadFromPath('/a.mkv')
     await vi.waitFor(() => expect(deps.api.getDanmu).toHaveBeenCalled())
-    service.skipDanmaku()
-    await wait(service, 'ready')
-    const video = ready(service).video
-    expect(ready(service).match).toEqual(match)
-    service.retryDanmaku()
-    service.retryDanmaku()
-    await wait(service, 'ready')
-    expect(ready(service).video).toBe(video)
-    expect(ready(service).mergedComments).toEqual(comments.comments)
+    service.playNow()
+    const started = (await wait(service, 'ready')) as ReadyState
+    expect(started.match).toEqual(match)
+    expect(started.playNowFrom).toBe('loading_danmaku')
+    expect(started.background).toEqual({ phase: 'loading_danmaku' })
+    await vi.waitFor(() => expect(ready(service).background).toBeUndefined())
+    const settled = ready(service)
+    expect(settled.video).toBe(started.video)
+    expect(settled.mergedComments).toEqual(comments.comments)
+    expect(settled.danmakuStatus).toBe('loaded')
     expect(deps.api.match).toHaveBeenCalledTimes(1)
     expect(deps.api.getDanmu).toHaveBeenCalledTimes(2)
-    const before = ready(service)
     pending.resolve({ count: 0, comments: [] })
     await new Promise((resolve) => setTimeout(resolve, 20))
-    expect(service.currentState).toBe(before)
+    expect(service.currentState).toBe(settled)
   })
 
   it('匹配失败可直接重试且不重新导入，失败后可以手动选择', async () => {
@@ -251,9 +269,17 @@ describe('加载恢复与异步隔离', () => {
     service = new PlayerLoadingService(deps)
     service.loadFromFile(file)
     await wait(service, 'match_failed')
-    service.skipDanmaku()
+    service.playNow()
     await wait(service, 'ready')
     expect(ready(service).danmaku).toEqual([local])
+    // 匹配失败后开播带着错误，可在播放中原地重试，不自动后台重试
+    expect(ready(service)).toMatchObject({
+      playNowFrom: 'match_failed',
+      danmakuStatus: 'failed',
+      matchError: { message: '失败' },
+    })
+    expect(ready(service).background).toBeUndefined()
+    expect(deps.api.match).toHaveBeenCalledTimes(1)
     expect(deps.history.save).toHaveBeenCalledWith(
       expect.objectContaining({
         source: { kind: 'web-file', name: file.name, size: 1, lastModified: 123 },
@@ -266,14 +292,14 @@ describe('加载恢复与异步隔离', () => {
     vi.mocked(deps.importer.importFromPath).mockRejectedValueOnce(new Error('无法读取'))
     service = new PlayerLoadingService(deps)
     service.loadFromPath('/bad.mkv')
-    service.skipDanmaku()
+    service.playNow()
     await wait(service, 'error')
-    service.skipDanmaku()
+    service.playNow()
     expect(service.currentState.step).toBe('error')
     service.loadFromPath('/ok.mkv')
     await wait(service, 'ready')
     const before = ready(service)
-    service.skipDanmaku()
+    service.playNow()
     expect(service.currentState).toBe(before)
   })
 })

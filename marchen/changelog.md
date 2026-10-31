@@ -81,3 +81,4 @@
 - 2026-10-25: [polish-update-download-progress](./archive/2026-10-25-polish-update-download-progress/) — 关于页更新下载进度改为与下载页一致的细进度条，补充大小、百分比、速度与剩余时间，校验阶段脉冲提示
 - 2026-10-26: [harden-subtitle-import-diagnostics](./archive/2026-10-26-harden-subtitle-import-diagnostics/) — 字幕失败上报低基数原因、SRT/VTT 解析跳过坏块并放宽时间戳、启动时标记 GPU 软件渲染
 - 2026-10-31: [add-match-flow-telemetry](./archive/2026-10-31-add-match-flow-telemetry/) — 弹幕匹配遥测补充跳过来源、候选数、匹配来源与各阶段耗时，导入补充 hash 耗时，用于拆解新视频匹配率与加载瓶颈
+- 2026-10-31: [play-now-background-danmaku](./archive/2026-10-31-play-now-background-danmaku/) — 加载中「直接播放」改为本次临时优先播放：从点击时的步骤在后台继续匹配与加载弹幕，选集弹窗改为「稍后选择」，遥测新增 load_mode=play_now

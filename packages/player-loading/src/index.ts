@@ -39,6 +39,7 @@ export type {
   // 事件
   PipelineEvent,
   PlayListItem,
+  PlayNowStep,
   ReadyState,
   ReloadingState,
   ServiceDeps,

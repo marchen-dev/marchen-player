@@ -68,18 +68,26 @@ export function reduce(state: LoadingState, event: PipelineEvent): LoadingState 
       return { ...state, step: 'ready' }
     }
 
-    case 'skipped':
-      if (!['matching', 'loading_danmaku', 'waiting_user', 'match_failed'].includes(state.step))
-        return state
+    case 'playNowReady':
+      // 只接受点击时所在的步骤；读取本地数据期间被切走（切集、取消）则丢弃
+      if (state.step !== event.from || state.video !== event.video) return state
       return {
         step: 'ready',
         video: event.video,
-        match:
-          state.step === 'loading_danmaku'
-            ? state.match
-            : { episodeId: 0, animeTitle: '', episodeTitle: '', animeId: 0 },
-        matchOrigin: state.step === 'loading_danmaku' ? state.matchOrigin : undefined,
-        danmakuStatus: 'skipped',
+        match: event.match,
+        matchOrigin: event.matchOrigin,
+        // 后台进行中不下结论；否则开播即为未匹配或匹配失败，与优先播放后台结束的结果一致
+        danmakuStatus: event.background
+          ? undefined
+          : event.matchError
+            ? 'failed'
+            : event.candidates
+              ? 'unmatched'
+              : 'loaded',
+        background: event.background ? { phase: event.background } : undefined,
+        matchCandidates: event.candidates,
+        matchError: event.matchError,
+        playNowFrom: event.from,
         danmaku: event.danmaku,
         mergedComments: event.mergedComments,
       }
@@ -105,6 +113,8 @@ export function reduce(state: LoadingState, event: PipelineEvent): LoadingState 
         background: { phase: event.phase },
         matchError: undefined,
         danmakuStatus: undefined,
+        // 用户在播放中主动重试，结果按正常后台流程反馈
+        playNowFrom: undefined,
       }
 
     case 'backgroundPhase':
@@ -153,6 +163,7 @@ export function reduce(state: LoadingState, event: PipelineEvent): LoadingState 
         step: 'reloading',
         background: undefined,
         matchError: undefined,
+        playNowFrom: undefined,
         recovery: { target: event.target ?? state.match },
       }
     }

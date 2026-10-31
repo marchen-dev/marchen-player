@@ -37,7 +37,7 @@ describe('playerLoadingService', () => {
     service = new PlayerLoadingService(deps)
     service.loadFromUrl('https://example.com/a.mkv')
     await waitForStep(service, 'matching')
-    service.skipDanmaku()
+    service.playNow()
     await waitForStep(service, 'ready')
     expect(deps.importer.releaseImportedVideo).not.toHaveBeenCalled()
     service.cancel()
@@ -199,8 +199,8 @@ describe('playerLoadingService', () => {
     })
   })
 
-  describe('跳过弹幕', () => {
-    it('用户 skipDanmaku 后应该直接进入 ready', async () => {
+  describe('直接播放', () => {
+    it('等待选择时直接播放：以未匹配开播并保留候选，不再后台请求', async () => {
       const deps = createMockDeps({
         api: { match: vi.fn().mockResolvedValue(createUnmatchedResult()) } as any,
       })
@@ -209,10 +209,17 @@ describe('playerLoadingService', () => {
       service.loadFromPath('/test/video.mkv')
       await waitForStep(service, 'waiting_user')
 
-      service.skipDanmaku()
+      service.playNow()
 
       const finalState = await waitForStep(service, 'ready')
-      expect(finalState.step).toBe('ready')
+      expect(finalState).toMatchObject({
+        step: 'ready',
+        playNowFrom: 'waiting_user',
+        danmakuStatus: 'unmatched',
+        matchCandidates: createUnmatchedResult(),
+      })
+      expect(finalState.step === 'ready' && finalState.background).toBeFalsy()
+      expect(deps.api.match).toHaveBeenCalledTimes(1)
     })
   })
 

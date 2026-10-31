@@ -22,7 +22,11 @@ export interface CommonTelemetryProperties {
   playback_session_id?: string
 }
 
-export type LoadMode = 'complete' | 'play_first'
+/**
+ * complete 等弹幕就绪再播放；play_first 设置开启的优先播放；
+ * play_now 设置关闭时用户在加载中点了「直接播放 / 稍后选择」，本次临时按优先播放处理
+ */
+export type LoadMode = 'complete' | 'play_first' | 'play_now'
 
 /** 视频的实际来源类型，对应 HISTORY source.kind */
 export type MediaKind = 'local' | 'web_file' | 'remote_url' | 'media_source'
@@ -127,12 +131,16 @@ export interface TelemetryEventMap {
   danmaku_match_completed: {
     operation_id: string
     load_mode: LoadMode
-    /** unmatched：后台匹配无精确结果；failed：后台匹配接口失败（仅优先播放模式产生） */
+    /**
+     * unmatched：无精确结果且未选择；failed：匹配接口失败后开播（仅 play_first / play_now 产生）。
+     * none 是旧客户端的「跳过弹幕」，直接播放改为后台加载后不再产生
+     */
     result: 'automatic' | 'manual' | 'none' | 'cancelled' | 'unmatched' | 'failed'
     duration_ms: number
     comment_count?: number
     /**
-     * 仅 result 为 none（用户跳过弹幕）或 cancelled 时出现：离开时所处的步骤。
+     * load_mode 为 play_now 时是用户点击直接播放所处的步骤，result 为后台最终结果；
+     * cancelled 时是被切走的步骤；旧客户端仅随 result=none（跳过弹幕）出现。
      * matching 多为等不及，waiting_user 多为候选不合适，match_failed 为接口失败后放弃
      */
     skip_from_step?: LoadingExitStep

@@ -166,6 +166,8 @@ export class PlayerLoadingTelemetryObserver {
     }
 
     if (state.step === 'ready') {
+      // 用户在加载中点了直接播放：从这里起按临时优先播放统计，导入事件已按原设置上报
+      if (state.playNowFrom) active.loadMode = 'play_now'
       this.sink.capture('playback_ready', {
         operation_id: active.id,
         load_mode: active.loadMode,
@@ -176,7 +178,7 @@ export class PlayerLoadingTelemetryObserver {
         active.awaitingBackground = true
         return
       }
-      this.#completeMatch(active, state, previousPhase)
+      this.#completeMatch(active, state)
       return
     }
 
@@ -200,18 +202,14 @@ export class PlayerLoadingTelemetryObserver {
       const previousPhase = active.phase
       const next = phaseOf(state)
       if (next !== previousPhase) this.#enterPhase(active, next)
-      if (!state.background) this.#completeMatch(active, state, previousPhase)
+      if (!state.background) this.#completeMatch(active, state)
       return
     }
     // 后台未结束就被用户的重新匹配接管或取消（新加载在 importing 分支处理），按取消记录
     this.#cancelActive()
   }
 
-  #completeMatch(
-    active: ActiveLoadingOperation,
-    state: Extract<LoadingState, { step: 'ready' }>,
-    exitStep: LoadingExitStep | undefined,
-  ) {
+  #completeMatch(active: ActiveLoadingOperation, state: Extract<LoadingState, { step: 'ready' }>) {
     // background 存在时 episodeId 为 0 表示仍在匹配；此处 background 已结束，可按未匹配判断
     const result =
       state.danmakuStatus === 'unmatched'
@@ -229,8 +227,8 @@ export class PlayerLoadingTelemetryObserver {
       result,
       duration_ms: this.now() - active.startedAt,
       comment_count: state.mergedComments.length,
-      // 只有用户主动跳过才记录来源；播放记录里本就没有匹配的 none 不算跳过
-      skip_from_step: state.danmakuStatus === 'skipped' ? exitStep : undefined,
+      // 只有用户在加载中点了直接播放才记录来源；播放记录里本就没有匹配的情况不算
+      skip_from_step: state.playNowFrom,
       candidate_count: state.matchCandidates?.matches.length ?? active.candidateCount,
       match_origin: state.matchOrigin,
       ...this.#phaseDurations(active),

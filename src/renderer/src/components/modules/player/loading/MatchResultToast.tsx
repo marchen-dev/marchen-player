@@ -53,7 +53,12 @@ export const MatchResultToast = () => {
       const settled = before?.step === 'ready' && Boolean(before.background)
       // 只通知加载/重新匹配的完成，切换来源或导入本地弹幕不重复弹出。
       if (before?.step === 'ready' && before.match === state.match && !settled) return
-      if (state.danmakuStatus === 'skipped' && !state.recovery?.message) return
+      // 选集弹窗「稍后选择」或失败页直接播放时，用户刚看过结论，开播后不再重复提示
+      if (
+        !settled &&
+        (state.playNowFrom === 'waiting_user' || state.playNowFrom === 'match_failed')
+      )
+        return
       const info = getMatchInfo(state)
       if (
         (!info.matched && !info.failed && !info.unmatched && !info.matchFailed) ||

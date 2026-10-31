@@ -20,6 +20,7 @@ import type {
   LoadingState,
   MatchedVideo,
   PipelineEvent,
+  PlayNowStep,
   ServiceDeps,
   VideoInfo,
 } from './types'
@@ -129,7 +130,7 @@ export class PlayerLoadingService {
       case 'loadFromPath':
       case 'cancel':
         return true
-      case 'skipDanmaku':
+      case 'playNow':
         return ['matching', 'loading_danmaku', 'waiting_user', 'match_failed'].includes(state.step)
       case 'retryMatch':
         // 优先播放模式的匹配失败发生在播放中，原地重试不离开 ready
@@ -162,14 +163,14 @@ export class PlayerLoadingService {
         return this.executeFullLoad(cmd, deps)
       case 'cancel':
         return of({ type: 'cancelled' })
-      case 'skipDanmaku':
+      case 'playNow':
         if (
           state.step === 'matching' ||
           state.step === 'loading_danmaku' ||
           state.step === 'waiting_user' ||
           state.step === 'match_failed'
         ) {
-          return this.handleSkipDanmaku(state, deps)
+          return this.playNowLoad(state, deps)
         }
         return EMPTY
       case 'retryMatch':
@@ -246,9 +247,9 @@ export class PlayerLoadingService {
     this.command$.next({ type: 'selectMatch', match })
   }
 
-  /** 用户选择跳过弹幕 */
-  skipDanmaku(): void {
-    this.command$.next({ type: 'skipDanmaku' })
+  /** 加载中提前开播：本次临时按优先播放处理，未完成的匹配与弹幕转入后台 */
+  playNow(): void {
+    this.command$.next({ type: 'playNow' })
   }
 
   /** 原地重试匹配，不重新读取视频。 */
@@ -441,48 +442,125 @@ export class PlayerLoadingService {
     let phase: BackgroundPhase | undefined
     return concat(
       defer(async (): Promise<PipelineEvent> => {
-        // Operation 包装的读取失败会降级为空结果，本地数据异常时仍按无数据开播
-        const history = await deps.history.get(video.hash)
-        known =
-          history?.episodeId && history?.animeId
-            ? {
-                episodeId: history.episodeId,
-                animeTitle: history.animeTitle || '',
-                episodeTitle: history.episodeTitle || '',
-                animeId: history.animeId,
-              }
-            : undefined
-        const danmaku = await getAvailableDanmaku(video, deps, known)
-        const hasOnline = danmaku.some((entry) => entry.type === 'auto')
-        const fresh = known && hasOnline && !(await deps.cache.isStale(video.hash))
-        phase = !known ? 'matching' : fresh ? undefined : 'loading_danmaku'
-        // 开播即保存可恢复来源，开播后立刻关闭也能从历史重新打开
-        await deps.history.save({
-          hash: video.hash,
-          source: getPersistentMediaSource(video),
-          animeId: known?.animeId ?? 0,
-          episodeId: known?.episodeId ?? 0,
-          animeTitle: known?.animeTitle || video.name,
-          episodeTitle: known?.episodeTitle ?? '',
-          danmaku,
-        })
+        known = await this.readHistoryMatch(video, deps)
+        const start = await this.prepareEarlyStart(video, deps, known, true)
+        phase = start.phase
         return {
           type: 'playFirstReady',
           video,
           match: known ?? UNMATCHED,
           matchOrigin: known ? 'history' : undefined,
-          danmaku,
-          mergedComments: mergeDanmakuEntries(danmaku),
+          danmaku: start.danmaku,
+          mergedComments: mergeDanmakuEntries(start.danmaku),
           background: phase,
         }
       }),
-      defer(() => {
-        if (!phase) return EMPTY
-        return known
-          ? this.backgroundDanmaku(known, 'history', video, deps)
-          : this.backgroundMatch(video, deps)
-      }),
+      defer(() => this.continueInBackground(phase, known, 'history', video, deps)),
     )
+  }
+
+  /**
+   * 加载中手动提前开播：等同于本次临时开启优先播放，从点击时的步骤接着在后台完成。
+   * - matching：与优先播放相同，先看播放记录，没有再后台匹配
+   * - loading_danmaku：沿用已得到的匹配，后台加载弹幕
+   * - waiting_user / match_failed：已有结论，带着候选或错误开播，不再发起后台请求
+   * 正在进行的请求会被 switchMap 中止，后台阶段重新发起，换取复用现有的切换与失效边界。
+   */
+  private playNowLoad(
+    state: Extract<LoadingState, { step: PlayNowStep }>,
+    deps: ServiceDeps,
+  ): Observable<PipelineEvent> {
+    const { video } = state
+    const from = state.step
+    let known = state.step === 'loading_danmaku' ? state.match : undefined
+    let origin = state.step === 'loading_danmaku' ? (state.matchOrigin ?? 'auto') : undefined
+    let phase: BackgroundPhase | undefined
+    return concat(
+      defer(async (): Promise<PipelineEvent> => {
+        if (from === 'matching') {
+          known = await this.readHistoryMatch(video, deps)
+          origin = known ? 'history' : undefined
+        }
+        const start = await this.prepareEarlyStart(video, deps, known, from === 'matching')
+        phase = start.phase
+        return {
+          type: 'playNowReady',
+          from,
+          video,
+          match: known ?? UNMATCHED,
+          matchOrigin: origin,
+          danmaku: start.danmaku,
+          mergedComments: mergeDanmakuEntries(start.danmaku),
+          background: phase,
+          candidates: state.step === 'waiting_user' ? state.matchData : undefined,
+          matchError: state.step === 'match_failed' ? state.error : undefined,
+        }
+      }),
+      defer(() => this.continueInBackground(phase, known, origin ?? 'auto', video, deps)),
+    )
+  }
+
+  /** 播放记录中已确认的匹配；Operation 包装的读取失败会降级为空结果 */
+  private async readHistoryMatch(
+    video: VideoInfo,
+    deps: ServiceDeps,
+  ): Promise<MatchedVideo | undefined> {
+    const history = await deps.history.get(video.hash)
+    return history?.episodeId && history?.animeId
+      ? {
+          episodeId: history.episodeId,
+          animeTitle: history.animeTitle || '',
+          episodeTitle: history.episodeTitle || '',
+          animeId: history.animeId,
+        }
+      : undefined
+  }
+
+  /**
+   * 提前开播的本地部分：取可用弹幕、决定后台阶段并写入历史。
+   * searchMatch 为 false 时没有匹配也不再后台匹配（已有未匹配或失败的结论）。
+   */
+  private async prepareEarlyStart(
+    video: VideoInfo,
+    deps: ServiceDeps,
+    known: MatchedVideo | undefined,
+    searchMatch: boolean,
+  ): Promise<{ danmaku: DanmakuEntry[]; phase?: BackgroundPhase }> {
+    const danmaku = await getAvailableDanmaku(video, deps, known)
+    let phase: BackgroundPhase | undefined
+    if (!known) {
+      phase = searchMatch ? 'matching' : undefined
+    } else {
+      // 已有同一匹配的在线弹幕且缓存未过期时直接使用，不再后台请求
+      const hasOnline = danmaku.some((entry) => entry.type === 'auto')
+      const fresh = hasOnline && !(await deps.cache.isStale(video.hash))
+      phase = fresh ? undefined : 'loading_danmaku'
+    }
+    // 开播即保存可恢复来源，开播后立刻关闭也能从历史重新打开
+    await deps.history.save({
+      hash: video.hash,
+      source: getPersistentMediaSource(video),
+      animeId: known?.animeId ?? 0,
+      episodeId: known?.episodeId ?? 0,
+      animeTitle: known?.animeTitle || video.name,
+      episodeTitle: known?.episodeTitle ?? '',
+      danmaku,
+    })
+    return { danmaku, phase }
+  }
+
+  /** 开播事件之后的后台段：有匹配则加载弹幕，否则后台匹配 */
+  private continueInBackground(
+    phase: BackgroundPhase | undefined,
+    known: MatchedVideo | undefined,
+    origin: 'auto' | 'history' | 'manual',
+    video: VideoInfo,
+    deps: ServiceDeps,
+  ): Observable<PipelineEvent> {
+    if (!phase) return EMPTY
+    return known
+      ? this.backgroundDanmaku(known, origin, video, deps)
+      : this.backgroundMatch(video, deps)
   }
 
   /** 后台匹配：无精确结果或接口失败都停留在 ready，不打断播放 */
@@ -658,34 +736,5 @@ export class PlayerLoadingService {
         )
       }),
     )
-  }
-
-  private handleSkipDanmaku(
-    state: Extract<
-      LoadingState,
-      { step: 'matching' | 'loading_danmaku' | 'waiting_user' | 'match_failed' }
-    >,
-    deps: ServiceDeps,
-  ): Observable<PipelineEvent> {
-    return defer(async () => {
-      const { video } = state
-      const match = state.step === 'loading_danmaku' ? state.match : undefined
-      const danmaku = await getAvailableDanmaku(video, deps, match)
-      await deps.history.save({
-        hash: video.hash,
-        source: getPersistentMediaSource(video),
-        animeId: match?.animeId ?? 0,
-        episodeId: match?.episodeId ?? 0,
-        animeTitle: match?.animeTitle || video.name,
-        episodeTitle: match?.episodeTitle ?? '',
-        danmaku,
-      })
-      return {
-        type: 'skipped' as const,
-        video,
-        danmaku,
-        mergedComments: mergeDanmakuEntries(danmaku),
-      }
-    })
   }
 }

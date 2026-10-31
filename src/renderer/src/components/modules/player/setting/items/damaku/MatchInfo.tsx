@@ -71,11 +71,9 @@ export const MatchInfo = () => {
                     ? '弹幕加载失败，视频可正常播放'
                     : info.unmatched
                       ? '未精确匹配，可手动选择剧集'
-                      : info.skipped
-                        ? '已跳过在线弹幕加载'
-                        : info.matched
-                          ? `匹配弹幕 ${info.count.toLocaleString('zh-CN')} 条`
-                          : '尚未匹配动漫'}
+                      : info.matched
+                        ? `匹配弹幕 ${info.count.toLocaleString('zh-CN')} 条`
+                        : '尚未匹配动漫'}
         </p>
       </div>
     </section>

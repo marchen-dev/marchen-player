@@ -182,12 +182,12 @@ export function executeFetchDanmaku(
 }
 
 /**
- * 等待用户选择（selectMatch 或 skipDanmaku）
+ * 等待用户选择（selectMatch 或 playNow）
  * pipeline 在此处"挂起"，直到收到用户命令
  */
 export function waitForUserSelection(command$: Observable<Command>): Observable<Command> {
   return command$.pipe(
-    filter((cmd) => cmd.type === 'selectMatch' || cmd.type === 'skipDanmaku'),
+    filter((cmd) => cmd.type === 'selectMatch' || cmd.type === 'playNow'),
     take(1),
   )
 }

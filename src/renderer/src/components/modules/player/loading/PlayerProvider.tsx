@@ -60,15 +60,15 @@ const WaitingUserDialog: FC = () => {
       onSelected={(params) => {
         completedRef.current = true
         if (!params) {
-          captureFeatureUsed('danmaku_match', 'skip')
-          service.skipDanmaku()
+          captureFeatureUsed('danmaku_match', 'play_now')
+          service.playNow()
           return
         }
         captureFeatureUsed('danmaku_match', 'select')
         service.selectMatch(params)
       }}
       onClosed={() => {
-        // 跳过可能仍在等待本地缓存；用用户意图区分关闭，不能靠异步状态判断。
+        // 稍后选择可能仍在等待本地缓存；用用户意图区分关闭，不能靠异步状态判断。
         if (!completedRef.current && service.currentState.step === 'waiting_user') service.cancel()
       }}
       isLoading

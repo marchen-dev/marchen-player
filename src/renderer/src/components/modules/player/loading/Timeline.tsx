@@ -47,8 +47,10 @@ export const LoadingDanmuTimeLine = () => {
       {state.step === 'importing' && <RemoteReadProgress />}
       {canSkip && (
         <div className="flex items-center gap-2">
-          <Button variant={failed ? 'default' : 'secondary'} onClick={() => service.skipDanmaku()}>
-            直接播放
+          {/* 相当于本次临时开启优先播放：先开播，未完成的匹配与弹幕在后台继续；
+              匹配失败后不在后台重试，文案保持「直接播放」 */}
+          <Button variant={failed ? 'default' : 'secondary'} onClick={() => service.playNow()}>
+            {failed ? '直接播放' : '先播放，弹幕稍后加载'}
           </Button>
           {failed && (
             <>

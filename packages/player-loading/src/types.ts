@@ -122,14 +122,17 @@ export interface MatchFailedState {
 interface MatchFeedback {
   matchOrigin?: 'auto' | 'history' | 'manual'
   danmakuLoadFailed?: boolean
-  /** unmatched：优先播放模式下后台匹配没有精确结果，区别于用户主动跳过的 skipped */
-  danmakuStatus?: 'loaded' | 'skipped' | 'failed' | 'unmatched'
+  /** unmatched：优先播放（含手动提前开播）后没有精确匹配结果 */
+  danmakuStatus?: 'loaded' | 'failed' | 'unmatched'
   /** 恢复失败不能覆盖当前匹配；保留本次目标供再次重试。 */
   recovery?: { target: MatchedVideo; message?: string }
 }
 
 /** 优先播放阶段：视频已开播，匹配或在线弹幕仍在后台进行 */
 export type BackgroundPhase = 'matching' | 'loading_danmaku'
+
+/** 用户在加载过程中点击「直接播放」时所处的步骤 */
+export type PlayNowStep = 'matching' | 'loading_danmaku' | 'waiting_user' | 'match_failed'
 
 /**
  * 优先播放模式附加在可播放状态上的后台信息。
@@ -143,6 +146,11 @@ interface PlayFirstFeedback {
   matchCandidates?: MatchResult
   /** 后台匹配接口失败，允许在播放中原地重试匹配 */
   matchError?: { message: string }
+  /**
+   * 用户在加载中手动提前开播时所处的步骤，供界面与遥测区分「设置开启的优先播放」。
+   * 用户重新发起匹配（重试 / 重新匹配）后清除，之后的结果按正常流程反馈。
+   */
+  playNowFrom?: PlayNowStep
 }
 
 export interface LoadingDanmakuState extends MatchFeedback {
@@ -201,7 +209,8 @@ export type Command =
   /** 媒体源（WebDAV / Jellyfin / Emby）条目，地址与凭证由平台层解析 */
   | { type: 'loadFromProvider'; sourceId: string; itemRef: string }
   | { type: 'selectMatch'; match: MatchedVideo }
-  | { type: 'skipDanmaku' }
+  /** 加载中提前开播：本地数据先开播，未完成的匹配与弹幕转入后台 */
+  | { type: 'playNow' }
   | { type: 'retryMatch' }
   | { type: 'manualMatch' }
   | { type: 'retryDanmaku' }
@@ -227,7 +236,22 @@ export type PipelineEvent =
       danmakuLoadFailed?: boolean
     }
   | { type: 'ready' }
-  | { type: 'skipped'; video: VideoInfo; danmaku: DanmakuEntry[]; mergedComments: CommentModel[] }
+  /**
+   * 手动提前开播：按点击时的步骤带上已有信息。
+   * background 存在时后台继续；candidates / matchError 表示开播即为未匹配或匹配失败。
+   */
+  | {
+      type: 'playNowReady'
+      from: PlayNowStep
+      video: VideoInfo
+      match: MatchedVideo
+      matchOrigin?: MatchFeedback['matchOrigin']
+      danmaku: DanmakuEntry[]
+      mergedComments: CommentModel[]
+      background?: BackgroundPhase
+      candidates?: MatchResult
+      matchError?: { message: string }
+    }
   /** 优先播放：本地数据就绪即开播，background 存在时后台继续匹配或加载弹幕 */
   | {
       type: 'playFirstReady'

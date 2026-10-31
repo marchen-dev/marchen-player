@@ -145,8 +145,9 @@ export const MatchAnimeDialog: FC<MatchAnimeDialogProps> = (props) => {
                   onSelected && onSelected()
                 }}
               >
-                <i className="icon-[mingcute--xls-line] mr-1 text-lg" />
-                <span>直接播放</span>
+                {/* 先开播，候选保留在内存中，播放中可从弹幕设置再选 */}
+                <i className="icon-[mingcute--play-circle-line] mr-1 text-lg" />
+                <span>稍后选择</span>
               </Button>
             </div>
           </Show>

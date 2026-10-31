@@ -124,7 +124,7 @@ describe('player-loading telemetry observer', () => {
     ])
   })
 
-  it('classifies manual, skipped and cancelled matching without late duplicates', () => {
+  it('classifies manual and cancelled matching without late duplicates', () => {
     const manual = createHarness()
     manual.observer.observe({ step: 'importing' })
     manual.observer.observe({ step: 'matching', video })
@@ -282,50 +282,120 @@ describe('player-loading telemetry observer', () => {
     })
   })
 
-  it('跳过弹幕时记录离开前的步骤', () => {
-    const skipFrom = (before: LoadingState[]) => {
+  it('加载中直接播放按 play_now 统计，后台结束才记录结果和点击时的步骤', () => {
+    const { observer, events, tick } = createHarness()
+    const unmatched = { episodeId: 0, animeId: 0, animeTitle: '', episodeTitle: '' }
+    observer.observe({ step: 'importing' })
+    tick(10)
+    observer.observe({ step: 'matching', video })
+    tick(1_500)
+    const started: LoadingState = {
+      step: 'ready',
+      video,
+      match: unmatched,
+      background: { phase: 'matching' },
+      playNowFrom: 'matching',
+      danmaku: [],
+      mergedComments: [],
+    }
+    observer.observe(started)
+    // 导入按点击前的设置上报，开播起改为 play_now
+    expect(events.find((event) => event.name === 'video_import_completed')).toMatchObject({
+      properties: { load_mode: 'complete' },
+    })
+    expect(events.at(-1)).toMatchObject({
+      name: 'playback_ready',
+      properties: { load_mode: 'play_now', duration_ms: 1_510 },
+    })
+    tick(400)
+    observer.observe({
+      ...started,
+      match,
+      matchOrigin: 'auto',
+      background: undefined,
+      danmakuStatus: 'loaded',
+    })
+    expect(events.at(-1)).toEqual({
+      name: 'danmaku_match_completed',
+      properties: {
+        operation_id: 'operation-1',
+        load_mode: 'play_now',
+        result: 'automatic',
+        duration_ms: 1_910,
+        comment_count: 0,
+        skip_from_step: 'matching',
+        match_origin: 'auto',
+        matching_ms: 1_900,
+      },
+    })
+  })
+
+  it('稍后选择与失败后直接播放立即记录未匹配或失败', () => {
+    const unmatched = { episodeId: 0, animeId: 0, animeTitle: '', episodeTitle: '' }
+    const playNow = (before: LoadingState, after: Partial<LoadingState>) => {
       const harness = createHarness()
       harness.observer.observe({ step: 'importing' })
       harness.observer.observe({ step: 'matching', video })
-      for (const state of before) harness.observer.observe(state)
-      harness.tick(100)
+      harness.observer.observe(before)
       harness.observer.observe({
         step: 'ready',
         video,
-        match: { episodeId: 0, animeId: 0, animeTitle: '', episodeTitle: '' },
-        danmakuStatus: 'skipped',
+        match: unmatched,
         danmaku: [],
         mergedComments: [],
-      })
+        ...after,
+      } as LoadingState)
       return harness.events.at(-1)?.properties
     }
+    const candidates = { isMatched: false, matches: [match, match] }
+    expect(
+      playNow(
+        { step: 'waiting_user', video, matchData: candidates },
+        { playNowFrom: 'waiting_user', danmakuStatus: 'unmatched', matchCandidates: candidates },
+      ),
+    ).toMatchObject({
+      load_mode: 'play_now',
+      result: 'unmatched',
+      skip_from_step: 'waiting_user',
+      candidate_count: 2,
+    })
+    expect(
+      playNow(
+        { step: 'match_failed', video, error: { message: 'timeout' } },
+        {
+          playNowFrom: 'match_failed',
+          danmakuStatus: 'failed',
+          matchError: { message: 'timeout' },
+        },
+      ),
+    ).toMatchObject({ load_mode: 'play_now', result: 'failed', skip_from_step: 'match_failed' })
+  })
 
-    expect(skipFrom([])).toMatchObject({ result: 'none', skip_from_step: 'matching' })
-    expect(
-      skipFrom([{ step: 'waiting_user', video, matchData: { isMatched: false, matches: [] } }]),
-    ).toMatchObject({ result: 'none', skip_from_step: 'waiting_user', candidate_count: 0 })
-    expect(
-      skipFrom([{ step: 'match_failed', video, error: { message: 'timeout' } }]),
-    ).toMatchObject({ result: 'none', skip_from_step: 'match_failed' })
-    // 已选定剧集、弹幕加载中跳过：保留匹配结果，result 不是 none，但仍记录跳过来源
-    const loading = createHarness()
-    loading.observer.observe({ step: 'importing' })
-    loading.observer.observe({ step: 'matching', video })
-    loading.observer.observe({ step: 'loading_danmaku', video, match })
-    loading.observer.observe({
+  it('获取弹幕时直接播放保留匹配，记录 loading_danmaku 来源', () => {
+    const { observer, events } = createHarness()
+    observer.observe({ step: 'importing' })
+    observer.observe({ step: 'matching', video })
+    observer.observe({ step: 'loading_danmaku', video, match })
+    const started: LoadingState = {
       step: 'ready',
       video,
       match,
-      danmakuStatus: 'skipped',
+      matchOrigin: 'auto',
+      background: { phase: 'loading_danmaku' },
+      playNowFrom: 'loading_danmaku',
       danmaku: [],
       mergedComments: [],
-    })
-    expect(loading.events.at(-1)?.properties).toMatchObject({
+    }
+    observer.observe(started)
+    observer.observe({ ...started, background: undefined, danmakuStatus: 'loaded' })
+    expect(events.at(-1)?.properties).toMatchObject({
+      load_mode: 'play_now',
+      result: 'automatic',
       skip_from_step: 'loading_danmaku',
     })
   })
 
-  it('没有跳过的未匹配结果不记录跳过来源', () => {
+  it('没有直接播放的未匹配结果不记录来源步骤', () => {
     const { observer, events } = createHarness()
     observer.observe({ step: 'importing' })
     observer.observe({ step: 'matching', video })
