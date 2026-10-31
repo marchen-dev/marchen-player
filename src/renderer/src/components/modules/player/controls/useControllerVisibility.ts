@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 
-const HIDE_DELAY = 2_800
+// 主流播放器在 2～3s 之间；低于 2s 容易在鼠标移向按钮途中开始淡出，2.5s 加 200ms 淡出约 2.7s 消失。
+const HIDE_DELAY = 2_500
 
 interface ControllerVisibilityOptions {
   playing: boolean

@@ -82,3 +82,4 @@
 - 2026-10-26: [harden-subtitle-import-diagnostics](./archive/2026-10-26-harden-subtitle-import-diagnostics/) — 字幕失败上报低基数原因、SRT/VTT 解析跳过坏块并放宽时间戳、启动时标记 GPU 软件渲染
 - 2026-10-31: [add-match-flow-telemetry](./archive/2026-10-31-add-match-flow-telemetry/) — 弹幕匹配遥测补充跳过来源、候选数、匹配来源与各阶段耗时，导入补充 hash 耗时，用于拆解新视频匹配率与加载瓶颈
 - 2026-10-31: [play-now-background-danmaku](./archive/2026-10-31-play-now-background-danmaku/) — 加载中「直接播放」改为本次临时优先播放：从点击时的步骤在后台继续匹配与加载弹幕，选集弹窗改为「稍后选择」，遥测新增 load_mode=play_now
+- 2026-10-31: [shorten-controls-hide-delay](./archive/2026-10-31-shorten-controls-hide-delay/) — 播放中控制栏自动隐藏延迟从 2.8s 降到 2.5s
