@@ -52,6 +52,18 @@ export const classifyApiEndpoint = (path: string): ApiEndpoint => {
   return 'other'
 }
 
+/**
+ * 单次尝试的超时。
+ * 后面还有备用线路时保持短超时，线路卡住能尽快降级；已经是最后一次机会时
+ * （自动模式的降级尝试或手动模式的唯一尝试）按接口放宽，避免慢而有效的响应被中止。
+ * 获取弹幕需服务端聚合第三方源，Cloudflare 一次成功的请求最慢接近 8 秒，因此首次也略放宽。
+ */
+export const attemptTimeoutMs = (endpoint: ApiEndpoint, route: ApiRoute, isLast: boolean) => {
+  if (endpoint === 'comment') return isLast ? 25_000 : 10_000
+  if (endpoint === 'match' && isLast) return 15_000
+  return route === 'cloudflare' ? 8_000 : 10_000
+}
+
 export interface ApiRouteObserver {
   changed: (change: ApiRouteChange) => void
   completed: (result: ApiRequestResult) => void
@@ -165,7 +177,7 @@ export class ApiRouteClient {
             timedOut = true
             controller.abort(new DOMException('接口请求超时', 'TimeoutError'))
           },
-          route === 'cloudflare' ? 8_000 : 10_000,
+          attemptTimeoutMs(endpoint, route, route === routes.at(-1)),
         )
         const attempt: ApiAttempt = {
           attempt_id: crypto.randomUUID(),

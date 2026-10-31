@@ -1,5 +1,6 @@
 import {
   ApiRouteClient,
+  attemptTimeoutMs,
   isApiRequestFailure,
   normalizeApiRouteMode,
 } from '@renderer/request/api-route-client'
@@ -23,6 +24,12 @@ const deferred = <T>() => {
   })
   return { promise, resolve, reject }
 }
+
+/** 一直挂起，直到线路层超时中止 */
+const hang = (_route: unknown, signal: AbortSignal) =>
+  new Promise<object>((_resolve, reject) => {
+    signal.addEventListener('abort', () => reject(signal.reason), { once: true })
+  })
 
 afterEach(() => {
   clients.splice(0).forEach((client) => client.dispose())
@@ -166,18 +173,76 @@ describe('接口主备线路', () => {
   it('备用十秒超时后整轮失败，没有第三次尝试', async () => {
     vi.useFakeTimers()
     const { client } = setup()
-    const send = vi.fn(
-      (_route, signal: AbortSignal) =>
-        new Promise<object>((_resolve, reject) => {
-          signal.addEventListener('abort', () => reject(signal.reason), { once: true })
-        }),
-    )
-    const promise = expect(client.request('/comment/1', 'GET', send)).rejects.toThrow(
+    const send = vi.fn(hang)
+    const promise = expect(client.request('/bangumi/1', 'GET', send)).rejects.toThrow(
       '接口请求超时',
     )
     await vi.advanceTimersByTimeAsync(18_000)
     await promise
     expect(send).toHaveBeenCalledTimes(2)
+  })
+
+  it('超时按接口与是否最后一次尝试选择', () => {
+    // 后面还有备用线路：保持短超时尽快降级
+    expect(attemptTimeoutMs('comment', 'cloudflare', false)).toBe(10_000)
+    expect(attemptTimeoutMs('match', 'cloudflare', false)).toBe(8_000)
+    expect(attemptTimeoutMs('match', 'edgeone', false)).toBe(10_000)
+    // 最后一次机会：按接口放宽
+    expect(attemptTimeoutMs('comment', 'edgeone', true)).toBe(25_000)
+    expect(attemptTimeoutMs('comment', 'cloudflare', true)).toBe(25_000)
+    expect(attemptTimeoutMs('match', 'edgeone', true)).toBe(15_000)
+    // 其他接口不变
+    expect(attemptTimeoutMs('search', 'cloudflare', true)).toBe(8_000)
+    expect(attemptTimeoutMs('bangumi_detail', 'edgeone', true)).toBe(10_000)
+  })
+
+  it('自动模式获取弹幕：主线路 10 秒降级，备用放宽到 25 秒', async () => {
+    vi.useFakeTimers()
+    const { client, observer } = setup()
+    const send = vi.fn(hang)
+    const promise = expect(client.request('/comment/1', 'GET', send)).rejects.toThrow(
+      '接口请求超时',
+    )
+    await vi.advanceTimersByTimeAsync(9_999)
+    expect(send).toHaveBeenCalledTimes(1)
+    await vi.advanceTimersByTimeAsync(1)
+    expect(send.mock.calls.map((call) => call[0])).toEqual(['cloudflare', 'edgeone'])
+    // 备用在 10 秒时仍在等待，不再像过去那样被中止
+    await vi.advanceTimersByTimeAsync(24_999)
+    expect(observer.completed).not.toHaveBeenCalled()
+    await vi.advanceTimersByTimeAsync(1)
+    await promise
+    expect(observer.completed.mock.calls[0][0].attempts).toEqual([
+      expect.objectContaining({ route: 'cloudflare', error_code: 'timeout' }),
+      expect.objectContaining({ route: 'edgeone', error_code: 'timeout' }),
+    ])
+  })
+
+  it('手动 EdgeOne 获取弹幕只有一次尝试，按最后一次放宽，慢响应可以成功', async () => {
+    vi.useFakeTimers()
+    const { client } = setup('edgeone')
+    const send = vi.fn(
+      (_route, signal: AbortSignal) =>
+        new Promise<object>((resolve, reject) => {
+          setTimeout(resolve, 12_000, { count: 0, comments: [] })
+          signal.addEventListener('abort', () => reject(signal.reason), { once: true })
+        }),
+    )
+    const promise = client.request('/comment/1', 'GET', send)
+    await vi.advanceTimersByTimeAsync(12_000)
+    await expect(promise).resolves.toEqual({ count: 0, comments: [] })
+    expect(send).toHaveBeenCalledTimes(1)
+  })
+
+  it('自动模式匹配：主线路仍 8 秒降级，备用放宽到 15 秒', async () => {
+    vi.useFakeTimers()
+    const { client } = setup()
+    const send = vi.fn(hang)
+    const promise = expect(client.request('/match', 'POST', send)).rejects.toThrow('接口请求超时')
+    await vi.advanceTimersByTimeAsync(8_000)
+    expect(send).toHaveBeenCalledTimes(2)
+    await vi.advanceTimersByTimeAsync(15_000)
+    await promise
   })
 
   it('主动取消主线路时立即结束，不发送备用且不上报异常', async () => {
