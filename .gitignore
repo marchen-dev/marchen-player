@@ -24,3 +24,12 @@ src/renderer/public/audio/soundtouch/
 
 # 宣传视频工程（Remotion），不随应用仓库提交
 promo/
+
+# Tencent Cloud EdgeOne
+.env
+.edgeone/*
+.tef_dist/*
+  
+
+# Exa 调研输出（本地参考，不提交）
+exa-results/
