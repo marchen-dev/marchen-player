@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { listEmbeddedSubtitles, resolveEmbeddedTrack } from '../platform/embedded-catalog'
 import { openPlaybackResource } from '../platform/media-resource'
 import { createWebSourceLifecyclePort, createWebSubtitleCatalogPort } from '../platform/web'
+import { embeddedSubtitlesAvailable } from '../subtitles/source-policy'
 
 vi.mock('../platform/media-resource', () => ({ openPlaybackResource: vi.fn() }))
 vi.mock('../../media/subtitles/matroska', () => ({
@@ -88,5 +89,16 @@ describe('内嵌字幕来源限制', () => {
     resolved.release?.()
     restored.release?.()
     lifecycle.dispose()
+  })
+
+  it.each([
+    ['本地文件', { kind: 'electron-file', path: '/sample.mkv' }, true],
+    ['Jellyfin', { kind: 'provider-item', provider: 'jellyfin', sourceId: 's', itemRef: 'i' }, true],
+    ['Emby', { kind: 'provider-item', provider: 'emby', sourceId: 's', itemRef: 'i' }, true],
+    ['WebDAV', { kind: 'provider-item', provider: 'webdav', sourceId: 's', itemRef: 'a.mkv' }, false],
+    ['远程直链', { kind: 'remote-url', url: 'https://example.test/sample.mkv' }, false],
+  ] as const)('%s 的内嵌字幕可用性提示判定', (_, partial, expected) => {
+    const source = { hash: 'h', name: 'sample.mkv', size: 100, ...partial } as DurableMediaSource
+    expect(embeddedSubtitlesAvailable(source)).toBe(expected)
   })
 })

@@ -88,3 +88,4 @@
 - 2026-10-31: [restyle-load-failure](./archive/2026-10-31-restyle-load-failure/) — 加载阶段失败改为在加载界面原地显示：进度条停在出错处变红，按来源与媒体源错误码给出原因和操作，去掉深色浮层卡片
 - 2026-11-01: [enlarge-loading-ui](./archive/2026-11-01-enlarge-loading-ui/) — 加载界面拉开层级：标题 18px 加粗、进度条 6px 粗、固定 320px 宽；副标题按种类切换动画修复读取进度闪烁，读取文案改为识别片段百分比
 - 2026-11-01: [polish-timeline-preview-and-hide](./archive/2026-11-01-polish-timeline-preview-and-hide/) — 进度条预览框保留旧帧并固定尺寸、淡入淡出带 80ms 离开宽限、拖动收缩为时间气泡且不超出控制栏；控制栏隐藏延迟降到 1.5s 并忽略 3px 内指针抖动
+- 2026-11-01: [hide-provider-embedded-subtitle-hint](./archive/2026-11-01-hide-provider-embedded-subtitle-hint/) — Jellyfin/Emby 内嵌文字字幕由服务端提供，字幕面板不再提示「远程视频暂不支持内嵌字幕」；WebDAV 与远程直链仍提示，本地提取策略不变

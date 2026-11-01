@@ -18,7 +18,7 @@ import {
   resolveTrackHistoryId,
   selectPreferredSubtitleTrack,
 } from './preferences'
-import { supportsEmbeddedSubtitles } from './source-policy'
+import { embeddedSubtitlesAvailable } from './source-policy'
 
 export interface SubtitleTrackOption extends SubtitleTrackDescriptor {
   historyId: number
@@ -60,7 +60,7 @@ export const NativeSubtitleProvider = ({
   children,
 }: NativeSubtitleProviderProps) => {
   const { subtitleScale } = usePlayerSettingsValue()
-  const embeddedSupported = supportsEmbeddedSubtitles(source)
+  const embeddedSupported = embeddedSubtitlesAvailable(source)
   const [loadingOperation, setLoadingOperation] = useState<'catalog' | 'track' | 'import'>(
     'catalog',
   )
