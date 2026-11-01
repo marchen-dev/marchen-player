@@ -8,7 +8,11 @@ import {
   openPlayerSettingsPanel,
 } from '@renderer/atoms/player-settings-state'
 import { canStartControllerDrag } from '@renderer/components/modules/player/controls/controller-drag'
-import { timelineTimeFromPointer } from '@renderer/components/modules/player/controls/timeline-scrubber-math'
+import { isIntentionalPointerMove } from '@renderer/components/modules/player/controls/controller-visibility-math'
+import {
+  placePreviewBubble,
+  timelineTimeFromPointer,
+} from '@renderer/components/modules/player/controls/timeline-scrubber-math'
 import { volumeFromPointer } from '@renderer/components/modules/player/controls/volume-slider-math'
 import {
   electronPlayerCapabilities,
@@ -121,6 +125,29 @@ describe('播放器 UI 回归', () => {
     expect(volumeFromPointer(50, 100, 100)).toBe(0)
     expect(volumeFromPointer(250, 100, 100)).toBe(1)
     expect(volumeFromPointer(150, 100, 0)).toBe(0)
+  })
+
+  it('控制栏自动隐藏忽略锚点 3px 内的指针抖动', () => {
+    expect(isIntentionalPointerMove(null, { x: 10, y: 10 })).toBe(true)
+    expect(isIntentionalPointerMove({ x: 10, y: 10 }, { x: 12, y: 11 })).toBe(false)
+    // 来回抖动始终贴近锚点，不因路程累加而触发
+    expect(isIntentionalPointerMove({ x: 10, y: 10 }, { x: 8, y: 10 })).toBe(false)
+    expect(isIntentionalPointerMove({ x: 10, y: 10 }, { x: 13, y: 10 })).toBe(true)
+    expect(isIntentionalPointerMove({ x: 10, y: 10 }, { x: 12, y: 12.5 })).toBe(true)
+  })
+
+  it('进度条预览框不超出控制栏，小三角指向指针位置', () => {
+    // 中间位置：以指针为中心，小三角居中
+    expect(placePreviewBubble(200, 100, -50, 450)).toEqual({ center: 200, caretOffset: 0 })
+    // 靠左：预览框贴住控制栏左边界，小三角向左偏指向指针
+    expect(placePreviewBubble(0, 100, -50, 450)).toEqual({ center: 0, caretOffset: 0 })
+    expect(placePreviewBubble(-40, 100, -50, 450)).toEqual({ center: 0, caretOffset: -40 })
+    // 靠右：贴住右边界
+    expect(placePreviewBubble(440, 100, -50, 450)).toEqual({ center: 400, caretOffset: 40 })
+    // 小三角不越过圆角
+    expect(placePreviewBubble(-50, 100, -50, 450).caretOffset).toBe(-42)
+    // 可用区域比预览框还窄时居中
+    expect(placePreviewBubble(10, 300, 0, 200)).toEqual({ center: 100, caretOffset: -90 })
   })
 
   it('时间轴悬停时间按指针位置计算并限制在视频时长内', () => {

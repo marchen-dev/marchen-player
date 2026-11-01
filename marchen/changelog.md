@@ -87,3 +87,4 @@
 - 2026-10-31: [widen-final-attempt-timeout](./archive/2026-10-31-widen-final-attempt-timeout/) — 接口超时按是否最后一次尝试区分：保留短超时快速降级，最后一次获取弹幕放宽到 25 秒、匹配 15 秒，首次获取弹幕 10 秒
 - 2026-10-31: [restyle-load-failure](./archive/2026-10-31-restyle-load-failure/) — 加载阶段失败改为在加载界面原地显示：进度条停在出错处变红，按来源与媒体源错误码给出原因和操作，去掉深色浮层卡片
 - 2026-11-01: [enlarge-loading-ui](./archive/2026-11-01-enlarge-loading-ui/) — 加载界面拉开层级：标题 18px 加粗、进度条 6px 粗、固定 320px 宽；副标题按种类切换动画修复读取进度闪烁，读取文案改为识别片段百分比
+- 2026-11-01: [polish-timeline-preview-and-hide](./archive/2026-11-01-polish-timeline-preview-and-hide/) — 进度条预览框保留旧帧并固定尺寸、淡入淡出带 80ms 离开宽限、拖动收缩为时间气泡且不超出控制栏；控制栏隐藏延迟降到 1.5s 并忽略 3px 内指针抖动

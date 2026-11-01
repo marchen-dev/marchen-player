@@ -1,7 +1,8 @@
 import type { KeyboardEvent, PointerEvent } from 'react'
 import { cn } from '@renderer/lib/utils'
+import { AnimatePresence, m } from 'framer-motion'
 import { useEffect, useRef, useState } from 'react'
-import { timelineTimeFromPointer } from './timeline-scrubber-math'
+import { placePreviewBubble, timelineTimeFromPointer } from './timeline-scrubber-math'
 import { formatTime } from './utils'
 
 export interface TimelineScrubberProps {
@@ -13,6 +14,27 @@ export interface TimelineScrubberProps {
   onSeekingChange?: (seeking: boolean) => void
 }
 
+/** 指针在进度条上的位置：时间 + 用于摆放预览框的坐标（均相对进度条左边缘，单位 px） */
+interface ScrubPoint {
+  time: number
+  x: number
+  minLeft: number
+  maxRight: number
+}
+
+// 缩略图最大尺寸，与预览抽帧的 maxWidth 一致
+const PREVIEW_MAX_WIDTH = 240
+const PREVIEW_MAX_HEIGHT = 144
+const DEFAULT_ASPECT_RATIO = 16 / 9
+// 预览框 p-1 的左右内边距合计
+const BUBBLE_PADDING = 8
+// 拖动时只显示时间的气泡宽度估计值（含 "1:23:45"），只用于边界计算
+const TIME_ONLY_BUBBLE_WIDTH = 64
+// 预览框与控制栏边缘保持的间距
+const BUBBLE_EDGE_GAP = 4
+// 离开进度条后的宽限：擦过边缘再回来不会闪烁
+const LEAVE_GRACE_MS = 80
+
 export const TimelineScrubber = ({
   currentTime,
   duration,
@@ -23,20 +45,38 @@ export const TimelineScrubber = ({
 }: TimelineScrubberProps) => {
   const activePointerRef = useRef<number | null>(null)
   const releasePointerListenersRef = useRef<(() => void) | null>(null)
-  useEffect(() => () => releasePointerListenersRef.current?.(), [])
-  const [dragTime, setDragTime] = useState<number | null>(null)
-  const [hoverTime, setHoverTime] = useState<number | null>(null)
+  const leaveTimerRef = useRef<number | null>(null)
+  useEffect(
+    () => () => {
+      releasePointerListenersRef.current?.()
+      if (leaveTimerRef.current !== null) window.clearTimeout(leaveTimerRef.current)
+    },
+    [],
+  )
+  const [drag, setDrag] = useState<ScrubPoint | null>(null)
+  const [hover, setHover] = useState<ScrubPoint | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string>()
+  // 记录最近一帧的宽高比，让图片区在整个悬停过程中尺寸不变；首帧前按 16:9 占位
+  const [aspectRatio, setAspectRatio] = useState(DEFAULT_ASPECT_RATIO)
   const disabled = !Number.isFinite(duration) || duration <= 0
+  const dragTime = drag?.time ?? null
   const visibleTime = dragTime ?? currentTime
   const progress = disabled ? 0 : clamp(visibleTime / duration, 0, 1)
-  const previewTime = dragTime ?? hoverTime
+  const scrub = drag ?? hover
   // 缩略图按秒复用，鼠标微动不反复销毁正在解码的请求；拖动只更新时间提示。
-  const frameTime = dragTime === null && hoverTime !== null ? Math.floor(hoverTime) : null
-  const previewProgress = disabled || previewTime === null ? 0 : clamp(previewTime / duration, 0, 1)
+  const frameTime = drag === null && hover !== null ? Math.floor(hover.time) : null
+
+  // 视频源或旋转变化时 onPreview 会换成新函数，旧帧不再对应当前画面。
+  // seeking 期间 onPreview 会暂时为 undefined，此时保留旧帧，避免预览框塌陷。
+  const previewOwnerRef = useRef(onPreview)
+  useEffect(() => {
+    if (!onPreview || onPreview === previewOwnerRef.current) return
+    previewOwnerRef.current = onPreview
+    setPreviewUrl(undefined)
+  }, [onPreview])
 
   useEffect(() => {
-    setPreviewUrl(undefined)
+    // 不在这里清空旧帧：新帧到达前继续显示上一帧，预览框尺寸保持不变。
     if (frameTime === null || !onPreview) return
     const controller = new AbortController()
     const timer = setTimeout(() => {
@@ -52,9 +92,31 @@ export const TimelineScrubber = ({
     }
   }, [onPreview, frameTime])
 
-  const timeFromPointer = (event: PointerEvent<HTMLDivElement>) => {
-    const rect = event.currentTarget.getBoundingClientRect()
-    return timelineTimeFromPointer(event.clientX, rect.left, rect.width, duration)
+  const cancelLeave = () => {
+    if (leaveTimerRef.current === null) return
+    window.clearTimeout(leaveTimerRef.current)
+    leaveTimerRef.current = null
+  }
+
+  /** 结束一次悬停：下次进入从占位开始，不闪现别处的旧帧 */
+  const endHover = () => {
+    cancelLeave()
+    setHover(null)
+    setPreviewUrl(undefined)
+  }
+
+  const scrubPointAt = (element: HTMLElement, clientX: number): ScrubPoint => {
+    const rect = element.getBoundingClientRect()
+    // 预览框以控制栏为边界；找不到控制栏（如移动端底栏）时退回进度条自身
+    const bounds =
+      element.closest<HTMLElement>('[data-player-floating-controller]')?.getBoundingClientRect() ??
+      rect
+    return {
+      time: timelineTimeFromPointer(clientX, rect.left, rect.width, duration),
+      x: clamp(clientX - rect.left, 0, rect.width),
+      minLeft: bounds.left - rect.left + BUBBLE_EDGE_GAP,
+      maxRight: bounds.right - rect.left - BUBBLE_EDGE_GAP,
+    }
   }
 
   const handlePointerDown = (event: PointerEvent<HTMLDivElement>) => {
@@ -64,14 +126,13 @@ export const TimelineScrubber = ({
     const pointerId = event.pointerId
     activePointerRef.current = pointerId
     element.setPointerCapture(pointerId)
-    setHoverTime(null)
-    setDragTime(timeFromPointer(event))
+    cancelLeave()
+    // 拖动期间不再跟随悬停，预览框收缩为只显示时间的气泡
+    setHover(null)
+    setDrag(scrubPointAt(element, event.clientX))
     onSeekingChange?.(true)
 
-    const targetTime = (clientX: number) => {
-      const rect = element.getBoundingClientRect()
-      return timelineTimeFromPointer(clientX, rect.left, rect.width, duration)
-    }
+    const targetTime = (clientX: number) => scrubPointAt(element, clientX).time
     const cleanup = () => {
       window.removeEventListener('pointermove', move, true)
       window.removeEventListener('pointerup', finish, true)
@@ -83,12 +144,12 @@ export const TimelineScrubber = ({
       activePointerRef.current = null
       cleanup()
       if (element.hasPointerCapture(pointerId)) element.releasePointerCapture(pointerId)
-      setDragTime(null)
-      setHoverTime(null)
+      setDrag(null)
+      endHover()
       onSeekingChange?.(false)
     }
     const move = (pointer: globalThis.PointerEvent) => {
-      if (pointer.pointerId === pointerId) setDragTime(targetTime(pointer.clientX))
+      if (pointer.pointerId === pointerId) setDrag(scrubPointAt(element, pointer.clientX))
     }
     const finish = (pointer: globalThis.PointerEvent) => {
       if (pointer.pointerId !== pointerId) return
@@ -110,12 +171,15 @@ export const TimelineScrubber = ({
   }
 
   const handlePointerMove = (event: PointerEvent<HTMLDivElement>) => {
-    if (activePointerRef.current !== null) return
-    if (event.pointerType === 'mouse') setHoverTime(timeFromPointer(event))
+    if (activePointerRef.current !== null || event.pointerType !== 'mouse') return
+    cancelLeave()
+    setHover(scrubPointAt(event.currentTarget, event.clientX))
   }
 
   const handlePointerLeave = (event: PointerEvent<HTMLDivElement>) => {
-    if (!event.currentTarget.hasPointerCapture(event.pointerId)) setHoverTime(null)
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) return
+    cancelLeave()
+    leaveTimerRef.current = window.setTimeout(endHover, LEAVE_GRACE_MS)
   }
 
   const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
@@ -178,24 +242,96 @@ export const TimelineScrubber = ({
         style={{ left: `${progress * 100}%` }}
       />
 
-      {previewTime !== null && (
-        <output
-          className="pointer-events-none absolute bottom-full mb-1 w-max -translate-x-1/2 rounded-md bg-black px-2 py-1 text-xs text-white tabular-nums"
-          style={{ left: `${previewProgress * 100}%` }}
-        >
-          {previewUrl && (
-            <img
-              src={previewUrl}
-              alt=""
-              data-player-preview
-              className="mb-1 h-auto max-h-36 w-60 rounded object-contain"
-            />
-          )}
-          <span className="block text-center">{formatTime(previewTime)}</span>
-        </output>
-      )}
+      <AnimatePresence>
+        {scrub && (
+          <PreviewBubble
+            key="timeline-preview"
+            point={scrub}
+            dragging={drag !== null}
+            // 没有抽帧能力时只显示时间；seeking 期间 onPreview 暂缺但已有旧帧时继续显示
+            showFrame={Boolean(onPreview || previewUrl)}
+            previewUrl={previewUrl}
+            aspectRatio={aspectRatio}
+            onFrameLoad={setAspectRatio}
+          />
+        )}
+      </AnimatePresence>
     </div>
   )
+}
+
+interface PreviewBubbleProps {
+  point: ScrubPoint
+  dragging: boolean
+  showFrame: boolean
+  previewUrl?: string
+  aspectRatio: number
+  onFrameLoad: (aspectRatio: number) => void
+}
+
+/**
+ * 悬停预览框：缩略图 + 时间。
+ * 位置紧跟指针不做缓动（跟手），只对出现 / 消失和拖动时的收缩做过渡。
+ */
+const PreviewBubble = ({
+  point,
+  dragging,
+  showFrame,
+  previewUrl,
+  aspectRatio,
+  onFrameLoad,
+}: PreviewBubbleProps) => {
+  const frameSize = fitPreviewFrame(aspectRatio)
+  const frameVisible = showFrame && !dragging
+  const bubbleWidth = frameVisible ? frameSize.width + BUBBLE_PADDING : TIME_ONLY_BUBBLE_WIDTH
+  const placement = placePreviewBubble(point.x, bubbleWidth, point.minLeft, point.maxRight)
+
+  return (
+    <m.output
+      className="pointer-events-none absolute bottom-full mb-2 flex w-max flex-col items-center rounded-md bg-black p-1 text-xs text-white tabular-nums"
+      style={{ left: placement.center, x: '-50%' }}
+      initial={{ opacity: 0, y: 4 }}
+      animate={{ opacity: 1, y: 0, transition: { duration: 0.12, ease: 'easeOut' } }}
+      exit={{ opacity: 0, y: 4, transition: { duration: 0.1, ease: 'easeIn' } }}
+    >
+      <m.div
+        className="overflow-hidden rounded bg-white/10"
+        // 首次出现即为拖动态（如触屏直接按下）时不播放收缩动画
+        initial={false}
+        animate={
+          frameVisible
+            ? { width: frameSize.width, height: frameSize.height, opacity: 1, marginBottom: 4 }
+            : { width: 0, height: 0, opacity: 0, marginBottom: 0 }
+        }
+        transition={{ duration: 0.15, ease: 'easeOut' }}
+      >
+        {previewUrl && (
+          <img
+            src={previewUrl}
+            alt=""
+            data-player-preview
+            className="size-full object-contain"
+            onLoad={(event) => {
+              const { naturalWidth, naturalHeight } = event.currentTarget
+              if (naturalWidth > 0 && naturalHeight > 0) onFrameLoad(naturalWidth / naturalHeight)
+            }}
+          />
+        )}
+      </m.div>
+      <span className="block px-1.5 py-0.5 text-center">{formatTime(point.time)}</span>
+      <span
+        aria-hidden
+        className="absolute top-full size-0 -translate-x-1/2 border-x-[5px] border-t-[5px] border-x-transparent border-t-black"
+        style={{ left: `calc(50% + ${placement.caretOffset}px)` }}
+      />
+    </m.output>
+  )
+}
+
+/** 按宽高比把缩略图放进 240×144 的框内，竖屏片源以高度为准 */
+const fitPreviewFrame = (aspectRatio: number) => {
+  const height = Math.min(PREVIEW_MAX_HEIGHT, PREVIEW_MAX_WIDTH / aspectRatio)
+  return { width: Math.round(height * aspectRatio), height: Math.round(height) }
 }
 
 const clamp = (value: number, minimum: number, maximum: number) =>
