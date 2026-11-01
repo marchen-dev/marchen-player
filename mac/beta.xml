@@ -3,33 +3,41 @@
   <channel>
     <title>Marchen</title>
     <item>
-      <title>1.1.1</title>
-      <pubDate>Sat, 31 Oct 2026 13:37:46 +0000</pubDate>
-      <sparkle:version>1.1.1</sparkle:version>
-      <sparkle:shortVersionString>1.1.1</sparkle:shortVersionString>
+      <title>1.1.2</title>
+      <pubDate>Sun, 01 Nov 2026 10:31:31 +0000</pubDate>
+      <sparkle:version>1.1.2</sparkle:version>
+      <sparkle:shortVersionString>1.1.2</sparkle:shortVersionString>
       <sparkle:minimumSystemVersion>13.0.0</sparkle:minimumSystemVersion>
       <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
-      <description sparkle:format="markdown"># Marchen 1.1.1
+      <description sparkle:format="markdown"># Marchen 1.1.2
 
-## 加载与弹幕
+## 全新图标
 
-- 加载界面改为一条连续的进度条，匹配到番剧后显示作品名和集数；加载很快时（如已匹配过的视频）不再闪出加载界面。
-- 加载中的「直接播放」改为「先播放，弹幕稍后加载」：视频立即开始播放，未完成的匹配和弹幕在后台继续加载并自动接入；选集弹窗中可点「稍后选择」先播放，之后在弹幕设置中再选剧集。
-- 手动指定 API 线路时，弹幕和匹配请求的等待时间更长，服务端响应较慢时不再轻易出现弹幕加载失败。
+- 应用换上新图标，macOS、Windows、Linux 与网页版统一更新；播放器首页的标志在鼠标悬停时显示品牌色。
+
+## 加载
+
+- 加载界面字号和进度条更大，层级更清楚；读取远程视频时进度改为「已读取识别片段 N%」，不再频繁闪烁。
+- 加载失败时直接在加载界面显示原因，并按来源给出对应操作：本地文件可重新选择，远程链接可重试或更换链接，媒体源按具体原因提示重试或前往媒体源检查。
 
 ## 播放
 
-- 控制栏自动隐藏更快，用方向键快进快退时不再唤起控制栏。
-- SRT / VTT 字幕遇到个别格式错误的段落时跳过该段继续显示，时间格式不规范的字幕也能正常加载。
+- 进度条悬停预览在新画面出来前保留上一帧，显示和消失更顺滑，预览框不再超出控制栏；拖动进度条时只显示时间。
+- 控制栏自动隐藏更快，手搭在鼠标上的轻微抖动不再唤起控制栏。
+
+## 字幕
+
+- 播放 Jellyfin / Emby 媒体源时，字幕设置不再误报「远程视频暂不支持内嵌字幕」。
+- 修复部分 MKV 内嵌 ASS 字幕因含零时长事件导致整条字幕轨无法加载的问题。
 
 ## 其他
 
-- 关于页的更新下载进度显示已下载大小、下载速度和剩余时间。
+- 修复 Windows 与 Linux 上重复打开应用或双击视频时，可能同时启动多个窗口的问题。
 </description>
-      <enclosure url="https://github.com/marchen-dev/marchen-player/releases/download/v1.1.1/Marchen-1.1.1-macos-arm64.zip" length="201566787" type="application/octet-stream" sparkle:edSignature="L5jC5nCcbU3DYB2GOEzsi27eHSGt23fcSxZ1S/31LUIGVigVcjokhq4p4rQVjkUDps5KxTjd4bYt16TTTYKDAQ=="/>
+      <enclosure url="https://github.com/marchen-dev/marchen-player/releases/download/v1.1.2/Marchen-1.1.2-macos-arm64.zip" length="201521797" type="application/octet-stream" sparkle:edSignature="uj68Vb0GYQDZ3pm9YQrvGXhcVvBXEZUhlrtNarNtIxkoRC0bmcbmBlDC3GUBe+uBLQZraBgPzbvxdT78ZMH6DQ=="/>
       <sparkle:deltas>
-        <enclosure url="https://github.com/marchen-dev/marchen-player/releases/download/v1.1.1/Marchen1.1.1-1.1.0.delta" sparkle:deltaFrom="1.1.0" length="37954" type="application/octet-stream" sparkle:deltaFromSparkleExecutableSize="976240" sparkle:deltaFromSparkleLocales="de,he,ar,el,ja,fa,uk" sparkle:edSignature="fBFmsAeeXBHmEMaV9zHJ28qPbdDGiXaVXt1w92zMuitAZ/p9Dia2vOOXnMNUmvHg3QpXMPTKFTLCJi4bTW8vBw=="/>
-        <enclosure url="https://github.com/marchen-dev/marchen-player/releases/download/v1.1.1/Marchen1.1.1-1.0.7.delta" sparkle:deltaFrom="1.0.7" length="278950" type="application/octet-stream" sparkle:deltaFromSparkleExecutableSize="976240" sparkle:deltaFromSparkleLocales="de,he,ar,el,ja,fa,uk" sparkle:edSignature="r0H44CTBSSYVL23Y+oto9Kx+LTVK7UbRbyX0MmP4417Pa0hWHrpeoNWHInVYkKV/CnWAWnXMK3KwLELSDtECCA=="/>
+        <enclosure url="https://github.com/marchen-dev/marchen-player/releases/download/v1.1.2/Marchen1.1.2-1.1.1.delta" sparkle:deltaFrom="1.1.1" length="292206" type="application/octet-stream" sparkle:deltaFromSparkleExecutableSize="976240" sparkle:deltaFromSparkleLocales="de,he,ar,el,ja,fa,uk" sparkle:edSignature="NKYWygETBXszddcJBH8bEChHmoH7RRDUwLolTpSVtn08zyucXAD08VTnEYiZce3majPLSr3o+HSlKA1kUUV3Dg=="/>
+        <enclosure url="https://github.com/marchen-dev/marchen-player/releases/download/v1.1.2/Marchen1.1.2-1.1.0.delta" sparkle:deltaFrom="1.1.0" length="301766" type="application/octet-stream" sparkle:deltaFromSparkleExecutableSize="976240" sparkle:deltaFromSparkleLocales="de,he,ar,el,ja,fa,uk" sparkle:edSignature="kNfE1sh7ZSxrHcO1Taq5x0A4ViKU8Ksj0oPH92hwfRIDPdGhw+vXrEFEdUb1ps99eqQE9aSx7epUy5jl9wQsDg=="/>
       </sparkle:deltas>
     </item>
   </channel>

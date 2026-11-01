@@ -1,25 +1,29 @@
-version: 1.1.1
+version: 1.1.2
 files:
-  - url: https://github.com/marchen-dev/marchen-player/releases/download/v1.1.1/Marchen-1.1.1-windows-x64-setup.exe
-    sha512: dOjuN7jnMUtvM4vWqkIaxk6Dpw15ksN1ZHCWFuBmr9Uiabkij9TM9A1ghIyocZXiA1Q6S4K9N7kNg82AR74fUQ==
-    size: 173456910
-path: https://github.com/marchen-dev/marchen-player/releases/download/v1.1.1/Marchen-1.1.1-windows-x64-setup.exe
-sha512: dOjuN7jnMUtvM4vWqkIaxk6Dpw15ksN1ZHCWFuBmr9Uiabkij9TM9A1ghIyocZXiA1Q6S4K9N7kNg82AR74fUQ==
-releaseNotes: "# Marchen 1.1.1\r
+  - url: https://github.com/marchen-dev/marchen-player/releases/download/v1.1.2/Marchen-1.1.2-windows-x64-setup.exe
+    sha512: wF2IgUdhHGkyLDGvbWtK6f4Kl3KgJD0j18chYyDrSYJmC+TT0xMLEH7zOLPEHfx6I+T4h4hP+mZB0wfFK1zVhA==
+    size: 173414214
+path: https://github.com/marchen-dev/marchen-player/releases/download/v1.1.2/Marchen-1.1.2-windows-x64-setup.exe
+sha512: wF2IgUdhHGkyLDGvbWtK6f4Kl3KgJD0j18chYyDrSYJmC+TT0xMLEH7zOLPEHfx6I+T4h4hP+mZB0wfFK1zVhA==
+releaseNotes: "# Marchen 1.1.2\r
 
   \r
 
-  ## 加载与弹幕\r
+  ## 全新图标\r
 
   \r
 
-  - 加载界面改为一条连续的进度条，匹配到番剧后显示作品名和集数；加载很快时（如已匹配过的视频）不再闪出加载界面。\r
+  - 应用换上新图标，macOS、Windows、Linux 与网页版统一更新；播放器首页的标志在鼠标悬停时显示品牌色。\r
 
-  -
-  加载中的「直接播放」改为「先播放，弹幕稍后加载」：视频立即开始播放，未完成的匹配和弹幕在后台继续加载并自动接入；选集弹窗中可点「稍后选择」先播放，之后在弹\
-  幕设置中再选剧集。\r
+  \r
 
-  - 手动指定 API 线路时，弹幕和匹配请求的等待时间更长，服务端响应较慢时不再轻易出现弹幕加载失败。\r
+  ## 加载\r
+
+  \r
+
+  - 加载界面字号和进度条更大，层级更清楚；读取远程视频时进度改为「已读取识别片段 N%」，不再频繁闪烁。\r
+
+  - 加载失败时直接在加载界面显示原因，并按来源给出对应操作：本地文件可重新选择，远程链接可重试或更换链接，媒体源按具体原因提示重试或前往媒体源检查。\r
 
   \r
 
@@ -27,9 +31,19 @@ releaseNotes: "# Marchen 1.1.1\r
 
   \r
 
-  - 控制栏自动隐藏更快，用方向键快进快退时不再唤起控制栏。\r
+  - 进度条悬停预览在新画面出来前保留上一帧，显示和消失更顺滑，预览框不再超出控制栏；拖动进度条时只显示时间。\r
 
-  - SRT / VTT 字幕遇到个别格式错误的段落时跳过该段继续显示，时间格式不规范的字幕也能正常加载。\r
+  - 控制栏自动隐藏更快，手搭在鼠标上的轻微抖动不再唤起控制栏。\r
+
+  \r
+
+  ## 字幕\r
+
+  \r
+
+  - 播放 Jellyfin / Emby 媒体源时，字幕设置不再误报「远程视频暂不支持内嵌字幕」。\r
+
+  - 修复部分 MKV 内嵌 ASS 字幕因含零时长事件导致整条字幕轨无法加载的问题。\r
 
   \r
 
@@ -37,5 +51,5 @@ releaseNotes: "# Marchen 1.1.1\r
 
   \r
 
-  - 关于页的更新下载进度显示已下载大小、下载速度和剩余时间。\r\n"
-releaseDate: 2026-10-31T13:37:51.006Z
+  - 修复 Windows 与 Linux 上重复打开应用或双击视频时，可能同时启动多个窗口的问题。\r\n"
+releaseDate: 2026-11-01T10:33:25.414Z
