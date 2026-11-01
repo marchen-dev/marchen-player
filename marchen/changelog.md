@@ -86,3 +86,4 @@
 - 2026-10-31: [loading-progress-bar](./archive/2026-10-31-loading-progress-bar/) — 加载界面用按来源分段、段内渐近爬升的总进度条替代五步 stepper，300ms 内不显示，先播放按钮延迟出现，匹配后副标题切换为作品名与集名
 - 2026-10-31: [widen-final-attempt-timeout](./archive/2026-10-31-widen-final-attempt-timeout/) — 接口超时按是否最后一次尝试区分：保留短超时快速降级，最后一次获取弹幕放宽到 25 秒、匹配 15 秒，首次获取弹幕 10 秒
 - 2026-10-31: [restyle-load-failure](./archive/2026-10-31-restyle-load-failure/) — 加载阶段失败改为在加载界面原地显示：进度条停在出错处变红，按来源与媒体源错误码给出原因和操作，去掉深色浮层卡片
+- 2026-11-01: [enlarge-loading-ui](./archive/2026-11-01-enlarge-loading-ui/) — 加载界面拉开层级：标题 18px 加粗、进度条 6px 粗、固定 320px 宽；副标题按种类切换动画修复读取进度闪烁，读取文案改为识别片段百分比

@@ -11,10 +11,7 @@ import type { ExtractAtomValue } from 'jotai'
 import type { FC } from 'react'
 import { Button } from '@renderer/components/ui/button'
 import { cn, isWeb } from '@renderer/lib/utils'
-import {
-  formatMediaBytes,
-  remoteImportProgressAtom,
-} from '@renderer/services/media/remote-progress'
+import { remoteImportProgressAtom } from '@renderer/services/media/remote-progress'
 import {
   usePlayerLoadingService,
   usePlayerLoadingState,
@@ -78,19 +75,21 @@ export const LoadingProgress: FC<LoadingProgressProps> = ({ onReselect }) => {
 
   // 需要用户处理的状态立即显示，不等延迟
   const visible = delayed || errored || waiting
-  const subtitle = failure?.description ?? getSubtitle(state, remote)
+  const subtitle: Subtitle = failure
+    ? { kind: 'failure', text: failure.description }
+    : getSubtitle(state, remote)
 
   return (
     <div
       className={cn(
-        'flex h-full flex-col items-center justify-center gap-4 transition-opacity duration-200',
+        'flex h-full flex-col items-center justify-center gap-5 transition-opacity duration-200',
         visible ? 'opacity-100' : 'opacity-0',
       )}
     >
       <p
         role={errored ? 'alert' : 'status'}
         className={cn(
-          'max-w-md truncate text-center text-sm font-medium',
+          'max-w-md truncate text-center text-lg font-semibold',
           errored ? 'text-destructive' : 'text-foreground',
         )}
       >
@@ -100,7 +99,8 @@ export const LoadingProgress: FC<LoadingProgressProps> = ({ onReselect }) => {
       <div
         role="progressbar"
         aria-label="视频加载进度"
-        className="bg-muted-foreground/15 relative h-1 w-[360px] max-w-[80vw] overflow-hidden rounded-full"
+        // 固定宽度、不随窗口伸缩：字号不变，进度条略宽于常见副标题最协调，再长会显得空
+        className="bg-muted-foreground/15 relative h-1.5 w-[320px] max-w-[80vw] overflow-hidden rounded-full"
       >
         <div
           ref={barRef}
@@ -121,15 +121,17 @@ export const LoadingProgress: FC<LoadingProgressProps> = ({ onReselect }) => {
       <div className="relative h-5 w-full max-w-md">
         <AnimatePresence mode="wait" initial={false}>
           <m.p
-            key={subtitle}
+            // 以种类作 key：读取进度等同类文本原地更新，只在种类切换时淡入淡出。
+            // 若以文本作 key，进度每 250ms 一变而一次切换要 360ms，副标题会持续闪烁
+            key={subtitle.kind}
             initial={{ opacity: 0, y: 4 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -4 }}
             transition={{ duration: reducedMotion ? 0 : 0.18 }}
             className="text-muted-foreground absolute inset-x-0 truncate text-center text-sm tabular-nums"
-            title={subtitle}
+            title={subtitle.text}
           >
-            {subtitle}
+            {subtitle.text}
           </m.p>
         </AnimatePresence>
       </div>
@@ -166,7 +168,7 @@ export const LoadingProgress: FC<LoadingProgressProps> = ({ onReselect }) => {
                   playNowShown ? 'opacity-100' : 'pointer-events-none opacity-0',
                 )}
               >
-                先播放，弹幕稍后加载
+                先播放，弹幕后台加载
               </Button>
             )
           )}
@@ -256,22 +258,34 @@ function getStatusText(state: LoadingState, remote: RemoteProgress): string {
   }
 }
 
-/** 副标题：远程导入显示读取字节，匹配前显示文件名，匹配后换成作品名与集名 */
-function getSubtitle(state: LoadingState, remote: RemoteProgress): string {
+/** 副标题种类决定切换动画：同一种类内文本变化不播放动画 */
+interface Subtitle {
+  kind: 'none' | 'reading' | 'file' | 'title' | 'failure'
+  text: string
+}
+
+/** 副标题：远程导入显示识别片段读取百分比，匹配前显示文件名，匹配后换成作品名与集名 */
+function getSubtitle(state: LoadingState, remote: RemoteProgress): Subtitle {
   switch (state.step) {
     case 'importing':
-      return remote?.stage === 'reading'
-        ? `${formatMediaBytes(remote.received)} / ${formatMediaBytes(remote.total)}`
-        : ''
+      // 读取的是 16MiB 识别前缀而非整个文件，只显示百分比，避免把分母误读成视频大小
+      return remote?.stage === 'reading' && remote.total > 0
+        ? {
+            kind: 'reading',
+            text: `已读取识别片段 ${Math.floor((remote.received / remote.total) * 100)}%`,
+          }
+        : { kind: 'none', text: '' }
     case 'hashing':
-      return state.video.name ?? ''
     case 'matching':
     case 'waiting_user':
     case 'match_failed':
-      return state.video.name
+      return { kind: 'file', text: state.video.name ?? '' }
     case 'loading_danmaku':
-      return [state.match.animeTitle, state.match.episodeTitle].filter(Boolean).join(' · ')
+      return {
+        kind: 'title',
+        text: [state.match.animeTitle, state.match.episodeTitle].filter(Boolean).join(' · '),
+      }
     default:
-      return ''
+      return { kind: 'none', text: '' }
   }
 }
