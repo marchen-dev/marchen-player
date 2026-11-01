@@ -40,6 +40,12 @@ import { INITIAL_STATE, mergeDanmakuEntries, reduce } from './state-machine'
 import { getPersistentMediaSource } from './types'
 
 /** 未匹配时的占位，与跳过弹幕的约定一致 */
+/** 错误对象上的字符串错误码；只认 string，避免把 HTTP 数字状态等误当成稳定错误码 */
+const readErrorCode = (error: unknown): string | undefined => {
+  const code = (error as { code?: unknown } | null)?.code
+  return typeof code === 'string' ? code : undefined
+}
+
 const UNMATCHED: MatchedVideo = { episodeId: 0, animeTitle: '', episodeTitle: '', animeId: 0 }
 
 export class PlayerLoadingService {
@@ -86,6 +92,7 @@ export class PlayerLoadingService {
                 type: 'error',
                 message: err instanceof Error ? err.message : '加载失败',
                 previousStep: this.currentState.step,
+                code: readErrorCode(err),
                 remoteRequest:
                   cmd.type === 'loadFromUrl' ? { url: cmd.url, recordId: cmd.recordId } : undefined,
                 providerRequest:

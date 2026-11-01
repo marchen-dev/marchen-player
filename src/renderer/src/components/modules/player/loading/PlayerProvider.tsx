@@ -17,7 +17,12 @@ import { useRef } from 'react'
 
 import { useLoadingHistoricalAnime } from './hooks'
 
-export const VideoProvider: FC<PropsWithChildren> = ({ children }) => {
+interface VideoProviderProps extends PropsWithChildren {
+  /** 本地文件加载失败时重新选择视频（Electron 打开文件对话框，Web 触发 input） */
+  onReselect?: () => void
+}
+
+export const VideoProvider: FC<VideoProviderProps> = ({ children, onReselect }) => {
   // 处理从历史记录页面导航过来的情况
   useLoadingHistoricalAnime()
 
@@ -27,19 +32,15 @@ export const VideoProvider: FC<PropsWithChildren> = ({ children }) => {
   // 加载中：显示进度条
   // waiting_user：显示进度条 + 对话框
   // ready/idle：显示 children；reloading 时保持当前播放器可见
+  // error：加载阶段失败，同一进度界面原地切换为失败形态（进度条停在出错位置）
   if (step === 'idle' || step === 'ready' || step === 'reloading') {
-    return children
-  }
-
-  if (step === 'error') {
-    // 错误状态短暂显示后回到 idle，允许重试
     return children
   }
 
   return (
     <>
       {/* 每次新加载按会话重新挂载：进度从 0 开始，延迟显示与按钮计时重新计算 */}
-      <LoadingProgress key={service.sessionId} />
+      <LoadingProgress key={service.sessionId} onReselect={onReselect} />
       {step === 'waiting_user' && <WaitingUserDialog />}
     </>
   )

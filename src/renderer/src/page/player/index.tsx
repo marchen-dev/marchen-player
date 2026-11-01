@@ -10,7 +10,6 @@ import {
   RemoteVideoDialog,
 } from '@renderer/components/modules/player/loading/RemoteVideoDialog'
 import { NativePlayer } from '@renderer/components/modules/player/NativePlayer'
-import { PlaybackFailure } from '@renderer/components/modules/player/shell/PlaybackFailure'
 import { VideoDropZone } from '@renderer/components/modules/shared/VideoDropZone'
 import { Button } from '@renderer/components/ui/button'
 import { usePageHeader } from '@renderer/hooks/use-page-header'
@@ -56,18 +55,6 @@ export default function VideoPlayer() {
     state.step === 'ready' || state.step === 'reloading' ? state.video : null,
   )
 
-  const remoteRequest = usePlayerLoadingSelector((state) =>
-    state.step === 'error' ? state.remoteRequest : undefined,
-  )
-
-  const providerRequest = usePlayerLoadingSelector((state) =>
-    state.step === 'error' ? state.providerRequest : undefined,
-  )
-
-  const loadError = usePlayerLoadingSelector((state) =>
-    state.step === 'error' ? state.error.message : null,
-  )
-
   // 拖拽与 Web input 共用同一格式校验和加载入口。
   const importFile = useCallback(
     (file: File | undefined, source: 'click' | 'drop') => {
@@ -104,32 +91,7 @@ export default function VideoPlayer() {
 
   const content = useMemo(
     () =>
-      loadError ? (
-        <PlaybackFailure
-          key="load-error"
-          description={
-            remoteRequest
-              ? '视频链接无法打开，请重试或更换链接。'
-              : providerRequest
-                ? '媒体源视频无法打开，请检查服务器连接后重试。'
-                : '视频打开失败，请检查文件是否可访问，或重新选择视频。'
-          }
-          onRetry={
-            remoteRequest && !isWeb
-              ? () => service.loadFromUrl(remoteRequest.url, remoteRequest.recordId)
-              : providerRequest && !isWeb
-                ? () => service.loadFromProvider(providerRequest.sourceId, providerRequest.itemRef)
-                : undefined
-          }
-          onChangeSource={
-            remoteRequest && !isWeb
-              ? () => openRemoteVideoDialog(remoteRequest.url, remoteRequest.recordId)
-              : undefined
-          }
-          detail={loadError}
-          onExit={() => service.cancel()}
-        />
-      ) : preparedVideo ? (
+      preparedVideo ? (
         <NativePlayer key={preparedVideo.hash} />
       ) : (
         <div key="empty-player" className="flex flex-col items-center gap-5">
@@ -177,10 +139,6 @@ export default function VideoPlayer() {
     [
       preparedVideo,
       manualImport,
-      loadError,
-      remoteRequest,
-      providerRequest,
-      service,
       showRemoteEntry,
       showHistoryEntry,
       showMediaSourceEntry,
@@ -191,7 +149,8 @@ export default function VideoPlayer() {
   return (
     <>
       {!isWeb && <RemoteVideoDialog />}
-      <VideoProvider>
+      {/* 加载失败界面由 VideoProvider 内的进度界面原地呈现，本地文件可重新选择 */}
+      <VideoProvider onReselect={manualImport}>
         <VideoDropZone
           onFileDrop={(_file, files) => importFile(selectFileBatch(files)[0], 'drop')}
           className={cn('flex size-full items-center justify-center')}

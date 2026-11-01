@@ -177,7 +177,8 @@ export interface ReloadingState extends MatchFeedback, PlayFirstFeedback {
 
 export interface ErrorState {
   step: 'error'
-  error: { message: string; previousStep: string }
+  /** code 来自错误对象上的稳定错误码（如媒体源的 MediaSourceErrorCode），界面据此给出具体原因与操作 */
+  error: { message: string; previousStep: string; code?: string }
   remoteRequest?: { url: string; recordId?: string }
   /** 媒体源条目打开失败时保留请求，供界面重试 */
   providerRequest?: { sourceId: string; itemRef: string }
@@ -288,6 +289,7 @@ export type PipelineEvent =
       type: 'error'
       message: string
       previousStep: string
+      code?: string
       remoteRequest?: { url: string; recordId?: string }
       providerRequest?: { sourceId: string; itemRef: string }
     }

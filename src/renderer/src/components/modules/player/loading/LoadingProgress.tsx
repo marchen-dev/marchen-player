@@ -10,7 +10,7 @@ import type { ProgressStep } from '@renderer/services/player-loading/loading-pro
 import type { ExtractAtomValue } from 'jotai'
 import type { FC } from 'react'
 import { Button } from '@renderer/components/ui/button'
-import { cn } from '@renderer/lib/utils'
+import { cn, isWeb } from '@renderer/lib/utils'
 import {
   formatMediaBytes,
   remoteImportProgressAtom,
@@ -19,6 +19,7 @@ import {
   usePlayerLoadingService,
   usePlayerLoadingState,
 } from '@renderer/services/player-loading/hooks'
+import { describeLoadFailure } from '@renderer/services/player-loading/load-failure'
 import {
   advanceProgress,
   progressTarget,
@@ -27,6 +28,7 @@ import {
 import { AnimatePresence, m } from 'framer-motion'
 import { useAtomValue } from 'jotai'
 import { useEffect, useRef, useState } from 'react'
+import { LoadFailureActions } from './LoadFailureActions'
 
 /** 加载很快时（已匹配且有缓存）不闪出加载界面 */
 const SHOW_DELAY_MS = 300
@@ -39,13 +41,21 @@ const prefersReducedMotion = () =>
   typeof window !== 'undefined' &&
   Boolean(window.matchMedia?.('(prefers-reduced-motion: reduce)').matches)
 
-export const LoadingProgress: FC = () => {
+interface LoadingProgressProps {
+  /** 本地文件加载失败时重新选择视频 */
+  onReselect?: () => void
+}
+
+export const LoadingProgress: FC<LoadingProgressProps> = ({ onReselect }) => {
   const state = usePlayerLoadingState()
   const service = usePlayerLoadingService()
   const remote = useAtomValue(remoteImportProgressAtom)
   const [reducedMotion] = useState(prefersReducedMotion)
 
   const failed = state.step === 'match_failed'
+  // 导入或识别阶段出错：界面原地切换为失败形态，进度条停在出错位置
+  const failure = state.step === 'error' ? describeLoadFailure(state, isWeb) : null
+  const errored = failed || Boolean(failure)
   const waiting = state.step === 'waiting_user'
   const mapped = toProgressStep(state.step)
   const paused = mapped?.paused ?? true
@@ -67,8 +77,8 @@ export const LoadingProgress: FC = () => {
   }, [canPlayNow, playNowShown])
 
   // 需要用户处理的状态立即显示，不等延迟
-  const visible = delayed || failed || waiting
-  const subtitle = getSubtitle(state, remote)
+  const visible = delayed || errored || waiting
+  const subtitle = failure?.description ?? getSubtitle(state, remote)
 
   return (
     <div
@@ -78,13 +88,13 @@ export const LoadingProgress: FC = () => {
       )}
     >
       <p
-        role={failed ? 'alert' : 'status'}
+        role={errored ? 'alert' : 'status'}
         className={cn(
           'max-w-md truncate text-center text-sm font-medium',
-          failed ? 'text-destructive' : 'text-foreground',
+          errored ? 'text-destructive' : 'text-foreground',
         )}
       >
-        {getStatusText(state, remote)}
+        {failure?.title ?? getStatusText(state, remote)}
       </p>
 
       <div
@@ -96,7 +106,7 @@ export const LoadingProgress: FC = () => {
           ref={barRef}
           className={cn(
             'absolute inset-0 origin-left overflow-hidden rounded-full transition-[transform,background-color] duration-150 ease-out',
-            failed ? 'bg-destructive' : 'bg-primary',
+            errored ? 'bg-destructive' : 'bg-primary',
           )}
           style={{ transform: 'scaleX(0)' }}
         >
@@ -124,35 +134,44 @@ export const LoadingProgress: FC = () => {
         </AnimatePresence>
       </div>
 
-      <div className="flex h-9 items-center gap-2">
-        {failed ? (
-          <>
-            <Button onClick={() => service.playNow()}>直接播放</Button>
-            <Button variant="secondary" onClick={() => service.retryMatch()}>
-              重试匹配
-            </Button>
-            <Button variant="ghost" onClick={() => service.manualMatch()}>
-              手动匹配
-            </Button>
-          </>
-        ) : (
-          canPlayNow && (
-            // 相当于本次临时开启优先播放：先开播，未完成的匹配与弹幕在后台继续
-            <Button
-              variant="secondary"
-              onClick={() => service.playNow()}
-              tabIndex={playNowShown ? 0 : -1}
-              aria-hidden={!playNowShown}
-              className={cn(
-                'transition-opacity duration-300',
-                playNowShown ? 'opacity-100' : 'pointer-events-none opacity-0',
-              )}
-            >
-              先播放，弹幕稍后加载
-            </Button>
-          )
-        )}
-      </div>
+      {state.step === 'error' && failure ? (
+        <LoadFailureActions
+          state={state}
+          title={failure.title}
+          actions={failure.actions}
+          onReselect={onReselect}
+        />
+      ) : (
+        <div className="flex h-9 items-center gap-2">
+          {failed ? (
+            <>
+              <Button onClick={() => service.playNow()}>直接播放</Button>
+              <Button variant="secondary" onClick={() => service.retryMatch()}>
+                重试匹配
+              </Button>
+              <Button variant="ghost" onClick={() => service.manualMatch()}>
+                手动匹配
+              </Button>
+            </>
+          ) : (
+            canPlayNow && (
+              // 相当于本次临时开启优先播放：先开播，未完成的匹配与弹幕在后台继续
+              <Button
+                variant="secondary"
+                onClick={() => service.playNow()}
+                tabIndex={playNowShown ? 0 : -1}
+                aria-hidden={!playNowShown}
+                className={cn(
+                  'transition-opacity duration-300',
+                  playNowShown ? 'opacity-100' : 'pointer-events-none opacity-0',
+                )}
+              >
+                先播放，弹幕稍后加载
+              </Button>
+            )
+          )}
+        </div>
+      )}
     </div>
   )
 }

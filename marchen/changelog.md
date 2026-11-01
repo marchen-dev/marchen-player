@@ -85,3 +85,4 @@
 - 2026-10-31: [shorten-controls-hide-delay](./archive/2026-10-31-shorten-controls-hide-delay/) — 播放中控制栏自动隐藏延迟从 2.8s 降到 2.5s
 - 2026-10-31: [loading-progress-bar](./archive/2026-10-31-loading-progress-bar/) — 加载界面用按来源分段、段内渐近爬升的总进度条替代五步 stepper，300ms 内不显示，先播放按钮延迟出现，匹配后副标题切换为作品名与集名
 - 2026-10-31: [widen-final-attempt-timeout](./archive/2026-10-31-widen-final-attempt-timeout/) — 接口超时按是否最后一次尝试区分：保留短超时快速降级，最后一次获取弹幕放宽到 25 秒、匹配 15 秒，首次获取弹幕 10 秒
+- 2026-10-31: [restyle-load-failure](./archive/2026-10-31-restyle-load-failure/) — 加载阶段失败改为在加载界面原地显示：进度条停在出错处变红，按来源与媒体源错误码给出原因和操作，去掉深色浮层卡片

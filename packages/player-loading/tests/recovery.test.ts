@@ -302,4 +302,22 @@ describe('加载恢复与异步隔离', () => {
     service.playNow()
     expect(service.currentState).toBe(before)
   })
+  it('导入失败时保留错误对象上的字符串错误码，忽略非字符串 code', async () => {
+    const deps = createMockDeps()
+    vi.mocked(deps.importer.importFromPath)
+      .mockRejectedValueOnce(Object.assign(new Error('无法连接服务器'), { code: 'unreachable' }))
+      .mockRejectedValueOnce(Object.assign(new Error('其他错误'), { code: 500 }))
+    service = new PlayerLoadingService(deps)
+    service.loadFromPath('/a.mkv')
+    const failed = await wait(service, 'error')
+    expect(failed).toMatchObject({
+      error: { message: '无法连接服务器', code: 'unreachable', previousStep: 'importing' },
+    })
+    service.loadFromPath('/b.mkv')
+    await vi.waitFor(() =>
+      expect(service.currentState).toMatchObject({ step: 'error', error: { message: '其他错误' } }),
+    )
+    const state = service.currentState
+    expect(state.step === 'error' && state.error.code).toBeUndefined()
+  })
 })

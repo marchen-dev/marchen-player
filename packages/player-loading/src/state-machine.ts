@@ -192,7 +192,7 @@ export function reduce(state: LoadingState, event: PipelineEvent): LoadingState 
     case 'error':
       return {
         step: 'error',
-        error: { message: event.message, previousStep: event.previousStep },
+        error: { message: event.message, previousStep: event.previousStep, code: event.code },
         remoteRequest: event.remoteRequest,
         providerRequest: event.providerRequest,
       }
