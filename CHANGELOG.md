@@ -1,6 +1,23 @@
 # CHANGELOG
 
 
+## [1.1.2](https://github.com/marchen-dev/marchen-player/compare/v1.1.1...v1.1.2) (2026-11-01)
+
+
+### Bug Fixes
+
+* **desktop:** acquire single-instance lock before startup ([9bcab20](https://github.com/marchen-dev/marchen-player/commit/9bcab2056248e0ffc51b282784538eb9f8fef6af))
+* **subtitles:** Jellyfin/Emby 内嵌字幕由服务端提供，不再提示远程视频不支持内嵌字幕，归档变更 ([9b2f94b](https://github.com/marchen-dev/marchen-player/commit/9b2f94b62d5c4f135ad775a013c0fb92f9f302d6))
+* **subtitles:** skip zero-duration ASS events without disabling track ([0c599e9](https://github.com/marchen-dev/marchen-player/commit/0c599e99fc40d7ea31304aea6753f037d3fb504e))
+
+
+### Features
+
+* **icon:** 全平台统一为新应用图标，首页空状态悬停显示品牌色标志 ([2c37090](https://github.com/marchen-dev/marchen-player/commit/2c3709016bb902f3925d1bd26392a8f17b4b32ea))
+* **player:** 加载失败改为在加载界面原地显示，按来源与错误码给出原因和操作，归档变更 ([cba2baa](https://github.com/marchen-dev/marchen-player/commit/cba2baab3f42b79353e5436a8a6a9e0f816ee225))
+* **player:** 加载界面拉开层级并修复读取进度副标题闪烁，先播放按钮改为弹幕后台加载，归档变更 ([d8d60e6](https://github.com/marchen-dev/marchen-player/commit/d8d60e6dc1672d7d019a46165d98f2530e18ee43))
+* **player:** 进度条预览框固定尺寸并保留旧帧，拖动收缩为时间气泡，控制栏隐藏忽略指针抖动，归档变更 ([04d853a](https://github.com/marchen-dev/marchen-player/commit/04d853a5179bc68df4f2e3a789e9c2c3f8fdc65d))
+
 ## [1.1.1](https://github.com/marchen-dev/marchen-player/compare/v1.1.0...v1.1.1) (2026-10-31)
 
 
