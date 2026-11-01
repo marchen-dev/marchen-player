@@ -2,7 +2,7 @@ import { readFileSync, writeFileSync } from 'node:fs'
 import { chromium } from 'playwright-core'
 
 // 手动运行：node scripts/web/generate-favicons.mjs
-// 以 public/favicon.svg 为唯一来源生成网页图标；桌面图标仍由 build/icon.svg 维护，两者互不影响。
+// favicon.svg 由 scripts/desktop/generate-icons.mjs 从 build/icon.svg 派生，再生成网页各尺寸。
 // 默认使用本机 Chrome；其他环境通过 CHROME_EXECUTABLE_PATH 指定浏览器。
 
 const publicDir = new URL('../../src/renderer/public/', import.meta.url)

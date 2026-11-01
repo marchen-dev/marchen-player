@@ -1,11 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 1024 1024">
-  <!-- 网页专用图标：白底铺满画布，无透明留边、阴影和描边，图形收在内切圆内，适配搜索结果的圆形裁切 -->
-  <defs><linearGradient id="m" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#27c4ed"/><stop offset="1" stop-color="#009fd8"/></linearGradient></defs>
-  <rect width="1024" height="1024" rx="224" fill="#fff"/>
-  <g transform="translate(512 512) scale(1.32) translate(-491 -512)">
-    <rect x="250" y="369" width="150" height="54" rx="27" fill="#08a9df" opacity="0.72"/>
-    <rect x="206" y="485" width="210" height="54" rx="27" fill="url(#m)"/>
-    <rect x="270" y="601" width="120" height="54" rx="27" fill="#08a9df" opacity="0.60"/>
-    <path d="M492 340L736 512L492 684Z" fill="#08a9df" stroke="#08a9df" stroke-width="80" stroke-linejoin="round"/>
-  </g>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024"><rect width="1024" height="1024" rx="224" fill="white"/><g fill="#0783ff" transform="translate(480 512) scale(1.18) translate(-512 -512)">
+  <path d="M350 405 C338 362 341 293 360 270 C375 253 436 297 468 329 C519 319 574 320 624 329 C658 300 715 261 731 270 C750 282 759 352 750 397 C789 434 802 488 802 555 C802 659 754 709 659 713 L470 713 L359 758 Q345 763 351 746 L376 679 C343 651 326 607 326 551 L326 490 C326 456 334 430 350 405 Z"/>
+  <!-- 白色间隙将两条弹幕与气泡区分，缩小后仍保持清晰。 -->
+  <path d="M263 501 H367 M292 573 H390" fill="none" stroke="white" stroke-width="66" stroke-linecap="round"/>
+  <path d="M263 501 H367 M292 573 H390" fill="none" stroke="#0783ff" stroke-width="40" stroke-linecap="round"/>
+  <path d="M521 443 Q501 431 501 455 L501 604 Q501 628 522 615 L638 544 Q657 533 638 521 Z" fill="white"/>
+</g></svg>

@@ -2,6 +2,7 @@ import type { ChangeEvent, FC } from 'react'
 import { VIDEO_FILE_ACCEPT } from '@marchen/shared/media'
 import { useLabsSettingsValue } from '@renderer/atoms/settings/labs'
 import { BetaBadge } from '@renderer/components/common/BetaBadge'
+import { LogoMark } from '@renderer/components/icons/Logo'
 import { openPlaybackHistoryDialog } from '@renderer/components/modules/history/dialog-state'
 import { useHasHistoryRecords } from '@renderer/components/modules/history/use-history-records'
 import { VideoProvider } from '@renderer/components/modules/player/loading/PlayerProvider'
@@ -175,10 +176,11 @@ export default function VideoPlayer() {
 const DragTips: FC<{ onClick: () => void }> = ({ onClick }) => (
   <button
     type="button"
-    className="text-muted-foreground hover:text-foreground active:text-foreground/80 focus-visible:ring-ring flex cursor-default flex-col items-center gap-2 rounded-md px-6 py-2 transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
+    className="group text-muted-foreground hover:text-foreground active:text-foreground/80 focus-visible:ring-ring flex cursor-default flex-col items-center gap-2 rounded-md px-6 py-2 transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
     onClick={onClick}
   >
-    <i aria-hidden="true" className="icon-[mingcute--video-line] text-6xl" />
+    {/* 平时与文字同为灰色，悬停或键盘聚焦时只让猫耳变为品牌蓝，品牌色只在用户操作时出现 */}
+    <LogoMark className="group-hover:text-brand group-focus-visible:text-brand text-6xl transition-colors duration-150" />
     <p className="text-xl select-none">点击或拖拽视频到此处播放</p>
   </button>
 )
