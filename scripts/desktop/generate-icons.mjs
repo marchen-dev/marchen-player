@@ -55,13 +55,22 @@ try {
       icoSizes.map((size) => images.get(size)),
     ),
   )
-  // 网页底板铺满画布，Apple touch icon 由网页生成脚本去掉圆角。
   const mark = source.match(/<g fill="#0783ff"[\s\S]*?<\/g>/)?.[0]
   if (!mark) throw new Error('找不到猫耳标志')
   const svg = (content) =>
     `<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">${content}</svg>`
-  const web = svg(`<rect width="1024" height="1024" rx="224" fill="white"/>${mark}`)
-  writeFileSync(path.join(root, 'src/renderer/public/favicon.svg'), web)
+  // 浏览器标签页只有 16px：不带白色底板，猫耳铺满画布（视口裁到标志外框，与 LogoMark 一致）。
+  // 带底板时浅色标签栏上底板不可见、标志只剩六成大，深色标签栏上又多出一块白方块。
+  // 弹幕线外圈间隙用遮罩镂空，深色标签栏上不会出现白边；播放三角保持白色，与应用图标一致。
+  // 主屏幕图标（icon-192、apple-touch-icon）仍需底板，由网页生成脚本在此基础上加回。
+  const markPaths = [...mark.matchAll(/<path[^>]+\/>/g)].map(([value]) => value)
+  const markBody = markPaths[0]
+  const markGap = markPaths.find((value) => value.includes('stroke="white"'))
+  const markLine = markPaths.find((value) => value.includes('stroke="#0783ff"'))
+  const markTriangle = markPaths.find((value) => value.includes('fill="white"'))
+  if (!markBody || !markGap || !markLine || !markTriangle) throw new Error('猫耳标志结构已变化')
+  const favicon = `<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="221 217 590 590"><defs><mask id="gap" maskUnits="userSpaceOnUse" x="221" y="217" width="590" height="590"><rect x="221" y="217" width="590" height="590" fill="white"/>${markGap.replace('"white"', '"black"')}${markLine.replace('"#0783ff"', '"white"')}</mask></defs><g mask="url(#gap)" fill="#0783ff">${markBody}${markLine}</g>${markTriangle}</svg>`
+  writeFileSync(path.join(root, 'src/renderer/public/favicon.svg'), favicon)
   const mobile = path.join(root, 'apps/mobile/assets')
   if (existsSync(mobile)) {
     const square = svg(`<rect width="1024" height="1024" fill="white"/>${mark}`)

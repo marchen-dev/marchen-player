@@ -6,9 +6,19 @@ import { chromium } from 'playwright-core'
 // 默认使用本机 Chrome；其他环境通过 CHROME_EXECUTABLE_PATH 指定浏览器。
 
 const publicDir = new URL('../../src/renderer/public/', import.meta.url)
+// favicon.svg 是不带底板、铺满画布的标签页图标，favicon.ico 直接使用
 const svg = readFileSync(new URL('favicon.svg', publicDir), 'utf8')
+// 主屏幕图标需要白色底板：把标签页图标按应用图标中的位置（平移 480/512、缩放 1.18）嵌回 1024 画布
+const markInner = svg.replace(/^<svg[^>]*>/, '').replace(/<\/svg>\s*$/, '')
+const markScale = 1.18
+const markSize = 590 * markScale
+const markX = 480 + (221 - 512) * markScale
+const markY = 512 + (217 - 512) * markScale
+const plated = (radius) =>
+  `<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024"><rect width="1024" height="1024"${radius ? ` rx="${radius}"` : ''} fill="white"/><svg x="${markX}" y="${markY}" width="${markSize}" height="${markSize}" viewBox="221 217 590 590">${markInner}</svg></svg>`
+const roundedSvg = plated(224)
 // iOS 会自行裁圆角，apple-touch-icon 需要不透明的直角方图
-const squareSvg = svg.replace('rx="224" ', '')
+const squareSvg = plated(0)
 
 const browser = await chromium.launch({
   channel: process.env.CHROME_EXECUTABLE_PATH ? undefined : 'chrome',
@@ -31,7 +41,7 @@ try {
     return image
   }
 
-  writeFileSync(new URL('icon-192.png', publicDir), await render(svg, 192))
+  writeFileSync(new URL('icon-192.png', publicDir), await render(roundedSvg, 192))
   writeFileSync(new URL('apple-touch-icon.png', publicDir), await render(squareSvg, 180))
 
   // favicon.ico 兼容旧浏览器与直接请求 /favicon.ico 的爬虫，内嵌 16 / 32 / 48 三档 PNG
