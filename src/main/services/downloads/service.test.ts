@@ -7,6 +7,11 @@ import bencode from 'bencode'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { DownloadRepository } from './repository'
 import { DownloadService } from './service'
+
+// 这些用例真实读写临时目录，Windows runner 上一次文件操作就可能超过 vi.waitFor 默认的 1 秒，
+// 发布构建曾因此偶发失败；放宽等待与单用例超时，只影响慢环境，不改变断言本身。
+const WAIT_OPTIONS = { timeout: 5_000 }
+vi.setConfig({ testTimeout: 30_000 })
 const mock = vi.hoisted(() => ({
   directory: '',
   stats: undefined as ((s: EngineStats) => void) | undefined,
@@ -84,7 +89,7 @@ async function setup(multi = false) {
     value: `magnet:?xt=urn:btih:${prepared.draft.infoHash}`,
   })
   await service.confirm(id, [0], mock.directory)
-  await vi.waitFor(() => expect(mock.start).toHaveBeenCalled())
+  await vi.waitFor(() => expect(mock.start).toHaveBeenCalled(), WAIT_OPTIONS)
   const task = (await service.list()).tasks[0]
   expect(task.directory).toBe(await realpath(mock.directory))
   return { id, content, task }
@@ -101,7 +106,10 @@ describe('下载服务生命周期', () => {
       peers: 1,
     })
     expect(await service!.filePath(id, 0)).toContain('sample.mkv')
-    await vi.waitFor(async () => expect((await service!.list()).tasks[0].state).toBe('completed'))
+    await vi.waitFor(
+      async () => expect((await service!.list()).tasks[0].state).toBe('completed'),
+      WAIT_OPTIONS,
+    )
     await service!.pause(id)
     expect(mock.stop).toHaveBeenCalledWith(id)
     await service!.remove(id, false, () => false)
@@ -115,7 +123,10 @@ describe('下载服务生命周期', () => {
     await service!.shutdown()
     mock.start.mockClear()
     service = new DownloadService()
-    await vi.waitFor(async () => expect((await service!.list()).tasks[0].state).toBe('completed'))
+    await vi.waitFor(
+      async () => expect((await service!.list()).tasks[0].state).toBe('completed'),
+      WAIT_OPTIONS,
+    )
     expect(mock.start).not.toHaveBeenCalled()
     await expect(service.remove(id, true, () => true)).rejects.toThrow('正在播放')
     expect(await readFile(join(task.directory, 'sample.mkv'))).toEqual(content)
@@ -128,8 +139,14 @@ describe('下载服务生命周期', () => {
       downloadSpeed: 0,
       peers: 1,
     })
-    await vi.waitFor(async () => expect((await service!.list()).tasks[0].intent).toBe('stopped'))
-    await vi.waitFor(async () => expect((await service!.list()).tasks[0].state).toBe('completed'))
+    await vi.waitFor(
+      async () => expect((await service!.list()).tasks[0].intent).toBe('stopped'),
+      WAIT_OPTIONS,
+    )
+    await vi.waitFor(
+      async () => expect((await service!.list()).tasks[0].state).toBe('completed'),
+      WAIT_OPTIONS,
+    )
     mock.start.mockClear()
     await service!.resume(id)
     expect(mock.start).not.toHaveBeenCalled()
@@ -198,7 +215,10 @@ it('旧版持续做种记录升级后离线校验并停止，清理废弃字段'
   await writeFile(path, JSON.stringify(data))
   mock.start.mockClear()
   service = new DownloadService()
-  await vi.waitFor(async () => expect((await service!.list()).tasks[0].state).toBe('completed'))
+  await vi.waitFor(
+    async () => expect((await service!.list()).tasks[0].state).toBe('completed'),
+    WAIT_OPTIONS,
+  )
   expect(mock.start).not.toHaveBeenCalled()
   const restored = (await service.list()).tasks[0]
   expect(restored.intent).toBe('stopped')
@@ -232,10 +252,13 @@ it('未完成时继续下载，完成后等待引擎断开才显示已完成', a
     downloadSpeed: 0,
     peers: 1,
   })
-  await vi.waitFor(() => expect(mock.stop).toHaveBeenCalledWith(id))
+  await vi.waitFor(() => expect(mock.stop).toHaveBeenCalledWith(id), WAIT_OPTIONS)
   expect((await service!.list()).tasks[0].state).toBe('pausing')
   stopped()
-  await vi.waitFor(async () => expect((await service!.list()).tasks[0].state).toBe('completed'))
+  await vi.waitFor(
+    async () => expect((await service!.list()).tasks[0].state).toBe('completed'),
+    WAIT_OPTIONS,
+  )
   expect((await service!.list()).tasks[0].peers).toBe(0)
 })
 
@@ -280,7 +303,10 @@ it('下载中替换集数，完成后追加未完成集数会重新启动', asyn
     downloadSpeed: 0,
     peers: 0,
   })
-  await vi.waitFor(async () => expect((await service!.list()).tasks[0].state).toBe('completed'))
+  await vi.waitFor(
+    async () => expect((await service!.list()).tasks[0].state).toBe('completed'),
+    WAIT_OPTIONS,
+  )
   await service!.selectFiles(id, [0, 1])
   expect(mock.start).toHaveBeenLastCalledWith(id, expect.anything(), task.directory, [0, 1])
   expect((await service!.list()).tasks[0]).toMatchObject({
