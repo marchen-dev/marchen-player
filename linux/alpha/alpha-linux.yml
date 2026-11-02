@@ -1,37 +1,29 @@
-version: 1.1.2
+version: 1.1.3
 files:
-  - url: https://github.com/marchen-dev/marchen-player/releases/download/v1.1.2/Marchen-1.1.2-linux-x86_64.AppImage
-    sha512: la44X0c3nsmf6ehBpG8jS9F4P/MBpLAU6d4RO325RRvSYSwR8UPESMwHJEeRDraVQLQ6JoTxNbGabkFLsB50gQ==
-    size: 199203546
-    blockMapSize: 207598
-  - url: https://github.com/marchen-dev/marchen-player/releases/download/v1.1.2/Marchen-1.1.2-linux-amd64.deb
-    sha512: r6dr0K1cl4Rbdrwor/LnbjJMR+4QmsiEC3Mwba/5U7kxezr1CBesLSCwDCQPhdk7QYSFqBaOTfvCyFisGA0Ejg==
-    size: 155871012
-path: https://github.com/marchen-dev/marchen-player/releases/download/v1.1.2/Marchen-1.1.2-linux-x86_64.AppImage
-sha512: la44X0c3nsmf6ehBpG8jS9F4P/MBpLAU6d4RO325RRvSYSwR8UPESMwHJEeRDraVQLQ6JoTxNbGabkFLsB50gQ==
+  - url: https://github.com/marchen-dev/marchen-player/releases/download/v1.1.3/Marchen-1.1.3-linux-x86_64.AppImage
+    sha512: BXkGDXcsd0c0/cFzqUXTLH6EKYfGyyL0MvgKyUrwcjUnBulo0Di8hJ5RoWSAiYNs/12cAxtsQNzSnexSQ6+Elg==
+    size: 199207757
+    blockMapSize: 207713
+  - url: https://github.com/marchen-dev/marchen-player/releases/download/v1.1.3/Marchen-1.1.3-linux-amd64.deb
+    sha512: e/LGAQYjof2PaSt6K/Dlmna/ur/TWViI42qJ5XIZKANeZ2vISxqU65GKnXBcfc0knfGT1dfNUM/xy5KeW2GXxA==
+    size: 155872224
+path: https://github.com/marchen-dev/marchen-player/releases/download/v1.1.3/Marchen-1.1.3-linux-x86_64.AppImage
+sha512: BXkGDXcsd0c0/cFzqUXTLH6EKYfGyyL0MvgKyUrwcjUnBulo0Di8hJ5RoWSAiYNs/12cAxtsQNzSnexSQ6+Elg==
 releaseNotes: |
-  # Marchen 1.1.2
+  # Marchen 1.1.3
 
-  ## 全新图标
+  ## 夜间模式
 
-  - 应用换上新图标，macOS、Windows、Linux 与网页版统一更新；播放器首页的标志在鼠标悬停时显示品牌色。
+  - 夜间模式改为更柔和的深灰，不再是一片纯黑；页面、卡片与弹窗的层次更分明。
+  - 开关在关闭状态下也能看清，打开后圆点保持白色；主题切换、下载筛选等分段选项的选中项更醒目；下拉框和输入框不再是厚重的黑块。
+  - 首页、侧栏、设置与播放器弹窗统一为同一套冷灰色调，白天模式的灰色也同步调整，整体观感更一致。
+  - 首页标志悬停变为品牌色时，播放三角显示为白色，与应用图标一致。
 
-  ## 加载
+  ## 设置
 
-  - 加载界面字号和进度条更大，层级更清楚；读取远程视频时进度改为「已读取识别片段 N%」，不再频繁闪烁。
-  - 加载失败时直接在加载界面显示原因，并按来源给出对应操作：本地文件可重新选择，远程链接可重试或更换链接，媒体源按具体原因提示重试或前往媒体源检查。
+  - 「播放内核」「API 线路」与其他设置项使用相同排版，标题与说明对齐。
 
   ## 播放
 
-  - 进度条悬停预览在新画面出来前保留上一帧，显示和消失更顺滑，预览框不再超出控制栏；拖动进度条时只显示时间。
-  - 控制栏自动隐藏更快，手搭在鼠标上的轻微抖动不再唤起控制栏。
-
-  ## 字幕
-
-  - 播放 Jellyfin / Emby 媒体源时，字幕设置不再误报「远程视频暂不支持内嵌字幕」。
-  - 修复部分 MKV 内嵌 ASS 字幕因含零时长事件导致整条字幕轨无法加载的问题。
-
-  ## 其他
-
-  - 修复 Windows 与 Linux 上重复打开应用或双击视频时，可能同时启动多个窗口的问题。
-releaseDate: 2026-11-01T10:32:30.036Z
+  - 进度条悬停预览框缩小，不再遮挡控制栏上的按钮。
+releaseDate: 2026-11-02T18:26:40.033Z
