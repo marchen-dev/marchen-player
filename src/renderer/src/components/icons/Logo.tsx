@@ -16,8 +16,18 @@ export const Logo = ({ className }: { className?: string }) => (
  *
  * 颜色跟随 currentColor，便于在黑白灰界面里与线性图标保持一致；
  * 播放三角与弹幕线的白色间隙用 mask 镂空，深色主题下不会露出白块。
+ *
+ * triangleClassName 用于在标志变为品牌色时把播放三角填回白色：镂空的三角在深色底上
+ * 会变成黑洞，与应用图标的白色三角相反，看起来像负片。三角画在 mask 之外，
+ * 默认透明，保持单色状态下的镂空效果；弹幕线外圈间隙始终镂空，避免深色下出现白边。
  */
-export const LogoMark = ({ className }: { className?: string }) => (
+export const LogoMark = ({
+  className,
+  triangleClassName,
+}: {
+  className?: string
+  triangleClassName?: string
+}) => (
   <svg
     viewBox="221 217 590 590"
     className={cn('size-[1em] shrink-0', className)}
@@ -66,5 +76,9 @@ export const LogoMark = ({ className }: { className?: string }) => (
         strokeLinecap="round"
       />
     </g>
+    <path
+      d="M521 443 Q501 431 501 455 L501 604 Q501 628 522 615 L638 544 Q657 533 638 521 Z"
+      className={cn('fill-transparent', triangleClassName)}
+    />
   </svg>
 )

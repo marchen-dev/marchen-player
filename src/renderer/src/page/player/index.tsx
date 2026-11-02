@@ -178,8 +178,12 @@ const DragTips: FC<{ onClick: () => void }> = ({ onClick }) => (
     className="group text-muted-foreground hover:text-foreground active:text-foreground/80 focus-visible:ring-ring flex cursor-default flex-col items-center gap-2 rounded-md px-6 py-2 transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
     onClick={onClick}
   >
-    {/* 平时与文字同为灰色，悬停或键盘聚焦时只让猫耳变为品牌蓝，品牌色只在用户操作时出现 */}
-    <LogoMark className="group-hover:text-brand group-focus-visible:text-brand text-6xl transition-colors duration-150" />
+    {/* 平时与文字同为灰色，悬停或键盘聚焦时只让猫耳变为品牌蓝，品牌色只在用户操作时出现；
+        变色时播放三角同步填白，与应用图标一致，避免深色主题下三角成为黑洞 */}
+    <LogoMark
+      className="group-hover:text-brand group-focus-visible:text-brand text-6xl transition-colors duration-150"
+      triangleClassName="transition-colors duration-150 group-hover:fill-white group-focus-visible:fill-white"
+    />
     <p className="text-xl select-none">点击或拖拽视频到此处播放</p>
   </button>
 )
