@@ -1,6 +1,19 @@
 # CHANGELOG
 
 
+## [1.1.3](https://github.com/marchen-dev/marchen-player/compare/v1.1.2...v1.1.3) (2026-11-02)
+
+
+### Bug Fixes
+
+* **player:** 进度条悬停预览框缩小到 160×90，不再遮挡控制栏大半按钮 ([a5dcd59](https://github.com/marchen-dev/marchen-player/commit/a5dcd5995378e376aceb5533c00175c7fe785b8a))
+* **player:** 首页猫耳标志悬停变为品牌色时播放三角填白，深色主题下不再显示为黑洞 ([307978f](https://github.com/marchen-dev/marchen-player/commit/307978fb39f2741199d73a7e582c7e416f23c308))
+
+
+### Features
+
+* **theme:** 统一深浅色主题 token，zinc 分层色阶并新增 field/raised，收编设置、侧栏与播放器色板，修正深色开关与分段选中，写入颜色约定，归档变更 ([b70da85](https://github.com/marchen-dev/marchen-player/commit/b70da8524e4bc01520555a0a9951fe8ab52ecde5))
+
 ## [1.1.2](https://github.com/marchen-dev/marchen-player/compare/v1.1.1...v1.1.2) (2026-11-01)
 
 
