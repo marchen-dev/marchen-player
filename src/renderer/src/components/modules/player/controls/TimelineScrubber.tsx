@@ -22,9 +22,10 @@ interface ScrubPoint {
   maxRight: number
 }
 
-// 缩略图最大尺寸，与预览抽帧的 maxWidth 一致
-const PREVIEW_MAX_WIDTH = 240
-const PREVIEW_MAX_HEIGHT = 144
+// 缩略图最大显示尺寸：控制栏最宽 520px，预览框约占三分之一，不压住上方按钮行。
+// 抽帧仍按 240px 宽输出（见 NativePlayer），高分屏下缩小显示反而更清晰。
+const PREVIEW_MAX_WIDTH = 160
+const PREVIEW_MAX_HEIGHT = 96
 const DEFAULT_ASPECT_RATIO = 16 / 9
 // 预览框 p-1 的左右内边距合计
 const BUBBLE_PADDING = 8
@@ -328,7 +329,7 @@ const PreviewBubble = ({
   )
 }
 
-/** 按宽高比把缩略图放进 240×144 的框内，竖屏片源以高度为准 */
+/** 按宽高比把缩略图放进 160×96 的框内，竖屏片源以高度为准 */
 const fitPreviewFrame = (aspectRatio: number) => {
   const height = Math.min(PREVIEW_MAX_HEIGHT, PREVIEW_MAX_WIDTH / aspectRatio)
   return { width: Math.round(height * aspectRatio), height: Math.round(height) }
