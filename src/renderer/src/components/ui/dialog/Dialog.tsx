@@ -55,7 +55,7 @@ const DialogContent = ({
       className={cn(
         'fixed top-[50%] left-[50%] z-(--z-dialog) grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] cursor-default gap-4',
         // 实心面板保证表单可读性；柔和大阴影替代硬边框，突出层级
-        'bg-background border-border/60 rounded-xl border p-6 shadow-2xl shadow-black/20',
+        'bg-popover text-popover-foreground border-border/60 rounded-xl border p-6 shadow-2xl shadow-black/20',
         // 仅缩放 + 轻微上浮，不再叠加旧式 slide-in-from-* 导致的斜向滑入
         'data-[state=open]:animate-dialog-in data-[state=closed]:animate-dialog-out motion-reduce:animate-none',
         className,

@@ -1,4 +1,5 @@
 import { useAppSettings } from '@renderer/atoms/settings/app'
+import { SettingsRow } from '@renderer/components/modules/settings/components'
 import { API_ROUTES } from '@renderer/lib/env'
 import { apiPreferredRouteAtom, getApiRouteClient } from '@renderer/request/api-route'
 import { normalizeApiRouteMode } from '@renderer/request/api-route-client'
@@ -16,29 +17,33 @@ export const ApiRouteSetting = () => {
   useEffect(() => {
     getApiRouteClient()
   }, [])
+  // 仅用于应用设置，使用标准设置行排版：当前线路作为说明排在标题下方
   return (
-    <div className="space-y-2">
-      <div className="flex items-center justify-between gap-4">
-        <span className="text-sm">API 线路</span>
-        <SettingSelect
-          ariaLabel="API 线路"
-          groups={[
-            { value: 'auto', label: '自动（推荐）' },
-            { value: 'cloudflare', label: 'Cloudflare' },
-            { value: 'edgeone', label: 'EdgeOne' },
-          ]}
-          value={settings.apiRouteMode}
-          onValueChange={(value) => {
-            const mode = normalizeApiRouteMode(value)
-            if (mode === settings.apiRouteMode) return
-            setSettings((previous) => ({ ...previous, apiRouteMode: mode }))
-            captureFeatureUsed('api_route', 'change', mode)
-          }}
-        />
-      </div>
-      <p className="text-xs opacity-70" role="status" title={API_ROUTES[route]}>
-        当前线路：{labels[route]}
-      </p>
-    </div>
+    <SettingsRow
+      label="API 线路"
+      labelId="api-route-label"
+      descriptionId="api-route-description"
+      description={
+        <span role="status" title={API_ROUTES[route]}>
+          当前线路：{labels[route]}
+        </span>
+      }
+    >
+      <SettingSelect
+        ariaLabel="API 线路"
+        groups={[
+          { value: 'auto', label: '自动（推荐）' },
+          { value: 'cloudflare', label: 'Cloudflare' },
+          { value: 'edgeone', label: 'EdgeOne' },
+        ]}
+        value={settings.apiRouteMode}
+        onValueChange={(value) => {
+          const mode = normalizeApiRouteMode(value)
+          if (mode === settings.apiRouteMode) return
+          setSettings((previous) => ({ ...previous, apiRouteMode: mode }))
+          captureFeatureUsed('api_route', 'change', mode)
+        }}
+      />
+    </SettingsRow>
   )
 }

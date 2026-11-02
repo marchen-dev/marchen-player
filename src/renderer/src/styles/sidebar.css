@@ -1,26 +1,18 @@
 /* Marchen Sidebar — Thin icon rail
  * 导航使用中性灰选中态，蓝色留给主操作与进度。
- * .dark scope 切换主题，不污染 shadcn 全局 token。
+ * 侧栏与顶栏共用的这组变量只是全局 token 的别名：不写具体色值，随 light / dark 自动切换。
+ * 叠层用 foreground 的透明度表达，浅色下自然得到深色透明、深色下得到白色透明。
  */
 
 :root {
-  --sidebar-bg: #ffffff;
-  --sidebar-fg: #0a0c10;
-  --sidebar-fg-2: rgba(10, 12, 16, 0.7);
-  --sidebar-fg-3: rgba(10, 12, 16, 0.45);
-  --sidebar-panel-1: rgba(15, 20, 30, 0.05);
-  --sidebar-panel-2: rgba(15, 20, 30, 0.09);
-  --sidebar-line: rgba(15, 20, 30, 0.1);
-}
-
-.dark {
-  --sidebar-bg: rgba(8, 10, 14, 0.92);
-  --sidebar-fg: #ffffff;
-  --sidebar-fg-2: rgba(255, 255, 255, 0.7);
-  --sidebar-fg-3: rgba(255, 255, 255, 0.45);
-  --sidebar-panel-1: rgba(255, 255, 255, 0.04);
-  --sidebar-panel-2: rgba(255, 255, 255, 0.1);
-  --sidebar-line: rgba(255, 255, 255, 0.08);
+  /* 保留轻微透明配合 backdrop-filter，底色与页面主区同为最底层 */
+  --sidebar-bg: hsl(var(--background) / 92%);
+  --sidebar-fg: hsl(var(--foreground));
+  --sidebar-fg-2: hsl(var(--foreground) / 70%);
+  --sidebar-fg-3: hsl(var(--foreground) / 45%);
+  --sidebar-panel-1: hsl(var(--foreground) / 5%);
+  --sidebar-panel-2: hsl(var(--foreground) / 10%);
+  --sidebar-line: hsl(var(--border));
 }
 
 .sidebar {

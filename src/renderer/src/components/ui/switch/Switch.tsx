@@ -23,7 +23,8 @@ const Switch = ({
   >
     <SwitchPrimitives.Thumb
       className={cn(
-        'bg-background pointer-events-none block size-5 rounded-full shadow-lg ring-0 transition-transform data-[state=checked]:translate-x-5 data-[state=unchecked]:translate-x-0',
+        // 圆点在两种主题下都是白色：深色下 background 是最底层的深灰，用它会变成黑点
+        'pointer-events-none block size-5 rounded-full bg-white shadow-lg ring-0 transition-transform data-[state=checked]:translate-x-5 data-[state=unchecked]:translate-x-0',
         thumbClassName,
       )}
     />

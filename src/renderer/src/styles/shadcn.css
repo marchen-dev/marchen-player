@@ -1,23 +1,32 @@
 :root {
+  /* 浅色：zinc 冷灰色相，亮度结构与 shadcn 默认一致；背景、卡片、弹层保持纯白 */
   --background: 0 0% 100%;
-  --foreground: 0 0% 3.9%;
+  --foreground: 240 10% 3.9%;
   --card: 0 0% 100%;
-  --card-foreground: 0 0% 3.9%;
+  --card-foreground: 240 10% 3.9%;
   --popover: 0 0% 100%;
-  --popover-foreground: 0 0% 3.9%;
+  --popover-foreground: 240 10% 3.9%;
   --primary: 210.1 100% 52%;
   --primary-foreground: 0 0% 100%;
-  --secondary: 0 0% 96.1%;
-  --secondary-foreground: 0 0% 9%;
-  --muted: 0 0% 96.1%;
-  --muted-foreground: 0 0% 45.1%;
-  --accent: 0 0% 96.1%;
-  --accent-foreground: 0 0% 9%;
+  --secondary: 240 4.8% 95.9%;
+  --secondary-foreground: 240 5.9% 10%;
+  --muted: 240 4.8% 95.9%;
+  --muted-foreground: 240 3.8% 46.1%;
+  --accent: 240 4.8% 95.9%;
+  --accent-foreground: 240 5.9% 10%;
   --destructive: 0 84.2% 60.2%;
   --destructive-foreground: 0 0% 98%;
-  --border: 0 0% 89.8%;
-  --input: 0 0% 89.8%;
+  --border: 240 5.9% 90%;
+  --input: 240 5.9% 90%;
   --ring: 210.1 100% 52%;
+  /*
+   * 控件专用表面：基础组件只写一个 bg-field / bg-raised，不用 dark: 变体，
+   * 这样调用方（如播放器毛玻璃）传入的 bg 类可以被 tailwind-merge 正常覆盖。
+   *   field   输入框、下拉框、描边按钮的底色
+   *   raised  分段控件 / Tabs 的选中项
+   */
+  --field: 0 0% 100%;
+  --raised: 0 0% 100%;
   --chart-1: 12 76% 61%;
   --chart-2: 173 58% 39%;
   --chart-3: 197 37% 24%;
@@ -38,26 +47,39 @@
   --z-toast: 300;
 }
 
+/*
+ * 深色：zinc 冷灰分层色阶，亮度自下而上递增，凸起元素必须比所在表面更亮。
+ *   L0 background  #111113  页面主区、侧栏、设置导航（不用纯黑，给上层留出亮度空间）
+ *   L1 popover     #18181b  对话框、抽屉、toast、下拉菜单、设置面板外壳
+ *   L2 card        #1e1e21  分组卡片、设置分组
+ *   L3 muted/input #2a2a2d  开关关闭轨道、分段控件底、次级按钮
+ *   L4 accent      #343438  分段选中项（raised）、导航选中、悬停
+ *   field          #242427  输入框、下拉框、描边按钮的底色
+ * background 只表示最底层；不要再把它当作"凸起"使用。
+ */
 .dark {
   --brand-text: #93c5fd;
-  --background: 0 0% 3.9%;
-  --foreground: 0 0% 98%;
-  --card: 0 0% 3.9%;
-  --card-foreground: 0 0% 98%;
-  --popover: 0 0% 3.9%;
-  --popover-foreground: 0 0% 98%;
+  --background: 240 6% 7%;
+  --foreground: 240 5% 96%;
+  --card: 240 5% 12.5%;
+  --card-foreground: 240 5% 96%;
+  --popover: 240 6% 10%;
+  --popover-foreground: 240 5% 96%;
   --primary: 210.1 100% 52%;
   --primary-foreground: 0 0% 100%;
-  --secondary: 0 0% 14.9%;
-  --secondary-foreground: 0 0% 98%;
-  --muted: 0 0% 14.9%;
-  --muted-foreground: 0 0% 63.9%;
-  --accent: 0 0% 14.9%;
-  --accent-foreground: 0 0% 98%;
+  --secondary: 240 4% 17%;
+  --secondary-foreground: 240 5% 96%;
+  --muted: 240 4% 17%;
+  --muted-foreground: 240 5% 65%;
+  --accent: 240 4% 21%;
+  --accent-foreground: 240 5% 96%;
   --destructive: 0 62.8% 30.6%;
   --destructive-foreground: 0 0% 98%;
-  --border: 0 0% 14.9%;
-  --input: 0 0% 14.9%;
+  --border: 240 4% 19%;
+  --input: 240 4% 17%;
+  /* field 介于卡片 L2 与 L3 之间：比卡片、弹层略亮，又不抢过选中态 */
+  --field: 240 5% 14.5%;
+  --raised: 240 4% 21%;
   --ring: 213.1 93.9% 67.8%;
   --chart-1: 220 70% 50%;
   --chart-2: 160 60% 45%;

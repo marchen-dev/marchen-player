@@ -33,7 +33,8 @@
   --player-settings-border: rgb(255 255 255 / 11%);
   --player-settings-fg: rgb(255 255 255 / 94%);
   --player-settings-muted: rgb(255 255 255 / 58%);
-  --player-settings-accent: #0a84ff;
+  /* 品牌蓝只有一个来源，播放器强调色直接引用 */
+  --player-settings-accent: var(--brand);
   --player-settings-focus: #64b5ff;
   --player-settings-width: clamp(380px, 28vw, 440px);
 }
@@ -72,28 +73,31 @@
  * 在此局部重定义应用色板变量，里面的弹层自动换肤，不必逐个组件覆盖样式。
  * 固定为深色（节点同时带 dark 类），与设置侧栏一致，不跟随应用 light/dark 主题。
  *
- * 取值思路参照 Infuse：面板是深灰而不是黑（应用深色主题的 3.9% 压在视频上是一整块纯黑），
- * 层次靠「比面板亮一档的填充」表达，而不是在暗底上画更暗的线。
+ * 取值思路参照 Infuse：面板是深灰而不是黑，层次靠「比面板亮一档的填充」表达，
+ * 而不是在暗底上画更暗的线。各档取自应用深色色阶（L1~L4），只是整体上移一档。
  *
  * 挂在播放器容器之外、但播放时同样浮在视频上的界面（目前是全局 toast）
  * 通过 data-player-theme 属性接入同一套色板。
  */
 [data-player-portal-root],
 [data-player-theme] {
-  --background: 240 3% 11%;
-  --foreground: 240 6% 93%;
-  --card: 240 3% 11%;
-  --card-foreground: 240 6% 93%;
-  --popover: 240 3% 14%;
-  --popover-foreground: 240 6% 93%;
-  --secondary: 240 2% 20%;
-  --secondary-foreground: 240 6% 93%;
-  --muted: 240 2% 17%;
-  --muted-foreground: 240 4% 62%;
-  --accent: 240 2% 21%;
-  --accent-foreground: 240 6% 96%;
-  --border: 240 2% 22%;
-  --input: 240 2% 22%;
+  /* 取值只从 shadcn.css 深色色阶中选档，整体比应用深色高一档：压在视频上需要从画面里托出来 */
+  --background: 240 6% 10%; /* L1 */
+  --foreground: 240 5% 96%;
+  --card: 240 5% 12.5%; /* L2 */
+  --card-foreground: 240 5% 96%;
+  --popover: 240 5% 12.5%; /* L2 */
+  --popover-foreground: 240 5% 96%;
+  --secondary: 240 4% 21%; /* L4 */
+  --secondary-foreground: 240 5% 96%;
+  --muted: 240 4% 17%; /* L3 */
+  --muted-foreground: 240 5% 65%;
+  --accent: 240 4% 21%; /* L4 */
+  --accent-foreground: 240 5% 96%;
+  --border: 240 4% 21%; /* L4 */
+  --input: 240 4% 21%; /* L4 */
+  --field: 240 4% 17%; /* L3 */
+  --raised: 240 4% 25%;
   --ring: 211 100% 60%;
   /* 应用深色主题的错误色偏暗，只适合做底色；这里还要当文字用 */
   --destructive: 0 72% 60%;

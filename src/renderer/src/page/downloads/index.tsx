@@ -23,6 +23,7 @@ import {
   DropdownMenuTrigger,
 } from '@renderer/components/ui/dropdownMenu'
 import { Input } from '@renderer/components/ui/input'
+import { segmentedActiveClassName } from '@renderer/components/ui/tabs'
 import { toast } from '@renderer/components/ui/toast/use-toast'
 import { usePageHeader } from '@renderer/hooks/use-page-header'
 import { ipcClient } from '@renderer/lib/client'
@@ -120,11 +121,7 @@ export default function Downloads() {
                 key={value}
                 size="sm"
                 variant="ghost"
-                className={
-                  filter === value
-                    ? 'bg-background text-foreground hover:bg-background hover:text-foreground shadow-sm'
-                    : undefined
-                }
+                className={filter === value ? segmentedActiveClassName : undefined}
                 aria-pressed={filter === value}
                 onClick={() => setFilter(value)}
               >

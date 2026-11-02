@@ -11,13 +11,8 @@ interface FieldsCardLayoutProps extends PropsWithChildren {
 }
 export const FieldsCardLayout: FC<FieldsCardLayoutProps> = ({ children, title, className }) => {
   return (
-    <section
-      className={cn(
-        'min-h-20 space-y-4 rounded-lg border bg-zinc-50 p-3 dark:bg-zinc-900',
-        className,
-      )}
-    >
-      <p className="mb-1 text-sm font-semibold text-zinc-500">{title}</p>
+    <section className={cn('bg-card min-h-20 space-y-4 rounded-lg border p-3', className)}>
+      <p className="text-muted-foreground mb-1 text-sm font-semibold">{title}</p>
       {children}
     </section>
   )

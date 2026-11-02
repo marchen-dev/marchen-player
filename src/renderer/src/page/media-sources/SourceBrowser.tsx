@@ -3,6 +3,7 @@ import type { BrowseCrumb } from './state'
 import type { BrowseView } from './view'
 import { providerHistoryKey } from '@marchen/shared/media'
 import { Button } from '@renderer/components/ui/button'
+import { segmentedActiveClassName } from '@renderer/components/ui/tabs'
 import { db } from '@renderer/database/db'
 import { cn } from '@renderer/lib/utils'
 import { isCompleted } from '@renderer/services/player-runtime/history/playback-history-adapter'
@@ -91,11 +92,7 @@ export function SourceBrowser({ source, onBack, onRelogin, onPlay }: SourceBrows
                 variant="ghost"
                 aria-label={value === 'grid' ? '海报网格' : '列表'}
                 aria-pressed={view === value}
-                className={
-                  view === value
-                    ? 'bg-background text-foreground hover:bg-background hover:text-foreground shadow-sm'
-                    : undefined
-                }
+                className={view === value ? segmentedActiveClassName : undefined}
                 onClick={() => {
                   captureFeatureUsed('media_source', 'switch_view', value)
                   setOverrides((current) => ({ ...current, [viewKey]: value }))

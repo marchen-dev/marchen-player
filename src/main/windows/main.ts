@@ -26,7 +26,8 @@ export default function createWindow() {
     minWidth: 800, // 设置最小宽度
     minHeight: 650, // 设置最小高度
     show: false,
-    backgroundColor: nativeTheme.shouldUseDarkColors ? '#121212' : '#fafafa',
+    // 窗口首帧底色，与渲染端 shadcn.css 的 background token 保持一致，避免启动闪色
+    backgroundColor: nativeTheme.shouldUseDarkColors ? '#111113' : '#ffffff',
     autoHideMenuBar: true,
     webPreferences: {
       preload: join(__dirname, '../preload/index.mjs'),

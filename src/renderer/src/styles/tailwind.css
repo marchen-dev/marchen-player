@@ -102,6 +102,8 @@
   /* Colors - shadcn */
   --color-border: hsl(var(--border));
   --color-input: hsl(var(--input));
+  --color-field: hsl(var(--field));
+  --color-raised: hsl(var(--raised));
   --color-ring: hsl(var(--ring));
   --color-background: hsl(var(--background));
   --color-foreground: hsl(var(--foreground));

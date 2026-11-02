@@ -32,8 +32,7 @@ import { useNavigate } from 'react-router'
 const PLAYER_HEADER = { title: '视频播放', actions: null }
 
 /** 空态下方次级入口（媒体源、URL 播放、播放记录）共用的按钮样式 */
-const SECONDARY_ENTRY_CLASS =
-  'gap-2 bg-neutral-200/60 hover:bg-neutral-200/90 dark:bg-neutral-800 dark:hover:bg-neutral-700'
+const SECONDARY_ENTRY_CLASS = 'gap-2 bg-muted hover:bg-accent'
 
 export default function VideoPlayer() {
   const service = usePlayerLoadingService()

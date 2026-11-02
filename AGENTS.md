@@ -187,6 +187,13 @@ docs/                     # 发布、部署、可观测性文档
 - **平台兼容**：考虑 Electron 与 Web 双端，Electron 专属逻辑用 `isWeb` 或 `ipcClient?.` 隔离
 - **端形态范围**：当前仅要求 Electron 与 Web 桌面端；无需适配手机、平板触控或移动端响应式布局，除非产品需求后续明确提出
 - **指针样式**：交互元素默认保持系统箭头指针，不主动使用 `pointer`、`grab` 或 `grabbing`；确有产品需求时再局部例外
+- **颜色**：色阶与取值见 `src/renderer/src/styles/shadcn.css` 注释（深色 L0 background < L1 popover < L2 card < L3 muted/input < L4 accent）
+  - 普通界面只用语义 token（`bg-background/card/popover/muted/accent/field/raised`、`text-foreground/muted-foreground`、`border-border/input` 等），不用 `zinc-*` / `neutral-*` / `slate-*` / `stone-*` / `gray-*` 原始色阶，不写任意色值
+  - `bg-background` 只表示最底层；凸起、选中、悬停用更高一档的 token；输入类控件底色用 `field`，分段 / Tabs 选中用 `raised`
+  - 基础组件（`components/ui`）不写 `dark:bg-*` 这类底色变体，主题差异放进 token，保证调用方传入的 bg 类能被 tailwind-merge 覆盖
+  - 模块需要特殊氛围时只在作用域内重写 token 的值；模块内的别名变量（如 `--settings-*`、`--sidebar-*`）只能指向全局 token，不写具体色值
+  - 例外：浮在视频上的播放器界面使用 `--player-*` 毛玻璃材质；影视库使用 `--library-*`（历史例外，新模块不得效仿）
+  - 品牌蓝只用 `--brand` / `--brand-text` / `--brand-press`（Tailwind 中为 `brand` / `brand-text` / `brand-press`）
 - **UI 预览**：使用 Chrome DevTools MCP（attach 模式，`.mcp.json` 配 `--browserUrl=http://127.0.0.1:9222`）。`pnpm dev` 启动 Electron 后，`isDev` 下主进程暴露 9222 调试端口。attach 后用 `list_pages` 选主窗口 target。9222 被占用时改端口并同步更新 `src/main/index.ts` 与 `.mcp.json`
 
 ## 环境变量

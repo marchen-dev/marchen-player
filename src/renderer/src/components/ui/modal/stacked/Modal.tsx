@@ -231,13 +231,13 @@ export const ModalInternal: FC<ModalInternalProps> = memo(({ ref, ...props }) =>
                 animate={animateController}
                 className={cn(
                   'relative flex flex-col overflow-hidden rounded-lg',
-                  'bg-zinc-50/90 dark:bg-neutral-900/90',
-                  'p-2 shadow-2xl shadow-stone-300 backdrop-blur-sm dark:shadow-md dark:shadow-stone-800',
+                  'bg-popover/90 text-popover-foreground',
+                  'p-2 shadow-2xl shadow-black/15 backdrop-blur-sm dark:shadow-black/50',
                   max
                     ? 'h-[90vh] w-[90vw]'
                     : 'max-h-[70vh] max-w-[90vw] min-w-[300px] lg:max-h-[calc(100vh-20rem)] lg:max-w-[70vw]',
 
-                  'border border-slate-200 dark:border-neutral-800',
+                  'border-border border',
                   classNames?.modalClassName,
                 )}
                 onClick={stopPropagation}
@@ -270,7 +270,7 @@ export const ModalInternal: FC<ModalInternalProps> = memo(({ ref, ...props }) =>
                     />
                   </Dialog.DialogClose>
                 </div>
-                <Divider className="mt-2 mb-0 shrink-0 border-slate-200 opacity-80 dark:border-neutral-800" />
+                <Divider className="mt-2 mb-0 shrink-0" />
 
                 <div className="h-full shrink grow">{finalChildren}</div>
               </m.div>

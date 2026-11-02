@@ -1,7 +1,11 @@
 import { useAppSettings } from '@renderer/atoms/settings/app'
 import { usePlayerSettings } from '@renderer/atoms/settings/player'
 import { ApiRouteSetting } from '@renderer/components/modules/shared/setting/ApiRouteSetting'
-import { PlayerEngineSetting } from '@renderer/components/modules/shared/setting/PlayerEngineSetting'
+import {
+  PlayerEngineDescription,
+  PlayerEngineSelect,
+  usePlayerEngineSetting,
+} from '@renderer/components/modules/shared/setting/PlayerEngineSetting'
 import { SettingSwitch } from '@renderer/components/modules/shared/setting/SettingSwitch'
 import { Button } from '@renderer/components/ui/button'
 import { useToast } from '@renderer/components/ui/toast'
@@ -104,9 +108,7 @@ export const GeneralView = () => {
 
       <SettingsSection title="播放">
         <SettingsGroup>
-          <div className="p-4">
-            <PlayerEngineSetting />
-          </div>
+          <PlayerEngineRow />
           {/* 只影响之后打开的视频，加载开始时读取一次 */}
           <SettingsRow
             label="优先播放视频"
@@ -129,9 +131,7 @@ export const GeneralView = () => {
 
       <SettingsSection title="网络">
         <SettingsGroup>
-          <div className="p-4">
-            <ApiRouteSetting />
-          </div>
+          <ApiRouteSetting />
         </SettingsGroup>
       </SettingsSection>
 
@@ -214,4 +214,19 @@ const CLEAR_ACTIONS: Record<
       await ipcClient?.app.clearNetworkCache()
     },
   },
+}
+
+/** 「播放内核」使用与其他设置行相同的排版：标题与状态说明在左，下拉框在右 */
+const PlayerEngineRow = () => {
+  const state = usePlayerEngineSetting()
+  return (
+    <SettingsRow
+      label="播放内核"
+      description={<PlayerEngineDescription state={state} />}
+      labelId="player-engine-label"
+      descriptionId="player-engine-description"
+    >
+      <PlayerEngineSelect state={state} ariaLabel="播放内核" />
+    </SettingsRow>
+  )
 }

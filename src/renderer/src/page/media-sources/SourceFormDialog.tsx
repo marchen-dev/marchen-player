@@ -3,6 +3,8 @@ import { MEDIA_SOURCE_KIND_LABELS, MEDIA_SOURCE_KINDS } from '@marchen/shared/me
 import { Button } from '@renderer/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@renderer/components/ui/dialog'
 import { Input } from '@renderer/components/ui/input'
+import { segmentedActiveClassName } from '@renderer/components/ui/tabs'
+import { cn } from '@renderer/lib/utils'
 import { useId, useState } from 'react'
 import { useSaveMediaSource } from './api'
 
@@ -127,11 +129,7 @@ function SourceForm({
                     role="radio"
                     aria-checked={kind === value}
                     disabled={save.isPending}
-                    className={
-                      kind === value
-                        ? 'bg-background text-foreground hover:bg-background hover:text-foreground flex-1 shadow-sm'
-                        : 'flex-1'
-                    }
+                    className={cn('flex-1', kind === value && segmentedActiveClassName)}
                     onClick={() => {
                       setKind(value)
                       setError('')

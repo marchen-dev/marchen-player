@@ -1,28 +1,29 @@
+/*
+ * 设置面板只是全局 token 的别名层：不写具体色值，切换主题时与应用其他界面同步变化。
+ * 深色层级：导航 L0(background) < 外壳 L1(popover) < 分组 L2(card)；分组内的开关、
+ * 下拉等控件再高一档（L3），因此不会陷进分组底色里。
+ */
 [data-app-settings] {
-  --settings-shell: rgb(250 250 251);
-  --settings-navigation: rgb(244 244 246);
-  --settings-group: rgb(255 255 255);
-  --settings-border: rgb(228 228 231);
-  --settings-text: rgb(24 24 27);
-  --settings-muted: rgb(113 113 122);
-  --settings-selected: rgb(228 228 231);
-  --settings-selected-text: rgb(24 24 27);
-  --settings-hover: rgb(232 232 235 / 70%);
+  --settings-shell: hsl(var(--popover));
+  /* 浅色导航用 muted 与白色内容区区分；深色导航取最底层，比外壳更暗 */
+  --settings-navigation: hsl(var(--muted));
+  --settings-group: hsl(var(--card));
+  --settings-border: hsl(var(--border));
+  --settings-text: hsl(var(--foreground));
+  --settings-muted: hsl(var(--muted-foreground));
+  /* 浅色导航底已是 muted，选中与悬停需再深一档，借用 border 的 zinc-200 */
+  --settings-selected: hsl(var(--border));
+  --settings-selected-text: hsl(var(--foreground));
+  --settings-hover: hsl(var(--border) / 70%);
   --settings-focus: hsl(var(--ring));
+  /* 遮罩是覆盖在页面上的黑色透明层，不属于表面色阶，单独取值 */
   --settings-scrim: rgb(9 9 11 / 38%);
 }
 
 .dark [data-app-settings] {
-  --settings-shell: rgb(24 24 27);
-  --settings-navigation: rgb(17 17 20);
-  --settings-group: rgb(31 31 35);
-  --settings-border: rgb(63 63 70);
-  --settings-text: rgb(244 244 245);
-  --settings-muted: rgb(161 161 170);
-  --settings-selected: rgb(52 52 58);
-  --settings-selected-text: rgb(250 250 250);
-  --settings-hover: rgb(63 63 70 / 58%);
-  --settings-focus: hsl(var(--ring));
+  --settings-navigation: hsl(var(--background));
+  --settings-selected: hsl(var(--accent));
+  --settings-hover: hsl(var(--accent) / 60%);
   --settings-scrim: rgb(0 0 0 / 62%);
 }
 

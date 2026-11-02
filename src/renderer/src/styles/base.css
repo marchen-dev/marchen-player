@@ -2,6 +2,9 @@ html {
   --font-family: sans-serif, system-ui;
   font-size: 16px;
   overflow: hidden;
+  /* 页面最底层统一取 background token，替代 index.html 中仅用于首帧的固定色 */
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
 }
 
 body,
