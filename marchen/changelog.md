@@ -90,3 +90,4 @@
 - 2026-11-01: [polish-timeline-preview-and-hide](./archive/2026-11-01-polish-timeline-preview-and-hide/) — 进度条预览框保留旧帧并固定尺寸、淡入淡出带 80ms 离开宽限、拖动收缩为时间气泡且不超出控制栏；控制栏隐藏延迟降到 1.5s 并忽略 3px 内指针抖动
 - 2026-11-01: [hide-provider-embedded-subtitle-hint](./archive/2026-11-01-hide-provider-embedded-subtitle-hint/) — Jellyfin/Emby 内嵌文字字幕由服务端提供，字幕面板不再提示「远程视频暂不支持内嵌字幕」；WebDAV 与远程直链仍提示，本地提取策略不变
 - 2026-11-02: [unify-theme-tokens](./archive/2026-11-02-unify-theme-tokens/) — 统一深浅色主题 token：zinc 分层色阶、新增 field/raised，收编设置/侧栏/播放器色板，修正开关与分段选中，写入颜色约定
+- 2026-11-03: [add-mobile-notice](./archive/2026-11-03-add-mobile-notice/) — 网页版手机访问时弹窗提示改用电脑打开，支持分享链接与仍要继续，并在手机上不再弹出桌面客户端推广

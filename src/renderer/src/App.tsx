@@ -4,13 +4,14 @@ import { AppHeader } from './components/layout/app-header/AppHeader'
 import { RootLayout } from './components/layout/root/RootLayout'
 import { Sidebar } from './components/layout/sidebar'
 import { DesktopPromo } from './components/modules/app/DesktopPromo'
+import { MobileNotice } from './components/modules/app/MobileNotice'
 import { Prepare } from './components/modules/app/Prepare'
 import { PlaybackHistoryDialog } from './components/modules/history/PlaybackHistoryDialog'
 import { FeedbackDialog } from './components/modules/shared/FeedbackDialog'
 import AnimatedOutlet from './components/ui/animate/AnimatedOutlet'
 import { useNetworkToast } from './hooks/use-network-toast'
 import { useUpdateToast } from './hooks/use-update-toast'
-import { isWeb } from './lib/utils'
+import { isPhone, isWeb } from './lib/utils'
 import { RootProviders } from './providers'
 import { IpcListener } from './providers/IpcListener'
 
@@ -24,8 +25,9 @@ function App(): JSX.Element {
         <Sidebar />
         <Content />
         <FeedbackDialog />
-        {/* 网页端首次访问推荐桌面客户端，只出现一次 */}
-        {isWeb && <DesktopPromo />}
+        {/* 手机提示改用电脑打开，不再推荐手机装不了的桌面客户端；
+            其余网页端首次访问推荐桌面客户端，只出现一次 */}
+        {isPhone ? <MobileNotice /> : isWeb && <DesktopPromo />}
         {!isWeb && (
           <>
             <IpcListener />
