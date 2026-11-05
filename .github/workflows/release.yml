@@ -55,7 +55,7 @@ jobs:
       - uses: pnpm/action-setup@v4.1.0
       - uses: actions/setup-node@v4
         with:
-          node-version: 24.x
+          node-version: 26.x
           cache: pnpm
 
       - name: Validate production observability configuration
@@ -192,7 +192,7 @@ jobs:
           fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
-          node-version: 24.x
+          node-version: 26.x
       - name: Resolve release name
         shell: bash
         run: echo "SENTRY_RELEASE=Marchen@$(node -p "require('./package.json').version")+$GITHUB_SHA" >> "$GITHUB_ENV"
