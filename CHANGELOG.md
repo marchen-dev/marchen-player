@@ -1,6 +1,19 @@
 # CHANGELOG
 
 
+## [1.1.4](https://github.com/marchen-dev/marchen-player/compare/v1.1.3...v1.1.4) (2026-11-07)
+
+
+### Bug Fixes
+
+* **web:** 标签页图标去掉白色底板并铺满画布，深浅色标签栏下都更清晰，主屏幕图标保留底板 ([d692b07](https://github.com/marchen-dev/marchen-player/commit/d692b0706742c0af9accd3e8b1a508f6c7bd5b3a))
+
+
+### Features
+
+* **api:** 弹弹play 代理请求按 dandan-proxy v1 规范签名，过期签名按服务器时间纠偏重试一次 ([ae8af8c](https://github.com/marchen-dev/marchen-player/commit/ae8af8c94b9866c79188e4be3fb619b34d5bc61c))
+* **web:** 手机访问网页版时弹窗提示改用电脑打开，可分享链接或仍要继续，手机上不再弹出桌面客户端推广 ([9979216](https://github.com/marchen-dev/marchen-player/commit/99792160aa9d6e9ed5588966137994b239937a3c))
+
 ## [1.1.3](https://github.com/marchen-dev/marchen-player/compare/v1.1.2...v1.1.3) (2026-11-02)
 
 
@@ -78,11 +91,11 @@
 
 ### Features
 
-* **danmaku:** 恢复 seek 后的弹幕快照与播放进度 ([91a5c22](https://github.com/marchen-dev/marchen-player/commit/91a5c22b721883691e5a3a0b1f7a00ccd42b0659))
 * **danmaku:** 支持全局不透明度调整 ([2d2feed](https://github.com/marchen-dev/marchen-player/commit/2d2feed6c2a770bbc6ddb0cb83d9e3198c26bbc5))
+* **danmaku:** 恢复 seek 后的弹幕快照与播放进度 ([91a5c22](https://github.com/marchen-dev/marchen-player/commit/91a5c22b721883691e5a3a0b1f7a00ccd42b0659))
+* **player:** 支持画中画与点击画面暂停播放 ([e0f4951](https://github.com/marchen-dev/marchen-player/commit/e0f4951f7e9d9c55d58f2a14539bba63536461c2))
 * **player:** 打开播放列表与连播前重新扫描剧集 ([24d827f](https://github.com/marchen-dev/marchen-player/commit/24d827f323c7408100322817e4c2aee8b126c4d2))
 * **player:** 播放列表按文件名公共部分分组折叠 ([5a089a5](https://github.com/marchen-dev/marchen-player/commit/5a089a56c5ec24d017074c1e58ebfba66875d4fe))
-* **player:** 支持画中画与点击画面暂停播放 ([e0f4951](https://github.com/marchen-dev/marchen-player/commit/e0f4951f7e9d9c55d58f2a14539bba63536461c2))
 
 ## [1.0.5](https://github.com/marchen-dev/marchen-player/compare/v1.0.4...v1.0.5) (2026-10-10)
 
@@ -147,17 +160,17 @@
 
 ### Bug Fixes
 
+* 修复文件关联打开并简化弹幕复制与设置 ([d70c16c](https://github.com/marchen-dev/marchen-player/commit/d70c16cec8ba2aacfd74bf1673b12ad4dc0a2a28))
 * **ci:** 更新 Electron 44 原生模块 ABI 映射 ([47eb4c0](https://github.com/marchen-dev/marchen-player/commit/47eb4c0792b8fc1f26ec361cd558395534b54175))
 * **ci:** 补齐依赖构建审批并清理过期环境配置 ([c9cc865](https://github.com/marchen-dev/marchen-player/commit/c9cc865ffc92e6592b684297aa6c217d34245e35))
-* 修复文件关联打开并简化弹幕复制与设置 ([d70c16c](https://github.com/marchen-dev/marchen-player/commit/d70c16cec8ba2aacfd74bf1673b12ad4dc0a2a28))
 
 
 ### Features
 
+* 支持B站链接弹幕并完善播放器界面 ([7089c4c](https://github.com/marchen-dev/marchen-player/commit/7089c4c26b26dce3f613f8104565e0a122c88d54))
 * **downloads:** 支持 HTTP 并发下载并优化下载交互与主题 ([e8f04f0](https://github.com/marchen-dev/marchen-player/commit/e8f04f0781a45c40879bb4f417177ffb71d73396))
 * **downloads:** 新增 Electron BT 下载与播放联动 ([5489a55](https://github.com/marchen-dev/marchen-player/commit/5489a552f6104f8b606d0e7623ae17dadabcd274))
 * **player:** 显示远程读取进度与媒体传输信息 ([68ccada](https://github.com/marchen-dev/marchen-player/commit/68ccadaf2fe84bca3b8a24b202b71f7c7c866633))
-* 支持B站链接弹幕并完善播放器界面 ([7089c4c](https://github.com/marchen-dev/marchen-player/commit/7089c4c26b26dce3f613f8104565e0a122c88d54))
 
 # [1.0.0-alpha.1](https://github.com/marchen-dev/marchen-player/compare/v1.0.0-alpha.0...v1.0.0-alpha.1) (2026-09-27)
 
