@@ -117,6 +117,11 @@ idle → importing → hashing → matching → [waiting_user] → loading_danma
 Web 与 Electron 均直连环境变量配置的 API 主备线路：Cloudflare 为主，EdgeOne 为备；本地 Web dev 同样直连，不保留 Vite API 代理。通用设置提供自动 / Cloudflare / EdgeOne 模式；自动降级会话内记忆 5 分钟，手动模式固定线路。
 Web 所在的正式、预览及开发 Origin 需由 API 服务允许 CORS，JSON POST 预检和弹幕重定向后的响应也须通过跨域检查。
 
+**代理与签名**：两条线路都是 dandan-proxy（独立仓库）：Cloudflare Worker 负责接口白名单、Origin、签名校验、弹幕缓存并回源弹弹play，EdgeOne 只把请求转发给 Cloudflare。代理只放行 match、search/episodes、comment、bangumi/shin、bangumi/<id> 五个接口，新增接口须先在代理白名单中放行。
+- 每次线路尝试都由 `request/signed-fetch.ts` 签名：用 ufo `withBase` / `withQuery` 构造最终地址、自行序列化 JSON 请求体，按 `request/sign.ts` 的 v1 规范（HMAC-SHA256）把 `_kid`、`_ts`、`_nonce`、`_sig` 追加在查询串末尾，不加自定义请求头、不新增预检。签名规范以代理仓库为准，测试向量副本在 `services/player-runtime/tests/fixtures/dandan-proxy-sign-vectors.json`，两边须同步修改。
+- 密钥随客户端分发，签名只用于提高调用门槛、按 kid 轮换和区分来源（Web `w1`、桌面 `d1`），不是身份认证。代理按来源分别设置 `report` / `enforce`；`enforce` 下的 401 `signature_expired` 由客户端按 `serverTime` 纠偏并重签重试一次，签名相关 401 不切换线路。
+- 未配置签名变量时不签名并提示一次；Web 正式构建与桌面发行必填，构建期校验格式。
+
 ### 媒体源
 
 桌面端专属，支持 WebDAV（Basic Auth）、Jellyfin、Emby（登录换 token，只存 token）。
@@ -203,6 +208,7 @@ docs/                     # 发布、部署、可观测性文档
 | 变量                                                  | 说明                                                             |
 | ----------------------------------------------------- | ---------------------------------------------------------------- |
 | `VITE_API_CLOUDFLARE_URL` / `VITE_API_EDGEONE_URL` | API 主备 HTTPS 基址（含 `/api/v2`），构建时注入 |
+| `VITE_API_SIGN_KID` / `VITE_API_SIGN_KEY` | API 请求签名的密钥编号与密钥（Web `w1`、桌面 `d1`），正式构建必填，会随客户端公开 |
 | `VITE_SENTRY_DSN`                                     | Sentry DSN                                                       |
 | `VITE_POSTHOG_KEY` / `VITE_POSTHOG_HOST`              | PostHog 客户端配置                                               |
 | `VITE_TELEMETRY_DEBUG`                                | 开发态是否上报遥测，默认 false                                   |

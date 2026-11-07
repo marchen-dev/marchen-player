@@ -1,0 +1,54 @@
+{
+  "kid": "w1",
+  "secret": "test-secret-w1",
+  "cases": [
+    {
+      "name": "GET with query",
+      "method": "GET",
+      "pathname": "/api/v2/comment/164490001",
+      "query": "withRelated=true",
+      "body": "",
+      "ts": "1794045600",
+      "nonce": "k3J9xQ2a",
+      "bodyHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "canonical": "v1\nGET\n/api/v2/comment/164490001\nwithRelated=true\ne3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\n1794045600\nk3J9xQ2a",
+      "sig": "7b4YePiqbXztwlmgeSTS-yoa8l7pMuHyCMk2OhShUdM"
+    },
+    {
+      "name": "GET without query",
+      "method": "GET",
+      "pathname": "/api/v2/bangumi/shin",
+      "query": "",
+      "body": "",
+      "ts": "1794045600",
+      "nonce": "nonce-0001",
+      "bodyHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "canonical": "v1\nGET\n/api/v2/bangumi/shin\n\ne3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\n1794045600\nnonce-0001",
+      "sig": "LObYzasI0rzMoDHZpZUo3ph1umLZq-cdmVAHjteVYsQ"
+    },
+    {
+      "name": "GET with encoded query",
+      "method": "GET",
+      "pathname": "/api/v2/search/episodes",
+      "query": "anime=%E8%91%AC%E9%80%81%E7%9A%84%E8%8A%99%E8%8E%89%E8%8E%B2&episode=1",
+      "body": "",
+      "ts": "1794045600",
+      "nonce": "Zz_9-abcdef",
+      "bodyHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "canonical": "v1\nGET\n/api/v2/search/episodes\nanime=%E8%91%AC%E9%80%81%E7%9A%84%E8%8A%99%E8%8E%89%E8%8E%B2&episode=1\ne3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\n1794045600\nZz_9-abcdef",
+      "sig": "PhwL4eZbisCs-3z-RtvyneI8790SdKLE1fU29KZIfo4"
+    },
+    {
+      "name": "POST json body",
+      "method": "POST",
+      "pathname": "/api/v2/match",
+      "query": "",
+      "body": "{\"fileName\":\"[Sub] 葬送的芙莉莲 - 01\",\"fileHash\":\"0123456789abcdef0123456789abcdef\",\"fileSize\":123456789}",
+      "ts": "1794045600",
+      "nonce": "post-nonce-1",
+      "bodyHash": "e4842c30ad9acd4f9ee9c9aa3d308d3e71b7164b4a7684cf9a979d9c241e7836",
+      "canonical": "v1\nPOST\n/api/v2/match\n\ne4842c30ad9acd4f9ee9c9aa3d308d3e71b7164b4a7684cf9a979d9c241e7836\n1794045600\npost-nonce-1",
+      "sig": "QMRX-viFR4V0i8daq5b4lm9-svU0lc8sT2eKq2w7gJw"
+    }
+  ]
+}

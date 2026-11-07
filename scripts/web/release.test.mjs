@@ -2,7 +2,23 @@ import assert from 'node:assert/strict'
 import { spawnSync } from 'node:child_process'
 import { readFileSync } from 'node:fs'
 import { it } from 'vitest'
-import { readApiRouteConfig } from '../../src/renderer/src/request/api-route-config.ts'
+import { readApiRouteConfig, readApiSignConfig } from '../../src/renderer/src/request/api-route-config.ts'
+
+it('签名变量缺失时 Web 正式构建失败，错误只含变量名', () => {
+  const env = { ...process.env, VITE_API_SIGN_KID: 'w1', VITE_API_SIGN_KEY: '' }
+  const result = spawnSync(process.execPath, ['scripts/web/release-build.mjs'], { env, encoding: 'utf8' })
+  assert.equal(result.status, 1)
+  assert.match(result.stderr, /VITE_API_SIGN_KEY/)
+  assert.ok(readFileSync('scripts/web/release-build.mjs', 'utf8').includes('readApiSignConfig(process.env)'))
+})
+
+it('签名配置同时缺省时不签名，只给一半或 kid 非法时报错且不输出密钥', () => {
+  assert.equal(readApiSignConfig({}), null)
+  assert.deepEqual(readApiSignConfig({ VITE_API_SIGN_KID: ' w1 ', VITE_API_SIGN_KEY: ' key ' }), { kid: 'w1', key: 'key' })
+  assert.throws(() => readApiSignConfig({ VITE_API_SIGN_KID: 'w1' }), /VITE_API_SIGN_KEY/)
+  assert.throws(() => readApiSignConfig({ VITE_API_SIGN_KEY: 'never-print' }), /VITE_API_SIGN_KID/)
+  assert.throws(() => readApiSignConfig({ VITE_API_SIGN_KID: 'w 1', VITE_API_SIGN_KEY: 'never-print' }), (error) => /VITE_API_SIGN_KID/.test(error.message) && !error.message.includes('never-print'))
+})
 
 it('缺少正式配置时在构建和上传之前失败，不输出秘密值', () => {
   const env = { ...process.env, SENTRY_AUTH_TOKEN: 'test-secret-never-print', VITE_SENTRY_DSN: '', VITE_POSTHOG_KEY: '' }

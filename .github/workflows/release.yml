@@ -36,6 +36,9 @@ jobs:
     env:
       VITE_API_CLOUDFLARE_URL: ${{ secrets.VITE_API_CLOUDFLARE_URL }}
       VITE_API_EDGEONE_URL: ${{ secrets.VITE_API_EDGEONE_URL }}
+      # API 请求签名：桌面发行使用 d1 及其密钥（与 dandan-proxy 的 SIGN_KEYS 对应）
+      VITE_API_SIGN_KID: ${{ secrets.VITE_API_SIGN_KID }}
+      VITE_API_SIGN_KEY: ${{ secrets.VITE_API_SIGN_KEY }}
       VITE_SENTRY_DSN: ${{ secrets.VITE_SENTRY_DSN }}
       VITE_POSTHOG_KEY: ${{ secrets.VITE_POSTHOG_KEY }}
       VITE_POSTHOG_HOST: ${{ secrets.VITE_POSTHOG_HOST }}
@@ -61,7 +64,7 @@ jobs:
       - name: Validate production observability configuration
         shell: bash
         run: |
-          required=(VITE_API_CLOUDFLARE_URL VITE_API_EDGEONE_URL VITE_SENTRY_DSN VITE_POSTHOG_KEY VITE_POSTHOG_HOST SENTRY_AUTH_TOKEN SENTRY_ORG SENTRY_PROJECT)
+          required=(VITE_API_CLOUDFLARE_URL VITE_API_EDGEONE_URL VITE_API_SIGN_KID VITE_API_SIGN_KEY VITE_SENTRY_DSN VITE_POSTHOG_KEY VITE_POSTHOG_HOST SENTRY_AUTH_TOKEN SENTRY_ORG SENTRY_PROJECT)
           for name in "${required[@]}"; do
             if [ -z "${!name:-}" ]; then echo "Missing required release variable: $name" >&2; exit 1; fi
           done

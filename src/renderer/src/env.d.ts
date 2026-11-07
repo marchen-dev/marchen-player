@@ -10,6 +10,8 @@ declare const __MARCHEN_ENVIRONMENT__: 'development' | 'preview' | 'production'
 interface ImportMetaEnv {
   readonly VITE_API_CLOUDFLARE_URL: string
   readonly VITE_API_EDGEONE_URL: string
+  readonly VITE_API_SIGN_KID?: string
+  readonly VITE_API_SIGN_KEY?: string
   readonly VITE_SENTRY_DSN?: string
   readonly VITE_POSTHOG_KEY?: string
   readonly VITE_POSTHOG_HOST?: string

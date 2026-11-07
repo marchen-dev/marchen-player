@@ -2,15 +2,17 @@ import { execFileSync } from 'node:child_process'
 import { readdirSync, readFileSync, statSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { readApiRouteConfig } from '../../src/renderer/src/request/api-route-config.ts'
+import { readApiRouteConfig, readApiSignConfig } from '../../src/renderer/src/request/api-route-config.ts'
 
 const root = fileURLToPath(new URL('../../', import.meta.url))
-const required = ['VITE_API_CLOUDFLARE_URL', 'VITE_API_EDGEONE_URL', 'VITE_SENTRY_DSN', 'VITE_POSTHOG_KEY', 'VITE_POSTHOG_HOST', 'SENTRY_AUTH_TOKEN', 'SENTRY_ORG', 'SENTRY_PROJECT', 'MARCHEN_DEPLOY_ENV']
+const required = ['VITE_API_CLOUDFLARE_URL', 'VITE_API_EDGEONE_URL', 'VITE_API_SIGN_KID', 'VITE_API_SIGN_KEY', 'VITE_SENTRY_DSN', 'VITE_POSTHOG_KEY', 'VITE_POSTHOG_HOST', 'SENTRY_AUTH_TOKEN', 'SENTRY_ORG', 'SENTRY_PROJECT', 'MARCHEN_DEPLOY_ENV']
 try {
   if (Number(process.versions.node.split('.')[0]) !== 24) throw new Error('Web 发布要求 Node 24')
   const missing = required.filter(key => !process.env[key]?.trim())
   if (missing.length) throw new Error(`缺少发布变量：${missing.join(', ')}`)
   readApiRouteConfig(process.env)
+  // Web 正式构建必须签名（kid 约定为 w1），格式错误只报变量名
+  readApiSignConfig(process.env)
   const environment = process.env.MARCHEN_DEPLOY_ENV
   if (!['preview', 'production'].includes(environment)) throw new Error('MARCHEN_DEPLOY_ENV 必须是 preview 或 production')
   const commit = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' }).trim()

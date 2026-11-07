@@ -28,6 +28,10 @@ Mac 的显示版本仍是 `1.0.0-alpha.0`，内部 CFBundleVersion 为 `1.0.0a1`
 
 三个渠道共用这一应用更新密钥；渠道隔离由固定 feed、安装版本和版本筛选决定。公钥不属于秘密，但必须与私钥配对。
 
+### API 请求签名
+
+在 GitHub Repository Secrets 配置 `VITE_API_SIGN_KID=d1` 与 `VITE_API_SIGN_KEY=<桌面签名密钥>`，与 dandan-proxy `SIGN_KEYS` 中的 `d1` 一致。`release.yml` 把二者列为必填，构建期校验格式。该密钥会打包进客户端，属于公开值，只用于区分桌面流量和按 kid 轮换；不要复用任何真实密码。轮换时先在代理 `SIGN_KEYS` 新增编号（如 `d2`），发版切换后再删除旧编号；旧版本不签名，代理 `SIGN_POLICY_DESKTOP` 在旧版本流量下降前保持 `report`。
+
 渠道文件由 CI 写入同仓库的独立 `update-feeds` 分支，使用固定 HTTPS URL：
 
 - Mac：`https://raw.githubusercontent.com/marchen-dev/marchen-player/update-feeds/mac/{stable,beta,alpha}.xml`

@@ -1,7 +1,7 @@
 import { toast } from '@renderer/components/ui/toast'
-import { API_ROUTES } from '@renderer/lib/env'
-import { ofetch } from 'ofetch'
+import { API_ROUTES, API_SIGN } from '@renderer/lib/env'
 import { getApiRouteClient } from './api-route'
+import { sendApiRequest } from './signed-fetch'
 
 /** 加载流程自行呈现可恢复错误，取消请求不触发全局错误提示。 */
 export interface RequestControl {
@@ -20,14 +20,15 @@ const request = async <T>(
     return await getApiRouteClient().request<T>(
       url,
       method,
+      // 超时与线路切换由线路层统一控制；单次尝试内只有签名过期纠偏会重试一次。
       (route, signal) =>
-        ofetch<T>(url, {
+        sendApiRequest<T>({
           baseURL: API_ROUTES[route],
+          path: url,
           method,
-          ...(method === 'POST' ? { body: data } : { query: data }),
+          data,
+          sign: API_SIGN,
           signal,
-          // 超时与重试由线路层统一控制，避免多层重试扩大等待时间。
-          retry: false,
         }),
       control,
     )

@@ -12,7 +12,7 @@ import {
   createTelemetryDefine,
   resolveTelemetryBuildMetadata,
 } from './src/main/build/telemetry-metadata'
-import { readApiRouteConfig } from './src/renderer/src/request/api-route-config'
+import { readApiRouteConfig, readApiSignConfig } from './src/renderer/src/request/api-route-config'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const packageJson = JSON.parse(fs.readFileSync(join(__dirname, 'package.json'), 'utf-8'))
@@ -22,6 +22,8 @@ const ROOT = './src/renderer'
 const vite = ({ mode }: { mode: string }) => {
   const env = loadEnv(mode, __dirname, '')
   readApiRouteConfig(env)
+  // 签名配置格式错误时在构建期失败，避免打包后的应用启动即报错
+  readApiSignConfig(env)
   const telemetryDefine = createTelemetryDefine(
     resolveTelemetryBuildMetadata({ target: 'web', version: packageJson.version, mode }),
   )

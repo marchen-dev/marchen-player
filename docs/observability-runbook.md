@@ -145,3 +145,9 @@ Web 端不持久化日志，只在内存保留最近 2000 条，刷新即清空�
 - HTTP 200 的业务失败不触发切换，结果标记 `business_error`；无匹配或零弹幕是有效业务返回。浏览器不暴露状态的网络错误仅记 `network_error`，不猜测 CORS、DNS 或 TLS 原因。
 - 备用恢复成功只记录恢复警告与 breadcrumb，不创建 Sentry 异常；最终传输失败在请求层显式上报一次，并保留既有加载流程的可恢复错误 UI。最终失败的同一错误不会再被 TanStack Query 自动重试。用户主动重试属于新一轮请求。
 - 产品聚合字段采用固定枚举；完整请求 URL 与错误明细仍可在异常 context 中查看，遵循现有不脱敏策略。遥测故障不得影响请求与切换。
+
+### API 请求签名与代理日志
+
+- 客户端签名失败不新增遥测事件。代理处于 `enforce` 时，签名问题表现为 `api_request_completed.attempts[].http_status=401`、`error_code=http_error`，不触发线路切换；`signature_expired` 已在单次尝试内纠偏重试一次，仍失败才会出现 401。
+- 签名统计以 dandan-proxy 的 Cloudflare Workers Logs 为准（EdgeOne 只转发，日志仅供抽查）。每个请求一条 `event=proxy_request`，按 `sign`（`valid/missing/invalid/expired/unknown_kid`）、`origin_class`（`web/dev/desktop/none/other`）、`kid`、`client_version`（UA 中的 `MarchenPlayer/x.y.z`）、`line`（`cloudflare/edgeone`）分组。实时查看用 dandan-proxy 目录下 `pnpm exec wrangler tail`。
+- 切换 `SIGN_POLICY_WEB=enforce` 前，Web 请求 `sign=valid` 应接近 100%，`expired` 的 `skew_s` 可解释为用户时钟偏差；`invalid` 集中出现时优先核对两端签名规范与测试向量是否一致。桌面端看 `client_version` 分布，旧版本（不签名）流量足够低后再切 `SIGN_POLICY_DESKTOP`。
