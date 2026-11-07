@@ -4,7 +4,8 @@ import reactHooks from 'eslint-plugin-react-hooks'
 export default antfu(
   {
     // 历史 spike 不进入产品构建；正式回归和发布脚本仍参与检查。
-    ignores: ['scripts/player-engine/experiments/**'],
+    // Sparkle vendor 由子目录 .gitignore 忽略、仅存在于本地（含大量调试符号 YAML），ESLint 只读根 .gitignore，需显式排除。
+    ignores: ['scripts/player-engine/experiments/**', 'packages/sparkle-updater/vendor/**'],
     stylistic: false,
     react: true,
   },
