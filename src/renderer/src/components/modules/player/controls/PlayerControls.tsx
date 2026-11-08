@@ -290,7 +290,7 @@ export const PlayerControls = ({
           }
           timeline={
             <>
-              <time className="w-12 text-right text-xs text-[var(--player-fg-muted)] tabular-nums">
+              <time className="w-12 shrink-0 text-right text-xs text-[var(--player-fg-muted)] tabular-nums">
                 {formatTime(currentTime)}
               </time>
               <TimelineScrubber
@@ -301,7 +301,7 @@ export const PlayerControls = ({
                 onSeek={commands.seek}
                 onSeekingChange={setSeeking}
               />
-              <time className="w-12 text-xs text-[var(--player-fg-muted)] tabular-nums">
+              <time className="w-12 shrink-0 text-xs text-[var(--player-fg-muted)] tabular-nums">
                 {formatTime(duration)}
               </time>
             </>

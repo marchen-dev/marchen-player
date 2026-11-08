@@ -242,7 +242,8 @@ export const FloatingController = ({
           <div className="flex items-center justify-center gap-1.5">{transport}</div>
           <div className="flex min-w-0 items-center justify-end gap-1">{tools}</div>
         </div>
-        <div className="flex min-h-6 items-center gap-2">{timeline}</div>
+        {/* 圆点在端点向外伸出 6px，预留 18px 间距后仍与时间保持 12px 留白。 */}
+        <div className="flex min-h-6 items-center gap-4.5">{timeline}</div>
       </m.div>
     </ControllerPositionContext>
   )
