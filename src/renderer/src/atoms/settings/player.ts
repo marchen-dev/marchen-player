@@ -34,8 +34,8 @@ const createPlayerDefaultSettings = () => {
     danmakuMaxOnScreen: '80',
     danmakuOpacity: 100,
     enableMiniProgress: true,
-    // 单击画面切换播放 / 暂停，默认关闭，避免与只想唤出控制器的点击冲突
-    enableClickToTogglePlay: false,
+    // 默认允许单击画面切换播放 / 暂停；已保存的用户选择由设置归一化保留。
+    enableClickToTogglePlay: true,
     controllerPosition: { xRatio: 0.5, yRatio: 0.72 },
     danmakuFontSize: getSelectedDefaultValue(danmakuFontSizeList) ?? '26',
     danmakuDuration: getSelectedDefaultValue(danmakuDurationList) ?? '15000',
