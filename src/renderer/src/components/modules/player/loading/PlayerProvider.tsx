@@ -59,6 +59,10 @@ const WaitingUserDialog: FC = () => {
 
   return (
     <MatchAnimeDialog
+      allowLocalImport
+      onLocalImported={() => {
+        completedRef.current = true
+      }}
       matchData={state.matchData}
       onSelected={(params) => {
         completedRef.current = true

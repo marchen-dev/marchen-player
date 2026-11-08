@@ -85,6 +85,7 @@ export const MatchDanmakuDialog = () => {
 
   return (
     <MatchAnimeDialog
+      allowLocalImport={!isLibraryPage && loading.step === 'ready' && loading.video.hash === hash}
       container={isLibraryPage ? undefined : portalContainer}
       // 不传 isLoading，避免候选为非精确匹配时弹窗被自动打开
       matchData={isLibraryPage ? matchData : playingCandidates}

@@ -46,6 +46,25 @@ const readErrorCode = (error: unknown): string | undefined => {
   return typeof code === 'string' ? code : undefined
 }
 
+export class LocalDanmakuImportError extends Error {
+  constructor(
+    readonly code: 'duplicate' | 'stale',
+    message: string,
+  ) {
+    super(message)
+  }
+}
+
+const localIdentity = (source: string) =>
+  source.startsWith('local-file:') ? source.split('/')[0] : source
+
+const appendLocal = (entries: DanmakuEntry[], entry: DanmakuEntry) => {
+  if (entries.some((item) => localIdentity(item.source) === localIdentity(entry.source))) {
+    throw new LocalDanmakuImportError('duplicate', '已经添加过该来源')
+  }
+  return [...entries, entry]
+}
+
 const UNMATCHED: MatchedVideo = { episodeId: 0, animeTitle: '', episodeTitle: '', animeId: 0 }
 
 export class PlayerLoadingService {
@@ -130,6 +149,13 @@ export class PlayerLoadingService {
 
   private canExecute(cmd: Command): boolean {
     const state = this.currentState
+    // 本地提交期间仍允许切换/取消，阻止同一等待页面的相互冲突操作。
+    if (
+      state.step === 'waiting_user' &&
+      this.sourceWriteCount &&
+      ['playNow', 'selectMatch'].includes(cmd.type)
+    )
+      return false
     switch (cmd.type) {
       case 'loadFromUrl':
       case 'loadFromProvider':
@@ -330,9 +356,59 @@ export class PlayerLoadingService {
     return pending
   }
 
-  async addLocalDanmaku(entry: DanmakuEntry): Promise<void> {
-    if (this.currentState.step !== 'ready') return
-    return this.mutateDanmaku((entries) => [...entries, entry])
+  async addLocalDanmaku(
+    entry: DanmakuEntry,
+    expectedSession = this.session,
+    signal?: AbortSignal,
+  ): Promise<void> {
+    const initial = this.currentState
+    const isCurrent = () => this.session === expectedSession && !signal?.aborted
+    const check = () => {
+      if (!isCurrent()) throw new LocalDanmakuImportError('stale', '视频已切换或操作已取消')
+    }
+    check()
+    if (initial.step === 'ready') {
+      return this.mutateDanmaku((entries) => appendLocal(entries, entry), expectedSession, signal)
+    }
+    if (initial.step !== 'waiting_user') {
+      throw new LocalDanmakuImportError('stale', '当前视频已离开弹幕选择')
+    }
+    this.sourceWriteCount++
+    const pending = this.sourceWrites
+      .then(async () => {
+        const valid = () => isCurrent() && this.currentState === initial
+        const assertWaiting = () => {
+          if (!valid()) throw new LocalDanmakuImportError('stale', '视频已切换或操作已取消')
+        }
+        assertWaiting()
+        // 使用原始 Port：用户主动导入的保存失败必须返回 UI，不能经自动加载的降级边界吞掉。
+        const existing = await this.deps.history.get(initial.video.hash)
+        assertWaiting()
+        const danmaku = appendLocal(existing?.danmaku ?? [], entry)
+        const mergedComments = mergeDanmakuEntries(danmaku)
+        await this.deps.history.save(
+          {
+            hash: initial.video.hash,
+            source: getPersistentMediaSource(initial.video),
+            ...UNMATCHED,
+            animeTitle: initial.video.name,
+            danmaku,
+          },
+          valid,
+        )
+        assertWaiting()
+        this.applyEvent({
+          type: 'localDanmakuReady',
+          video: initial.video,
+          danmaku,
+          mergedComments,
+        })
+      })
+      .finally(() => {
+        this.sourceWriteCount--
+      })
+    this.sourceWrites = pending.catch(() => {})
+    return pending
   }
 
   async addLinkDanmaku(
@@ -380,6 +456,7 @@ export class PlayerLoadingService {
 
   /** 销毁 service（释放所有订阅） */
   destroy(): void {
+    this.session++
     const state = this.currentState
     if ('video' in state && state.video?.hash)
       this.deps.importer.releaseImportedVideo?.(state.video as VideoInfo)

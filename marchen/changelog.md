@@ -92,3 +92,4 @@
 - 2026-11-02: [unify-theme-tokens](./archive/2026-11-02-unify-theme-tokens/) — 统一深浅色主题 token：zinc 分层色阶、新增 field/raised，收编设置/侧栏/播放器色板，修正开关与分段选中，写入颜色约定
 - 2026-11-03: [add-mobile-notice](./archive/2026-11-03-add-mobile-notice/) — 网页版手机访问时弹窗提示改用电脑打开，支持分享链接与仍要继续，并在手机上不再弹出桌面客户端推广
 - 2026-11-07: [add-api-request-signing](./archive/2026-11-07-add-api-request-signing/) — 客户端 API 请求按 dandan-proxy v1 规范 HMAC 签名，支持时钟纠偏重试，新增 VITE_API_SIGN_KID/KEY 构建变量
+- 2026-11-08: [add-local-danmaku-match-import](./archive/2026-11-08-add-local-danmaku-match-import/) — 匹配弹窗支持本地弹幕导入开播，解除10MB限制并增加逐条容错和数量反馈

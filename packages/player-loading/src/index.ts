@@ -6,7 +6,7 @@
  * 通过 Port 接口（依赖注入）与外部系统交互。
  */
 
-export { PlayerLoadingService } from './service'
+export { LocalDanmakuImportError, PlayerLoadingService } from './service'
 export { INITIAL_STATE, mergeDanmakuEntries, reduce } from './state-machine'
 export { VISIBLE_STEPS } from './types'
 

@@ -12,37 +12,32 @@ import { upsertLibraryEntry } from '@renderer/database/lib/library-writer'
 import { assertPersistentMediaPath } from '@renderer/database/persistence/media-path'
 import { apiClient } from '@renderer/request'
 export class IndexedDBHistoryStore implements HistoryStore {
-  async save(entry: HistoryEntry): Promise<void> {
+  async save(entry: HistoryEntry, isCurrent: () => boolean = () => true): Promise<void> {
     assertPersistentMediaPath(entry)
     const { hash } = entry
-    const existing = await db.history.where({ hash }).first()
-
-    const historyData = {
-      ...entry,
-      updatedAt: new Date().toISOString(),
-    }
-
-    if (!existing) {
-      // 首次创建
-      const primaryKey = await db.history.add({
-        ...historyData,
-        progress: 0,
-        duration: 0,
-      } as any)
-
-      // 异步获取动漫封面和新番状态，不阻塞播放
-      if (entry.animeId) {
-        this.updateBangumiData(primaryKey, entry.animeId, entry.episodeId, hash)
+    // 首次历史和用户来源一起落盘；切换/取消在事务内失败会回滚，不留下半条记录。
+    const created = await db.transaction('rw', db.history, async () => {
+      const check = () => {
+        if (!isCurrent()) throw new DOMException('视频已切换或操作已取消', 'AbortError')
       }
-      return
-    }
-
-    // 更新已有记录
-    await db.history.update(hash, historyData)
-
-    // 如果有 animeId 和 episodeId，更新 library 表的观看状态
-    if (entry.animeId && entry.episodeId) {
-      this.updateLibraryOnReplay(entry.animeId, entry.episodeId, hash)
+      check()
+      const existing = await db.history.get(hash)
+      check()
+      const historyData = { ...entry, updatedAt: new Date().toISOString() }
+      if (existing) {
+        await db.history.update(hash, historyData)
+      } else {
+        await db.history.add({ ...historyData, progress: 0, duration: 0 })
+      }
+      check()
+      return !existing
+    })
+    if (!isCurrent()) return
+    // 作品元数据不在事务中请求，也不阻塞本地导入开播。
+    if (created && entry.animeId) {
+      void this.updateBangumiData(hash, entry.animeId, entry.episodeId, hash)
+    } else if (entry.animeId && entry.episodeId) {
+      void this.updateLibraryOnReplay(entry.animeId, entry.episodeId, hash)
     }
   }
 

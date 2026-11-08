@@ -41,6 +41,35 @@ const createHarness = (playFirst = false) => {
 }
 
 describe('player-loading telemetry observer', () => {
+  it('本地弹幕完成等待时不记作在线匹配成功或稍后选择', () => {
+    const { observer, events } = createHarness()
+    observer.noteCommand('click')
+    observer.observe({ step: 'importing' })
+    observer.observe({
+      step: 'waiting_user',
+      video,
+      matchData: { isMatched: false, matches: [match] },
+    })
+    observer.observe({
+      step: 'ready',
+      video,
+      match: { animeId: 0, episodeId: 0, animeTitle: '', episodeTitle: '' },
+      danmakuStatus: 'loaded',
+      danmaku: [],
+      mergedComments: [{ cid: 1, m: '本地', p: '1,1,0,1' }],
+    })
+    expect(events.find((e) => e.name === 'danmaku_match_completed')?.properties).toMatchObject({
+      result: 'none',
+      load_mode: 'complete',
+      comment_count: 1,
+      skip_from_step: undefined,
+      match_origin: undefined,
+    })
+    expect(events.find((e) => e.name === 'playback_ready')?.properties).toMatchObject({
+      has_danmaku: true,
+    })
+  })
+
   it('从播放记录续播媒体源时，入口记 history，media_kind 记 media_source', () => {
     const { observer, events } = createHarness()
     observer.noteCommand('history')

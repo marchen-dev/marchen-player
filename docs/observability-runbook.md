@@ -151,3 +151,9 @@ Web 端不持久化日志，只在内存保留最近 2000 条，刷新即清空�
 - 客户端签名失败不新增遥测事件。代理处于 `enforce` 时，签名问题表现为 `api_request_completed.attempts[].http_status=401`、`error_code=http_error`，不触发线路切换；`signature_expired` 已在单次尝试内纠偏重试一次，仍失败才会出现 401。
 - 签名统计以 dandan-proxy 的 Cloudflare Workers Logs 为准（EdgeOne 只转发，日志仅供抽查）。每个请求一条 `event=proxy_request`，按 `sign`（`valid/missing/invalid/expired/unknown_kid`）、`origin_class`（`web/dev/desktop/none/other`）、`kid`、`client_version`（UA 中的 `MarchenPlayer/x.y.z`）、`line`（`cloudflare/edgeone`）分组。实时查看用 dandan-proxy 目录下 `pnpm exec wrangler tail`。
 - 切换 `SIGN_POLICY_WEB=enforce` 前，Web 请求 `sign=valid` 应接近 100%，`expired` 的 `skew_s` 可解释为用户时钟偏差；`invalid` 集中出现时优先核对两端签名规范与测试向量是否一致。桌面端看 `client_version` 分布，旧版本（不签名）流量足够低后再切 `SIGN_POLICY_DESKTOP`。
+
+### 本地文件导入与在线匹配口径
+
+在等待选择时使用本地弹幕开播，`danmaku_match_completed.result` 为 `none`，不记为 `manual` 或 `automatic`；`load_mode` 保留 `complete`，不填写 `skip_from_step` 与 `match_origin`。`comment_count` 和 `playback_ready.has_danmaku` 仍反映实际本地弹幕。播放中追加来源不产生新的在线匹配成功事件。
+
+本地导入的非预期读取/保存失败经 `player.local_danmaku_import` 边界上报，稳定错误码为 `PLAYER_LOCAL_DANMAKU_READ_FAILED` / `PLAYER_LOCAL_DANMAKU_SAVE_FAILED`，原始错误保留在 cause。格式拒绝、零有效条目、重复来源、取消与过期会话不作为异常上报。

@@ -236,6 +236,12 @@ export type PipelineEvent =
       mergedComments: CommentModel[]
       danmakuLoadFailed?: boolean
     }
+  | {
+      type: 'localDanmakuReady'
+      video: VideoInfo
+      danmaku: DanmakuEntry[]
+      mergedComments: CommentModel[]
+    }
   | { type: 'ready' }
   /**
    * 手动提前开播：按点击时的步骤带上已有信息。
@@ -346,7 +352,7 @@ export interface VideoImporter {
 /** 历史记录存储接口 */
 export interface HistoryStore {
   /** 保存/更新历史记录 */
-  save: (entry: HistoryEntry) => Promise<void>
+  save: (entry: HistoryEntry, isCurrent?: () => boolean) => Promise<void>
   /** 读取历史记录 */
   get: (hash: string) => Promise<HistoryEntry | null>
 }

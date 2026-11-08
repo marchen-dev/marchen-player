@@ -62,6 +62,17 @@ export function reduce(state: LoadingState, event: PipelineEvent): LoadingState 
       }
     }
 
+    case 'localDanmakuReady':
+      if (state.step !== 'waiting_user' || state.video !== event.video) return state
+      return {
+        step: 'ready',
+        video: event.video,
+        match: { animeId: 0, episodeId: 0, animeTitle: '', episodeTitle: '' },
+        danmakuStatus: 'loaded',
+        danmaku: event.danmaku,
+        mergedComments: event.mergedComments,
+      }
+
     case 'ready': {
       // 准备就绪，即将开始播放
       if (state.step !== 'ready') return state
