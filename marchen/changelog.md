@@ -93,3 +93,4 @@
 - 2026-11-03: [add-mobile-notice](./archive/2026-11-03-add-mobile-notice/) — 网页版手机访问时弹窗提示改用电脑打开，支持分享链接与仍要继续，并在手机上不再弹出桌面客户端推广
 - 2026-11-07: [add-api-request-signing](./archive/2026-11-07-add-api-request-signing/) — 客户端 API 请求按 dandan-proxy v1 规范 HMAC 签名，支持时钟纠偏重试，新增 VITE_API_SIGN_KID/KEY 构建变量
 - 2026-11-08: [add-local-danmaku-match-import](./archive/2026-11-08-add-local-danmaku-match-import/) — 匹配弹窗支持本地弹幕导入开播，解除10MB限制并增加逐条容错和数量反馈
+- 2026-11-09: [fix-compressed-embedded-subtitles](./archive/2026-11-09-fix-compressed-embedded-subtitles/) — 内嵌 MKV 字幕支持 zlib 与头部剥离压缩轨，加密/其他算法/多层编码细分不支持原因，解压设单块预算

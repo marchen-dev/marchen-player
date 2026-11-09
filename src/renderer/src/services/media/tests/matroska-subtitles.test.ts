@@ -1,4 +1,5 @@
 import type { SubtitleCue } from '../subtitles/matroska'
+import { deflateSync } from 'node:zlib'
 import { expect, it } from 'vitest'
 import { assDialogue, MatroskaSubtitles } from '../subtitles/matroska'
 
@@ -254,4 +255,104 @@ it.each([
 ] as const)('不忽略异常事件 %s %s %s', async (codec, payload, duration) => {
   const reader = await open(emptyEventFixture(codec, payload, duration))
   await expect(reader.cues(1).next()).rejects.toThrow('字幕块缺少有效时长')
+})
+
+// mkvmerge 常对文本字幕开 zlib；ContentEncodings 位于 CodecPrivate 之后，与真实样片顺序一致。
+const raw = (number: number, payload: Uint8Array) =>
+  e(0xA0, concat(e(0xA1, concat(new Uint8Array([0x80 | number, 0xFF, 0x9C, 0]), payload)), e(0x9B, uint(1500))))
+const encoding = (compression: Uint8Array[], options: { scope?: number; extra?: Uint8Array[] } = {}) =>
+  e(0x6240, concat(
+    ...(options.scope === undefined ? [] : [e(0x5032, uint(options.scope))]),
+    e(0x5034, concat(...compression)),
+    ...(options.extra ?? []),
+  ))
+const encodedTrack = (encodings: Uint8Array[], codecPrivate = text(header), codec = 'S_TEXT/ASS') =>
+  e(0xAE, concat(
+    e(0xD7, uint(1)),
+    e(0x83, uint(17)),
+    e(0x86, text(codec)),
+    e(0x63A2, codecPrivate),
+    e(0x6D80, concat(...encodings)),
+  ))
+const encodedFixture = (trackEntry: Uint8Array, payload: Uint8Array, indexed = false) => {
+  const info = e(0x1549A966, e(0x2AD7B1, uint(1000000)))
+  const tracks = e(0x1654AE6B, trackEntry)
+  const stamp = e(0xE7, uint(10000))
+  const cluster = e(0x1F43B675, concat(stamp, raw(1, payload)))
+  // 未索引的坏块：索引路径若退回全扫描会在这里失败。
+  const unrelated = indexed
+    ? e(0x1F43B675, concat(stamp, e(0xA3, new Uint8Array([0x81, 0, 0, 6]))))
+    : new Uint8Array()
+  const fixed = (n: number) => new Uint8Array([n >> 16, n >> 8, n])
+  const index = (position: number) => e(0x1C53BB6B, e(0xBB, concat(
+    e(0xB3, uint(9900)),
+    e(0xB7, concat(e(0xF7, uint(1)), e(0xF1, fixed(position)), e(0xF0, fixed(stamp.length)))),
+  )))
+  const cues = indexed
+    ? index(info.length + tracks.length + index(0).length + unrelated.length)
+    : new Uint8Array()
+  return e(0x18538067, concat(info, tracks, cues, unrelated, cluster))
+}
+const readAll = async (bytes: Uint8Array) => {
+  const reader = await open(bytes)
+  const cues: SubtitleCue[] = []
+  for await (const cue of reader.cues(1)) cues.push(cue)
+  return { reader, cues }
+}
+const event = '1,0,Test,,0,0,0,,压缩字幕,含逗号'
+
+it('zlib 压缩轨（默认算法与范围）在扫描和索引路径都能还原文本', async () => {
+  for (const indexed of [false, true]) {
+    const { reader, cues } = await readAll(
+      encodedFixture(encodedTrack([encoding([])]), deflateSync(text(event)), indexed),
+    )
+    expect(reader.tracks[0]).toMatchObject({ supported: true, header })
+    expect(reader.tracks[0].unsupportedReason).toBeUndefined()
+    expect(cues).toEqual([{ start: 9.9, end: 11.4, text: event }])
+  }
+})
+
+it('头部剥离轨拼回公共前缀', async () => {
+  const strip = encoding([e(0x4254, uint(3)), e(0x4255, text('1,0,Test'))])
+  for (const indexed of [false, true]) {
+    const { cues } = await readAll(
+      encodedFixture(encodedTrack([strip]), text(',,0,0,0,,剥离'), indexed),
+    )
+    expect(cues.map((cue) => cue.text)).toEqual(['1,0,Test,,0,0,0,,剥离'])
+  }
+})
+
+it('内容编码范围含 CodecPrivate 时解压头部，不含 Block 时块数据原样读取', async () => {
+  const { reader, cues } = await readAll(
+    encodedFixture(encodedTrack([encoding([], { scope: 2 })], deflateSync(text(header))), text(event)),
+  )
+  expect(reader.tracks[0].header).toBe(header)
+  expect(cues.map((cue) => cue.text)).toEqual([event])
+})
+
+it.each([
+  ['加密', [encoding([], { extra: [e(0x5035, e(0x47E1, uint(5)))] })], '加密'],
+  ['bzlib', [encoding([e(0x4254, uint(1))])], '压缩算法'],
+  ['多层编码', [encoding([]), encoding([])], '多层'],
+] as const)('%s 字幕轨仍判为不支持并给出具体原因', async (_, encodings, reason) => {
+  const reader = await open(encodedFixture(encodedTrack([...encodings]), text(event)))
+  expect(reader.tracks[0]).toMatchObject({ supported: false, header: '' })
+  expect(reader.tracks[0].unsupportedReason).toContain(reason)
+  await expect(reader.cues(1).next()).rejects.toThrow(reason)
+})
+
+it('压缩的图片字幕仍提示图片字幕', async () => {
+  const reader = await open(
+    encodedFixture(encodedTrack([encoding([])], new Uint8Array([1, 2]), 'S_HDMV/PGS'), text(event)),
+  )
+  expect(reader.tracks[0].unsupportedReason).toContain('图片字幕')
+})
+
+it('损坏的 zlib 数据和超预算解压结果报错，不产出半条字幕', async () => {
+  // 索引路径解压失败会按既有策略退回全扫描，因此只需在扫描路径断言错误。
+  const track = encodedTrack([encoding([])])
+  const broken = await open(encodedFixture(track, text('not zlib')))
+  await expect(broken.cues(1).next()).rejects.toThrow('解压失败')
+  const bomb = await open(encodedFixture(track, deflateSync(new Uint8Array(5 * 1024 * 1024))))
+  await expect(bomb.cues(1).next()).rejects.toThrow('预算')
 })

@@ -31,7 +31,22 @@ export interface SubtitleCue {
   text: string
 }
 
+/**
+ * 轨道内容压缩（Matroska ContentEncoding）。mkvmerge 常对文本字幕开 zlib，
+ * 解码与 codec 无关，后续位图字幕可直接复用。只支持单层压缩，加密一律拒绝。
+ */
+interface ContentCompression {
+  /** 0 = zlib，3 = 头部剥离 */
+  algo: 0 | 3
+  /** 头部剥离时被剥掉的公共前缀；zlib 不使用 */
+  settings: Uint8Array
+  /** 按位：1 = Block 数据，2 = CodecPrivate */
+  scope: number
+}
+
 const textDecoder = new TextDecoder('utf-8', { fatal: true })
+/** 单块解压上限，与单字段读取预算一致，防止压缩炸弹撑爆内存 */
+const INFLATE_BUDGET = 4 * 1024 * 1024
 const segmentIds = new Set([
   0x114D9B74, 0x1549A966, 0x1654AE6B, 0x1F43B675, 0x1C53BB6B, 0x1941A469, 0x1043A770, 0x1254C367,
 ])
@@ -119,8 +134,66 @@ class Reader {
   }
 
   async text(element: Element) {
-    return textDecoder.decode(await this.value(element)).replace(/\0+$/, '')
+    return decodeText(await this.value(element))
   }
+
+  /** 读取字段并按轨道内容编码还原后再解码文本；scopeBit 指明该字段是否在压缩范围内 */
+  async encodedText(element: Element, compression: ContentCompression | undefined, scopeBit: number) {
+    const bytes = await this.value(element)
+    if (!compression || !(compression.scope & scopeBit)) return decodeText(bytes)
+    return decodeText(await decompress(bytes, compression, this.signal))
+  }
+}
+
+function decodeText(bytes: Uint8Array) {
+  return textDecoder.decode(bytes).replace(/\0+$/, '')
+}
+
+async function decompress(
+  bytes: Uint8Array,
+  compression: ContentCompression,
+  signal?: AbortSignal,
+): Promise<Uint8Array> {
+  if (compression.algo === 3) {
+    const restored = new Uint8Array(compression.settings.length + bytes.length)
+    restored.set(compression.settings)
+    restored.set(bytes, compression.settings.length)
+    return restored
+  }
+  // DecompressionStream('deflate') 即带 zlib 头的 RFC 1950 格式，与 Matroska zlib 一致。
+  const stream = new DecompressionStream('deflate')
+  const writer = stream.writable.getWriter()
+  // 写入错误会在读取端以同样的异常出现，这里吞掉避免未处理的 Promise 拒绝。
+  writer.write(bytes.slice()).catch(() => {})
+  writer.close().catch(() => {})
+  const reader = stream.readable.getReader()
+  const chunks: Uint8Array[] = []
+  let total = 0
+  try {
+    for (;;) {
+      signal?.throwIfAborted()
+      const { done, value } = await reader.read()
+      if (done) break
+      total += value.byteLength
+      if (total > INFLATE_BUDGET) break
+      chunks.push(value)
+    }
+  } catch (error) {
+    reader.cancel().catch(() => {})
+    signal?.throwIfAborted()
+    throw new Error('字幕块解压失败', { cause: error })
+  }
+  if (total > INFLATE_BUDGET) {
+    reader.cancel().catch(() => {})
+    throw new Error('字幕块解压后超过 4 MiB 预算')
+  }
+  const output = new Uint8Array(total)
+  let offset = 0
+  for (const chunk of chunks) {
+    output.set(chunk, offset)
+    offset += chunk.byteLength
+  }
+  return output
 }
 
 /** 只补充字幕输入；音视频和附件仍交给 MediaBunny。 */
@@ -130,6 +203,8 @@ export class MatroskaSubtitles {
     private readonly segment: Element,
     readonly tracks: readonly EmbeddedSubtitleTrack[],
     private readonly timestampScale: number,
+    /** 轨道号 → 内容压缩；不放进公开的轨道元数据，避免进入目录或历史记录 */
+    private readonly compressions: ReadonlyMap<number, ContentCompression>,
   ) {}
 
   static async open(source: SubtitleSource, signal?: AbortSignal) {
@@ -149,6 +224,7 @@ export class MatroskaSubtitles {
     let hasInfo = false
     let hasTracks = false
     const tracks: EmbeddedSubtitleTrack[] = []
+    const compressions = new Map<number, ContentCompression>()
     for (let offset = segment.start; offset < segment.end;) {
       const element = await reader.element(offset, segment.end)
       if (element.id === 0x1549A966) {
@@ -159,8 +235,10 @@ export class MatroskaSubtitles {
       } else if (element.id === 0x1654AE6B) {
         for await (const entry of reader.children(element)) {
           if (entry.id !== 0xAE) continue
-          const track = await readTrack(reader, entry)
-          if (track) tracks.push(track)
+          const result = await readTrack(reader, entry)
+          if (!result) continue
+          tracks.push(result.track)
+          if (result.compression) compressions.set(result.track.number, result.compression)
         }
         hasTracks = true
       }
@@ -168,7 +246,7 @@ export class MatroskaSubtitles {
       offset = await skipElement(reader, element)
     }
     if (!Number.isSafeInteger(scale) || scale <= 0) throw new Error('无效的字幕时间单位')
-    return new MatroskaSubtitles(source, segment, tracks, scale / 1e9)
+    return new MatroskaSubtitles(source, segment, tracks, scale / 1e9, compressions)
   }
 
   async *cues(trackNumber: number, signal?: AbortSignal): AsyncGenerator<SubtitleCue> {
@@ -184,6 +262,7 @@ export class MatroskaSubtitles {
       return
     }
     const reader = new Reader(this.source, signal, 1024 * 1024)
+    const compression = this.compressions.get(trackNumber)
     // 逐事件产出，不把整部影片或全部字幕预读到内存。
     for (let offset = this.segment.start; offset < this.segment.end;) {
       const cluster = await reader.element(offset, this.segment.end)
@@ -225,7 +304,7 @@ export class MatroskaSubtitles {
               const relative = new DataView(prefix.buffer, prefix.byteOffset).getInt16(number.width)
               const start = (timestamp + relative) * this.timestampScale
               const payload = { ...block, start: block.start + number.width + 3 }
-              const text = await reader.text(payload)
+              const text = await reader.encodedText(payload, compression, 1)
               if (!skipZeroDurationEvent(track.codec, text, duration, explicitDuration))
                 yield { start, end: start + duration, text }
             }
@@ -299,6 +378,7 @@ export class MatroskaSubtitles {
       }
       if (!targets.length) return null
       const cues: (SubtitleCue | undefined)[] = []
+      const compression = this.compressions.get(track.number)
       let next = 0
       let size = track.header.length
       const seen = new Set<number>()
@@ -345,7 +425,11 @@ export class MatroskaSubtitles {
               prefix[number.width + 2] & 6
             )
               throw new Error('字幕索引轨道不匹配或块格式无效')
-            const text = await reader.text({ ...block, start: block.start + number.width + 3 })
+            const text = await reader.encodedText(
+              { ...block, start: block.start + number.width + 3 },
+              compression,
+              1,
+            )
             size += text.length
             if (size > 8 * 1024 * 1024) throw new Error('字幕文本超过预算')
             if (skipZeroDurationEvent(track.codec, text, duration, explicitDuration)) continue
@@ -387,6 +471,40 @@ async function skipElement(reader: Reader, element: Element) {
   return element.end
 }
 
+type ContentEncodingResult =
+  | { kind: 'none' }
+  | { kind: 'compressed'; compression: ContentCompression }
+  | { kind: 'unsupported'; reason: string }
+
+/** 解析 ContentEncodings；字段缺省值按 Matroska 规范（Scope=1、Type=0、Algo=0 zlib） */
+async function readContentEncodings(reader: Reader, element: Element): Promise<ContentEncodingResult> {
+  const encodings: Element[] = []
+  for await (const child of reader.children(element)) if (child.id === 0x6240) encodings.push(child)
+  if (!encodings.length) return { kind: 'none' }
+  if (encodings.length > 1) return { kind: 'unsupported', reason: '暂不支持多层内容编码的字幕轨' }
+  let scope = 1
+  let type = 0
+  let encrypted = false
+  let algo = 0
+  let settings: Uint8Array = new Uint8Array()
+  for await (const field of reader.children(encodings[0])) {
+    if (field.id === 0x5032) scope = Number(await reader.uint(field))
+    if (field.id === 0x5033) type = Number(await reader.uint(field))
+    if (field.id === 0x5035) encrypted = true
+    if (field.id === 0x5034) {
+      for await (const item of reader.children(field)) {
+        if (item.id === 0x4254) algo = Number(await reader.uint(item))
+        // 复制一份，Reader 的读取窗口会被后续读取替换
+        if (item.id === 0x4255) settings = (await reader.value(item)).slice()
+      }
+    }
+  }
+  if (encrypted || type !== 0) return { kind: 'unsupported', reason: '暂不支持加密字幕轨' }
+  if (algo !== 0 && algo !== 3)
+    return { kind: 'unsupported', reason: '暂不支持此字幕压缩算法' }
+  return { kind: 'compressed', compression: { algo, scope, settings } }
+}
+
 async function readTrack(reader: Reader, entry: Element) {
   const track: EmbeddedSubtitleTrack = {
     number: 0,
@@ -402,7 +520,7 @@ async function readTrack(reader: Reader, entry: Element) {
   }
   let type = 0
   let languageIetf = ''
-  let encoded = false
+  let encoding: ContentEncodingResult = { kind: 'none' }
   let scaled = false
   for await (const field of reader.children(entry)) {
     switch (field.id) {
@@ -437,7 +555,7 @@ async function readTrack(reader: Reader, entry: Element) {
         track.defaultDuration = Number(await reader.uint(field)) / 1e9
         break
       case 0x6D80:
-        encoded = true
+        encoding = await readContentEncodings(reader, field)
         break
       case 0x23314F: {
         const bytes = await reader.value(field)
@@ -452,19 +570,23 @@ async function readTrack(reader: Reader, entry: Element) {
   if (type !== 17) return null
   if (!Number.isSafeInteger(track.number) || track.number <= 0) throw new Error('无效字幕轨编号')
   track.language = languageIetf || track.language
-  track.supported = supportedCodecs.has(track.codec) && !encoded && !scaled
-  if (!track.supported)
-    track.unsupportedReason = encoded
-      ? '暂不支持压缩或加密字幕轨'
+  // 先判 codec，图片字幕即使同时压缩也提示「图片字幕」，原因更准确。
+  const unsupportedReason = !supportedCodecs.has(track.codec)
+    ? '暂不支持此字幕编码（含图片字幕）'
+    : encoding.kind === 'unsupported'
+      ? encoding.reason
       : scaled
         ? '暂不支持独立字幕时间缩放'
-        : '暂不支持此字幕编码（含图片字幕）'
-  // 只有文本字幕才解读 CodecPrivate，避免把图片或压缩私有数据当 UTF-8。
+        : undefined
+  track.supported = !unsupportedReason
+  if (unsupportedReason) track.unsupportedReason = unsupportedReason
+  const compression = encoding.kind === 'compressed' ? encoding.compression : undefined
+  // 只有文本字幕才解读 CodecPrivate，避免把图片私有数据当 UTF-8；Scope 含 2 时先解压。
   if (track.supported) {
     for await (const field of reader.children(entry))
-      if (field.id === 0x63A2) track.header = await reader.text(field)
+      if (field.id === 0x63A2) track.header = await reader.encodedText(field, compression, 2)
   }
-  return track
+  return { track, compression }
 }
 
 /** Matroska ASS 数据不含起止时间；按容器时间还原，文本中的逗号原样保留。 */
