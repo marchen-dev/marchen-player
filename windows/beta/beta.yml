@@ -1,33 +1,11 @@
-version: 1.1.5
+version: 1.1.6
 files:
-  - url: https://github.com/marchen-dev/marchen-player/releases/download/v1.1.5/Marchen-1.1.5-windows-x64-setup.exe
-    sha512: AjkEa1imYE793zK3KSwibNwfJC4IKFFCxtLDNiqIVaRVCKHYmWWy4oTG2S8C+jwQHzeJmkpMB7730FaYUpp+pQ==
-    size: 173418860
-path: https://github.com/marchen-dev/marchen-player/releases/download/v1.1.5/Marchen-1.1.5-windows-x64-setup.exe
-sha512: AjkEa1imYE793zK3KSwibNwfJC4IKFFCxtLDNiqIVaRVCKHYmWWy4oTG2S8C+jwQHzeJmkpMB7730FaYUpp+pQ==
-releaseNotes: "# Marchen 1.1.5\r
-
-  \r
-
-  ## 弹幕\r
-
-  \r
-
-  - 弹幕字体大小新增 150%～200% 档位，在 2K、4K 等高分辨率显示器上也能看清。\r
-
-  - 选择弹幕的窗口可以直接导入自己的弹幕文件（支持 B 站 XML / JSON 格式），导入后即可开始播放，不必再关联在线作品。\r
-
-  - 导入本地弹幕文件不再限制 10 MB 大小；文件中个别无效的弹幕会被跳过，不再导致整个文件导入失败，导入完成后会提示跳过的条数。\r
-
-  \r
-
-  ## 播放\r
-
-  \r
-
-  - 新安装时默认开启“单击画面暂停或继续播放”；已在使用的用户保留原有设置，可在播放设置中自行开关。\r
-
-  - 进度条与时间之间留出更多间距，时间显示宽度固定，播放时不再跟着数字变化左右抖动。\r
+  - url: https://github.com/marchen-dev/marchen-player/releases/download/v1.1.6/Marchen-1.1.6-windows-x64-setup.exe
+    sha512: Q/s/LrCUDs9Ag/31muNErNCSloDWmvXOVCysXobL0TCnDywvZJZxpdJ9Hzi3Fwz8z90BJi28EmO8XGmbkWfSyg==
+    size: 173434736
+path: https://github.com/marchen-dev/marchen-player/releases/download/v1.1.6/Marchen-1.1.6-windows-x64-setup.exe
+sha512: Q/s/LrCUDs9Ag/31muNErNCSloDWmvXOVCysXobL0TCnDywvZJZxpdJ9Hzi3Fwz8z90BJi28EmO8XGmbkWfSyg==
+releaseNotes: "# Marchen 1.1.6\r
 
   \r
 
@@ -35,5 +13,25 @@ releaseNotes: "# Marchen 1.1.5\r
 
   \r
 
-  - 支持部分 MKV 文件中经过压缩的内嵌字幕轨，这类字幕之前会显示为不支持。\r\n"
-releaseDate: 2026-11-09T12:17:57.395Z
+  - 支持 MKV 内嵌的 PGS 图片字幕。\r
+
+  - HDR 视频中的图片字幕会自动提亮。\r
+
+  \r
+
+  ## 网络\r
+
+  \r
+
+  - 自动线路模式下，当前线路较慢时会同时请求另一条线路，取先返回的结果。\r
+
+  - 自动模式会记住更快的线路，下次优先使用。\r
+
+  \r
+
+  ## 下载\r
+
+  \r
+
+  - 下载进度显示更连贯。\r\n"
+releaseDate: 2026-11-09T20:42:34.527Z

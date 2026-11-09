@@ -1,29 +1,28 @@
-version: 1.1.5
+version: 1.1.6
 files:
-  - url: https://github.com/marchen-dev/marchen-player/releases/download/v1.1.5/Marchen-1.1.5-linux-x86_64.AppImage
-    sha512: vL0VkvDnnkXeg54L59GYjcuqUZEEkAPmhmkiSgDbD4COYpO9QWiHfbeIXUF+qKGlwRIlRY56gjfxAiWy8dkgyw==
-    size: 199211728
-    blockMapSize: 207588
-  - url: https://github.com/marchen-dev/marchen-player/releases/download/v1.1.5/Marchen-1.1.5-linux-amd64.deb
-    sha512: 8q8e57Ez4+VlBtJNprST9lERpAkI4ptVpJYvIAGUbQY/Aq2MZHHCpzKjKQuX//NKYG1Sa4N9BqXNArimvpmxfA==
-    size: 155878368
-path: https://github.com/marchen-dev/marchen-player/releases/download/v1.1.5/Marchen-1.1.5-linux-x86_64.AppImage
-sha512: vL0VkvDnnkXeg54L59GYjcuqUZEEkAPmhmkiSgDbD4COYpO9QWiHfbeIXUF+qKGlwRIlRY56gjfxAiWy8dkgyw==
+  - url: https://github.com/marchen-dev/marchen-player/releases/download/v1.1.6/Marchen-1.1.6-linux-x86_64.AppImage
+    sha512: UCvfSocNRuxUnTpJQrHFAXdyH3H58iYZGUL/xehYZS49epa8XO9UxT2XpqK3wmGOJ3wikxtnpCon9E3OAbgEPQ==
+    size: 199252158
+    blockMapSize: 207058
+  - url: https://github.com/marchen-dev/marchen-player/releases/download/v1.1.6/Marchen-1.1.6-linux-amd64.deb
+    sha512: AGzuHMvDhGxwdjIrgcSWNWpVTCm822qJXjhVxznBEyiIQF87LT7CW+OvR6CPuE0fW08WNAiSz1+6scpSCfUltg==
+    size: 155902912
+path: https://github.com/marchen-dev/marchen-player/releases/download/v1.1.6/Marchen-1.1.6-linux-x86_64.AppImage
+sha512: UCvfSocNRuxUnTpJQrHFAXdyH3H58iYZGUL/xehYZS49epa8XO9UxT2XpqK3wmGOJ3wikxtnpCon9E3OAbgEPQ==
 releaseNotes: |
-  # Marchen 1.1.5
-
-  ## 弹幕
-
-  - 弹幕字体大小新增 150%～200% 档位，在 2K、4K 等高分辨率显示器上也能看清。
-  - 选择弹幕的窗口可以直接导入自己的弹幕文件（支持 B 站 XML / JSON 格式），导入后即可开始播放，不必再关联在线作品。
-  - 导入本地弹幕文件不再限制 10 MB 大小；文件中个别无效的弹幕会被跳过，不再导致整个文件导入失败，导入完成后会提示跳过的条数。
-
-  ## 播放
-
-  - 新安装时默认开启“单击画面暂停或继续播放”；已在使用的用户保留原有设置，可在播放设置中自行开关。
-  - 进度条与时间之间留出更多间距，时间显示宽度固定，播放时不再跟着数字变化左右抖动。
+  # Marchen 1.1.6
 
   ## 字幕
 
-  - 支持部分 MKV 文件中经过压缩的内嵌字幕轨，这类字幕之前会显示为不支持。
-releaseDate: 2026-11-09T12:17:39.702Z
+  - 支持 MKV 内嵌的 PGS 图片字幕。
+  - HDR 视频中的图片字幕会自动提亮。
+
+  ## 网络
+
+  - 自动线路模式下，当前线路较慢时会同时请求另一条线路，取先返回的结果。
+  - 自动模式会记住更快的线路，下次优先使用。
+
+  ## 下载
+
+  - 下载进度显示更连贯。
+releaseDate: 2026-11-09T20:43:00.776Z
