@@ -11,7 +11,7 @@ out
 test-results/
 *.tsbuildinfo
 resources/ffmpeg/
-marchen/**/acceptance/.serve.pid
+marchen/
 .cache/libav-build/
 src/renderer/public/wasm/libav/
 

@@ -1,7 +1,0 @@
-schema: full
-providers:
-  - claude-code
-  - codex
-acceptance:
-  enabled: false
-version: 0.8.5
