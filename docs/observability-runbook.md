@@ -139,13 +139,17 @@ Web 端不持久化日志，只在内存保留最近 2000 条，刷新即清空�
 
 ### API 主备线路与请求口径
 
-- API 线路身份固定为 Cloudflare 主、EdgeOne 备，具体地址由 `VITE_API_CLOUDFLARE_URL` / `VITE_API_EDGEONE_URL` 构建变量提供（默认示例为 `.cc` / `.com`）。设置模式为 `auto/cloudflare/edgeone`，用户选择复用 `feature_used`（`feature=api_route, action=change, value=<mode>`）；读取或恢复设置不计为用户点击。
-- `api_route_changed` 记录实际优先线路变化，原因是 `manual/failover/primary_recovered/cooldown_expired`。冷却结束仅恢复主线路优先级，不表示主线路已验证恢复，也不主动发请求。
-- `api_request_completed` 每一轮 API 请求只发送一次，包含 `request_id`、可取得的加载 `operation_id`、接口类别、模式、首选与最终线路、最终结果、总耗时、尝试次数和 `recovered`。`attempts` 保存每次尝试的 `attempt_id`、线路、结果、耗时、HTTP 状态和稳定错误码。两类事件加入关键事件 outbox。
-- 网络失败、超时、408 和 5xx 才可降级。自动模式每个域名最多尝试一次；匹配 POST 明确允许重放，其他写请求不自动重放。单次超时按是否还有备用线路区分：后面还有备用时保持短超时以尽快降级（Cloudflare 8 秒、EdgeOne 10 秒，获取弹幕两线路均为 10 秒）；最后一次尝试（自动模式的降级尝试或手动模式的唯一尝试）获取弹幕放宽到 25 秒、匹配 15 秒，其他接口不变。超时以 `api_request_completed.attempts[].error_code=timeout` 观察，按 `endpoint` 与 `mode` 分组；用户取消整条链路，结果为 `cancelled`，不计入线路故障。
-- HTTP 200 的业务失败不触发切换，结果标记 `business_error`；无匹配或零弹幕是有效业务返回。浏览器不暴露状态的网络错误仅记 `network_error`，不猜测 CORS、DNS 或 TLS 原因。
-- 备用恢复成功只记录恢复警告与 breadcrumb，不创建 Sentry 异常；最终传输失败在请求层显式上报一次，并保留既有加载流程的可恢复错误 UI。最终失败的同一错误不会再被 TanStack Query 自动重试。用户主动重试属于新一轮请求。
-- 产品聚合字段采用固定枚举；完整请求 URL 与错误明细仍可在异常 context 中查看，遵循现有不脱敏策略。遥测故障不得影响请求与切换。
+- 两条线路：Cloudflare（`VITE_API_CLOUDFLARE_URL`，默认示例 `.cc`）直连 Worker；EdgeOne（`VITE_API_EDGEONE_URL`，默认示例 `.com`）在上海接入，经日本中转服务器（`RELAY_URL=https://dandan-jp.suemor.com`）在 CF 东京执行同一个 Worker。设置模式为 `auto/cloudflare/edgeone`，用户选择复用 `feature_used`（`feature=api_route, action=change, value=<mode>`）；读取或恢复设置不计为用户点击。
+- **首选线路**：自动模式按"未过期的学习记录（`learned`）→ 系统时区属于中国大陆则 EdgeOne（`timezone`）→ Cloudflare（`default`）"确定；手动模式为 `manual`。大陆时区为 `Asia/Shanghai` 等含历史别名，港澳台不算。学习记录存于 localStorage（`marchen:api-route-preference`），有效期 7 天；只有同一轮里两条线路都参与过、且一条给出 HTTP 200（含业务失败）时才写入胜出线路，首选线路单独成功时续期（1 小时最多一次）。没有定时回切主线路的冷却。重置应用会清除学习记录。
+- **对冲**：自动模式下，可重放请求（GET 与匹配 POST）首发首选线路；超过对冲延迟（获取弹幕 2.5 秒，其他 1.5 秒）仍未拿到完整响应，就并行请求另一条线路，先给出结果者胜，另一条被取消。计时覆盖整条链路，含 Worker 回源弹弹play。首选线路在对冲前以网络错误、超时、408 或 5xx 失败时立即降级（`failover`）。每条线路每轮最多一次；其他写请求与手动模式只请求一条线路。
+- **单次超时**只按接口区分：获取弹幕 25 秒、匹配 15 秒、其他 10 秒，与首发、对冲、降级无关。
+- `api_route_changed` 记录首选线路实际变化，原因为 `manual`（用户切换模式）、`hedge`（首选线路只是慢，被另一条超过）、`failover`（首选线路真实失败后另一条成功）。启动时从学习记录或时区确定线路不发事件。历史取值 `primary_recovered` / `cooldown_expired` 只出现在本口径之前的版本。
+- `api_request_completed` 每一轮请求只发送一次，包含 `request_id`、可取得的加载 `operation_id`、接口类别、模式、首选与最终线路、`first_route_source`、最终结果、总耗时、尝试次数、`hedged` 与 `recovered`。`attempts` 按发起顺序保存 `attempt_id`、线路、`trigger`（`initial` / `hedge` / `failover`）、`started_at_ms`（相对本轮开始）、结果、耗时、HTTP 状态和稳定错误码；顶层 `http_status` / `error_code` 取决定本轮结果的尝试。两类事件在关键事件 outbox 中。
+- 尝试结果 `superseded` 表示另一条线路先给出结果、本次被取消，不计入线路故障；用户取消整条链路时所有尝试为 `cancelled`，本轮结果为 `cancelled`。超时以 `attempts[].error_code=timeout` 观察，按 `endpoint`、`mode` 与 `first_route` 分组；对冲比例用 `hedged` 观察，用于调整对冲延迟。
+- HTTP 200 的业务失败与除 408 外的 4xx（含签名相关的 401）直接结束本轮，不切换线路；业务失败标记 `business_error`，无匹配或零弹幕是有效业务返回。浏览器不暴露状态的网络错误仅记 `network_error`，不猜测 CORS、DNS 或 TLS 原因。
+- `recovered=true` 只在首选线路真实失败、另一条随后成功时出现，此时只记录恢复警告与 breadcrumb，不创建 Sentry 异常；仅被对冲超过不算恢复。最终传输失败在请求层显式上报一次（fingerprint 用决定结果的错误码），并保留既有加载流程的可恢复错误 UI。最终失败的同一错误不会再被 TanStack Query 自动重试。用户主动重试属于新一轮请求。
+- 口径变化：对冲上线后 `attempts` 可能并行，`attempt_count=2` 不再等同于"降级"，需结合 `hedged` 与 `attempts[].trigger`；新旧客户端并存期间按客户端版本或 `hedged` 字段是否存在区分。
+- 产品聚合字段采用固定枚举；完整请求 URL 与错误明细仍可在异常 context 中查看，遵循现有不脱敏策略。遥测或本地存储故障不得影响请求与切换。
 
 ### API 请求签名与代理日志
 

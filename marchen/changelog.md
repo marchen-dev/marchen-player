@@ -96,3 +96,4 @@
 - 2026-11-09: [fix-compressed-embedded-subtitles](./archive/2026-11-09-fix-compressed-embedded-subtitles/) — 内嵌 MKV 字幕支持 zlib 与头部剥离压缩轨，加密/其他算法/多层编码细分不支持原因，解压设单块预算
 - 2026-11-09: [report-subtitle-unsupported-tracks](./archive/2026-11-09-report-subtitle-unsupported-tracks/) — 不支持的内嵌字幕轨上报 subtitle_track_unsupported 事件，内嵌解析错误带稳定原因码，Sentry 按阶段加原因聚合
 - 2026-11-09: [simplify-download-progress](./archive/2026-11-09-simplify-download-progress/) — 下载页只显示已下载进度（含在下分片），确认完成前最多 99% 并显示正在完成，界面去掉校验概念
+- 2026-11-09: [adaptive-api-route](./archive/2026-11-09-adaptive-api-route/) — API 线路自动模式改为对冲请求：首选慢 1.5 秒并行另一线路，持久化学习更快线路，大陆时区默认 EdgeOne

@@ -10,7 +10,10 @@ import { SettingSelect } from './SettingSelect'
 
 const labels = { cloudflare: 'Cloudflare', edgeone: 'EdgeOne' }
 
-/** 用户偏好与临时自动降级分别展示，避免把备用线路误认为用户主动选择。 */
+/**
+ * 用户偏好与实际线路分别展示：自动模式下的当前线路由实测结果决定（对冲胜出、时区初始猜测），
+ * 标注"自动选择"，避免误认为是用户主动选择。
+ */
 export const ApiRouteSetting = () => {
   const [settings, setSettings] = useAppSettings()
   const route = useAtomValue(apiPreferredRouteAtom)
@@ -26,6 +29,7 @@ export const ApiRouteSetting = () => {
       description={
         <span role="status" title={API_ROUTES[route]}>
           当前线路：{labels[route]}
+          {settings.apiRouteMode === 'auto' && '（自动选择）'}
         </span>
       }
     >
