@@ -97,7 +97,7 @@ async function setup(multi = false) {
 describe('下载服务生命周期', () => {
   it('确认才启动、完成才可播放、暂停等待引擎停止且删除保留文件', async () => {
     const { id, content, task } = await setup()
-    await expect(service!.filePath(id, 0)).rejects.toThrow('尚未完整')
+    await expect(service!.filePath(id, 0)).rejects.toThrow('尚未下载完成')
     await writeFile(join(task.directory, 'sample.mkv'), content)
     mock.stats!({
       id,
@@ -340,5 +340,5 @@ it('收到字节但未通过校验不能误报完成，并保留校验失败诊�
   expect(task).toMatchObject({ state: 'downloading', receivedBytes: 100000, hashFailures: 2 })
   expect(task.files[0].complete).toBe(false)
   expect(task.files[0].verifiedBytes).toBe(0)
-  await expect(service!.filePath(id, 0)).rejects.toThrow('尚未完整')
+  await expect(service!.filePath(id, 0)).rejects.toThrow('尚未下载完成')
 })

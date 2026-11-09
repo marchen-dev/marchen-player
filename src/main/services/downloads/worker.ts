@@ -3,6 +3,7 @@ import type { EngineRequest, EngineResponse, EngineStats } from './engine-port'
 import { DOWNLOAD_LIMITS } from '@marchen/shared/downloads'
 import MemoryStore from 'memory-chunk-store'
 import WebTorrent from 'webtorrent'
+import { fileProgress } from './file-progress'
 import { validateMagnet, validateMetadata } from './metadata'
 import { safeTaskPath } from './paths'
 import { peerDetails } from './peer-details'
@@ -24,22 +25,26 @@ const stop = async (id: string) => {
     )
 }
 function stats(id: string, t: Torrent): EngineStats {
-  // downloaded 包含未校验片段；逐文件统计只能累加 bitfield 确认的交集。
-  const bitfield = (t as Torrent & { bitfield: { get: (index: number) => boolean } }).bitfield
+  // 完成与可播放只认 bitfield 确认的分片；界面进度另算在下分片已收到的部分，
+  // 稀有优先会让数据分散在大量未收齐的分片里，只看确认字节会长时间显示 0%。
+  const internal = t as Torrent & {
+    bitfield: { get: (index: number) => boolean }
+    pieces: Array<{ length: number; missing: number } | null>
+  }
+  const view = {
+    pieceLength: t.pieceLength,
+    length: t.length,
+    verified: (index: number) => internal.bitfield.get(index),
+    received: (index: number) => {
+      const piece = internal.pieces[index]
+      return piece ? piece.length - piece.missing : 0
+    },
+  }
   return {
     id,
     files: t.files.map((file, index) => {
-      let bytes = 0
-      const start = Math.floor(file.offset / t.pieceLength)
-      const end = Math.ceil((file.offset + file.length) / t.pieceLength)
-      for (let i = start; i < end; i++)
-        if (bitfield.get(i))
-          bytes += Math.max(
-            0,
-            Math.min(file.offset + file.length, (i + 1) * t.pieceLength) -
-              Math.max(file.offset, i * t.pieceLength),
-          )
-      return { index, verifiedBytes: bytes, complete: bytes === file.length }
+      const progress = fileProgress(file, view)
+      return { index, ...progress, complete: progress.verifiedBytes === file.length }
     }),
     receivedBytes: t.received,
     hashFailures: failures.get(t) ?? 0,
@@ -107,7 +112,7 @@ port.on('message', async ({ data }: { data: EngineRequest }) => {
       )
       await new Promise<void>((resolve, reject) => {
         const timer = setTimeout(
-          () => reject(new Error('获取种子信息或校验超时，请重试')),
+          () => reject(new Error('获取种子信息或检查已下载文件超时，请重试')),
           draft ? DOWNLOAD_LIMITS.metadataMs : 10 * 60 * 1000,
         )
         t.once('ready', () => {

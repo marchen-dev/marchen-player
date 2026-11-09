@@ -35,10 +35,11 @@ import { useAtom, useAtomValue } from 'jotai'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router'
 import { PeerDialog } from './peers'
+import { fileProgressLabel, HASH_FAILURE_NOTICE_THRESHOLD, taskProgress } from './progress'
 import { bytes, downloadCall, downloadError, downloadsAtom, torrentRequestAtom } from './state'
 
 const labels: Record<DownloadState, string> = {
-  checking: '正在校验',
+  checking: '正在检查已下载的文件',
   waiting: '等待连接',
   downloading: '下载中',
   pausing: '正在暂停',
@@ -204,12 +205,7 @@ function TaskRow({ task }: { task: DownloadTask }) {
   const [busy, setBusy] = useState(false)
   const navigate = useNavigate()
   const selected = task.files.filter((f) => f.selected)
-  const done = selected.reduce((n, f) => n + f.verifiedBytes, 0)
-  const total = task.selectedBytes
-  const completed = selected.length > 0 && selected.every((f) => f.complete)
-  const percentage = total ? Math.min(100, Math.floor((done / total) * 100)) : 0
-  const eta =
-    total > 0 && task.downloadSpeed > 0 ? Math.ceil((total - done) / task.downloadSpeed / 60) : null
+  const { done, total, completed, percentage, finishing, eta } = taskProgress(task)
   const run = (
     work: () => Promise<unknown>,
     action: TelemetryEventMap['download_action_result']['action'] = 'selection',
@@ -349,7 +345,6 @@ function TaskRow({ task }: { task: DownloadTask }) {
       </div>
       <div className="text-muted-foreground mt-2 flex justify-between text-xs">
         <span>
-          {!task.http && '已校验 '}
           {bytes(done)} / {total ? bytes(total) : '大小未知'}
           {total ? ` · ${percentage}%` : ''}
         </span>
@@ -359,19 +354,16 @@ function TaskRow({ task }: { task: DownloadTask }) {
               已连接 {task.peers} 个节点 ·{' '}
             </span>
           )}
-          {task.state === 'downloading'
-            ? `${bytes(task.downloadSpeed)}/s · ${eta === null ? '估算中' : `约 ${Math.max(1, eta)} 分钟`}`
-            : ''}
+          {finishing && (task.state === 'downloading' || task.state === 'waiting')
+            ? '正在完成…'
+            : task.state === 'downloading'
+              ? `${bytes(task.downloadSpeed)}/s · ${eta === null ? '估算中' : `约 ${eta} 分钟`}`
+              : ''}
         </span>
       </div>
-      {!task.http && (task.receivedBytes ?? 0) > 0 && !completed && (
-        <p
-          className="text-muted-foreground mt-2 text-xs"
-          title="本轮接收包含尚未校验的分片和重传，进度条只统计校验通过的数据。"
-        >
-          本轮已接收 {bytes(task.receivedBytes ?? 0)}
-          {(task.hashFailures ?? 0) > 0 && ` · 分片校验失败 ${task.hashFailures} 次，已丢弃并重试`}
-        </p>
+      {/* 偶发的分片失败会自动重新下载，只有反复失败才提示，且不向用户暴露分片和校验的概念 */}
+      {!task.http && !completed && (task.hashFailures ?? 0) > HASH_FAILURE_NOTICE_THRESHOLD && (
+        <p className="text-muted-foreground mt-2 text-xs">部分数据异常，正在重新下载</p>
       )}
       {task.error && (
         <p role="alert" className="text-destructive mt-3 text-sm">
@@ -453,7 +445,7 @@ function TaskRow({ task }: { task: DownloadTask }) {
                   ? '已完成'
                   : !f.selected
                     ? '未选择'
-                    : `${bytes(f.verifiedBytes)} / ${bytes(f.size)}`}
+                    : fileProgressLabel(f, bytes)}
               </span>
               {f.selected && f.complete && isVideoFile(f.path) && (
                 <Button size="sm" variant="outline" disabled={busy} onClick={() => play(f.index)}>

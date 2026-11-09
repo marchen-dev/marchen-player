@@ -1,7 +1,7 @@
 import type { DownloadDraft, DownloadFile, DownloadPeer } from '@marchen/shared/downloads'
 export interface EngineStats {
   id: string
-  files: Array<Pick<DownloadFile, 'index' | 'verifiedBytes' | 'complete'>>
+  files: Array<Pick<DownloadFile, 'index' | 'verifiedBytes' | 'downloadedBytes' | 'complete'>>
   receivedBytes?: number
   hashFailures?: number
   downloadSpeed: number

@@ -19,7 +19,13 @@ export interface DownloadFile {
   path: string
   size: number
   selected: boolean
+  /** 确认通过的字节，决定完成与可播放 */
   verifiedBytes: number
+  /**
+   * BT 运行时的下载进度：确认字节加上在下分片已收到的部分，仅用于界面展示，不持久化。
+   * 缺省时按 verifiedBytes 显示（HTTP 任务、刚恢复的任务）。
+   */
+  downloadedBytes?: number
   complete: boolean
 }
 export interface DownloadTask {

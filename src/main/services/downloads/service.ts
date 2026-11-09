@@ -476,7 +476,7 @@ export class DownloadService {
     const task = this.get(id)
     const file = task.files[index]
     if (!file?.selected || !file.complete || task.state === 'checking')
-      throw new Error('文件尚未完整校验')
+      throw new Error('文件尚未下载完成')
     const target = await safeTaskPath(task.directory, file.path)
     const info = await stat(target)
     if (!info.isFile() || info.size !== file.size) {
