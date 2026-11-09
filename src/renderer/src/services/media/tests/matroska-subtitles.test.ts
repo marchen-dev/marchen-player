@@ -1,5 +1,6 @@
 import type { SubtitleCue } from '../subtitles/matroska'
 import { deflateSync } from 'node:zlib'
+import { getSubtitleFailureReason } from '@marchen/shared/media'
 import { expect, it } from 'vitest'
 import { assDialogue, MatroskaSubtitles } from '../subtitles/matroska'
 
@@ -355,4 +356,39 @@ it('损坏的 zlib 数据和超预算解压结果报错，不产出半条字幕'
   await expect(broken.cues(1).next()).rejects.toThrow('解压失败')
   const bomb = await open(encodedFixture(track, deflateSync(new Uint8Array(5 * 1024 * 1024))))
   await expect(bomb.cues(1).next()).rejects.toThrow('预算')
+})
+
+const reasonOf = async (promise: Promise<unknown>) => {
+  try {
+    await promise
+  } catch (error) {
+    return getSubtitleFailureReason(error)
+  }
+  throw new Error('预期失败')
+}
+
+it('不支持的轨道带稳定 unsupportedCode', async () => {
+  const codes = async (encodings: Uint8Array[], codec = 'S_TEXT/ASS') =>
+    (await open(encodedFixture(encodedTrack(encodings, text(header), codec), text(event)))).tracks[0]
+      .unsupportedCode
+  expect(await codes([encoding([])], 'S_HDMV/PGS')).toBe('codec')
+  expect(await codes([encoding([], { extra: [e(0x5035, new Uint8Array())] })])).toBe('encrypted')
+  expect(await codes([encoding([e(0x4254, uint(2))])])).toBe('compression_algo')
+  expect(await codes([encoding([]), encoding([])])).toBe('multi_encoding')
+  expect(await codes([encoding([])])).toBeUndefined()
+})
+
+it('逃出的解析错误带稳定原因码', async () => {
+  const track = encodedTrack([encoding([])])
+  const reader = await open(encodedFixture(track, text('not zlib')))
+  expect(await reasonOf(reader.cues(1).next())).toBe('decompress_failed')
+  expect(await reasonOf(reader.cues(9).next())).toBe('track_missing')
+  const pgs = await open()
+  expect(await reasonOf(pgs.cues(3).next())).toBe('unsupported_format')
+  const badText = await open(encodedFixture(track, deflateSync(new Uint8Array([0xFF, 0xFE]))))
+  expect(await reasonOf(badText.cues(1).next())).toBe('text_encoding')
+  const missingDuration = await open(emptyEventFixture('S_TEXT/ASS', '16,0,Default,,0,0,0,,'))
+  expect(await reasonOf(missingDuration.cues(1).next())).toBe('block_invalid')
+  expect(await reasonOf(MatroskaSubtitles.open({ size: 4, read: async () => new Uint8Array(4) }))).toBe('container_invalid')
+  expect(await reasonOf(Promise.resolve().then(() => assDialogue({ start: 0, end: 1, text: 'x' }, 'S_TEXT/ASS')))).toBe('event_invalid')
 })

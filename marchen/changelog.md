@@ -94,3 +94,4 @@
 - 2026-11-07: [add-api-request-signing](./archive/2026-11-07-add-api-request-signing/) — 客户端 API 请求按 dandan-proxy v1 规范 HMAC 签名，支持时钟纠偏重试，新增 VITE_API_SIGN_KID/KEY 构建变量
 - 2026-11-08: [add-local-danmaku-match-import](./archive/2026-11-08-add-local-danmaku-match-import/) — 匹配弹窗支持本地弹幕导入开播，解除10MB限制并增加逐条容错和数量反馈
 - 2026-11-09: [fix-compressed-embedded-subtitles](./archive/2026-11-09-fix-compressed-embedded-subtitles/) — 内嵌 MKV 字幕支持 zlib 与头部剥离压缩轨，加密/其他算法/多层编码细分不支持原因，解压设单块预算
+- 2026-11-09: [report-subtitle-unsupported-tracks](./archive/2026-11-09-report-subtitle-unsupported-tracks/) — 不支持的内嵌字幕轨上报 subtitle_track_unsupported 事件，内嵌解析错误带稳定原因码，Sentry 按阶段加原因聚合

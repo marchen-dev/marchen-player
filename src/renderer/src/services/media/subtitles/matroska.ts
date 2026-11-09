@@ -1,3 +1,6 @@
+import type { SubtitleFailureReason } from '@marchen/shared/media'
+import { SubtitleError } from '@marchen/shared/media'
+
 /** 字幕消费者借用来源，不拥有关闭来源的权限。end 为排他边界。 */
 export interface SubtitleSource {
   size: number
@@ -22,8 +25,19 @@ export interface EmbeddedSubtitleTrack {
   header: string
   defaultDuration: number
   supported: boolean
+  /** 面向用户的不支持原因 */
   unsupportedReason?: string
+  /** 面向遥测聚合的稳定不支持原因 */
+  unsupportedCode?: UnsupportedSubtitleCode
 }
+
+/** 内嵌轨不支持的稳定原因；codec 涵盖图片字幕和未接入的文本格式 */
+export type UnsupportedSubtitleCode =
+  | 'codec'
+  | 'encrypted'
+  | 'compression_algo'
+  | 'multi_encoding'
+  | 'time_scale'
 
 export interface SubtitleCue {
   start: number
@@ -45,6 +59,9 @@ interface ContentCompression {
 }
 
 const textDecoder = new TextDecoder('utf-8', { fatal: true })
+/** 逃出到调用方的错误统一带稳定原因码；只在内部消化的索引与附件预检路径保持普通 Error */
+const fail = (reason: SubtitleFailureReason, message: string, options?: ErrorOptions) =>
+  new SubtitleError(reason, message, options)
 /** 单块解压上限，与单字段读取预算一致，防止压缩炸弹撑爆内存 */
 const INFLATE_BUDGET = 4 * 1024 * 1024
 const segmentIds = new Set([
@@ -54,10 +71,10 @@ const supportedCodecs = new Set(['S_TEXT/ASS', 'S_TEXT/SSA', 'S_ASS', 'S_SSA', '
 
 function vint(bytes: Uint8Array, offset: number, keepMarker = false) {
   const first = bytes[offset]
-  if (!first) throw new Error('无效的 EBML 变长整数')
+  if (!first) throw fail('container_invalid', '无效的 EBML 变长整数')
   let width = 1
   while (!(first & (0x80 >> (width - 1)))) width++
-  if (offset + width > bytes.length) throw new Error('EBML 头部被截断')
+  if (offset + width > bytes.length) throw fail('container_invalid', 'EBML 头部被截断')
   let value = BigInt(keepMarker ? first : first & (0xFF >> width))
   for (let i = 1; i < width; i++) value = value * 256n + BigInt(bytes[offset + i])
   return { width, value, unknown: !keepMarker && value === (1n << BigInt(width * 7)) - 1n }
@@ -84,14 +101,14 @@ class Reader {
       end < start ||
       end > this.source.size
     )
-      throw new Error('字幕读取范围越界')
+      throw fail('read_failed', '字幕读取范围越界')
     const windowEnd = this.windowStart + this.window.byteLength
     if (start >= this.windowStart && end <= windowEnd)
       return this.window.subarray(start - this.windowStart, end - this.windowStart)
     const readEnd = Math.min(this.source.size, Math.max(end, start + this.readAhead))
     const bytes = await this.source.read(start, readEnd, this.signal)
     this.signal?.throwIfAborted()
-    if (bytes.length !== readEnd - start) throw new Error('媒体文件短读或已变化')
+    if (bytes.length !== readEnd - start) throw fail('read_failed', '媒体文件短读或已变化')
     if (this.readAhead > 0 && bytes.byteLength <= this.readAhead) {
       this.windowStart = start
       this.window = bytes
@@ -102,32 +119,32 @@ class Reader {
   async element(offset: number, limit: number): Promise<Element> {
     const bytes = await this.bytes(offset, Math.min(limit, offset + 12))
     const id = vint(bytes, 0, true)
-    if (id.width > 4) throw new Error('EBML ID 超长')
+    if (id.width > 4) throw fail('container_invalid', 'EBML ID 超长')
     const size = vint(bytes, id.width)
     const start = offset + id.width + size.width
     const end = size.unknown ? limit : start + Number(size.value)
     if (!Number.isSafeInteger(end) || end > limit || start > end)
-      throw new Error('EBML 元素超出容器')
+      throw fail('container_invalid', 'EBML 元素超出容器')
     return { id: Number(id.value), start, end, unknown: size.unknown }
   }
 
   async *children(parent: Element) {
     for (let offset = parent.start; offset < parent.end;) {
       const child = await this.element(offset, parent.end)
-      if (child.unknown) throw new Error('不支持此层级的未知长度元素')
+      if (child.unknown) throw fail('container_invalid', '不支持此层级的未知长度元素')
       yield child
       offset = child.end
     }
   }
 
   async value(element: Element) {
-    if (element.end - element.start > 4 * 1024 * 1024) throw new Error('字幕字段超过 4 MiB 预算')
+    if (element.end - element.start > 4 * 1024 * 1024) throw fail('too_large', '字幕字段超过 4 MiB 预算')
     return this.bytes(element.start, element.end)
   }
 
   async uint(element: Element) {
     const bytes = await this.value(element)
-    if (!bytes.length || bytes.length > 8) throw new Error('无效的 EBML 无符号整数')
+    if (!bytes.length || bytes.length > 8) throw fail('container_invalid', '无效的 EBML 无符号整数')
     let value = 0n
     for (const byte of bytes) value = value * 256n + BigInt(byte)
     return value
@@ -146,7 +163,11 @@ class Reader {
 }
 
 function decodeText(bytes: Uint8Array) {
-  return textDecoder.decode(bytes).replace(/\0+$/, '')
+  try {
+    return textDecoder.decode(bytes).replace(/\0+$/, '')
+  } catch (error) {
+    throw fail('text_encoding', '字幕文本不是有效的 UTF-8', { cause: error })
+  }
 }
 
 async function decompress(
@@ -181,11 +202,11 @@ async function decompress(
   } catch (error) {
     reader.cancel().catch(() => {})
     signal?.throwIfAborted()
-    throw new Error('字幕块解压失败', { cause: error })
+    throw fail('decompress_failed', '字幕块解压失败', { cause: error })
   }
   if (total > INFLATE_BUDGET) {
     reader.cancel().catch(() => {})
-    throw new Error('字幕块解压后超过 4 MiB 预算')
+    throw fail('too_large', '字幕块解压后超过 4 MiB 预算')
   }
   const output = new Uint8Array(total)
   let offset = 0
@@ -216,10 +237,10 @@ export class MatroskaSubtitles {
         segment = element
         break
       }
-      if (element.unknown) throw new Error('无效的 MKV 顶层元素')
+      if (element.unknown) throw fail('container_invalid', '无效的 MKV 顶层元素')
       offset = element.end
     }
-    if (!segment) throw new Error('找不到 Matroska Segment')
+    if (!segment) throw fail('container_invalid', '找不到 Matroska Segment')
     let scale = 1000000
     let hasInfo = false
     let hasTracks = false
@@ -245,13 +266,15 @@ export class MatroskaSubtitles {
       if (hasInfo && hasTracks) break
       offset = await skipElement(reader, element)
     }
-    if (!Number.isSafeInteger(scale) || scale <= 0) throw new Error('无效的字幕时间单位')
+    if (!Number.isSafeInteger(scale) || scale <= 0) throw fail('container_invalid', '无效的字幕时间单位')
     return new MatroskaSubtitles(source, segment, tracks, scale / 1e9, compressions)
   }
 
   async *cues(trackNumber: number, signal?: AbortSignal): AsyncGenerator<SubtitleCue> {
     const track = this.tracks.find((track) => track.number === trackNumber)
-    if (!track || !track.supported) throw new Error(track?.unsupportedReason ?? '字幕轨道不存在')
+    if (!track) throw fail('track_missing', '字幕轨道不存在')
+    if (!track.supported)
+      throw fail('unsupported_format', track.unsupportedReason ?? '暂不支持此字幕轨')
     // 索引读取完整成功后才交付，坏索引回到原扫描，避免重复交付半条轨道。
     const indexed = await this.indexedCues(track, signal)
     if (indexed) {
@@ -276,13 +299,13 @@ export class MatroskaSubtitles {
       while (cursor < cluster.end) {
         const field = await reader.element(cursor, cluster.end)
         if (cluster.unknown && segmentIds.has(field.id)) break
-        if (field.unknown) throw new Error('字幕 Cluster 子元素长度未知')
+        if (field.unknown) throw fail('container_invalid', '字幕 Cluster 子元素长度未知')
         if (field.id === 0xE7) {
           timestamp = Number(await reader.uint(field))
           hasTimestamp = true
         }
         if (field.id === 0xA0 || field.id === 0xA3) {
-          if (!hasTimestamp) throw new Error('字幕块缺少 Cluster 时间')
+          if (!hasTimestamp) throw fail('block_invalid', '字幕块缺少 Cluster 时间')
           let block: Element | undefined = field.id === 0xA3 ? field : undefined
           let duration = track.defaultDuration
           let explicitDuration = false
@@ -300,7 +323,7 @@ export class MatroskaSubtitles {
             const number = vint(prefix, 0)
             if (number.value === BigInt(trackNumber)) {
               if (prefix.length < number.width + 3 || prefix[number.width + 2] & 6)
-                throw new Error('字幕块截断或使用不支持的 lacing')
+                throw fail('block_invalid', '字幕块截断或使用不支持的 lacing')
               const relative = new DataView(prefix.buffer, prefix.byteOffset).getInt16(number.width)
               const start = (timestamp + relative) * this.timestampScale
               const payload = { ...block, start: block.start + number.width + 3 }
@@ -456,16 +479,16 @@ function skipZeroDurationEvent(codec: string, text: string, duration: number, ex
     // 仍校验事件结构；缺失时长不等同于显式零时长，也不猜测显示时间。
     if (fields.length >= 9 && /^\d+$/.test(fields[0])) return true
   }
-  throw new Error('字幕块缺少有效时长')
+  throw fail('block_invalid', '字幕块缺少有效时长')
 }
 
 async function skipElement(reader: Reader, element: Element) {
   if (!element.unknown) return element.end
-  if (element.id !== 0x1F43B675) throw new Error('不支持的未知长度元素')
+  if (element.id !== 0x1F43B675) throw fail('container_invalid', '不支持的未知长度元素')
   for (let offset = element.start; offset < element.end;) {
     const field = await reader.element(offset, element.end)
     if (segmentIds.has(field.id)) return offset
-    if (field.unknown) throw new Error('Cluster 内部元素长度未知')
+    if (field.unknown) throw fail('container_invalid', 'Cluster 内部元素长度未知')
     offset = field.end
   }
   return element.end
@@ -474,14 +497,15 @@ async function skipElement(reader: Reader, element: Element) {
 type ContentEncodingResult =
   | { kind: 'none' }
   | { kind: 'compressed'; compression: ContentCompression }
-  | { kind: 'unsupported'; reason: string }
+  | { kind: 'unsupported'; code: UnsupportedSubtitleCode; reason: string }
 
 /** 解析 ContentEncodings；字段缺省值按 Matroska 规范（Scope=1、Type=0、Algo=0 zlib） */
 async function readContentEncodings(reader: Reader, element: Element): Promise<ContentEncodingResult> {
   const encodings: Element[] = []
   for await (const child of reader.children(element)) if (child.id === 0x6240) encodings.push(child)
   if (!encodings.length) return { kind: 'none' }
-  if (encodings.length > 1) return { kind: 'unsupported', reason: '暂不支持多层内容编码的字幕轨' }
+  if (encodings.length > 1)
+    return { kind: 'unsupported', code: 'multi_encoding', reason: '暂不支持多层内容编码的字幕轨' }
   let scope = 1
   let type = 0
   let encrypted = false
@@ -499,9 +523,10 @@ async function readContentEncodings(reader: Reader, element: Element): Promise<C
       }
     }
   }
-  if (encrypted || type !== 0) return { kind: 'unsupported', reason: '暂不支持加密字幕轨' }
+  if (encrypted || type !== 0)
+    return { kind: 'unsupported', code: 'encrypted', reason: '暂不支持加密字幕轨' }
   if (algo !== 0 && algo !== 3)
-    return { kind: 'unsupported', reason: '暂不支持此字幕压缩算法' }
+    return { kind: 'unsupported', code: 'compression_algo', reason: '暂不支持此字幕压缩算法' }
   return { kind: 'compressed', compression: { algo, scope, settings } }
 }
 
@@ -568,18 +593,22 @@ async function readTrack(reader: Reader, entry: Element) {
     }
   }
   if (type !== 17) return null
-  if (!Number.isSafeInteger(track.number) || track.number <= 0) throw new Error('无效字幕轨编号')
+  if (!Number.isSafeInteger(track.number) || track.number <= 0) throw fail('container_invalid', '无效字幕轨编号')
   track.language = languageIetf || track.language
   // 先判 codec，图片字幕即使同时压缩也提示「图片字幕」，原因更准确。
-  const unsupportedReason = !supportedCodecs.has(track.codec)
-    ? '暂不支持此字幕编码（含图片字幕）'
-    : encoding.kind === 'unsupported'
-      ? encoding.reason
-      : scaled
-        ? '暂不支持独立字幕时间缩放'
-        : undefined
-  track.supported = !unsupportedReason
-  if (unsupportedReason) track.unsupportedReason = unsupportedReason
+  const unsupported: { code: UnsupportedSubtitleCode; reason: string } | undefined =
+    !supportedCodecs.has(track.codec)
+      ? { code: 'codec', reason: '暂不支持此字幕编码（含图片字幕）' }
+      : encoding.kind === 'unsupported'
+        ? encoding
+        : scaled
+          ? { code: 'time_scale', reason: '暂不支持独立字幕时间缩放' }
+          : undefined
+  track.supported = !unsupported
+  if (unsupported) {
+    track.unsupportedReason = unsupported.reason
+    track.unsupportedCode = unsupported.code
+  }
   const compression = encoding.kind === 'compressed' ? encoding.compression : undefined
   // 只有文本字幕才解读 CodecPrivate，避免把图片私有数据当 UTF-8；Scope 含 2 时先解压。
   if (track.supported) {
@@ -592,9 +621,9 @@ async function readTrack(reader: Reader, entry: Element) {
 /** Matroska ASS 数据不含起止时间；按容器时间还原，文本中的逗号原样保留。 */
 export function assDialogue(cue: SubtitleCue, codec: string) {
   const fields = cue.text.split(',')
-  if (fields.length < 9) throw new Error('ASS 字幕事件字段不足')
+  if (fields.length < 9) throw fail('event_invalid', 'ASS 字幕事件字段不足')
   const [order, layer, ...rest] = fields
-  if (!/^\d+$/.test(order)) throw new Error('ASS ReadOrder 无效')
+  if (!/^\d+$/.test(order)) throw fail('event_invalid', 'ASS ReadOrder 无效')
   const first = codec.endsWith('SSA') ? 'Marked=0' : layer || '0'
   return {
     order: Number(order),
@@ -603,7 +632,7 @@ export function assDialogue(cue: SubtitleCue, codec: string) {
 }
 
 function assTime(seconds: number) {
-  if (!Number.isFinite(seconds)) throw new Error('字幕时间无效')
+  if (!Number.isFinite(seconds)) throw fail('event_invalid', '字幕时间无效')
   const cs = Math.max(0, Math.round(seconds * 100))
   return `${Math.floor(cs / 360000)}:${String(Math.floor(cs / 6000) % 60).padStart(2, '0')}:${String(Math.floor(cs / 100) % 60).padStart(2, '0')}.${String(cs % 100).padStart(2, '0')}`
 }

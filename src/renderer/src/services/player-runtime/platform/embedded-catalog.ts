@@ -1,5 +1,6 @@
 import type { DurableMediaSource } from '@marchen/shared/media'
 import type { SubtitleTrackDescriptor } from './ports'
+import { reportUnsupportedSubtitleTracks } from '@renderer/services/telemetry/subtitles'
 import { measureSubtitleRead } from '../../media/subtitles/diagnostics'
 import { MatroskaSubtitles } from '../../media/subtitles/matroska'
 import { resolveEmbeddedSubtitle } from '../../media/subtitles/resolve'
@@ -18,6 +19,11 @@ export async function listEmbeddedSubtitles(
     const reader = await measureSubtitleRead('catalog', lease.source, false, (measured) =>
       MatroskaSubtitles.open(measured, signal),
     )
+    try {
+      reportUnsupportedSubtitleTracks(source, reader.tracks)
+    } catch {
+      // 统计失败不影响字幕列表
+    }
     return reader.tracks.map((track) => ({
       id: `embedded:${track.number}`,
       title: (track.title || `内嵌字幕 ${track.number}`) + (track.supported ? '' : '（暂不支持）'),

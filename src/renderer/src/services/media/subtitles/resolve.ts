@@ -1,4 +1,5 @@
 import type { SubtitleCue, SubtitleSource } from './matroska'
+import { SubtitleError } from '@marchen/shared/media'
 import { measureSubtitleRead } from './diagnostics'
 import { loadSubtitleFonts } from './fonts'
 import { assDialogue, MatroskaSubtitles } from './matroska'
@@ -55,14 +56,14 @@ async function readSubtitleContent(
 ) {
   const reader = await MatroskaSubtitles.open(source, signal)
   const track = reader.tracks.find((track) => track.number === number)
-  if (!track) throw new Error('字幕轨不存在')
+  if (!track) throw new SubtitleError('track_missing', '字幕轨不存在')
   if (expected && (track.uid !== expected.uid || track.codec !== expected.codec))
-    throw new Error('字幕轨信息已变化，请重新选择')
+    throw new SubtitleError('track_missing', '字幕轨信息已变化，请重新选择')
   let size = track.header.length
   const cues: SubtitleCue[] = []
   for await (const cue of reader.cues(number, signal)) {
     size += cue.text.length
-    if (size > 8 * 1024 * 1024 || cues.length >= 100000) throw new Error('字幕文本超过预算')
+    if (size > 8 * 1024 * 1024 || cues.length >= 100000) throw new SubtitleError('too_large', '字幕文本超过预算')
     cues.push(cue)
   }
   let content: string

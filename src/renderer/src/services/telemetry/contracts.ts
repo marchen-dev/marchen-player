@@ -2,6 +2,8 @@ import type { GpuAcceleration } from '@marchen/shared/constants/telemetry'
 import type { SubtitleFailureReason } from '@marchen/shared/media'
 import type { MediaSourceErrorCode, MediaSourceKind } from '@marchen/shared/media-sources'
 import type { ApiRequestResult, ApiRouteChange } from '@renderer/request/api-route-client'
+import type { UnsupportedSubtitleCode } from '@renderer/services/media/subtitles/matroska'
+import type { UnsupportedSubtitleCodec } from './subtitles'
 
 export type TelemetryRuntime = 'main' | 'preload' | 'renderer'
 export type TelemetryTarget = 'electron' | 'web'
@@ -218,6 +220,12 @@ export interface TelemetryEventMap {
     stage: 'resolve' | 'renderer' | 'catalog' | 'import'
     error_code: string
     reason: SubtitleFailureReason
+  }
+  /** 内嵌字幕轨能力边界统计：同一媒体同一轨道每次会话只记一次，不是故障 */
+  subtitle_track_unsupported: {
+    codec: UnsupportedSubtitleCodec
+    reason: UnsupportedSubtitleCode
+    container: 'mkv' | 'mk3d' | 'webm' | 'other'
   }
   playback_failed: {
     operation_id: string
