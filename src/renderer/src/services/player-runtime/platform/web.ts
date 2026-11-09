@@ -1,7 +1,7 @@
 import type {
   FullscreenPort,
   PlayerPorts,
-  ResolvedSubtitleTrack,
+  ResolvedTextSubtitleTrack,
   SourceLifecyclePort,
   SubtitleCatalogPort,
   SubtitleTrackDescriptor,
@@ -65,7 +65,7 @@ export const createWebSubtitleCatalogPort = (
   selectFile: () => Promise<File | null> = selectSubtitleFile,
 ): SubtitleCatalogPort => {
   const descriptors = new Map<string, SubtitleTrackDescriptor>()
-  const tracks = new Map<string, ResolvedSubtitleTrack>()
+  const tracks = new Map<string, ResolvedTextSubtitleTrack>()
   const files = new Map<string, File>()
   let mediaHash: string | undefined
 
@@ -85,10 +85,11 @@ export const createWebSubtitleCatalogPort = (
           }
         : { kind: 'file', file },
     )
-    const track: ResolvedSubtitleTrack = {
+    const track: ResolvedTextSubtitleTrack = {
       id,
       title: file.name,
       origin: 'external',
+      kind: 'text',
       url: source.url,
       persistenceContent: content,
       warning: converted?.warnings.join('；') || undefined,

@@ -4,6 +4,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { createElectronSubtitleCatalogPort } from '../platform/electron'
 import { listEmbeddedSubtitles } from '../platform/embedded-catalog'
 import { supportsEmbeddedSubtitles } from '../subtitles/source-policy'
+import { asText } from './subtitle-track'
 
 const ipc = vi.hoisted(() => ({
   subtitles: vi.fn(),
@@ -51,8 +52,8 @@ describe('媒体源字幕', () => {
     })
     const resolved = await catalog.resolve(source, track)
     expect(ipc.readSubtitle).toHaveBeenCalledWith({ sourceId: 's', itemRef: 'ep', subtitleId: '4' })
-    expect(resolved.persistencePath).toBe('provider:4')
-    expect(resolved.url).toMatch(/^blob:/)
+    expect(asText(resolved).persistencePath).toBe('provider:4')
+    expect(asText(resolved).url).toMatch(/^blob:/)
     resolved.release?.()
   })
 

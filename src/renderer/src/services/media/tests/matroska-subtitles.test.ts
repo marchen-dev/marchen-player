@@ -80,7 +80,9 @@ it('保留多轨元数据、64 位 UID 和 CodecPrivate，识别图片字幕', a
     header,
     supported: true,
   })
-  expect(reader.tracks[2]).toMatchObject({ supported: false, header: '' })
+  // PGS 已支持，按位图轨处理，不读取 CodecPrivate
+  expect(reader.tracks[2]).toMatchObject({ supported: true, kind: 'bitmap', header: '' })
+  expect(reader.tracks[0].kind).toBe('text')
   await expect(reader.cues(3).next()).rejects.toThrow('图片字幕')
 })
 it('读取未知长度 Cluster、非零起点、负偏移及多个 Cluster', async () => {
@@ -342,10 +344,11 @@ it.each([
   await expect(reader.cues(1).next()).rejects.toThrow(reason)
 })
 
-it('压缩的图片字幕仍提示图片字幕', async () => {
+it('压缩的未接入图片字幕仍提示图片字幕', async () => {
   const reader = await open(
-    encodedFixture(encodedTrack([encoding([])], new Uint8Array([1, 2]), 'S_HDMV/PGS'), text(event)),
+    encodedFixture(encodedTrack([encoding([])], new Uint8Array([1, 2]), 'S_VOBSUB'), text(event)),
   )
+  expect(reader.tracks[0]).toMatchObject({ supported: false, unsupportedCode: 'bitmap_codec' })
   expect(reader.tracks[0].unsupportedReason).toContain('图片字幕')
 })
 
@@ -371,7 +374,9 @@ it('不支持的轨道带稳定 unsupportedCode', async () => {
   const codes = async (encodings: Uint8Array[], codec = 'S_TEXT/ASS') =>
     (await open(encodedFixture(encodedTrack(encodings, text(header), codec), text(event)))).tracks[0]
       .unsupportedCode
-  expect(await codes([encoding([])], 'S_HDMV/PGS')).toBe('codec')
+  expect(await codes([encoding([])], 'S_VOBSUB')).toBe('bitmap_codec')
+  expect(await codes([encoding([])], 'S_TEXT/WEBVTT')).toBe('codec')
+  expect(await codes([encoding([])], 'S_HDMV/PGS')).toBeUndefined()
   expect(await codes([encoding([], { extra: [e(0x5035, new Uint8Array())] })])).toBe('encrypted')
   expect(await codes([encoding([e(0x4254, uint(2))])])).toBe('compression_algo')
   expect(await codes([encoding([]), encoding([])])).toBe('multi_encoding')

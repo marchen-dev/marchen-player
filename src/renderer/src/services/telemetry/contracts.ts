@@ -1,9 +1,8 @@
 import type { GpuAcceleration } from '@marchen/shared/constants/telemetry'
-import type { SubtitleFailureReason } from '@marchen/shared/media'
 import type { MediaSourceErrorCode, MediaSourceKind } from '@marchen/shared/media-sources'
 import type { ApiRequestResult, ApiRouteChange } from '@renderer/request/api-route-client'
 import type { UnsupportedSubtitleCode } from '@renderer/services/media/subtitles/matroska'
-import type { UnsupportedSubtitleCodec } from './subtitles'
+import type { SubtitleFailureCode, SubtitleFailureStage, UnsupportedSubtitleCodec } from './subtitles'
 
 export type TelemetryRuntime = 'main' | 'preload' | 'renderer'
 export type TelemetryTarget = 'electron' | 'web'
@@ -217,9 +216,25 @@ export interface TelemetryEventMap {
     audio_ahead_peak_s?: number
   }
   subtitle_failed: {
-    stage: 'resolve' | 'renderer' | 'catalog' | 'import'
+    stage: SubtitleFailureStage
     error_code: string
-    reason: SubtitleFailureReason
+    reason: SubtitleFailureCode
+  }
+  /** 位图字幕（PGS）会话结果：关闭字幕或结束播放时记一次，用于观察首帧耗时、读取量与降级 */
+  subtitle_bitmap_session: {
+    codec: 'pgs'
+    /** index：按字幕 Cues 定位；scan：缺少字幕索引，借视频索引有限扫描 */
+    mode: 'index' | 'scan'
+    hdr: boolean
+    engine?: 'native' | 'compat'
+    /** 从打开会话到第一次送出有内容的位图；整段都没有显示过字幕时缺省 */
+    first_bitmap_ms?: number
+    read_bytes?: number
+    max_backtrack?: number
+    block_failures?: number
+    decode_failures?: number
+    /** Worker 未在关闭时限内回报统计（已失败或卡住），上面的统计字段缺省 */
+    stats_missing: boolean
   }
   /** 内嵌字幕轨能力边界统计：同一媒体同一轨道每次会话只记一次，不是故障 */
   subtitle_track_unsupported: {

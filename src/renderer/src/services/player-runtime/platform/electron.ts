@@ -3,7 +3,7 @@ import type {
   FullscreenPort,
   PlayerPorts,
   PlaylistPort,
-  ResolvedSubtitleTrack,
+  ResolvedTextSubtitleTrack,
   SnapshotPort,
   SubtitleCatalogPort,
   SubtitleTrackDescriptor,
@@ -245,7 +245,7 @@ export const createElectronSubtitleCatalogPort = (): SubtitleCatalogPort => {
 const resolveSubtitleFile = async (
   track: SubtitleTrackDescriptor,
   path: string,
-): Promise<ResolvedSubtitleTrack> => {
+): Promise<ResolvedTextSubtitleTrack> => {
   const result = await ipcClient?.player.readSubtitleText({ path })
   if (!result) throw new SubtitleError('read_failed', '字幕文件读取失败')
   if (!result.ok) throw new SubtitleError(result.reason, result.message)
@@ -265,7 +265,7 @@ const resolveSubtitleText = (
   data: string,
   format: string | undefined,
   persistencePath: string,
-): ResolvedSubtitleTrack => {
+): ResolvedTextSubtitleTrack => {
   const converted =
     format === 'srt' || format === 'vtt' ? parseTextSubtitles(data, format) : undefined
   const text = converted ? textSubtitlesToAss(converted.cues) : data
@@ -273,6 +273,7 @@ const resolveSubtitleText = (
   let released = false
   return {
     ...track,
+    kind: 'text',
     url,
     persistencePath,
     warning: converted?.warnings.join('；') || undefined,

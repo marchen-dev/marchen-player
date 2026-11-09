@@ -30,6 +30,8 @@ export const Subtitle = () => {
     setTimeOffset,
   } = useNativeSubtitles()
   const portalContainer = usePlayerPortalContainer()
+  // 图片字幕（PGS）是位图，不支持调整大小；全局偏好保持不变，切回文本字幕后照常生效
+  const bitmapSelected = tracks.find((track) => track.id === selectedId)?.kind === 'bitmap'
 
   return (
     <SettingContainer>
@@ -74,9 +76,11 @@ export const Subtitle = () => {
             max={200}
             step={5}
             value={settings.subtitleScale}
+            disabled={bitmapSelected}
             aria-label="字幕大小"
             aria-valuetext={`${settings.subtitleScale}%`}
-            className="min-w-0 flex-1 accent-[var(--player-settings-accent)]"
+            aria-describedby={bitmapSelected ? 'subtitle-scale-bitmap-hint' : undefined}
+            className="min-w-0 flex-1 accent-[var(--player-settings-accent)] disabled:opacity-40"
             onChange={(event) => {
               const subtitleScale = event.currentTarget.valueAsNumber
               setSettings((previous) => ({ ...previous, subtitleScale }))
@@ -85,7 +89,7 @@ export const Subtitle = () => {
           <Button
             type="button"
             variant="outline"
-            disabled={settings.subtitleScale === 100}
+            disabled={bitmapSelected || settings.subtitleScale === 100}
             className="border-white/11 bg-white/8 text-white hover:bg-white/14 hover:text-white"
             onClick={() => setSettings((previous) => ({ ...previous, subtitleScale: 100 }))}
           >
@@ -93,6 +97,11 @@ export const Subtitle = () => {
           </Button>
         </div>
       </FieldLayout>
+      {bitmapSelected && (
+        <p id="subtitle-scale-bitmap-hint" className="-mt-2 text-sm text-white/60">
+          图片字幕不支持调整大小
+        </p>
+      )}
 
       <Button
         type="button"

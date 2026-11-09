@@ -1,4 +1,5 @@
 import type { DurableMediaSource } from '@marchen/shared/media'
+import type { PgsSubtitleSession } from '@renderer/services/media/subtitles/pgs/session'
 import type { PlayerCapabilities } from './types'
 
 export type PlayerPortDisposer = () => void
@@ -47,6 +48,8 @@ export interface SubtitleTrackDescriptor {
   origin: 'embedded' | 'external'
   embedded?: { number: number; uid: string; codec: string }
   supported?: boolean
+  /** 文本字幕交给 libass；位图字幕（PGS）走位图会话。未声明时按文本处理 */
+  kind?: 'text' | 'bitmap'
   /**
    * 外挂轨道在 HISTORY 中的稳定标识（写入 tag.path）。
    * 媒体源字幕每次重新列出，靠它把列表中的轨道与历史选择对上，而不是重新分配 id。
@@ -54,14 +57,33 @@ export interface SubtitleTrackDescriptor {
   persistenceKey?: string
 }
 
-export interface ResolvedSubtitleTrack extends SubtitleTrackDescriptor {
-  fonts?: readonly string[]
+interface ResolvedSubtitleCommon extends SubtitleTrackDescriptor {
   warning?: string
+  release?: PlayerPortDisposer
+}
+
+/** 文本字幕：完整内容通过 URL 交给 libass */
+export interface ResolvedTextSubtitleTrack extends ResolvedSubtitleCommon {
+  kind: 'text'
+  fonts?: readonly string[]
   url: string
   persistencePath?: string
   persistenceContent?: string
-  release?: PlayerPortDisposer
 }
+
+/**
+ * 位图字幕：会话持有读取租约，按播放位置窗口读取并产出位图。
+ * release 会关闭会话（Worker 与租约），不影响播放器自身的读取。
+ */
+export interface ResolvedBitmapSubtitleTrack extends ResolvedSubtitleCommon {
+  kind: 'bitmap'
+  session: BitmapSubtitleSession
+}
+
+export type BitmapSubtitleSession = PgsSubtitleSession
+
+/** 用 kind 区分模式，不靠 url 是否为空猜测 */
+export type ResolvedSubtitleTrack = ResolvedTextSubtitleTrack | ResolvedBitmapSubtitleTrack
 
 export interface SubtitleCatalogPort {
   list: (

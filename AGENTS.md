@@ -100,6 +100,8 @@ idle → importing → hashing → matching → [waiting_user] → loading_danma
 - Electron 自动发现视频同目录、文件名前缀匹配的 `.ass` / `.ssa` / `.srt` / `.vtt` 外挂字幕；Web 需要用户选择文件，不能自动扫描本地目录。
 - 字幕大小保存在 `playerSettingAtom.subtitleScale`，是全局持久化偏好，默认 100%，范围 50%～200%，步进 5%；不存入单视频 HISTORY。
 - 字号缩放由 `services/player-runtime/subtitles/font-scale.ts` 处理：始终基于原始字幕生成内存副本，调整样式和行内绝对字号，保留相对字号指令及定位坐标；禁止覆盖原字幕文件或累积缩放结果。
+- 位图字幕（目前仅本地 MKV 内嵌 PGS）不经过 libass：`services/media/subtitles/pgs/` 的 Worker 按播放位置窗口读取（字幕 Cues 定位，缺少字幕索引时借视频 Cues 有限扫描，不做全片扫描）、解析并合成位图，`PgsSubtitleAdapter` 按共用时钟绘制到独立画布；`SubtitleRenderers` 保证文本与位图字幕互斥。`ResolvedSubtitleTrack` 用 `kind: 'text' | 'bitmap'` 区分，位图会话持有读取租约，关闭字幕时才释放。
+- 位图字幕的窗口、缓存、回溯、像素预算集中在 `pgs/window.ts` 的 `PGS_WINDOW`；HDR（PQ / HLG）视频只做固定增益提亮（`HDR_SUBTITLE_GAIN`，按 mpv 标定），不做 PQ 线性化；字幕大小对位图字幕不生效。测试素材由 `scripts/generate-pgs-fixtures.mts` 自造，禁止提交影片字幕。
 
 ### 弹幕屏蔽
 

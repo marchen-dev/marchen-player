@@ -77,3 +77,26 @@ describe('字幕轨道的历史 id', () => {
     ).toBe(-4)
   })
 })
+
+describe('图片字幕（PGS）的选择记忆', () => {
+  const pgs = (number: number, title: string, language: string) => ({
+    id: `embedded:${number}`,
+    title,
+    language,
+    origin: 'embedded' as const,
+    kind: 'bitmap' as const,
+    embedded: { number, uid: String(9000 + number), codec: 'S_HDMV/PGS' },
+  })
+
+  it('与文本内嵌轨一样以轨道号作为历史 id', () => {
+    expect(resolveTrackHistoryId(pgs(8, 'cht Mandarin', 'zh-Hant'), [], new Set())).toBe(8)
+  })
+
+  it('历史默认轨为 PGS 时恢复它；没有历史时优先中文 PGS 轨', () => {
+    const options = [pgs(6, 'chs&jpn', 'zh-Hans'), pgs(8, 'cht Mandarin', 'zh-Hant'), pgs(11, 'eng', 'en')].map(
+      (track) => ({ ...track, historyId: track.embedded.number }),
+    )
+    expect(selectPreferredSubtitleTrack(options, 8)?.id).toBe('embedded:8')
+    expect(selectPreferredSubtitleTrack(options)?.id).toBe('embedded:6')
+  })
+})

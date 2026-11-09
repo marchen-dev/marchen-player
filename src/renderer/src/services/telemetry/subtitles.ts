@@ -1,16 +1,26 @@
 import type { SubtitleFailureReason } from '@marchen/shared/media'
 import type { UnsupportedSubtitleCode } from '@renderer/services/media/subtitles/matroska'
+import type { PgsSessionErrorCode, PgsSessionStats } from '@renderer/services/media/subtitles/pgs/protocol'
 import { getSubtitleFailureReason } from '@marchen/shared/media'
 import { MediaSourceError } from '@marchen/shared/media-sources'
+import { PgsSessionError } from '@renderer/services/media/subtitles/pgs/client'
 import { telemetry } from './client'
 
-export type SubtitleFailureStage = 'resolve' | 'renderer' | 'catalog' | 'import'
+/** bitmap：位图字幕（PGS）会话在播放中失败 */
+export type SubtitleFailureStage = 'resolve' | 'renderer' | 'catalog' | 'import' | 'bitmap'
+
+/** 文本字幕沿用通用原因码；位图字幕会话带自己的稳定原因码 */
+export type SubtitleFailureCode = SubtitleFailureReason | PgsSessionErrorCode
 
 const reported = new WeakSet<object>()
 
 /** 媒体源字幕读取失败已有自己的错误码，这里只归为读取失败，避免原因维度膨胀 */
-const resolveReason = (error: unknown): SubtitleFailureReason =>
-  error instanceof MediaSourceError ? 'read_failed' : getSubtitleFailureReason(error)
+const resolveReason = (error: unknown): SubtitleFailureCode =>
+  error instanceof PgsSessionError
+    ? error.code
+    : error instanceof MediaSourceError
+      ? 'read_failed'
+      : getSubtitleFailureReason(error)
 
 /** 字幕降级不会成为全局异常，必须显式上报；记录阶段与低基数原因，不收集字幕内容、文件名或 URL。 */
 export function reportSubtitleFailure(stage: SubtitleFailureStage, error: unknown) {
@@ -97,4 +107,26 @@ export function reportUnsupportedSubtitleTracks(
       container: containerOf(media.name),
     })
   }
+}
+
+/** 位图字幕会话结束时的汇总；只带枚举与数值，不带文件名、轨道标题或路径 */
+export function reportBitmapSubtitleSession(report: {
+  mode: 'index' | 'scan'
+  hdr: boolean
+  engine?: 'native' | 'compat'
+  stats?: PgsSessionStats
+}) {
+  const { stats } = report
+  telemetry.capture('subtitle_bitmap_session', {
+    codec: 'pgs',
+    mode: report.mode,
+    hdr: report.hdr,
+    engine: report.engine,
+    first_bitmap_ms: stats?.firstBitmapMs,
+    read_bytes: stats?.readBytes,
+    max_backtrack: stats?.maxBacktrack,
+    block_failures: stats?.blockFailures,
+    decode_failures: stats?.decodeFailures,
+    stats_missing: !stats,
+  })
 }

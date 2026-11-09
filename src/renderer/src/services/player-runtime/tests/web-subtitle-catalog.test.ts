@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createWebSourceLifecyclePort, createWebSubtitleCatalogPort } from '../platform/web'
+import { asText } from './subtitle-track'
 
 describe('web subtitle catalog lifecycle', () => {
   afterEach(() => vi.restoreAllMocks())
@@ -12,16 +13,16 @@ describe('web subtitle catalog lifecycle', () => {
       async () => new File([content], '字幕.srt'),
     )
     const imported = await first.importExternal()
-    expect(imported?.persistenceContent).toBe(content)
+    expect(asText(imported).persistenceContent).toBe(content)
     imported?.release?.()
     const reopened = createWebSubtitleCatalogPort(lifecycle)
     const restored = await reopened.restoreExternal(
       undefined,
       '字幕.srt',
       'saved',
-      imported?.persistenceContent,
+      asText(imported).persistenceContent,
     )
-    const text = await (await fetch(restored.url)).text()
+    const text = await (await fetch(asText(restored).url)).text()
     expect(text).toContain('Dialogue:')
     expect(text).toContain('你好')
     restored.release?.()
@@ -39,7 +40,7 @@ describe('web subtitle catalog lifecycle', () => {
     const catalog = createWebSubtitleCatalogPort(sourceLifecycle, async () => file)
 
     const imported = await catalog.importExternal()
-    expect(imported?.url).toBe('blob:subtitle-1')
+    expect(asText(imported).url).toBe('blob:subtitle-1')
     imported?.release?.()
 
     const video = new File(['video'], 'video.mp4')
@@ -52,7 +53,7 @@ describe('web subtitle catalog lifecycle', () => {
     }
     const descriptor = (await catalog.list(source))[0]!
     const selectedAgain = await catalog.resolve(source, descriptor)
-    expect(selectedAgain.url).toBe('blob:subtitle-2')
+    expect(asText(selectedAgain).url).toBe('blob:subtitle-2')
     selectedAgain.release?.()
 
     expect(revokeObjectURL.mock.calls).toEqual([['blob:subtitle-1'], ['blob:subtitle-2']])

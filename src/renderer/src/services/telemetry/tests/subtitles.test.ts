@@ -1,8 +1,9 @@
 import { SubtitleError } from '@marchen/shared/media'
 import { MediaSourceError } from '@marchen/shared/media-sources'
+import { PgsSessionError } from '@renderer/services/media/subtitles/pgs/client'
 import { beforeEach, expect, it, vi } from 'vitest'
 import { telemetry } from '../client'
-import { reportSubtitleFailure, reportUnsupportedSubtitleTracks, toUnsupportedSubtitleCodec } from '../subtitles'
+import { reportBitmapSubtitleSession, reportSubtitleFailure, reportUnsupportedSubtitleTracks, toUnsupportedSubtitleCodec } from '../subtitles'
 
 vi.mock('../client', () => ({ telemetry: { capture: vi.fn(), captureException: vi.fn() } }))
 beforeEach(() => vi.clearAllMocks())
@@ -66,3 +67,40 @@ it('webm 的 WebVTT codec 归入 webvtt', () => {
   expect(toUnsupportedSubtitleCodec('D_WEBVTT/SUBTITLES')).toBe('webvtt')
   expect(toUnsupportedSubtitleCodec('s_hdmv/pgs')).toBe('pgs')
 })
+
+it('位图字幕会话失败按会话原因码聚合', () => {
+  reportSubtitleFailure('bitmap', new PgsSessionError('index_missing', '/secret/movie.mkv 缺少索引', true))
+  expect(telemetry.capture).toHaveBeenCalledWith('subtitle_failed', {
+    stage: 'bitmap',
+    error_code: 'SUBTITLE_BITMAP_FAILED',
+    reason: 'index_missing',
+  })
+  const [, context] = vi.mocked(telemetry.captureException).mock.calls[0]
+  expect(context?.fingerprint).toEqual(['subtitle', 'bitmap', 'index_missing'])
+  expect(JSON.stringify(context)).not.toContain('secret')
+})
+
+it('位图字幕会话结束时上报汇总，Worker 未回报统计时标记缺失', () => {
+  reportBitmapSubtitleSession({
+    mode: 'index',
+    hdr: true,
+    engine: 'native',
+    stats: { firstBitmapMs: 160, readBytes: 2_400_000, maxBacktrack: 1, scanUsed: false, blockFailures: 0, decodeFailures: 0, hdr: true },
+  })
+  expect(telemetry.capture).toHaveBeenLastCalledWith('subtitle_bitmap_session', {
+    codec: 'pgs',
+    mode: 'index',
+    hdr: true,
+    engine: 'native',
+    first_bitmap_ms: 160,
+    read_bytes: 2_400_000,
+    max_backtrack: 1,
+    block_failures: 0,
+    decode_failures: 0,
+    stats_missing: false,
+  })
+  reportBitmapSubtitleSession({ mode: 'scan', hdr: false })
+  expect(telemetry.capture).toHaveBeenLastCalledWith('subtitle_bitmap_session', expect.objectContaining({ mode: 'scan', stats_missing: true, read_bytes: undefined }))
+  expect(telemetry.captureException).not.toHaveBeenCalled()
+})
+

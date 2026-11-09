@@ -12,6 +12,7 @@ export {
   createElectronSourceLifecyclePort,
 } from './electron'
 export type {
+  BitmapSubtitleSession,
   FullscreenPort,
   FullscreenSnapshot,
   PlayerPortDisposer,
@@ -20,7 +21,9 @@ export type {
   PlayerSourceRequest,
   PlaylistEntry,
   PlaylistPort,
+  ResolvedBitmapSubtitleTrack,
   ResolvedSubtitleTrack,
+  ResolvedTextSubtitleTrack,
   SnapshotPort,
   SnapshotRequest,
   SourceLifecyclePort,

@@ -38,6 +38,21 @@ export class MediaMetadata {
     return this.frameRateProbe
   }
 
+  /**
+   * 主视频轨是否为 HDR（PQ / HLG）。mediabunny 会读取容器 Colour 或编码数据（如 HEVC VUI），
+   * 比只看 MKV Colour 元素更全；仅用于位图字幕提亮，失败时按 SDR 处理。
+   */
+  async isHdrVideo(): Promise<boolean> {
+    try {
+      const track = await this.input.getPrimaryVideoTrack()
+      // TS 内置的 VideoTransferCharacteristics 尚未包含 pq / hlg，按字符串比较
+      const transfer: string | null | undefined = (await track?.getColorSpace())?.transfer
+      return transfer === 'pq' || transfer === 'hlg'
+    } catch {
+      return false
+    }
+  }
+
   describe() {
     this.description ??= this.readDescription().catch((error) => {
       this.description = undefined

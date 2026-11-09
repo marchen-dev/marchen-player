@@ -42,6 +42,7 @@ export {
   webPlayerCapabilities,
 } from './platform'
 export type {
+  BitmapSubtitleSession,
   FullscreenPort,
   FullscreenSnapshot,
   PlayerCapabilities,
@@ -52,7 +53,9 @@ export type {
   PlayerSourceRequest,
   PlaylistEntry,
   PlaylistPort,
+  ResolvedBitmapSubtitleTrack,
   ResolvedSubtitleTrack,
+  ResolvedTextSubtitleTrack,
   SnapshotPort,
   SnapshotRequest,
   SourceLifecyclePort,

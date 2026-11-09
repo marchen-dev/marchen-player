@@ -10,15 +10,18 @@ import type { PropsWithChildren } from 'react'
 import { usePlayerSettingsValue } from '@renderer/atoms/settings/player'
 import { db } from '@renderer/database/db'
 import { captureFeatureUsed } from '@renderer/services/telemetry/features'
-import { reportSubtitleFailure } from '@renderer/services/telemetry/subtitles'
+import { reportBitmapSubtitleSession, reportSubtitleFailure } from '@renderer/services/telemetry/subtitles'
 import { createContext, use, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { applySubtitleLayout, computeSubtitleLayout, createSubtitleCanvas } from './canvas-layout'
 import { LibassSubtitleAdapter } from './libass-subtitle-adapter'
+import { PgsSubtitleAdapter } from './pgs-subtitle-adapter'
 import {
   allocateExternalHistoryId,
   resolveTrackHistoryId,
   selectPreferredSubtitleTrack,
 } from './preferences'
 import { embeddedSubtitlesAvailable } from './source-policy'
+import { SubtitleRenderers } from './subtitle-renderers'
 
 export interface SubtitleTrackOption extends SubtitleTrackDescriptor {
   historyId: number
@@ -68,10 +71,11 @@ export const NativeSubtitleProvider = ({
   // 用户换轨、取消或导入后，初始化和旧请求不能再覆盖当前意图。
   const intentRef = useRef(0)
   const catalogRequestRef = useRef<AbortController | null>(null)
-  const adapterRef = useRef<LibassSubtitleAdapter | null>(null)
-  const canvasRef = useRef<HTMLCanvasElement | null>(null)
+  const adapterRef = useRef<SubtitleRenderers | null>(null)
+  /** 文本与位图字幕各一块画布，尺寸始终一致 */
+  const canvasRef = useRef<HTMLCanvasElement[] | null>(null)
   const releaseAdapterRef = useRef<(() => void) | null>(null)
-  const [readyAdapter, setReadyAdapter] = useState<LibassSubtitleAdapter | null>(null)
+  const [readyAdapter, setReadyAdapter] = useState<SubtitleRenderers | null>(null)
   const [tracks, setTracks] = useState<SubtitleTrackOption[]>([])
   const [selectedId, setSelectedId] = useState('off')
   const [timeOffset, setTimeOffset] = useState(0)
@@ -95,8 +99,8 @@ export const NativeSubtitleProvider = ({
           id: option.historyId,
           origin: option.origin,
           embedded: option.embedded,
-          path: resolved?.persistencePath,
-          content: resolved?.persistenceContent,
+          path: resolved?.kind === 'text' ? resolved.persistencePath : undefined,
+          content: resolved?.kind === 'text' ? resolved.persistenceContent : undefined,
           title: option.title,
           language: option.language,
         }
@@ -143,6 +147,15 @@ export const NativeSubtitleProvider = ({
         const resolved = prepared ?? (await catalog.resolve(source, option, request.signal))
         if (request.signal.aborted) {
           resolved.release?.()
+          return
+        }
+        if (resolved.kind === 'bitmap') {
+          // 位图字幕：会话已就绪，交给位图渲染器；不经过 libass，也没有字体与文本内容
+          trackResolved = true
+          if (!adapter.setBitmapTrack(resolved.session, resolved.release)) return
+          setError(resolved.warning ?? null)
+          setSelectedId(option.id)
+          if (shouldPersist) await persistSelection(option, resolved)
           return
         }
         let content: string
@@ -193,50 +206,49 @@ export const NativeSubtitleProvider = ({
     const surface = root?.querySelector('[data-player-subtitle-surface]')
     if (!surface || !root) return
     if (!adapterRef.current || !canvasRef.current) {
-      const canvas = document.createElement('canvas')
-      canvas.style.position = 'absolute'
-      canvas.style.top = '50%'
-      canvas.style.left = '50%'
-      const adapter = new LibassSubtitleAdapter(canvas, runtime.clock, (cause) => {
-        reportSubtitleFailure('renderer', cause)
+      const textCanvas = createSubtitleCanvas()
+      const bitmapCanvas = createSubtitleCanvas()
+      const fail = (stage: 'renderer' | 'bitmap') => (cause: unknown) => {
+        reportSubtitleFailure(stage, cause)
         setLoading(false)
         setSelectedId('off')
         setError(cause instanceof Error ? cause.message : '字幕渲染失败')
-      })
+      }
+      const adapter = new SubtitleRenderers(
+        new LibassSubtitleAdapter(textCanvas, runtime.clock, fail('renderer')),
+        new PgsSubtitleAdapter(bitmapCanvas, runtime.clock, fail('bitmap'), (report) => {
+          // 遥测失败不影响字幕与播放
+          try {
+            reportBitmapSubtitleSession({ ...report, engine: runtime.presentation?.engine })
+          } catch {}
+        }),
+      )
       const unregister = runtime.registerDisposer('subtitle', () => adapter.dispose())
       adapterRef.current = adapter
-      canvasRef.current = canvas
+      canvasRef.current = [textCanvas, bitmapCanvas]
       releaseAdapterRef.current = () => {
         unregister()
         adapter.dispose()
-        canvas.remove()
+        textCanvas.remove()
+        bitmapCanvas.remove()
       }
       // 首次挂载可能先拿到脱离 DOM 的旧 video，等有效表面创建好实例后再初始化字幕。
       setReadyAdapter(adapter)
     }
     const adapter = adapterRef.current
-    const canvas = canvasRef.current
-    if (canvas.parentElement !== surface) surface.appendChild(canvas)
+    const canvases = canvasRef.current
+    for (const canvas of canvases) if (canvas.parentElement !== surface) surface.appendChild(canvas)
     const resize = () => {
-      const width = runtime.presentation?.width || video.videoWidth
-      const height = runtime.presentation?.height || video.videoHeight
-      if (!width || !height) return
-      const rotation = Number(video.dataset.rotation || 0)
-      const swapped = rotation === 90 || rotation === 270
-      const scale = Math.min(
-        root.clientWidth / (swapped ? height : width),
-        root.clientHeight / (swapped ? width : height),
-      )
-      const cssWidth = width * scale
-      const cssHeight = height * scale
-      const pixelRatio = window.devicePixelRatio || 1
-      const pixelWidth = Math.max(1, Math.round(cssWidth * pixelRatio))
-      const pixelHeight = Math.max(1, Math.round(cssHeight * pixelRatio))
-      if (canvas.width !== pixelWidth) canvas.width = pixelWidth
-      if (canvas.height !== pixelHeight) canvas.height = pixelHeight
-      canvas.style.width = `${cssWidth}px`
-      canvas.style.height = `${cssHeight}px`
-      canvas.style.transform = `translate(-50%, -50%) rotate(${rotation}deg)`
+      const layout = computeSubtitleLayout({
+        videoWidth: runtime.presentation?.width || video.videoWidth,
+        videoHeight: runtime.presentation?.height || video.videoHeight,
+        containerWidth: root.clientWidth,
+        containerHeight: root.clientHeight,
+        rotation: Number(video.dataset.rotation || 0),
+        pixelRatio: window.devicePixelRatio || 1,
+      })
+      if (!layout) return
+      for (const canvas of canvases) applySubtitleLayout(canvas, layout)
       adapter.resize()
     }
     const observer = new ResizeObserver(resize)
