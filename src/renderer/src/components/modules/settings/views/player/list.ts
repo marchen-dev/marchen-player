@@ -30,6 +30,12 @@ export const danmakuFontSizeList = [
     label: '140%',
     value: '34',
   },
+  // 2K / 4K 外接显示器上 140% 仍偏小，补充到 200%。
+  // 已有档位的取值已被用户持久化，保持不动；新增档位按 26px 基准的实际倍数取整。
+  ...[150, 160, 170, 180, 190, 200].map((percent) => ({
+    label: `${percent}%`,
+    value: String(Math.round((26 * percent) / 100)),
+  })),
 ] satisfies SelectOption[]
 
 export const danmakuDurationList = [
