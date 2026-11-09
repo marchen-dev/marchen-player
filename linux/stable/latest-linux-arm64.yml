@@ -1,23 +1,29 @@
-version: 1.1.4
+version: 1.1.5
 files:
-  - url: https://github.com/marchen-dev/marchen-player/releases/download/v1.1.4/Marchen-1.1.4-linux-arm64.AppImage
-    sha512: pES1ruLF4umAQU2wa86Dgn6RusHA2lqnRQkKrw/JubDl6lD+EPCm7iQnXmL2A/Gcx+mwynK1ZvPb8tewySqUMg==
-    size: 200294284
-    blockMapSize: 207576
-  - url: https://github.com/marchen-dev/marchen-player/releases/download/v1.1.4/Marchen-1.1.4-linux-arm64.deb
-    sha512: LMb07dJ5I3cKv+Oe7r3yGvM+akJjPnLhHWZVHdSmJJMzD1rln/Tayo2554KTRaP25ELgHbE9YcE1nmQM6NQFyA==
-    size: 151009192
-path: https://github.com/marchen-dev/marchen-player/releases/download/v1.1.4/Marchen-1.1.4-linux-arm64.AppImage
-sha512: pES1ruLF4umAQU2wa86Dgn6RusHA2lqnRQkKrw/JubDl6lD+EPCm7iQnXmL2A/Gcx+mwynK1ZvPb8tewySqUMg==
+  - url: https://github.com/marchen-dev/marchen-player/releases/download/v1.1.5/Marchen-1.1.5-linux-arm64.AppImage
+    sha512: Hjr2ZuxFWrRMlxeo5hsr6rCNOVnsgz6HdZA2TtPe45P5xt1g/0JpBQYMOSq8WOZ3zllGuI9QGrdiVRc/v/7/Aw==
+    size: 200298541
+    blockMapSize: 207737
+  - url: https://github.com/marchen-dev/marchen-player/releases/download/v1.1.5/Marchen-1.1.5-linux-arm64.deb
+    sha512: HwzJt9D6++d10v48m9jxIZNgHzXYxPeDivYPJdb4jKPuw+sKNalOPb3h3rJhFqvmJZrjMfKOgyPrXqpFUWfMfg==
+    size: 151011424
+path: https://github.com/marchen-dev/marchen-player/releases/download/v1.1.5/Marchen-1.1.5-linux-arm64.AppImage
+sha512: Hjr2ZuxFWrRMlxeo5hsr6rCNOVnsgz6HdZA2TtPe45P5xt1g/0JpBQYMOSq8WOZ3zllGuI9QGrdiVRc/v/7/Aw==
 releaseNotes: |
-  # Marchen 1.1.4
+  # Marchen 1.1.5
 
   ## 弹幕
 
-  - 优化弹幕服务的连接稳定性。
+  - 弹幕字体大小新增 150%～200% 档位，在 2K、4K 等高分辨率显示器上也能看清。
+  - 选择弹幕的窗口可以直接导入自己的弹幕文件（支持 B 站 XML / JSON 格式），导入后即可开始播放，不必再关联在线作品。
+  - 导入本地弹幕文件不再限制 10 MB 大小；文件中个别无效的弹幕会被跳过，不再导致整个文件导入失败，导入完成后会提示跳过的条数。
 
-  ## 网页版
+  ## 播放
 
-  - 手机打开网页版时会提示改用电脑访问，可复制链接分享到电脑，也可以选择仍要继续；手机上不再弹出桌面客户端推广。
-  - 浏览器标签页图标去掉白色底板，在深色与浅色标签栏下都更清晰。
-releaseDate: 2026-11-07T14:56:49.352Z
+  - 新安装时默认开启“单击画面暂停或继续播放”；已在使用的用户保留原有设置，可在播放设置中自行开关。
+  - 进度条与时间之间留出更多间距，时间显示宽度固定，播放时不再跟着数字变化左右抖动。
+
+  ## 字幕
+
+  - 支持部分 MKV 文件中经过压缩的内嵌字幕轨，这类字幕之前会显示为不支持。
+releaseDate: 2026-11-09T12:17:49.109Z

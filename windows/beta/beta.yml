@@ -1,11 +1,11 @@
-version: 1.1.4
+version: 1.1.5
 files:
-  - url: https://github.com/marchen-dev/marchen-player/releases/download/v1.1.4/Marchen-1.1.4-windows-x64-setup.exe
-    sha512: xY6twloKof2moXovWi3bwa+4Cdsrv4Uw13uGaFzwyFu+gw3/GegE5FIfIx6NGvgTSvKonEmRtPFJJ2adBI8/xw==
-    size: 173416758
-path: https://github.com/marchen-dev/marchen-player/releases/download/v1.1.4/Marchen-1.1.4-windows-x64-setup.exe
-sha512: xY6twloKof2moXovWi3bwa+4Cdsrv4Uw13uGaFzwyFu+gw3/GegE5FIfIx6NGvgTSvKonEmRtPFJJ2adBI8/xw==
-releaseNotes: "# Marchen 1.1.4\r
+  - url: https://github.com/marchen-dev/marchen-player/releases/download/v1.1.5/Marchen-1.1.5-windows-x64-setup.exe
+    sha512: AjkEa1imYE793zK3KSwibNwfJC4IKFFCxtLDNiqIVaRVCKHYmWWy4oTG2S8C+jwQHzeJmkpMB7730FaYUpp+pQ==
+    size: 173418860
+path: https://github.com/marchen-dev/marchen-player/releases/download/v1.1.5/Marchen-1.1.5-windows-x64-setup.exe
+sha512: AjkEa1imYE793zK3KSwibNwfJC4IKFFCxtLDNiqIVaRVCKHYmWWy4oTG2S8C+jwQHzeJmkpMB7730FaYUpp+pQ==
+releaseNotes: "# Marchen 1.1.5\r
 
   \r
 
@@ -13,15 +13,27 @@ releaseNotes: "# Marchen 1.1.4\r
 
   \r
 
-  - 优化弹幕服务的连接稳定性。\r
+  - 弹幕字体大小新增 150%～200% 档位，在 2K、4K 等高分辨率显示器上也能看清。\r
+
+  - 选择弹幕的窗口可以直接导入自己的弹幕文件（支持 B 站 XML / JSON 格式），导入后即可开始播放，不必再关联在线作品。\r
+
+  - 导入本地弹幕文件不再限制 10 MB 大小；文件中个别无效的弹幕会被跳过，不再导致整个文件导入失败，导入完成后会提示跳过的条数。\r
 
   \r
 
-  ## 网页版\r
+  ## 播放\r
 
   \r
 
-  - 手机打开网页版时会提示改用电脑访问，可复制链接分享到电脑，也可以选择仍要继续；手机上不再弹出桌面客户端推广。\r
+  - 新安装时默认开启“单击画面暂停或继续播放”；已在使用的用户保留原有设置，可在播放设置中自行开关。\r
 
-  - 浏览器标签页图标去掉白色底板，在深色与浅色标签栏下都更清晰。\r\n"
-releaseDate: 2026-11-07T14:57:21.714Z
+  - 进度条与时间之间留出更多间距，时间显示宽度固定，播放时不再跟着数字变化左右抖动。\r
+
+  \r
+
+  ## 字幕\r
+
+  \r
+
+  - 支持部分 MKV 文件中经过压缩的内嵌字幕轨，这类字幕之前会显示为不支持。\r\n"
+releaseDate: 2026-11-09T12:17:57.395Z
