@@ -1,6 +1,16 @@
 # CHANGELOG
 
 
+## [1.1.6](https://github.com/marchen-dev/marchen-player/compare/v1.1.5...v1.1.6) (2026-11-09)
+
+
+### Features
+
+* **api:** 自动线路改为对冲请求并记住更快的线路 ([3f3f16d](https://github.com/marchen-dev/marchen-player/commit/3f3f16d785827b85d38cb2df42e207705ab61a32))
+* **downloads:** 下载页只显示已下载进度并去掉校验概念 ([59e2498](https://github.com/marchen-dev/marchen-player/commit/59e24984ee2247d1c5dad00055d4cb7710dbb70a))
+* **subtitles:** 支持本地 MKV 内嵌 PGS 图片字幕 ([566e6a6](https://github.com/marchen-dev/marchen-player/commit/566e6a625e4248cc7b27b065897d2637715eaca2))
+* **telemetry:** 上报不支持的内嵌字幕轨并细分字幕失败原因 ([ae0bb82](https://github.com/marchen-dev/marchen-player/commit/ae0bb8237079bb28a9e8e058c9ada3eb04f5fb09))
+
 ## [1.1.5](https://github.com/marchen-dev/marchen-player/compare/v1.1.4...v1.1.5) (2026-11-09)
 
 
