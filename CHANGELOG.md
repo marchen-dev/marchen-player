@@ -1,6 +1,21 @@
 # CHANGELOG
 
 
+## [1.1.5](https://github.com/marchen-dev/marchen-player/compare/v1.1.4...v1.1.5) (2026-11-09)
+
+
+### Bug Fixes
+
+* **player:** 增大进度条与时间的间距并固定时间列宽度 ([dc3b404](https://github.com/marchen-dev/marchen-player/commit/dc3b40410fbc8f3be1fc779efbcd72aa9569c36b))
+* **subtitle:** 支持 zlib 与头部剥离压缩的内嵌字幕轨 ([ad18653](https://github.com/marchen-dev/marchen-player/commit/ad18653e35a1e9f8ec2094710d7b1e646c559897))
+
+
+### Features
+
+* **danmaku:** 匹配弹窗支持本地导入开播并改善文件容错 ([c53ba84](https://github.com/marchen-dev/marchen-player/commit/c53ba8424f854c2adedc7ac81e1cf67ce4d7645a))
+* **danmaku:** 弹幕字体大小档位扩充至 200% ([2aa3e39](https://github.com/marchen-dev/marchen-player/commit/2aa3e398ea8a3474f2c21159e41e84a017faf448))
+* **player:** 默认开启点击画面暂停或播放 ([b4495c3](https://github.com/marchen-dev/marchen-player/commit/b4495c35fe6693bca65df52b4edd17aa2256ea0f))
+
 ## [1.1.4](https://github.com/marchen-dev/marchen-player/compare/v1.1.3...v1.1.4) (2026-11-07)
 
 
