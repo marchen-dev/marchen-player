@@ -30,7 +30,7 @@ jobs:
       MARCHEN_DIST: linux-${{ matrix.arch }}
       MARCHEN_ENVIRONMENT: preview
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           lfs: true
       - run: git lfs checkout
