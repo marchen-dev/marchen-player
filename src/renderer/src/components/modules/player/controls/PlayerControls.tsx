@@ -101,6 +101,8 @@ export const PlayerControls = ({
   const { visible, markActivity } = useControllerVisibility({
     playing: autoHidePlaying,
     locked: controllerLocked,
+    // 悬停不应阻止离窗隐藏；实际操作、面板和键盘焦点需要继续显示。
+    keepVisibleOutsideWindow: dragging || seeking || focused || settingsPanelOpen,
   })
 
   const reportDesktopControllerRect = useCallback(
@@ -231,7 +233,7 @@ export const PlayerControls = ({
               <PlayerIconButton
                 label={playing ? '暂停' : '播放'}
                 icon={playing ? 'icon-[mingcute--pause-fill]' : 'icon-[mingcute--play-fill]'}
-                className="size-11 bg-transparent text-white hover:bg-white/10 [&>i]:text-[1.9rem]"
+                className="size-9 bg-transparent text-white hover:bg-white/10 [&>i]:text-[1.9rem]"
                 onClick={() => (playing ? commands.pause() : void commands.play())}
               />
               <PlayerIconButton

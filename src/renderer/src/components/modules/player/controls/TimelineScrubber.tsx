@@ -208,7 +208,7 @@ export const TimelineScrubber = ({
       aria-valuenow={Math.round(visibleTime)}
       aria-valuetext={`${formatTime(visibleTime)} / ${formatTime(duration)}`}
       className={cn(
-        'no-drag-region group relative flex h-8 min-w-0 flex-1 touch-none items-center outline-none',
+        'no-drag-region group relative flex h-7 min-w-0 flex-1 touch-none items-center outline-none',
         'focus-visible:[&_[data-timeline-track]]:ring-2 focus-visible:[&_[data-timeline-track]]:ring-[var(--player-focus)]',
         disabled && 'pointer-events-none opacity-40',
       )}
