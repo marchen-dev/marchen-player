@@ -1,6 +1,16 @@
 # CHANGELOG
 
 
+## [1.1.7](https://github.com/marchen-dev/marchen-player/compare/v1.1.6...v1.1.7) (2026-11-12)
+
+
+### Bug Fixes
+
+* **player:** 同步窗口按钮显隐并保留原生全屏退出入口 ([a22c8be](https://github.com/marchen-dev/marchen-player/commit/a22c8be46bd4e98570e3407913ef84d63b8c8ccb))
+* **player:** 收紧控制栏高度并在鼠标离窗时隐藏 ([b6cf3d4](https://github.com/marchen-dev/marchen-player/commit/b6cf3d4da43cf3f3930eb1b86b34e5fbdc8161b5))
+* **player:** 保留侧栏动画并在展开时隐藏 Windows 窗口按钮 ([579a569](https://github.com/marchen-dev/marchen-player/commit/579a56913a3f73e85301f4de6a71ec157da25ea3))
+* **player:** 恢复 Windows 窗口按钮透明样式 ([cbc0ffe](https://github.com/marchen-dev/marchen-player/commit/cbc0ffe33b2f062a53b4350266bf2627846e64af))
+
 ## [1.1.6](https://github.com/marchen-dev/marchen-player/compare/v1.1.5...v1.1.6) (2026-11-09)
 
 
