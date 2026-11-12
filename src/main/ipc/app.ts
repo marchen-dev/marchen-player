@@ -134,7 +134,8 @@ export const appGroup = {
           break
         }
         case 'hidden-title-bar': {
-          window?.setWindowButtonVisibility(false)
+          // 以主进程的真实全屏状态兜底，防止切换前排队的隐藏请求遮掉系统退出入口。
+          if (!window.isFullScreen()) window.setWindowButtonVisibility(false)
           break
         }
         case 'show-title-bar': {

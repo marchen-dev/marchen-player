@@ -132,6 +132,8 @@ const initializeListeningEvent = (mainWindow: BrowserWindow) => {
   })
 
   mainWindow.on('enter-full-screen', () => {
+    // 原生绿灯和播放器按钮都能进入全屏，不能依赖 renderer 更新后才恢复系统按钮。
+    if (process.platform === 'darwin') mainWindow.setWindowButtonVisibility(true)
     getRendererHandlers()?.windowAction.send('enter-full-screen')
   })
 
