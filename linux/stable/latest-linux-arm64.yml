@@ -1,28 +1,26 @@
-version: 1.1.6
+version: 1.1.7
 files:
-  - url: https://github.com/marchen-dev/marchen-player/releases/download/v1.1.6/Marchen-1.1.6-linux-arm64.AppImage
-    sha512: e3M+v6GFVBlZfO9N6slBoQOq621ZKFe8JQN6EDoUfV49Bjxuaq4TioDTbiA+9Gobm+3J6AZ7Jo5SQZEO0N5RqA==
-    size: 200339901
-    blockMapSize: 208137
-  - url: https://github.com/marchen-dev/marchen-player/releases/download/v1.1.6/Marchen-1.1.6-linux-arm64.deb
-    sha512: ZDlKUgRdPp6TqnwY/0UCZGcfswWMe9q+4C7mwhC1TuqbJN/YyasA/Ededcosud7uFj298mK4aHaq3fX2Ypnysg==
-    size: 151035856
-path: https://github.com/marchen-dev/marchen-player/releases/download/v1.1.6/Marchen-1.1.6-linux-arm64.AppImage
-sha512: e3M+v6GFVBlZfO9N6slBoQOq621ZKFe8JQN6EDoUfV49Bjxuaq4TioDTbiA+9Gobm+3J6AZ7Jo5SQZEO0N5RqA==
+  - url: https://github.com/marchen-dev/marchen-player/releases/download/v1.1.7/Marchen-1.1.7-linux-arm64.AppImage
+    sha512: /fm/y9kUvqdBSLsm/hlFTYqp4qTHdo6WS53cTXZAUH9SNMCmNe4wzDByrxqQE3e+RcII7BzXUpRGkB00931+BA==
+    size: 200335576
+    blockMapSize: 207908
+  - url: https://github.com/marchen-dev/marchen-player/releases/download/v1.1.7/Marchen-1.1.7-linux-arm64.deb
+    sha512: uYF8bPInrWajOd2aS06OD3LA1YDzlrQlCKjNQpnUi4B6cMf1DWgoeCH8V0zJgNlXx7U5dIaoLGe31Kl7/nEo/Q==
+    size: 151036216
+path: https://github.com/marchen-dev/marchen-player/releases/download/v1.1.7/Marchen-1.1.7-linux-arm64.AppImage
+sha512: /fm/y9kUvqdBSLsm/hlFTYqp4qTHdo6WS53cTXZAUH9SNMCmNe4wzDByrxqQE3e+RcII7BzXUpRGkB00931+BA==
 releaseNotes: |
-  # Marchen 1.1.6
+  # Marchen 1.1.7
 
-  ## 字幕
+  ## 播放器
 
-  - 支持 MKV 内嵌的 PGS 图片字幕。
-  - HDR 视频中的图片字幕会自动提亮。
+  - 控制栏更紧凑，减少对画面的遮挡。
+  - 移除画面顶部的渐变遮罩。
+  - 鼠标移出播放窗口时自动隐藏控制栏，移回后恢复显示。
 
-  ## 网络
+  ## 窗口与设置
 
-  - 自动线路模式下，当前线路较慢时会同时请求另一条线路，取先返回的结果。
-  - 自动模式会记住更快的线路，下次优先使用。
-
-  ## 下载
-
-  - 下载进度显示更连贯。
-releaseDate: 2026-11-09T20:42:56.260Z
+  - macOS 窗口按钮随控制栏显示和隐藏，全屏时保留系统退出全屏入口。
+  - Windows 打开设置侧栏时隐藏右上角窗口按钮，关闭侧栏后恢复。
+  - 设置侧栏始终保留开合动画，不再随系统“减少动态效果”设置关闭。
+releaseDate: 2026-11-12T20:10:19.885Z

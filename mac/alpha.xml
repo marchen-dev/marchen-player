@@ -3,32 +3,30 @@
   <channel>
     <title>Marchen</title>
     <item>
-      <title>1.1.6</title>
-      <pubDate>Mon, 09 Nov 2026 20:43:36 +0000</pubDate>
-      <sparkle:version>1.1.6</sparkle:version>
-      <sparkle:shortVersionString>1.1.6</sparkle:shortVersionString>
+      <title>1.1.7</title>
+      <pubDate>Thu, 12 Nov 2026 20:15:13 +0000</pubDate>
+      <sparkle:version>1.1.7</sparkle:version>
+      <sparkle:shortVersionString>1.1.7</sparkle:shortVersionString>
       <sparkle:minimumSystemVersion>13.0.0</sparkle:minimumSystemVersion>
       <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
-      <description sparkle:format="markdown"># Marchen 1.1.6
+      <description sparkle:format="markdown"># Marchen 1.1.7
 
-## 字幕
+## 播放器
 
-- 支持 MKV 内嵌的 PGS 图片字幕。
-- HDR 视频中的图片字幕会自动提亮。
+- 控制栏更紧凑，减少对画面的遮挡。
+- 移除画面顶部的渐变遮罩。
+- 鼠标移出播放窗口时自动隐藏控制栏，移回后恢复显示。
 
-## 网络
+## 窗口与设置
 
-- 自动线路模式下，当前线路较慢时会同时请求另一条线路，取先返回的结果。
-- 自动模式会记住更快的线路，下次优先使用。
-
-## 下载
-
-- 下载进度显示更连贯。
+- macOS 窗口按钮随控制栏显示和隐藏，全屏时保留系统退出全屏入口。
+- Windows 打开设置侧栏时隐藏右上角窗口按钮，关闭侧栏后恢复。
+- 设置侧栏始终保留开合动画，不再随系统“减少动态效果”设置关闭。
 </description>
-      <enclosure url="https://github.com/marchen-dev/marchen-player/releases/download/v1.1.6/Marchen-1.1.6-macos-arm64.zip" length="201562835" type="application/octet-stream" sparkle:edSignature="1kn9yfGvNwTOQx5v8PySUt728CurZK9nxRmWaHtM162EIQdL6F5bbsJYOR4gqPhCIXg6e3/44Wg8p/P6Tn8vAg=="/>
+      <enclosure url="https://github.com/marchen-dev/marchen-player/releases/download/v1.1.7/Marchen-1.1.7-macos-arm64.zip" length="201563606" type="application/octet-stream" sparkle:edSignature="wyv6dCdYcFNqScTBVK6sWtW+pWxo4zrQZ4uvzALPUoyVoURipzSdltmcOb+lmk3HW+UebkKArT78kcx+R7X8AQ=="/>
       <sparkle:deltas>
-        <enclosure url="https://github.com/marchen-dev/marchen-player/releases/download/v1.1.6/Marchen1.1.6-1.1.5.delta" sparkle:deltaFrom="1.1.5" length="63414" type="application/octet-stream" sparkle:deltaFromSparkleExecutableSize="976240" sparkle:deltaFromSparkleLocales="de,he,ar,el,ja,fa,uk" sparkle:edSignature="+DBR6ayJSJ6+o1L91zD/FcCx70YNQH17RHQscahVnNqvMac0g8cfkPVy+k8fNMqsuvwf9MJ5/y/HYboyuFDaDQ=="/>
-        <enclosure url="https://github.com/marchen-dev/marchen-player/releases/download/v1.1.6/Marchen1.1.6-1.1.4.delta" sparkle:deltaFrom="1.1.4" length="69290" type="application/octet-stream" sparkle:deltaFromSparkleExecutableSize="976240" sparkle:deltaFromSparkleLocales="de,he,ar,el,ja,fa,uk" sparkle:edSignature="hZO4jfH/UFMFo3KCNNq8cnAiyvptZZiTR4NXiEqjCpRflZM4/OwbWAn18oH2Q5SA4SsLQa5hP4ZrDM5N9TRjBw=="/>
+        <enclosure url="https://github.com/marchen-dev/marchen-player/releases/download/v1.1.7/Marchen1.1.7-1.1.6.delta" sparkle:deltaFrom="1.1.6" length="28846" type="application/octet-stream" sparkle:deltaFromSparkleExecutableSize="976240" sparkle:deltaFromSparkleLocales="de,he,ar,el,ja,fa,uk" sparkle:edSignature="ra3F0EqMYwaZJg2AWy4pL0Po6MjfSxFuBOH0eeHPOhHAGLYKiSWrSKrl+X3jAN6IGZWOqDEDE3f5/M6Ozv4GDg=="/>
+        <enclosure url="https://github.com/marchen-dev/marchen-player/releases/download/v1.1.7/Marchen1.1.7-1.1.5.delta" sparkle:deltaFrom="1.1.5" length="64674" type="application/octet-stream" sparkle:deltaFromSparkleExecutableSize="976240" sparkle:deltaFromSparkleLocales="de,he,ar,el,ja,fa,uk" sparkle:edSignature="a6bKxzvZoqyEVZ7NkM00ZT8ctojUYc1eGTFmo3pdNm6eTfQn+5IXKZW+dJPDSUzl5i+fXaHgvf/oJh6tA8WiDA=="/>
       </sparkle:deltas>
     </item>
   </channel>

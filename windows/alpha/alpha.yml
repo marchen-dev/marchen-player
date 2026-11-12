@@ -1,37 +1,33 @@
-version: 1.1.6
+version: 1.1.7
 files:
-  - url: https://github.com/marchen-dev/marchen-player/releases/download/v1.1.6/Marchen-1.1.6-windows-x64-setup.exe
-    sha512: Q/s/LrCUDs9Ag/31muNErNCSloDWmvXOVCysXobL0TCnDywvZJZxpdJ9Hzi3Fwz8z90BJi28EmO8XGmbkWfSyg==
-    size: 173434736
-path: https://github.com/marchen-dev/marchen-player/releases/download/v1.1.6/Marchen-1.1.6-windows-x64-setup.exe
-sha512: Q/s/LrCUDs9Ag/31muNErNCSloDWmvXOVCysXobL0TCnDywvZJZxpdJ9Hzi3Fwz8z90BJi28EmO8XGmbkWfSyg==
-releaseNotes: "# Marchen 1.1.6\r
+  - url: https://github.com/marchen-dev/marchen-player/releases/download/v1.1.7/Marchen-1.1.7-windows-x64-setup.exe
+    sha512: kiDhluDJs81wDKuEBaozaKuPG2NxUJywNy5A+6UjxAIXcCqsYs+rlDoyckccM1FtWnPumIN4qJ+XHwz8ZzXwkw==
+    size: 173435629
+path: https://github.com/marchen-dev/marchen-player/releases/download/v1.1.7/Marchen-1.1.7-windows-x64-setup.exe
+sha512: kiDhluDJs81wDKuEBaozaKuPG2NxUJywNy5A+6UjxAIXcCqsYs+rlDoyckccM1FtWnPumIN4qJ+XHwz8ZzXwkw==
+releaseNotes: "# Marchen 1.1.7\r
 
   \r
 
-  ## 字幕\r
+  ## 播放器\r
 
   \r
 
-  - 支持 MKV 内嵌的 PGS 图片字幕。\r
+  - 控制栏更紧凑，减少对画面的遮挡。\r
 
-  - HDR 视频中的图片字幕会自动提亮。\r
+  - 移除画面顶部的渐变遮罩。\r
 
-  \r
-
-  ## 网络\r
+  - 鼠标移出播放窗口时自动隐藏控制栏，移回后恢复显示。\r
 
   \r
 
-  - 自动线路模式下，当前线路较慢时会同时请求另一条线路，取先返回的结果。\r
-
-  - 自动模式会记住更快的线路，下次优先使用。\r
+  ## 窗口与设置\r
 
   \r
 
-  ## 下载\r
+  - macOS 窗口按钮随控制栏显示和隐藏，全屏时保留系统退出全屏入口。\r
 
-  \r
+  - Windows 打开设置侧栏时隐藏右上角窗口按钮，关闭侧栏后恢复。\r
 
-  - 下载进度显示更连贯。\r\n"
-releaseDate: 2026-11-09T20:42:34.527Z
+  - 设置侧栏始终保留开合动画，不再随系统“减少动态效果”设置关闭。\r\n"
+releaseDate: 2026-11-12T20:10:49.470Z
