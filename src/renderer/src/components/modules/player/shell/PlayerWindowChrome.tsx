@@ -63,7 +63,8 @@ export const PlayerWindowChrome = ({
         <span>关闭</span>
       </button>
 
-      {!isWeb && !fullscreen && isWindows && (
+      {/* 侧栏打开时隐藏窗口按钮，避免跟随顶部拖动区左移到画面中间。 */}
+      {!isWeb && !fullscreen && isWindows && !settingsPanelOpen && (
         <div className="no-drag-region pointer-events-auto absolute top-0 right-0 flex h-12 items-start">
           <WindowButton
             label="最小化"
