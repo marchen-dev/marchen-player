@@ -64,7 +64,7 @@ export const PlayerWindowChrome = ({
       </button>
 
       {!isWeb && !fullscreen && isWindows && (
-        <div className="no-drag-region bg-player-popover player-glass pointer-events-auto absolute top-0 right-0 flex items-start overflow-hidden rounded-bl-lg">
+        <div className="no-drag-region pointer-events-auto absolute top-0 right-0 flex h-12 items-start">
           <WindowButton
             label="最小化"
             icon="icon-[mingcute--minimize-line]"
