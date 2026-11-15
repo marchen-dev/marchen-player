@@ -132,6 +132,64 @@ describe('重置应用', () => {
 })
 
 // 界面多语言放开（LANGUAGE_SWITCH_RELEASED 改为 true）之后，正式构建不再固定语言，这一组届时删除
+describe('主进程显示的对话框与失败说明', () => {
+  /** 主进程命名空间里的全部文案键，逐个在两种语言下取值 */
+  const mainKeys = async () => {
+    const { default: main } = await import('../../../packages/i18n/src/locales/zh-CN/main')
+    const walk = (value: unknown, prefix: string): string[] =>
+      typeof value === 'string'
+        ? [prefix]
+        : Object.entries(value as Record<string, unknown>).flatMap(([key, child]) =>
+            walk(child, prefix ? `${prefix}.${key}` : key),
+          )
+    return walk(main, '')
+  }
+
+  it('对话框按当前语言取文案，切换后立即生效', async () => {
+    const { t, setMainLanguage } = await load()
+    expect(t('main:dialog.quit')).toBe('退出')
+    expect(t('main:fileDialog.video')).toBe('视频文件')
+    setMainLanguage('en')
+    expect(t('main:dialog.quit')).toBe('Quit')
+    expect(t('main:fileDialog.video')).not.toMatch(/\p{Script=Han}/u)
+    expect(t('main:update.later')).not.toMatch(/\p{Script=Han}/u)
+  })
+
+  it('英文下主进程的文案没有残留汉字', async () => {
+    const { t, setMainLanguage } = await load()
+    setMainLanguage('en')
+    const translate = t as unknown as (key: string, options?: object) => string
+    const leftovers = (await mainKeys()).filter((key) =>
+      /\p{Script=Han}/u.test(translate(`main:${key}`, { appName: 'Marchen', id: '1' })),
+    )
+    expect(leftovers).toEqual([])
+  })
+
+  it('简体中文显示错误原来的说明', async () => {
+    const { describeMainError } = await load()
+    const { UserError } = await import('@marchen/shared/errors')
+    expect(
+      describeMainError(new UserError('update.save_timeout', '保存播放进度超时，请重试')),
+    ).toBe('保存播放进度超时，请重试')
+    expect(describeMainError(new Error('net::ERR_FAILED'))).toBe('net::ERR_FAILED')
+  })
+
+  it('其他语言下带错误码的失败按错误码取文案，其余原样显示', async () => {
+    const { describeMainError, setMainLanguage } = await load()
+    const { UserError } = await import('@marchen/shared/errors')
+    setMainLanguage('en')
+    const described = describeMainError(
+      new UserError('update.save_timeout', '保存播放进度超时，请重试'),
+    )
+    expect(described).not.toMatch(/\p{Script=Han}/u)
+    expect(described.length).toBeGreaterThan(0)
+    // 没有对应文案的错误码、普通错误（多为系统给出的英文）保持原样
+    expect(describeMainError(new UserError('unknown.code', '原说明'))).toBe('原说明')
+    expect(describeMainError(new Error('net::ERR_FAILED'))).toBe('net::ERR_FAILED')
+    expect(describeMainError('字符串')).toBe('字符串')
+  })
+})
+
 describe.skipIf(LANGUAGE_SWITCH_RELEASED)('发布开关未放开的正式构建', () => {
   beforeEach(() => {
     mocks.env.isDev = false

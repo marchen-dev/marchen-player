@@ -1,3 +1,4 @@
+import type { FailureResult } from '../errors'
 /** 所有来源共用的播放器弹幕格式，平台原始响应不跨 IPC。 */
 export interface CommentModel {
   cid: number
@@ -44,7 +45,7 @@ export interface LinkSelection {
 export type LinkResponse =
   | { ok: true; result: LinkResult; selection?: never }
   | { ok: true; selection: LinkSelection; result?: never }
-  | { ok: false; message: string }
+  | FailureResult
 export const linkSourceId = (identity: LinkIdentity) =>
   `link:${identity.provider}:${identity.videoId}`
 export function validateOffset(value: number): number {

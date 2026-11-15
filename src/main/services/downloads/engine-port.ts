@@ -41,3 +41,10 @@ export type EngineResponse =
       message?: string
     }
   | { generation: string; stats: EngineStats }
+
+/**
+ * 取不到具体原因时的简体中文说明，只用于日志与简体中文界面；
+ * 其他语言下页面显示自己的概括说明（见 renderer 的 describeError）。
+ */
+// eslint-disable-next-line marchen/no-hardcoded-ui-text -- 给日志的中文兜底说明，不是界面文案
+export const DOWNLOAD_FAILURE_FALLBACK = '下载操作失败'

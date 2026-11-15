@@ -310,7 +310,8 @@ export function createJellyfinFamilyProvider(options: {
         return [
           {
             id: String(stream.Index),
-            title: stream.DisplayTitle ?? stream.Title ?? stream.Language ?? `字幕 ${stream.Index}`,
+            // 服务器没有给名称时留空，由页面按界面语言显示「字幕 N」
+            title: stream.DisplayTitle ?? stream.Title ?? stream.Language ?? '',
             format,
             language: stream.Language,
           },

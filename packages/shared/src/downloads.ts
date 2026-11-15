@@ -1,3 +1,4 @@
+import type { FailureResult } from './errors'
 /** 下载数据只经 IPC 传递；磁力、目录及种子内容不得进入遥测。 */
 export const DOWNLOAD_LIMITS = {
   tasks: 200,
@@ -76,11 +77,13 @@ export interface DownloadDraft {
 export type DownloadInput = { kind: 'magnet'; value: string } | { kind: 'torrent'; path: string }
 export type DownloadErrorCode =
   'INVALID_INPUT' | 'UNSUPPORTED_FORMAT' | 'STORAGE_ERROR' | 'ENGINE_ERROR' | 'TIMEOUT' | 'IN_USE'
-export type DownloadResult<T> = { ok: true; value: T } | { ok: false; message: string }
+/** 失败时 message 是简体中文说明；能归到错误码时带 code，页面据此显示对应语言的文案 */
+export type DownloadResult<T> = { ok: true; value: T } | FailureResult
 
 /** 节点明细仅按需读取，不持久化地址与连接统计。 */
 export interface DownloadPeer {
   id: string
+  /** 取不到地址时为空字符串 */
   address: string
   downloadSpeed: number
   uploadSpeed: number

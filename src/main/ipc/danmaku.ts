@@ -1,5 +1,6 @@
 import type { RendererHandlers } from '@marchen/shared/types/renderer-handlers'
 import { createEmitter, tipc } from '@marchen/electron-ipc/main'
+import { toFailureResult } from '@marchen/shared/errors'
 import { resolveAdapter } from '../services/danmaku/registry'
 import { DanmakuTasks } from '../services/danmaku/tasks'
 
@@ -9,8 +10,13 @@ export const danmakuGroup = {
   identify: t.procedure.input<{ url: string }>().action(async ({ input }) => {
     try {
       return { ok: true as const, identity: resolveAdapter(input.url).identity }
-    } catch {
-      return { ok: false as const, message: '暂不支持此视频链接' }
+    } catch (error) {
+      // 识别失败的原因（链接无效、平台不支持）带着错误码返回
+      return toFailureResult(
+        error,
+        // eslint-disable-next-line marchen/no-hardcoded-ui-text -- 没有错误码时的中文兜底说明
+        '暂不支持此视频链接',
+      )
     }
   }),
   importLink: t.procedure

@@ -1,7 +1,10 @@
 import type { DownloadInput, DownloadResult, DownloadSettings } from '@marchen/shared/downloads'
 import { tipc } from '@marchen/electron-ipc/main'
+import { toFailureResult } from '@marchen/shared/errors'
 import { dialog, shell } from 'electron'
+import { t as translate } from '../lib/i18n'
 import { isMediaPathInUse } from '../lib/media-protocol'
+import { DOWNLOAD_FAILURE_FALLBACK } from '../services/downloads/engine-port'
 import { getDownloads } from '../services/downloads/service'
 import { getMainWindow } from '../windows/main'
 const t = tipc.create()
@@ -9,11 +12,13 @@ async function run<T>(
   sender: Electron.WebContents,
   action: () => Promise<T>,
 ): Promise<DownloadResult<T>> {
-  if (getMainWindow()?.webContents !== sender) return { ok: false, message: '下载请求来源无效' }
+  if (getMainWindow()?.webContents !== sender)
+    return toFailureResult(new Error('下载请求来源无效'), DOWNLOAD_FAILURE_FALLBACK)
   try {
     return { ok: true, value: await action() }
   } catch (error) {
-    return { ok: false, message: error instanceof Error ? error.message : '下载操作失败' }
+    // 用户错误带上错误码与参数，页面按界面语言显示；其余只有中文说明，英文界面显示概括
+    return toFailureResult(error, DOWNLOAD_FAILURE_FALLBACK)
   }
 }
 export const downloadsGroup = {
@@ -75,7 +80,7 @@ export const downloadsGroup = {
     run(context.sender, async () => {
       const result = await dialog.showOpenDialog({
         properties: ['openFile'],
-        filters: [{ name: 'BT 种子', extensions: ['torrent'] }],
+        filters: [{ name: translate('main:fileDialog.torrent'), extensions: ['torrent'] }],
       })
       return result.canceled ? null : result.filePaths[0]
     }),

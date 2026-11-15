@@ -9,11 +9,14 @@ import type { EngineStats, PreparedTorrent } from './engine-port'
 import { randomUUID } from 'node:crypto'
 import { mkdir, readFile, realpath, rm, stat, unlink, writeFile } from 'node:fs/promises'
 import { join, resolve } from 'node:path'
+import { t } from '@main/lib/i18n'
 import { DOWNLOAD_LIMITS } from '@marchen/shared/downloads'
+import { errorFromText, errorToText, UserError } from '@marchen/shared/errors'
 import { app, BrowserWindow } from 'electron'
 import parseTorrent from 'parse-torrent'
 import { setDownloadAvailability } from './availability'
 import { ProcessDownloadEngine } from './engine'
+import { DOWNLOAD_FAILURE_FALLBACK } from './engine-port'
 import { HttpDownloadEngine } from './http-engine'
 import { validateMagnet, validateMetadata } from './metadata'
 import {
@@ -38,6 +41,7 @@ export class DownloadService {
   private locks = new Map<string, Promise<unknown>>()
   private ready: Promise<void>
   private revision = 0
+  /** 整个下载服务不可用的原因；与任务的 error 一样是编码后的文字（见 errorToText） */
   private error?: string
   private storageLoaded = false
   private closing = false
@@ -105,7 +109,7 @@ export class DownloadService {
               const info = await stat(await safeTaskPath(task.directory, task.files[0].path))
               if (!info.isFile() || info.size !== task.files[0].size) {
                 task.files[0].complete = false
-                throw new Error('已下载文件被移动或修改')
+                throw new UserError('downloads.file_missing', '已下载文件被移动或修改')
               }
             }
             this.publish()
@@ -142,7 +146,7 @@ export class DownloadService {
   }
   private async ensure() {
     await this.ready
-    if (this.error) throw new Error(this.error)
+    if (this.error) throw errorFromText(this.error)
     if (this.closing) throw new Error('下载服务正在停止')
   }
   private get(id: string) {
@@ -161,12 +165,18 @@ export class DownloadService {
     try {
       await this.repository.save({ schemaVersion: 1, settings: this.settings, tasks: this.tasks })
       this.error = undefined
-    } catch {
-      this.error = '下载记录保存失败，已停止传输，请检查磁盘后重启应用'
+    } catch (cause) {
+      const failure = new UserError(
+        'downloads.persist_failed',
+        '下载记录保存失败，已停止传输，请检查磁盘后重启应用',
+        undefined,
+        { cause },
+      )
+      this.error = errorToText(failure, failure.message)
       void this.httpEngine.shutdown()
       if (!this.closing) void this.engine.shutdown().catch(() => {})
       this.publish()
-      throw new Error(this.error)
+      throw failure
     }
   }
   private publish() {
@@ -196,15 +206,18 @@ export class DownloadService {
         url.password ||
         url.href.length > 16384
       )
-        throw new Error('请输入 HTTP/HTTPS 文件直链')
-      if (this.tasks.length >= DOWNLOAD_LIMITS.tasks) throw new Error('下载任务超过限制')
+        throw new UserError('downloads.invalid_link', '请输入 HTTP/HTTPS 文件直链')
+      if (this.tasks.length >= DOWNLOAD_LIMITS.tasks)
+        throw new UserError('downloads.limit', '下载任务超过限制')
       if (this.tasks.some((task) => task.http?.url === url.href))
-        throw new Error('该链接的下载任务已存在')
+        throw new UserError('downloads.exists', '该链接的下载任务已存在')
       const id = randomUUID()
-      let name = decodeURIComponent(url.pathname.split('/').pop() || `下载-${id}`)
-      if (name.length > 180) name = `下载-${id}`
+      // 链接里取不到文件名或文件名过长时用默认名称，随界面语言
+      const fallbackName = t('main:downloads.defaultName', { id })
+      let name = decodeURIComponent(url.pathname.split('/').pop() || fallbackName)
+      if (name.length > 180) name = fallbackName
       validateTorrentPath(name)
-      if (name.includes('/')) throw new Error('下载文件名无效')
+      if (name.includes('/')) throw new UserError('downloads.invalid_link', '下载文件名无效')
       const root = await realpath(directory)
       const partialName = `.marchen-${id}.part`
       await reserveTorrentPaths(root, [{ path: name }, { path: partialName }])
@@ -244,7 +257,7 @@ export class DownloadService {
       this.tasks.length >= DOWNLOAD_LIMITS.tasks ||
       this.drafts.size + this.preparing.size >= DOWNLOAD_LIMITS.drafts
     )
-      throw new Error('下载任务或待确认任务超过限制')
+      throw new UserError('downloads.limit', '下载任务或待确认任务超过限制')
     if (!/^[a-f0-9-]{36}$/i.test(id) || this.preparing.has(id) || this.drafts.has(id))
       throw new Error('无效或重复的请求')
     this.preparing.add(id)
@@ -254,7 +267,7 @@ export class DownloadService {
       else {
         const info = await stat(input.path)
         if (!info.isFile() || info.size > DOWNLOAD_LIMITS.torrentBytes)
-          throw new Error('种子文件无效或超过 8 MiB')
+          throw new UserError('downloads.invalid_torrent', '种子文件无效或超过 8 MiB')
         value = await readFile(input.path)
         validateMetadata(value)
       }
@@ -269,11 +282,12 @@ export class DownloadService {
           existingTaskId: duplicate.id,
         }
       const result = await this.engine.prepare(id, value)
-      if (this.cancelled.has(id) || this.closing) throw new Error('已取消添加')
+      if (this.cancelled.has(id) || this.closing)
+        throw new UserError('downloads.cancelled', '已取消添加')
       const existing = this.tasks.find((t) => t.infoHash === result.draft.infoHash)
       if (existing) return { ...result.draft, existingTaskId: existing.id }
       if ([...this.drafts.values()].some((d) => d.draft.infoHash === result.draft.infoHash))
-        throw new Error('该种子已在待确认列表中')
+        throw new UserError('downloads.exists', '该种子已在待确认列表中')
       this.drafts.set(id, result)
       return result.draft
     } finally {
@@ -291,12 +305,13 @@ export class DownloadService {
     await this.ensure()
     return this.serial('confirm', async () => {
       const prepared = this.drafts.get(id)
-      if (!prepared) throw new Error('待确认任务已过期')
+      if (!prepared) throw new UserError('downloads.expired', '待确认任务已过期')
       if (this.tasks.some((t) => t.infoHash === prepared.draft.infoHash))
-        throw new Error('该下载任务已存在')
+        throw new UserError('downloads.exists', '该下载任务已存在')
       if (!indices.length || indices.some((i) => !Number.isInteger(i) || !prepared.draft.files[i]))
-        throw new Error('请选择有效文件')
-      if (this.tasks.length >= DOWNLOAD_LIMITS.tasks) throw new Error('下载任务超过限制')
+        throw new UserError('downloads.no_files_selected', '请选择有效文件')
+      if (this.tasks.length >= DOWNLOAD_LIMITS.tasks)
+        throw new UserError('downloads.limit', '下载任务超过限制')
       const taskDirectory = await realpath(directory)
       await mkdir(join(this.repository.directory, 'metadata'), { recursive: true })
       await writeFile(
@@ -353,7 +368,8 @@ export class DownloadService {
     await this.ensure()
     return this.serial(id, async () => {
       const task = this.get(id)
-      if (!task.files.some((file) => file.selected)) throw new Error('请先选择要下载的文件')
+      if (!task.files.some((file) => file.selected))
+        throw new UserError('downloads.no_files_selected', '请先选择要下载的文件')
       if (this.complete(task)) return
       task.intent = 'running'
       await this.persist()
@@ -400,7 +416,7 @@ export class DownloadService {
         indices.some((index) => !Number.isInteger(index) || !task.files[index]) ||
         new Set(indices).size !== indices.length
       )
-        throw new Error('请选择有效文件')
+        throw new UserError('downloads.no_files_selected', '请选择有效文件')
       if (task.files.every((file) => file.selected === indices.includes(file.index))) return
       const shouldRun = task.intent === 'running' || task.state === 'completed'
       task.state = 'pausing'
@@ -433,7 +449,7 @@ export class DownloadService {
     const task = this.tasks.find((t) => t.id === s.id)
     if (!task || task.state === 'pausing' || task.intent !== 'running') return
     if (s.error) {
-      this.fail(task, new Error(s.error))
+      this.fail(task, errorFromText(s.error))
       return
     }
     for (const f of s.files) if (task.files[f.index]) Object.assign(task.files[f.index], f)
@@ -454,6 +470,7 @@ export class DownloadService {
   }
   private fail(task: DownloadTask, error: unknown) {
     task.state = 'error'
+    // 失败原因保存为编码后的文字，页面按当前界面语言显示（重启后也一样）
     task.error = message(error)
     task.downloadSpeed = 0
     task.peers = 0
@@ -462,7 +479,8 @@ export class DownloadService {
   private crashed() {
     if (this.closing) return
     for (const t of this.tasks)
-      if (!t.http && t.intent === 'running') this.fail(t, new Error('下载进程已退出，请重试'))
+      if (!t.http && t.intent === 'running')
+        this.fail(t, new UserError('downloads.engine', '下载进程已退出，请重试'))
   }
   async setSettings(value: DownloadSettings) {
     await this.ensure()
@@ -476,13 +494,13 @@ export class DownloadService {
     const task = this.get(id)
     const file = task.files[index]
     if (!file?.selected || !file.complete || task.state === 'checking')
-      throw new Error('文件尚未下载完成')
+      throw new UserError('downloads.not_finished', '文件尚未下载完成')
     const target = await safeTaskPath(task.directory, file.path)
     const info = await stat(target)
     if (!info.isFile() || info.size !== file.size) {
       file.complete = false
       this.publish()
-      throw new Error('文件已被移动或修改')
+      throw new UserError('downloads.file_missing', '文件已被移动或修改')
     }
     return target
   }
@@ -502,7 +520,8 @@ export class DownloadService {
       if (task.http) this.httpEngine.forget(task)
       if (deleteFiles) {
         const paths = await Promise.all(task.files.map((f) => safeTaskPath(task.directory, f.path)))
-        if (paths.some(isInUse)) throw new Error('文件正在播放，请先结束播放')
+        if (paths.some(isInUse))
+          throw new UserError('downloads.in_use', '文件正在播放，请先结束播放')
         for (const path of paths) {
           if (
             this.tasks.some(
@@ -564,8 +583,9 @@ export class DownloadService {
     if (this.storageLoaded || clear) await this.persist()
   }
 }
+/** 用户错误带上错误码编码，其余只取说明；显示时由页面的 describeError 还原 */
 function message(error: unknown) {
-  return error instanceof Error ? error.message : '下载操作失败'
+  return errorToText(error, DOWNLOAD_FAILURE_FALLBACK)
 }
 let service: DownloadService | undefined
 export const getDownloads = () => (service ??= new DownloadService())

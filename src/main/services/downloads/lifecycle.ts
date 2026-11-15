@@ -1,4 +1,5 @@
 import { app, dialog } from 'electron'
+import { t } from '../../lib/i18n'
 import { existingDownloads, getDownloads } from './service'
 export function initializeDownloads() {
   getDownloads()
@@ -15,8 +16,8 @@ export function initializeDownloads() {
         if (service?.hasActive()) {
           const answer = await dialog.showMessageBox({
             type: 'question',
-            message: '还有未完成的下载任务，退出后将停止，重新打开可恢复。',
-            buttons: ['取消', '退出'],
+            message: t('main:dialog.downloadsQuitConfirm'),
+            buttons: [t('common:action.cancel'), t('main:dialog.quit')],
             defaultId: 0,
             cancelId: 0,
           })
@@ -28,7 +29,7 @@ export function initializeDownloads() {
       } catch {
         await dialog.showMessageBox({
           type: 'error',
-          message: '下载任务保存失败，暂未退出，请检查磁盘后重试。',
+          message: t('main:dialog.downloadsSaveFailed'),
         })
       } finally {
         stopping = false

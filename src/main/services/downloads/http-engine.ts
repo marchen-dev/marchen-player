@@ -1,6 +1,7 @@
 import type { DownloadTask } from '@marchen/shared/downloads'
 import type { DownloadItem, Session } from 'electron'
 import { rename, stat } from 'node:fs/promises'
+import { encodeUserError, UserError } from '@marchen/shared/errors'
 import { session } from 'electron'
 import { safeTaskPath } from './paths'
 
@@ -43,14 +44,18 @@ export class HttpDownloadEngine {
       this.active.add(task.id)
       void this.launch(task).catch(() => {
         this.clearPending(task.id)
-        this.failed(task, 'HTTP 下载启动失败，请检查链接和保存目录后重试')
+        this.failed(
+          task,
+          new UserError('downloads.http_start', 'HTTP 下载启动失败，请检查链接和保存目录后重试'),
+        )
       })
     }
   }
-  private failed(task: DownloadTask, message: string) {
+  private failed(task: DownloadTask, failure: UserError) {
     task.state = 'error'
     task.downloadSpeed = 0
-    task.error = message
+    // 失败原因保存为编码后的文字（错误码在开头），页面按当前界面语言显示
+    task.error = encodeUserError(failure)
     this.active.delete(task.id)
     this.changed()
     this.pump()
@@ -110,7 +115,11 @@ export class HttpDownloadEngine {
         if (task.intent === 'running')
           task.state = item.getState() === 'interrupted' ? 'error' : 'downloading'
         if (item.getState() === 'interrupted') {
-          task.error = item.canResume() ? '下载中断，可点击重试继续' : '下载中断，重试将从头下载'
+          task.error = encodeUserError(
+            item.canResume()
+              ? new UserError('downloads.interrupted_resumable', '下载中断，可点击重试继续')
+              : new UserError('downloads.interrupted_restart', '下载中断，重试将从头下载'),
+          )
           this.active.delete(task.id)
           this.pump()
         }
@@ -122,7 +131,7 @@ export class HttpDownloadEngine {
       item.once('done', (_event, state) => {
         this.items.delete(task.id)
         if (state !== 'completed') {
-          this.failed(task, '下载未完成，重试将尝试续传')
+          this.failed(task, new UserError('downloads.incomplete', '下载未完成，重试将尝试续传'))
           return
         }
         task.state = 'checking'
@@ -142,7 +151,12 @@ export class HttpDownloadEngine {
           this.active.delete(task.id)
           this.changed(true)
           this.pump()
-        })().catch(() => this.failed(task, '下载完成但文件保存失败，请检查目标目录'))
+        })().catch(() =>
+          this.failed(
+            task,
+            new UserError('downloads.save_failed', '下载完成但文件保存失败，请检查目标目录'),
+          ),
+        )
         this.finishing.add(finishing)
         void finishing.finally(() => this.finishing.delete(finishing))
       })
@@ -151,7 +165,7 @@ export class HttpDownloadEngine {
     }
     const timer = setTimeout(() => {
       this.clearPending(task.id)
-      this.failed(task, '连接超时，请检查链接后重试')
+      this.failed(task, new UserError('downloads.timeout', '连接超时，请检查链接后重试'))
     }, 30000)
     this.pending.set(task.id, { session: ses, listener, timer })
     ses.once('will-download', listener)

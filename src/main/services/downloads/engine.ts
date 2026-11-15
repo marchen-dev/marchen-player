@@ -7,8 +7,11 @@ import type {
   PreparedTorrent,
 } from './engine-port'
 import { randomUUID } from 'node:crypto'
+import { t } from '@main/lib/i18n'
 import { DOWNLOAD_LIMITS } from '@marchen/shared/downloads'
+import { errorFromText, UserError } from '@marchen/shared/errors'
 import { utilityProcess } from 'electron'
+import { DOWNLOAD_FAILURE_FALLBACK } from './engine-port'
 import workerPath from './worker?modulePath'
 
 export class ProcessDownloadEngine implements DownloadEngine {
@@ -31,7 +34,8 @@ export class ProcessDownloadEngine implements DownloadEngine {
       this.generation = randomUUID()
       const child = utilityProcess.fork(workerPath, [], {
         stdio: 'ignore',
-        serviceName: 'Marchen 下载',
+        // 显示在系统的活动监视器 / 任务管理器里
+        serviceName: t('main:downloads.serviceName'),
       })
       this.child = child
       child.on('message', (response: EngineResponse) => {
@@ -43,14 +47,14 @@ export class ProcessDownloadEngine implements DownloadEngine {
         this.pending.delete(response.requestId)
         response.ok
           ? pending.resolve(response.value)
-          : pending.reject(new Error(response.message ?? '下载操作失败'))
+          : pending.reject(errorFromText(response.message ?? DOWNLOAD_FAILURE_FALLBACK))
       })
       child.on('exit', () => {
         if (this.child !== child) return
         this.child = undefined
         for (const value of this.pending.values()) {
           clearTimeout(value.timer)
-          value.reject(new Error('下载进程已退出，请重试'))
+          value.reject(new UserError('downloads.engine', '下载进程已退出，请重试'))
         }
         this.pending.clear()
         this.onCrash()
@@ -62,7 +66,7 @@ export class ProcessDownloadEngine implements DownloadEngine {
         () => {
           // 控制命令超时必须结束进程；只读节点查询失败不应中断下载。
           if (command.kind !== 'peers') this.child?.kill()
-          reject(new Error('下载进程响应超时'))
+          reject(new UserError('downloads.timeout', '下载进程响应超时'))
           this.pending.delete(requestId)
         },
         command.kind === 'prepare'

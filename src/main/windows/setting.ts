@@ -1,5 +1,6 @@
 import type { AppSettingsSection, RendererHandlers } from '@marchen/shared/types/renderer-handlers'
 import { clearAllData } from '@main/lib/cleaner'
+import { t } from '@main/lib/i18n'
 import { createEmitter } from '@marchen/electron-ipc/main'
 
 import { dialog } from 'electron'
@@ -43,7 +44,7 @@ export const performClearData = async () => {
   try {
     return await clearAllData()
   } catch {
-    await dialog.showMessageBox({ type: 'error', message: '清除失败，请检查磁盘空间和权限后重试' })
+    await dialog.showMessageBox({ type: 'error', message: t('main:dialog.clearDataFailed') })
   }
 }
 
@@ -56,8 +57,8 @@ export const clearData = async () => {
 
   const result = await dialog.showMessageBox({
     type: 'warning',
-    message: '这个行为会清除 APP 全部数据，包括历史记录和设置，确定要继续吗？',
-    buttons: ['取消', '确定'],
+    message: t('main:dialog.clearDataConfirm'),
+    buttons: [t('common:action.cancel'), t('main:dialog.clearDataOk')],
   })
   if (!result.response) {
     return

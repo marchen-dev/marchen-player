@@ -1,8 +1,10 @@
 import type { Torrent, TorrentOptions } from 'webtorrent'
 import type { EngineRequest, EngineResponse, EngineStats } from './engine-port'
 import { DOWNLOAD_LIMITS } from '@marchen/shared/downloads'
+import { encodeUserError, errorToText, UserError } from '@marchen/shared/errors'
 import MemoryStore from 'memory-chunk-store'
 import WebTorrent from 'webtorrent'
+import { DOWNLOAD_FAILURE_FALLBACK } from './engine-port'
 import { fileProgress } from './file-progress'
 import { validateMagnet, validateMetadata } from './metadata'
 import { safeTaskPath } from './paths'
@@ -61,7 +63,7 @@ client.on('error', () => {
         files: [],
         downloadSpeed: 0,
         peers: 0,
-        error: '下载引擎错误，请重试',
+        error: encodeUserError({ code: 'downloads.engine', message: '下载引擎错误，请重试' }),
       },
     })
 })
@@ -106,13 +108,17 @@ port.on('message', async ({ data }: { data: EngineRequest }) => {
             files: [],
             downloadSpeed: 0,
             peers: 0,
-            error: '下载失败，请检查目录、空间或网络后重试',
+            error: encodeUserError({
+              code: 'downloads.transfer_failed',
+              message: '下载失败，请检查目录、空间或网络后重试',
+            }),
           },
         }),
       )
       await new Promise<void>((resolve, reject) => {
         const timer = setTimeout(
-          () => reject(new Error('获取种子信息或检查已下载文件超时，请重试')),
+          () =>
+            reject(new UserError('downloads.timeout', '获取种子信息或检查已下载文件超时，请重试')),
           draft ? DOWNLOAD_LIMITS.metadataMs : 10 * 60 * 1000,
         )
         t.once('ready', () => {
@@ -121,11 +127,11 @@ port.on('message', async ({ data }: { data: EngineRequest }) => {
         })
         t.once('error', () => {
           clearTimeout(timer)
-          reject(new Error('下载引擎无法打开任务'))
+          reject(new UserError('downloads.engine', '下载引擎无法打开任务'))
         })
         t.once('close', () => {
           clearTimeout(timer)
-          reject(new Error('任务已取消'))
+          reject(new UserError('downloads.cancelled', '任务已取消'))
         })
       })
       validateMetadata(t.torrentFile)
@@ -172,7 +178,8 @@ port.on('message', async ({ data }: { data: EngineRequest }) => {
       generation,
       requestId,
       ok: false,
-      message: error instanceof Error ? error.message : '下载操作失败',
+      // 子进程与主进程之间只能传文字，错误码编码在文字里，主进程用 errorFromText 还原
+      message: errorToText(error, DOWNLOAD_FAILURE_FALLBACK),
     })
   }
 })

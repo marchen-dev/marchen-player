@@ -1,9 +1,3 @@
-/**
- * 主进程的界面多语言入口：应用菜单等由主进程显示的文字从这里取。
- *
- * 语言由页面上报（见 renderer 的 initialize/i18n.ts）；页面加载之前用上次保存的镜像，
- * 没有镜像时按系统首选语言解析。主进程只注册自己用到的命名空间。
- */
 import type { AppLanguage, Translate } from '@marchen/i18n'
 import type { i18n as I18n } from 'i18next'
 import type { LanguageStore } from './language-store'
@@ -17,6 +11,13 @@ import {
   SYSTEM_PREFERENCE,
   toLanguageTag,
 } from '@marchen/i18n'
+/**
+ * 主进程的界面多语言入口：应用菜单等由主进程显示的文字从这里取。
+ *
+ * 语言由页面上报（见 renderer 的 initialize/i18n.ts）；页面加载之前用上次保存的镜像，
+ * 没有镜像时按系统首选语言解析。主进程只注册自己用到的命名空间。
+ */
+import { isUserError } from '@marchen/shared/errors'
 import { app } from 'electron'
 import { writeLog } from './diagnostic-log'
 import { isDev } from './env'
@@ -50,7 +51,7 @@ let instance: I18n | undefined
 const getInstance = () =>
   (instance ??= createI18n({
     language: SWITCH_ENABLED ? (getStore().read() ?? systemLanguage()) : SOURCE_LANGUAGE,
-    namespaces: ['main', 'common'],
+    namespaces: ['main', 'common', 'errors'],
   }))
 
 /** 取文案；实例在首次使用时才创建，每次调用按当时的语言求值 */
@@ -58,6 +59,20 @@ export const t = ((...args: unknown[]) =>
   (getInstance().t as unknown as (...values: unknown[]) => unknown)(
     ...args,
   )) as unknown as Translate
+
+/**
+ * 把主进程里的一次失败变成显示在对话框或推给页面的一句话。
+ * 简体中文显示原来的说明；其他语言下，带错误码的用户错误按错误码取文案，
+ * 其余（多为系统或更新库给出的英文错误）原样显示。
+ */
+export const describeMainError = (error: unknown): string => {
+  const message = error instanceof Error ? error.message : String(error)
+  const i18n = getInstance()
+  if (i18n.language === SOURCE_LANGUAGE || !isUserError(error)) return message
+  if (!i18n.exists(`errors:${error.code}`)) return message
+  const translate = i18n.t as unknown as (key: string, options?: object) => string
+  return translate(`errors:${error.code}`, error.params)
+}
 
 /** 语言变化时调用，返回取消订阅的函数；应用菜单据此重建 */
 export const onMainLanguageChanged = (listener: () => void): (() => void) => {

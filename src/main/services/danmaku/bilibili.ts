@@ -6,7 +6,9 @@ import type {
   LinkSelection,
 } from '@marchen/shared/danmaku'
 import { setTimeout as delay } from 'node:timers/promises'
+import { UserError } from '@marchen/shared/errors'
 import { parseStringPromise } from 'xml2js'
+import { t } from '../../lib/i18n'
 
 const API = 'https://api.bilibili.com'
 export const BILIBILI_LIMITS = {
@@ -100,7 +102,11 @@ export class BilibiliClient {
             await delay(500 * (attempt + 1), undefined, { signal: this.signal })
             continue
           }
-          throw new Error(`B 站弹幕接口 HTTP ${response.status}，请稍后重试`)
+          throw new UserError(
+            'danmakuLink.http',
+            `B 站弹幕接口 HTTP ${response.status}，请稍后重试`,
+            { status: response.status },
+          )
         }
         const reader = response.body?.getReader()
         if (!reader) throw new Error('B 站接口没有响应内容')
@@ -111,7 +117,7 @@ export class BilibiliClient {
             const next = await reader.read()
             if (next.done) break
             bytes += next.value.byteLength
-            if (bytes > BILIBILI_LIMITS.responseBytes) throw new Error('B 站响应超过大小限制')
+            if (bytes > BILIBILI_LIMITS.responseBytes) throw new UserError('danmakuLink.too_large', 'B 站响应超过大小限制')
             chunks.push(next.value)
           }
         } finally {
@@ -127,12 +133,12 @@ export class BilibiliClient {
             await delay(500 * (attempt + 1), undefined, { signal: this.signal })
             continue
           }
-          throw new Error('B 站网络请求失败，请稍后重试')
+          throw new UserError('danmakuLink.network', 'B 站网络请求失败，请稍后重试')
         }
         throw error
       }
     }
-    throw new Error('B 站网络请求失败')
+    throw new UserError('danmakuLink.network', 'B 站网络请求失败')
   }
   async metadata(path: string, field: 'data' | 'result') {
     let raw: unknown
@@ -143,7 +149,10 @@ export class BilibiliClient {
       throw error
     }
     const response = object(raw)
-    if (response.code !== 0) throw new Error('无法读取 B 站视频信息，视频可能不可用或请求受限')
+    if (response.code !== 0) throw new UserError(
+      'danmakuLink.unavailable',
+      '无法读取 B 站视频信息，视频可能不可用或请求受限',
+    )
     return object(response[field])
   }
 }
@@ -160,10 +169,10 @@ export async function convertBilibiliXml(text: string, cid: string) {
   const root = object(object(parsed).i)
   if (!Array.isArray(root.chatid) || root.chatid[0] !== cid)
     throw new Error('B 站弹幕视频标识不匹配')
-  if (Array.isArray(root.state) && root.state[0] !== '0') throw new Error('该视频弹幕已关闭')
+  if (Array.isArray(root.state) && root.state[0] !== '0') throw new UserError('danmakuLink.danmaku_closed', '该视频弹幕已关闭')
   const rows = root.d ?? []
   if (!Array.isArray(rows)) throw new Error('B 站弹幕结构异常')
-  if (rows.length > BILIBILI_LIMITS.comments) throw new Error('B 站弹幕数量超过读取限制')
+  if (rows.length > BILIBILI_LIMITS.comments) throw new UserError('danmakuLink.too_large', 'B 站弹幕数量超过读取限制')
   const comments: CommentModel[] = []
   const seen = new Set<string>()
   let skipped = 0
@@ -199,10 +208,10 @@ export async function convertBilibiliXml(text: string, cid: string) {
       skipped++
     }
   }
-  if (!comments.length) throw new Error('该链接没有可导入的普通弹幕')
+  if (!comments.length) throw new UserError('danmakuLink.empty', '该链接没有可导入的普通弹幕')
   comments.sort((a, b) => Number(a.p.split(',')[0]) - Number(b.p.split(',')[0]))
   if (Buffer.byteLength(JSON.stringify(comments)) > BILIBILI_LIMITS.resultBytes)
-    throw new Error('B 站弹幕结果超过大小限制')
+    throw new UserError('danmakuLink.too_large', 'B 站弹幕结果超过大小限制')
   return { content: { count: comments.length, comments }, skipped }
 }
 
@@ -213,7 +222,7 @@ export async function fetchBilibili(
   fetcher?: typeof fetch,
 ): Promise<LinkResult | LinkSelection> {
   const identity = recognizeBilibili(input.canonicalUrl)
-  if (!identity) throw new Error('不支持此 B 站链接')
+  if (!identity) throw new UserError('danmakuLink.unsupported_url', '不支持此 B 站链接')
   const client = new BilibiliClient(signal, fetcher)
   progress({ stage: 'metadata', completed: 0, count: 0 })
   let cid: string
@@ -223,7 +232,7 @@ export async function fetchBilibili(
     const data = await client.metadata(`/x/web-interface/view?bvid=${bv}`, 'data')
     if (!Array.isArray(data.pages)) throw new Error('无法读取 B 站分 P 列表')
     const page = data.pages.map(object).find((value) => value.page === Number(pageText))
-    if (!page) throw new Error(`该视频不存在第 ${pageText} P`)
+    if (!page) throw new UserError('danmakuLink.not_found', `该视频不存在第 ${pageText} P`)
     cid = id(page.cid)
     label = `${title(data.title, bv)} · P${pageText} ${title(page.part, '')}`.trim()
   } else {
@@ -234,12 +243,16 @@ export async function fetchBilibili(
       'result',
     )
     if (!Array.isArray(data.episodes) || !data.episodes.length)
-      throw new Error('该番剧没有可读取的正片剧集')
-    if (data.episodes.length > BILIBILI_LIMITS.episodes) throw new Error('番剧剧集数量超过读取限制')
+      throw new UserError('danmakuLink.not_found', '该番剧没有可读取的正片剧集')
+    if (data.episodes.length > BILIBILI_LIMITS.episodes) throw new UserError('danmakuLink.too_large', '番剧剧集数量超过读取限制')
     const episodes = data.episodes.map(object)
-    const seasonTitle = title(data.title, 'B 站番剧')
+    const seasonTitle = title(data.title, t('main:danmakuLink.bilibiliSeason'))
     const episodeTitle = (ep: Record<string, unknown>) =>
-      `${seasonTitle} · 第 ${title(ep.title, id(ep.id))} 集 ${title(ep.long_title, '')}`.trim()
+      t('main:danmakuLink.bilibiliEpisode', {
+        season: seasonTitle,
+        episode: title(ep.title, id(ep.id)),
+        title: title(ep.long_title, ''),
+      }).trim()
     if (isSeason) {
       signal.throwIfAborted()
       return {
@@ -251,7 +264,7 @@ export async function fetchBilibili(
       }
     }
     const episode = episodes.find((ep) => id(ep.id) === targetId)
-    if (!episode) throw new Error('未找到指定番剧单集')
+    if (!episode) throw new UserError('danmakuLink.not_found', '未找到指定番剧单集')
     cid = id(episode.cid)
     label = episodeTitle(episode)
   }

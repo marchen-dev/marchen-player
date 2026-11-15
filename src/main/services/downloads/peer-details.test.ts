@@ -36,7 +36,7 @@ describe('节点明细', () => {
   })
   it('无地址和零分片时不伪造数据', () => {
     expect(snapshot({ remoteAddress: undefined }, 0)).toMatchObject({
-      address: '地址不可用',
+      address: '',
       availablePercent: null,
     })
   })

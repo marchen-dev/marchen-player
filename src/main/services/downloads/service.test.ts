@@ -3,6 +3,7 @@ import { createHash, randomUUID } from 'node:crypto'
 import { mkdtemp, readFile, realpath, rm, stat, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
+import { decodeUserError, encodeUserError, UserError } from '@marchen/shared/errors'
 import bencode from 'bencode'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { DownloadRepository } from './repository'
@@ -187,12 +188,76 @@ describe('下载进程失败', () => {
   })
 })
 
+describe('失败原因带错误码保存', () => {
+  it('启动时的用户错误以编码文字写进任务，重启后仍能还原错误码', async () => {
+    const { id } = await setup()
+    await service!.pause(id)
+    mock.start.mockRejectedValueOnce(
+      new UserError('downloads.timeout', '获取种子信息或检查已下载文件超时，请重试'),
+    )
+    await expect(service!.resume(id)).rejects.toMatchObject({ code: 'downloads.timeout' })
+    const saved = (await service!.list()).tasks[0].error
+    expect(decodeUserError(saved)).toEqual({
+      code: 'downloads.timeout',
+      message: '获取种子信息或检查已下载文件超时，请重试',
+    })
+    // 失败原因随任务写进状态文件：重启后读回来的还是带错误码的文字
+    await service!.shutdown()
+    const stored = JSON.parse(
+      await readFile(join(mock.directory, 'downloads', 'tasks.json'), 'utf8'),
+    ) as { tasks: Array<{ error?: string }> }
+    expect(decodeUserError(stored.tasks[0].error)?.code).toBe('downloads.timeout')
+    service = undefined
+  })
+
+  it('下载子进程上报的失败保留错误码', async () => {
+    const { id } = await setup()
+    mock.stats!({
+      id,
+      files: [],
+      downloadSpeed: 0,
+      peers: 0,
+      error: encodeUserError({
+        code: 'downloads.transfer_failed',
+        message: '下载失败，请检查目录、空间或网络后重试',
+      }),
+    })
+    const task = (await service!.list()).tasks[0]
+    expect(task.state).toBe('error')
+    expect(decodeUserError(task.error)?.code).toBe('downloads.transfer_failed')
+  })
+
+  it('没有错误码的失败只保存原说明，不加标记', async () => {
+    const { id } = await setup()
+    await service!.pause(id)
+    mock.start.mockRejectedValueOnce(new Error('模拟进程异常'))
+    await expect(service!.resume(id)).rejects.toThrow('模拟进程异常')
+    expect((await service!.list()).tasks[0].error).toBe('模拟进程异常')
+  })
+
+  it('用户可处理的操作失败抛出带错误码的错误', async () => {
+    const { id } = await setup()
+    await expect(service!.filePath(id, 0)).rejects.toMatchObject({ code: 'downloads.not_finished' })
+    await expect(service!.selectFiles(id, [9])).rejects.toMatchObject({
+      code: 'downloads.no_files_selected',
+    })
+    await expect(service!.confirm(randomUUID(), [0], mock.directory)).rejects.toMatchObject({
+      code: 'downloads.expired',
+    })
+  })
+})
+
 it('保存失败停止引擎并向用户报告错误', async () => {
   const { id } = await setup()
   vi.spyOn(DownloadRepository.prototype, 'save').mockRejectedValueOnce(new Error('ENOSPC'))
   await expect(service!.pause(id)).rejects.toThrow('保存失败')
   expect(mock.shutdown).toHaveBeenCalled()
-  expect((await service!.list()).error).toContain('已停止传输')
+  const reason = (await service!.list()).error
+  expect(reason).toContain('已停止传输')
+  // 整个服务不可用的原因同样带错误码，页面据此按界面语言显示
+  expect(decodeUserError(reason)?.code).toBe('downloads.persist_failed')
+  // 之后的操作抛出同一个带错误码的错误
+  await expect(service!.resume(id)).rejects.toMatchObject({ code: 'downloads.persist_failed' })
   vi.restoreAllMocks()
 })
 

@@ -123,6 +123,7 @@ export type ProviderSubtitleFormat = 'ass' | 'ssa' | 'srt' | 'vtt'
 export interface ProviderSubtitle {
   /** 在条目内稳定，用于 HISTORY 恢复字幕选择 */
   id: string
+  /** 服务器没有给名称时为空字符串，由页面补上按界面语言的默认名称 */
   title: string
   format: ProviderSubtitleFormat
   language?: string

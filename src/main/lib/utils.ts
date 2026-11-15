@@ -1,3 +1,4 @@
+import { t } from './i18n'
 export { isVideoFile } from './file-open'
 
 export async function sleep(ms: number) {
@@ -16,7 +17,7 @@ export const parseReleaseNotes = (releaseNotes: string | unknown[] | null | unde
       })
     }
   } else {
-    releaseContent = '暂无更新说明'
+    releaseContent = t('main:update.noNotes')
   }
 
   return releaseContent

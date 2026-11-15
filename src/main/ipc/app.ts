@@ -23,6 +23,7 @@ import { performClearData } from '@main/windows/setting'
 import { tipc } from '@marchen/electron-ipc/main'
 import { isVideoFile } from '@marchen/shared/media'
 import { app, BrowserWindow, dialog, shell } from 'electron'
+import { t as translate } from '../lib/i18n'
 
 const t = tipc.create()
 
@@ -207,7 +208,7 @@ export const appGroup = {
     const result = await dialog.showMessageBox({
       type: 'warning',
       message: input.title,
-      buttons: ['取消', '确认'],
+      buttons: [translate('common:action.cancel'), translate('common:action.confirm')],
     })
     return !!result.response
   }),

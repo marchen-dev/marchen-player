@@ -25,7 +25,8 @@ export function peerDetails(torrent: Pick<Torrent, 'wires' | 'pieces'>): Downloa
     const host = wire.remoteAddress
     const address = host
       ? `${host.includes(':') ? `[${host}]` : host}:${wire.remotePort ?? '—'}`
-      : '地址不可用'
+      : // 取不到地址时留空，由页面显示对应语言的「地址不可用」（子进程里没有界面文案）
+        ''
     return {
       id: `${wire.peerId ?? 'peer'}-${index}`,
       address,

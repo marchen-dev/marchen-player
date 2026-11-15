@@ -1,19 +1,20 @@
 import type { SubtitleFailureReason } from '@marchen/shared/media'
 import fs from 'node:fs'
 import path from 'node:path'
-
 import {
   createMediaLease,
   createRemoteMediaLease,
   getRemoteTransfer,
   releaseMediaLease,
 } from '@main/lib/media-protocol'
+
 import { showFileSelectionDialog } from '@main/modules/showDialog'
 import { tipc } from '@marchen/electron-ipc/main'
 import { calculateFileHashByBuffer } from '@marchen/shared/lib/calc-file-hash'
 import { isVideoFile, VIDEO_EXTENSIONS } from '@marchen/shared/media'
 import { dialog } from 'electron'
 import naturalCompare from 'string-natural-compare'
+import { t as translate } from '../lib/i18n'
 import { getDownloads } from '../services/downloads/service'
 
 const t = tipc.create()
@@ -47,10 +48,11 @@ export const playerGroup = {
     try {
       const animePath = input.path
       if (!(await getDownloads().available(animePath)))
-        return { ok: 0, message: '文件尚未下载完成或正在校验' }
+        return { ok: 0, code: 'downloads.not_finished', message: '文件尚未下载完成或正在校验' }
       if (!animePath || !fs.existsSync(animePath)) {
         return {
           ok: 0,
+          code: 'videoImport.file_moved',
           message: '视频文件可能被移动，无法继续播放',
         }
       }
@@ -75,6 +77,7 @@ export const playerGroup = {
     } catch {
       return {
         ok: 0,
+        code: 'videoImport.info_failed',
         message: '获取视频信息失败',
       }
     }
@@ -90,7 +93,7 @@ export const playerGroup = {
     try {
       const result = await dialog.showOpenDialog({
         properties: ['openFile', 'multiSelections'],
-        filters: [{ name: '视频文件', extensions: [...VIDEO_EXTENSIONS] }],
+        filters: [{ name: translate('main:fileDialog.video'), extensions: [...VIDEO_EXTENSIONS] }],
       })
 
       if (result.canceled) {
@@ -143,7 +146,12 @@ export const playerGroup = {
 
   importSubtitle: t.procedure.action(async () => {
     const filePath = await showFileSelectionDialog({
-      filters: [{ name: '字幕文件', extensions: ['srt', 'ass', 'ssa', 'vtt'] }],
+      filters: [
+        {
+          name: translate('main:fileDialog.subtitle'),
+          extensions: ['srt', 'ass', 'ssa', 'vtt'],
+        },
+      ],
     })
     if (!filePath) {
       return
@@ -153,22 +161,26 @@ export const playerGroup = {
 
   readSubtitleText: t.procedure.input<{ path: string }>().action(async ({ input }) => {
     // 失败时附带低基数 reason，renderer 只上报原因、不上报含路径的 message。
-    const fail = (reason: SubtitleFailureReason, message: string) =>
-      ({ ok: 0, reason, message }) as const
+    // reason 同时是页面取文案用的错误码（errors:subtitle.<reason>）；message 是留给日志的中文说明
+    const fail = (failure: { code: SubtitleFailureReason; message: string }) =>
+      ({ ok: 0, reason: failure.code, message: failure.message }) as const
     try {
       const filePath = input.path
       if (!(await getDownloads().available(filePath)))
-        return fail('not_downloaded', '字幕尚未下载完成')
+        return fail({ code: 'not_downloaded', message: '字幕尚未下载完成' })
       const extension = path.extname(filePath).toLowerCase()
       if (!['.ass', '.ssa', '.srt', '.vtt'].includes(extension)) {
-        return fail('unsupported_format', '字幕文件格式不受支持')
+        return fail({ code: 'unsupported_format', message: '字幕文件格式不受支持' })
       }
       const stats = fs.statSync(filePath)
-      if (!stats.isFile()) return fail('read_failed', '字幕文件无效')
-      if (stats.size > 8 * 1024 * 1024) return fail('too_large', '字幕文件过大')
+      if (!stats.isFile()) return fail({ code: 'read_failed', message: '字幕文件无效' })
+      if (stats.size > 8 * 1024 * 1024) return fail({ code: 'too_large', message: '字幕文件过大' })
       return { ok: 1, data: fs.readFileSync(filePath, 'utf-8') } as const
     } catch (error) {
-      return fail('read_failed', error instanceof Error ? error.message : '字幕文件读取失败')
+      return fail({
+        code: 'read_failed',
+        message: error instanceof Error ? error.message : '字幕文件读取失败',
+      })
     }
   }),
 

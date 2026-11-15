@@ -10,6 +10,7 @@ import { loadSparkleBridge } from '@marchen/sparkle-updater'
 import { app, dialog, shell } from 'electron'
 import logger from 'electron-log'
 import updater from 'electron-updater'
+import { describeMainError, t } from './i18n'
 import { UpdateSaveBarrier } from './update-save'
 import { isVersionUpgrade } from './update-version'
 import { parseReleaseNotes } from './utils'
@@ -67,7 +68,8 @@ const publish = (patch: Partial<DesktopUpdateState>) => {
 const fail = (error: unknown) => {
   const message = error instanceof Error ? error.message : String(error)
   writeLog({ lv: 'error', cat: 'updater', msg: 'update_failed', data: { message } })
-  publish({ phase: 'error', error: message })
+  // 日志里保留原始说明；显示给用户的（对话框与关于页）按当前界面语言
+  publish({ phase: 'error', error: describeMainError(error) })
 }
 /**
  * Linux 恢复支持前的渠道版本没有 Linux 元数据，渠道源中对应文件不存在（404）。
@@ -108,9 +110,9 @@ async function prepareInstall(resume: () => void) {
         fail(error)
         const result = await dialog.showMessageBox({
           type: 'warning',
-          message: '尚未完成更新安装，请重试',
+          message: t('main:update.installIncomplete'),
           detail: state.error,
-          buttons: ['稍后', '重试保存并安装'],
+          buttons: [t('main:update.later'), t('main:update.retryInstall')],
           defaultId: 0,
           cancelId: 0,
         })
@@ -160,7 +162,7 @@ export async function autoUpdateInit() {
             fail(error)
             await dialog.showMessageBox({
               type: 'warning',
-              message: '播放进度未保存，暂未关闭',
+              message: t('main:update.closeBlocked'),
               detail: state.error,
             })
           })
@@ -185,7 +187,7 @@ export async function autoUpdateInit() {
           fail(error)
           await dialog.showMessageBox({
             type: 'warning',
-            message: '播放进度未保存，暂未退出',
+            message: t('main:update.quitBlocked'),
             detail: state.error,
           })
         })
@@ -245,7 +247,7 @@ export async function autoUpdateInit() {
 
 export async function checkForDesktopUpdates() {
   if (!app.isPackaged) {
-    publish({ phase: 'error', error: '开发模式不检查更新' })
+    publish({ phase: 'error', error: t('main:update.devMode') })
     return state
   }
   if (state.platform === 'mac') {
@@ -253,9 +255,9 @@ export async function checkForDesktopUpdates() {
     else {
       const result = await dialog.showMessageBox({
         type: 'warning',
-        message: '应用内更新暂不可用',
-        detail: '请到发布页手动下载新版。',
-        buttons: ['取消', '前往下载'],
+        message: t('main:update.unavailable'),
+        detail: t('main:update.unavailableDetail'),
+        buttons: [t('common:action.cancel'), t('main:update.openDownloadPage')],
         defaultId: 0,
       })
       if (result.response === 1) await openUpdateDownloadPage()

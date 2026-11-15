@@ -1,6 +1,7 @@
 import type { CommentModel, LinkIdentity, LinkProgress, LinkResult } from '@marchen/shared/danmaku'
 import { createHash } from 'node:crypto'
 import { setTimeout as delay } from 'node:timers/promises'
+import { UserError } from '@marchen/shared/errors'
 
 const APP_KEY = '24679788'
 const API = 'https://acs.youku.com/h5/'
@@ -84,7 +85,9 @@ export class AnonymousClient {
             await delay((attempt + 1) * 1000, undefined, { signal: this.signal })
             continue
           }
-          throw new Error(`弹幕接口 HTTP ${response.status}`)
+          throw new UserError('danmakuLink.http', `弹幕接口 HTTP ${response.status}`, {
+            status: response.status,
+          })
         }
         if (host === 'acs.youku.com') {
           for (const cookie of response.headers.getSetCookie()) {
@@ -104,7 +107,7 @@ export class AnonymousClient {
             const next = await reader.read()
             if (next.done) break
             length += next.value.byteLength
-            if (length > LIMITS.responseBytes) throw new Error('弹幕响应超过大小限制')
+            if (length > LIMITS.responseBytes) throw new UserError('danmakuLink.too_large', '弹幕响应超过大小限制')
             chunks.push(next.value)
           }
         } finally {
@@ -128,11 +131,11 @@ export class AnonymousClient {
         }
         // 不把 fetch 的签名 URL、Cookie 或底层异常附带信息传播到 UI。
         if (timeout.aborted || error instanceof TypeError)
-          throw new Error('弹幕网络请求失败，请稍后重试')
+          throw new UserError('danmakuLink.network', '弹幕网络请求失败，请稍后重试')
         throw error
       }
     }
-    throw new Error('弹幕网络请求失败')
+    throw new UserError('danmakuLink.network', '弹幕网络请求失败')
   }
 }
 
@@ -199,10 +202,10 @@ export async function fetchYouku(
   const duration = Number(meta.duration)
   if (!Number.isFinite(duration) || duration <= 0) throw new Error('无法确定视频时长')
   const total = Math.floor(duration / 60) + 1
-  if (total > LIMITS.segments) throw new Error('视频时长超过弹幕读取限制')
+  if (total > LIMITS.segments) throw new UserError('danmakuLink.too_large', '视频时长超过弹幕读取限制')
   const title = typeof meta.title === 'string' ? meta.title.slice(0, 300) : identity.videoId
   await client.request(`${API}mtop.com.youku.aplatform.weakget/1.0/?jsv=2.5.1&appKey=${APP_KEY}`)
-  if (!client.token()) throw new Error('无法取得匿名接口令牌，请稍后重试')
+  if (!client.token()) throw new UserError('danmakuLink.unavailable', '无法取得匿名接口令牌，请稍后重试')
   const comments: CommentModel[] = []
   const seen = new Set<string>()
   let skipped = 0
@@ -247,7 +250,10 @@ export async function fetchYouku(
     )
     const outer = object(response.data)
     if (outer.result == null)
-      throw new Error(`第 ${minute + 1} 段读取失败，接口令牌失效或请求被拒绝，请稍后重试`)
+      throw new UserError(
+        'danmakuLink.unavailable',
+        `第 ${minute + 1} 段读取失败，接口令牌失效或请求被拒绝，请稍后重试`,
+      )
     // result 有时为二次编码 JSON，也保留其中的大整数 ID。
     const result = object(
       typeof outer.result === 'string'
@@ -260,12 +266,12 @@ export async function fetchYouku(
     skipped += converted.skipped
     bytes += Buffer.byteLength(JSON.stringify(converted.comments))
     if (bytes > LIMITS.resultBytes || comments.length + converted.comments.length > LIMITS.comments)
-      throw new Error('弹幕数量或大小超过读取限制')
+      throw new UserError('danmakuLink.too_large', '弹幕数量或大小超过读取限制')
     comments.push(...converted.comments)
     progress({ stage: 'comments', title, completed: minute + 1, total, count: comments.length })
   }
   signal.throwIfAborted()
-  if (!comments.length) throw new Error('该链接没有可导入的有效弹幕')
+  if (!comments.length) throw new UserError('danmakuLink.empty', '该链接没有可导入的有效弹幕')
   comments.sort((a, b) => Number(a.p.split(',')[0]) - Number(b.p.split(',')[0]))
   return {
     identity,

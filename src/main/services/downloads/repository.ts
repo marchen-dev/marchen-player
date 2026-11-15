@@ -2,6 +2,7 @@ import type { DownloadSettings, DownloadTask } from '@marchen/shared/downloads'
 import { mkdir, readFile, rename, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { DOWNLOAD_LIMITS } from '@marchen/shared/downloads'
+import { UserError } from '@marchen/shared/errors'
 import { z } from 'zod'
 import { validateTorrentPath } from './paths'
 const number = z.number().finite().nonnegative()
@@ -68,6 +69,8 @@ const task = z.preprocess(
       downloadSpeed: number,
       peers: number.int(),
     })
+    // 状态文件的内部校验说明，只进日志，不显示给用户
+    // eslint-disable-next-line marchen/no-hardcoded-ui-text
     .refine((value) => Boolean(value.http) !== Boolean(value.infoHash), '下载任务来源无效'),
 )
 export const settingsSchema = z.object({
@@ -109,7 +112,10 @@ export class DownloadRepository {
           settings: { directory: defaultDirectory, uploadLimit: -1 },
           tasks: [],
         }
-      throw new Error('下载记录损坏或版本不兼容，已保留原文件，请恢复备份')
+      throw new UserError(
+        'downloads.storage_corrupt',
+        '下载记录损坏或版本不兼容，已保留原文件，请恢复备份',
+      )
     }
   }
   save(data: DownloadData) {

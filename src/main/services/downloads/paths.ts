@@ -1,6 +1,7 @@
 import { lstat, mkdir, open, realpath, rmdir, unlink } from 'node:fs/promises'
 import path from 'node:path'
 import { DOWNLOAD_LIMITS } from '@marchen/shared/downloads'
+import { UserError } from '@marchen/shared/errors'
 
 export function validateTorrentPath(value: string) {
   const parts = value.split('/')
@@ -20,7 +21,7 @@ export function validateTorrentPath(value: string) {
         /^(?:con|prn|aux|nul|com[1-9]|lpt[1-9])(?:\.|$)/i.test(part),
     )
   ) {
-    throw new Error('种子包含不安全或不兼容的文件路径')
+    throw new UserError('downloads.invalid_torrent', '种子包含不安全或不兼容的文件路径')
   }
   return value
 }
@@ -49,7 +50,7 @@ export async function reserveTorrentPaths(root: string, files: Array<{ path: str
     const parts = file.path.split('/')
     const directory = parts.length > 1
     if (entries.has(parts[0]) && entries.get(parts[0]) !== directory)
-      throw new Error('种子包含冲突的文件和目录名称')
+      throw new UserError('downloads.invalid_torrent', '种子包含冲突的文件和目录名称')
     entries.set(parts[0], directory)
     await safeTaskPath(root, file.path)
   }
@@ -62,7 +63,11 @@ export async function reserveTorrentPaths(root: string, files: Array<{ path: str
         else await (await open(target, 'wx')).close()
       } catch (error) {
         if ((error as NodeJS.ErrnoException).code === 'EEXIST')
-          throw new Error(`保存目录中已存在「${name}」，请选择其他保存目录`)
+          throw new UserError(
+            'downloads.name_conflict',
+            `保存目录中已存在「${name}」，请选择其他保存目录`,
+            { name },
+          )
         throw error
       }
       created.push({ target, directory })
