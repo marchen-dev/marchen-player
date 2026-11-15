@@ -5,7 +5,12 @@ export default antfu(
   {
     // 历史 spike 不进入产品构建；正式回归和发布脚本仍参与检查。
     // Sparkle vendor 由子目录 .gitignore 忽略、仅存在于本地（含大量调试符号 YAML），ESLint 只读根 .gitignore，需显式排除。
-    ignores: ['scripts/player-engine/experiments/**', 'packages/sparkle-updater/vendor/**'],
+    // 翻译引擎胶水脚本是 Mozilla 自动生成的上游文件，原样收录、不参与检查。
+    ignores: [
+      'scripts/player-engine/experiments/**',
+      'packages/sparkle-updater/vendor/**',
+      'src/renderer/src/services/translation/vendor/**',
+    ],
     stylistic: false,
     react: true,
   },
