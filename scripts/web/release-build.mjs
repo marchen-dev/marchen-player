@@ -3,6 +3,7 @@ import { readdirSync, readFileSync, statSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { readApiRouteConfig, readApiSignConfig } from '../../src/renderer/src/request/api-route-config.ts'
+import { readTranslationAssetsBase } from '../../src/renderer/src/services/translation/assets/config.ts'
 
 const root = fileURLToPath(new URL('../../', import.meta.url))
 const required = ['VITE_API_CLOUDFLARE_URL', 'VITE_API_EDGEONE_URL', 'VITE_API_SIGN_KID', 'VITE_API_SIGN_KEY', 'VITE_SENTRY_DSN', 'VITE_POSTHOG_KEY', 'VITE_POSTHOG_HOST', 'SENTRY_AUTH_TOKEN', 'SENTRY_ORG', 'SENTRY_PROJECT', 'MARCHEN_DEPLOY_ENV']
@@ -13,6 +14,8 @@ try {
   readApiRouteConfig(process.env)
   // Web 正式构建必须签名（kid 约定为 w1），格式错误只报变量名
   readApiSignConfig(process.env)
+  // 翻译资源基址可选，仅校验格式；留空时该构建的弹幕翻译显示为不支持
+  readTranslationAssetsBase(process.env)
   const environment = process.env.MARCHEN_DEPLOY_ENV
   if (!['preview', 'production'].includes(environment)) throw new Error('MARCHEN_DEPLOY_ENV 必须是 preview 或 production')
   const commit = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' }).trim()

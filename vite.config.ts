@@ -13,6 +13,7 @@ import {
   resolveTelemetryBuildMetadata,
 } from './src/main/build/telemetry-metadata'
 import { readApiRouteConfig, readApiSignConfig } from './src/renderer/src/request/api-route-config'
+import { readTranslationAssetsBase } from './src/renderer/src/services/translation/assets/config'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const packageJson = JSON.parse(fs.readFileSync(join(__dirname, 'package.json'), 'utf-8'))
@@ -24,6 +25,8 @@ const vite = ({ mode }: { mode: string }) => {
   readApiRouteConfig(env)
   // 签名配置格式错误时在构建期失败，避免打包后的应用启动即报错
   readApiSignConfig(env)
+  // 翻译资源基址可选：留空则弹幕翻译不可用，填了但格式非法才失败
+  readTranslationAssetsBase(env)
   const telemetryDefine = createTelemetryDefine(
     resolveTelemetryBuildMetadata({ target: 'web', version: packageJson.version, mode }),
   )

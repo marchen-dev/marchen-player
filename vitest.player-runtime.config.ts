@@ -24,6 +24,7 @@ export default defineConfig({
       'src/renderer/src/services/player-runtime/tests/**/*.test.ts',
       'src/renderer/src/services/storage/tests/**/*.test.ts',
       'src/renderer/src/services/telemetry/tests/**/*.test.ts',
+      'src/renderer/src/services/translation/tests/**/*.test.ts',
     ],
   },
 })

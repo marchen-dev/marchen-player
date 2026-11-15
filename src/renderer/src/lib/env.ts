@@ -1,4 +1,6 @@
 import { readApiRouteConfig, readApiSignConfig } from '@renderer/request/api-route-config'
+import { readTranslationAssetsBase } from '@renderer/services/translation/assets/config'
+
 export const SENTRY_DSN = import.meta.env.VITE_SENTRY_DSN?.trim() ?? ''
 export const POSTHOG_KEY = import.meta.env.VITE_POSTHOG_KEY?.trim() ?? ''
 export const POSTHOG_HOST = import.meta.env.VITE_POSTHOG_HOST?.trim() ?? ''
@@ -9,3 +11,5 @@ export const isTelemetryEnabled = isProd || import.meta.env.VITE_TELEMETRY_DEBUG
 
 export const API_ROUTES = readApiRouteConfig(import.meta.env)
 export const API_SIGN = readApiSignConfig(import.meta.env)
+/** 翻译引擎与模型的存储桶基址；未配置为 null，弹幕翻译不可用 */
+export const TRANSLATION_ASSETS_BASE = readTranslationAssetsBase(import.meta.env)

@@ -16,6 +16,8 @@ interface ImportMetaEnv {
   readonly VITE_POSTHOG_KEY?: string
   readonly VITE_POSTHOG_HOST?: string
   readonly VITE_TELEMETRY_DEBUG?: string
+  /** 翻译引擎与模型的存储桶基址；未配置时弹幕翻译不可用 */
+  readonly VITE_TRANSLATION_ASSETS_URL?: string
 }
 
 interface ImportMeta {
