@@ -7,12 +7,17 @@ import type {
   DanmakuRect,
 } from '@marchen/danmaku-engine'
 import type { PlaybackClock } from '@marchen/playback-core'
+import type { DanmakuStageSize } from './resize-settler'
 import { DanmakuEngineCore, DanmakuNodePool } from '@marchen/danmaku-engine'
 import { toast } from '@renderer/components/ui/toast/use-toast'
 import { captureFeatureUsed } from '@renderer/services/telemetry/features'
 import { reportOperationalError } from '@renderer/services/telemetry/operational-errors'
 import { DanmakuHoverToolbar } from './hover-toolbar'
+import { DanmakuResizeSettler } from './resize-settler'
 import { DanmakuRestoreBudgetError, prepareSeekRestoration } from './seek-restoration'
+
+/** 恢复失败上报的 operation，用来区分 seek 落点与尺寸变化触发的重建。 */
+type RestoreOperation = 'danmaku_seek_restore' | 'danmaku_resize_restore'
 
 export interface DomDanmakuConfig extends Partial<DanmakuConfig> {
   hoverPause?: boolean
@@ -48,8 +53,8 @@ export class DomDanmakuRenderer {
   private readonly hoverToolbar: DanmakuHoverToolbar
   private readonly metricsCache = new Map<string, DanmakuMetrics>()
   private readonly resizeObserver: ResizeObserver
+  private readonly resizeSettler: DanmakuResizeSettler
   private frameId: number | null = null
-  private resizeFrameId: number | null = null
   private lastRevision = 0
   private lastWidth = -1
   private lastHeight = -1
@@ -89,15 +94,20 @@ export class DomDanmakuRenderer {
       onLeave: (id) => this.endHover(id),
     })
     this.applyOpacity(config.opacity)
-    this.resizeObserver = new ResizeObserver(() => this.scheduleResize())
+    this.resizeSettler = new DanmakuResizeSettler((size) => this.settleResize(size))
+    // 首次同步时还没有在屏弹幕，直接应用尺寸即可，不需要恢复。
+    this.applySize({ width: container.clientWidth, height: container.clientHeight })
+    this.lastRevision = this.engine.revision
+    this.resizeObserver = new ResizeObserver(() => this.handleContainerResize())
     this.resizeObserver.observe(container)
-    this.resize(true)
 
-    // Web 字体异步就绪后旧尺寸不再可信，需要与配置变更一样原子重建占用。
+    // Web 字体异步就绪后旧测量不再可信，按当前尺寸重建在屏弹幕，而不是清屏。
     void document.fonts?.ready.then(() => {
       if (this.destroyed) return
       this.invalidateMeasurements()
-      this.resize(true)
+      this.resizeSettler.cancel()
+      this.applySize({ width: this.container.clientWidth, height: this.container.clientHeight })
+      this.relayout()
     })
   }
 
@@ -165,7 +175,14 @@ export class DomDanmakuRenderer {
   }
 
   restoreAfterSeek(time: number): void {
+    this.restore(time, 'danmaku_seek_restore')
+  }
+
+  private restore(time: number, operation: RestoreOperation): void {
     if (this.destroyed) return
+    // 尺寸仍在等待停稳时直接采用最新尺寸，避免先按旧布局恢复、停稳后再重排一次。
+    const pendingSize = this.resizeSettler.take()
+    if (pendingSize) this.applySize(pendingSize)
     this.seekTarget = null
     this.cancelRecovery()
     this.stopLoop()
@@ -174,7 +191,7 @@ export class DomDanmakuRenderer {
     this.lastRevision = this.engine.revision
     const controller = new AbortController()
     this.recovery = controller
-    void this.restoreSnapshot(time, controller)
+    void this.restoreSnapshot(time, controller, operation)
   }
 
   private cancelRecovery(): boolean {
@@ -184,7 +201,11 @@ export class DomDanmakuRenderer {
     return recovering
   }
 
-  private async restoreSnapshot(target: number, controller: AbortController): Promise<void> {
+  private async restoreSnapshot(
+    target: number,
+    controller: AbortController,
+    operation: RestoreOperation,
+  ): Promise<void> {
     const { signal } = controller
     try {
       for (let attempt = 0; attempt < 2; attempt += 1) {
@@ -227,7 +248,7 @@ export class DomDanmakuRenderer {
       this.refreshDiagnostics()
       reportOperationalError(
         'player',
-        'danmaku_seek_restore',
+        operation,
         Object.assign(new Error('弹幕跳转恢复失败，已回退至正常调度', { cause: error }), {
           code:
             error instanceof DanmakuRestoreBudgetError
@@ -347,7 +368,7 @@ export class DomDanmakuRenderer {
     this.destroyed = true
     this.cancelRecovery()
     this.stopLoop()
-    if (this.resizeFrameId !== null) cancelAnimationFrame(this.resizeFrameId)
+    this.resizeSettler.cancel()
     this.resizeObserver.disconnect()
     this.clearNodes()
     this.hoverToolbar.dispose()
@@ -377,7 +398,9 @@ export class DomDanmakuRenderer {
       !this.playing ||
       this.destroyed ||
       this.recovery ||
-      this.seekTarget !== null
+      this.seekTarget !== null ||
+      // 尺寸待定期间不发射新弹幕：按旧布局分配的轨道停稳后会被整体重排
+      this.resizeSettler.isPending
     )
       return
     const frame = () => {
@@ -559,26 +582,45 @@ export class DomDanmakuRenderer {
     this.pool.releaseAll()
   }
 
-  private scheduleResize(): void {
-    if (this.resizeFrameId !== null) return
-    this.resizeFrameId = requestAnimationFrame(() => {
-      this.resizeFrameId = null
-      this.resize()
-    })
-  }
-
-  private resize(force = false): void {
+  /**
+   * 拖动窗口、最大化、进出全屏时容器尺寸变化：旧弹幕沿原动画继续运动，暂停发射新弹幕，
+   * 等尺寸停稳后再按新宽高从当前时刻恢复在屏弹幕，而不是直接清屏。
+   */
+  private handleContainerResize(): void {
+    if (this.destroyed) return
     const width = this.container.clientWidth
     const height = this.container.clientHeight
-    if (!force && width === this.lastWidth && height === this.lastHeight) return
+    if (width === this.lastWidth && height === this.lastHeight) {
+      // 拖回到已应用的尺寸：现有布局仍然有效，放弃待定并恢复发射
+      if (this.resizeSettler.cancel()) this.startLoop()
+      return
+    }
+    this.stopLoop()
+    this.resizeSettler.schedule({ width, height })
+  }
+
+  private settleResize(size: DanmakuStageSize): void {
+    if (this.destroyed) return
+    this.applySize(size)
+    this.relayout()
+  }
+
+  private applySize({ width, height }: DanmakuStageSize): void {
     this.lastWidth = width
     this.lastHeight = height
-    const recovering = this.cancelRecovery()
     this.engine.resize(width, height)
-    this.clearNodes()
-    this.lastRevision = this.engine.revision
-    if (recovering) this.restoreAfterSeek(this.clock.now())
-    this.refreshDiagnostics()
+  }
+
+  /** 布局整体失效后按当前时刻重建在屏弹幕；seek 进行中则只清屏，由落点负责恢复。 */
+  private relayout(): void {
+    if (this.seekTarget !== null) {
+      this.cancelRecovery()
+      this.clearNodes()
+      this.lastRevision = this.engine.revision
+      this.refreshDiagnostics()
+      return
+    }
+    this.restore(this.clock.now(), 'danmaku_resize_restore')
   }
 
   private invalidateMeasurements(): void {
