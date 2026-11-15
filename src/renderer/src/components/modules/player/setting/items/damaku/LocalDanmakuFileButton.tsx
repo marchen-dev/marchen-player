@@ -1,6 +1,7 @@
 import type { RefObject } from 'react'
 import { Button } from '@renderer/components/ui/button'
 import { useToast } from '@renderer/components/ui/toast'
+import { formatNumber } from '@renderer/lib/i18n'
 import queryClient from '@renderer/lib/query-client'
 import { importLocalDanmaku } from '@renderer/services/danmaku/local-import'
 import { getPlayerLoadingService } from '@renderer/services/player-loading'
@@ -50,10 +51,10 @@ export function LocalDanmakuFileButton({
       const result = await importLocalDanmaku(file, getPlayerLoadingService(), controller.signal)
       if (!result) return
       void queryClient.invalidateQueries({ queryKey: [danmakuSourceQueryKey, result.hash] })
-      const count = result.entry.content.count.toLocaleString('zh-CN')
+      const count = formatNumber(result.entry.content.count)
       toast({
         title: result.skippedCount
-          ? `已导入 ${count} 条弹幕，跳过 ${result.skippedCount.toLocaleString('zh-CN')} 条无效或不支持的弹幕`
+          ? `已导入 ${count} 条弹幕，跳过 ${formatNumber(result.skippedCount)} 条无效或不支持的弹幕`
           : `已导入 ${count} 条弹幕`,
       })
       onImported?.()

@@ -1,3 +1,4 @@
+import type { RuntimeLanguage } from '@marchen/i18n'
 import type { SubtitleTrackDescriptor } from '../platform/ports'
 import type { SubtitleTrackOption } from './context'
 
@@ -35,10 +36,23 @@ export const resolveTrackHistoryId = (
 export const isChineseLanguage = (language?: string) =>
   Boolean(language && /^(?:zh|zho|chi|chs|cht)(?:-|$)/i.test(language))
 
+export const isEnglishLanguage = (language?: string) =>
+  Boolean(language && /^(?:en|eng)(?:-|$)/i.test(language))
+
+/** 字幕轨道的语言是否与界面语言一致；伪本地化的文字是拉丁字母，按英文处理 */
+const matchesUiLanguage = (uiLanguage: RuntimeLanguage, language?: string) =>
+  uiLanguage === 'zh-CN' ? isChineseLanguage(language) : isEnglishLanguage(language)
+
+/**
+ * 默认字幕轨道：历史选择 → 与界面语言一致的轨道 → 中文轨 → 第一条。
+ * 界面语言是简体中文时，第二步与第三步相同，结果与只按中文轨优先时一致。
+ */
 export const selectPreferredSubtitleTrack = (
   tracks: ReadonlyArray<SubtitleTrackOption>,
   defaultId?: number,
+  uiLanguage: RuntimeLanguage = 'zh-CN',
 ) =>
   tracks.find((track) => track.historyId === defaultId) ??
+  tracks.find((track) => matchesUiLanguage(uiLanguage, track.language)) ??
   tracks.find((track) => isChineseLanguage(track.language)) ??
   tracks[0]

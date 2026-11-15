@@ -12,6 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@renderer/components/ui/select'
+import { formatNumber } from '@renderer/lib/i18n'
 import { cn } from '@renderer/lib/utils'
 import { usePlayerPortalContainer } from '@renderer/services/player-runtime'
 import { usePlaybackClock } from '@renderer/services/player-runtime/context'
@@ -60,7 +61,7 @@ export const DanmakuList = memo(() => {
         }}
       >
         <span className="truncate">
-          {total === 0 ? '暂无弹幕' : `查看全部 ${total.toLocaleString('zh-CN')} 条`}
+          {total === 0 ? '暂无弹幕' : `查看全部 ${formatNumber(total)} 条`}
         </span>
       </Button>
       <DanmakuListDialog open={open} onOpenChange={setOpen} />
@@ -163,8 +164,8 @@ const DanmakuListBody = () => {
           弹幕列表
           <span className="text-muted-foreground text-sm font-normal">
             {filtered
-              ? `${rows.length.toLocaleString('zh-CN')} / ${list.rows.length.toLocaleString('zh-CN')} 条`
-              : `共 ${list.rows.length.toLocaleString('zh-CN')} 条`}
+              ? `${formatNumber(rows.length)} / ${formatNumber(list.rows.length)} 条`
+              : `共 ${formatNumber(list.rows.length)} 条`}
           </span>
         </DialogTitle>
       </DialogHeader>
@@ -186,7 +187,7 @@ const DanmakuListBody = () => {
               <SelectItem value={ALL_SOURCES}>全部来源</SelectItem>
               {list.sources.map((source) => (
                 <SelectItem key={source.id} value={source.id}>
-                  {source.name} ({source.count.toLocaleString('zh-CN')}条)
+                  {source.name} ({formatNumber(source.count)}条)
                 </SelectItem>
               ))}
             </SelectContent>

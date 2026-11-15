@@ -1,4 +1,5 @@
 import { hidePlayerSettingsPanel } from '@renderer/atoms/player'
+import { formatNumber } from '@renderer/lib/i18n'
 import {
   usePlayerLoadingService,
   usePlayerLoadingState,
@@ -72,7 +73,7 @@ export const MatchInfo = () => {
                     : info.unmatched
                       ? '未精确匹配，可手动选择剧集'
                       : info.matched
-                        ? `匹配弹幕 ${info.count.toLocaleString('zh-CN')} 条`
+                        ? `匹配弹幕 ${formatNumber(info.count)} 条`
                         : '尚未匹配动漫'}
         </p>
       </div>

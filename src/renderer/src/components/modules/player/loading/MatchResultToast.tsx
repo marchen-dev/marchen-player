@@ -9,6 +9,7 @@ import {
   ToastTitle,
   ToastViewport,
 } from '@renderer/components/ui/toast/toast'
+import { formatNumber } from '@renderer/lib/i18n'
 import { usePlayerLoadingService } from '@renderer/services/player-loading/hooks'
 import { getMatchInfo } from '@renderer/services/player-loading/match-info'
 import { useEffect, useState } from 'react'
@@ -103,7 +104,7 @@ export const MatchResultToast = () => {
                   ? '点此手动匹配'
                   : notice.failed || notice.matchFailed
                     ? '视频可正常播放'
-                    : `已加载 ${notice.count.toLocaleString('zh-CN')} 条弹幕`}
+                    : `已加载 ${formatNumber(notice.count)} 条弹幕`}
               </span>
             </ToastDescription>
           </div>

@@ -91,6 +91,7 @@ export class DomDanmakuRenderer {
     // 容器级合成保留单条固定弹幕自身的淡入淡出动画。
     this.displayLayer = document.createElement('div')
     this.displayLayer.dataset.danmakuDisplayLayer = ''
+    this.displayLayer.lang = DANMAKU_CONTENT_LANG
     this.displayLayer.style.position = 'absolute'
     this.displayLayer.style.inset = '0'
     this.displayLayer.style.pointerEvents = 'none'
@@ -701,9 +702,19 @@ export class DomDanmakuRenderer {
   }
 }
 
+/**
+ * 弹幕内容的语言标注。弹幕来自中文弹幕源，与界面语言无关：浏览器给汉字选回落字体时会参考
+ * 元素的语言，界面是英文（`<html lang="en">`）且系统首选语言里没有中文时，汉字可能用到
+ * 日文字形。在弹幕层上固定标注，保证汉字始终按简体中文字形显示。
+ * 英文译文也落在这个标注下，渲染与全页都是 `lang="zh-CN"` 时相同。
+ */
+const DANMAKU_CONTENT_LANG = 'zh-CN'
+
 const createMeasurementLayer = () => {
   const layer = document.createElement('div')
   layer.dataset.danmakuMeasurementLayer = ''
+  // 必须与显示层的语言标注一致，否则测得的宽度与上屏时不同
+  layer.lang = DANMAKU_CONTENT_LANG
   layer.style.position = 'absolute'
   layer.style.inset = '0'
   layer.style.visibility = 'hidden'

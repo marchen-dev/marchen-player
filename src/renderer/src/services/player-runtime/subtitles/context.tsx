@@ -9,6 +9,7 @@ import type {
 import type { PropsWithChildren } from 'react'
 import { usePlayerSettingsValue } from '@renderer/atoms/settings/player'
 import { db } from '@renderer/database/db'
+import { getLanguage } from '@renderer/lib/i18n'
 import { captureFeatureUsed } from '@renderer/services/telemetry/features'
 import { reportBitmapSubtitleSession, reportSubtitleFailure } from '@renderer/services/telemetry/subtitles'
 import { createContext, use, useCallback, useEffect, useMemo, useRef, useState } from 'react'
@@ -350,9 +351,12 @@ export const NativeSubtitleProvider = ({
               (previous?.embedded?.uid === option.embedded?.uid &&
                 previous?.embedded?.codec === option.embedded?.codec)),
         )
+        // 只在选择的这一刻读取界面语言，不订阅它的变化：
+        // 播放中切换界面语言不应该让当前影片换字幕轨
         const preferred = selectPreferredSubtitleTrack(
           options.filter((option) => option.supported !== false),
           sameTrack?.historyId,
+          getLanguage(),
         )
         if (preferred) await activateTrack(preferred)
       } catch (cause) {

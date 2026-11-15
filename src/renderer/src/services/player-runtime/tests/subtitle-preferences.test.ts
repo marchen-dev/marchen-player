@@ -32,6 +32,55 @@ describe('subtitle preferences', () => {
     expect(selectPreferredSubtitleTrack([tracks[0]!])?.id).toBe('embedded:0')
   })
 
+  it('界面语言为简体中文时与不传界面语言的结果一致', () => {
+    expect(selectPreferredSubtitleTrack(tracks, undefined, 'zh-CN')?.id).toBe('embedded:1')
+    expect(selectPreferredSubtitleTrack([tracks[0]!], undefined, 'zh-CN')?.id).toBe('embedded:0')
+  })
+
+  it('界面语言为英文时优先英文轨', () => {
+    expect(selectPreferredSubtitleTrack(tracks, undefined, 'en')?.id).toBe('embedded:0')
+    // 轨道顺序不影响结果
+    expect(selectPreferredSubtitleTrack([...tracks].reverse(), undefined, 'en')?.id).toBe(
+      'embedded:0',
+    )
+  })
+
+  it('界面语言为英文但没有英文轨时回落到中文轨，再到首轨', () => {
+    const japanese = {
+      ...tracks[0]!,
+      id: 'embedded:2',
+      historyId: 2,
+      title: '日本語',
+      language: 'jpn',
+    }
+    expect(selectPreferredSubtitleTrack([japanese, tracks[1]!], undefined, 'en')?.id).toBe(
+      'embedded:1',
+    )
+    expect(selectPreferredSubtitleTrack([japanese], undefined, 'en')?.id).toBe('embedded:2')
+  })
+
+  it('历史选择优先于界面语言', () => {
+    expect(selectPreferredSubtitleTrack(tracks, 1, 'en')?.id).toBe('embedded:1')
+  })
+
+  it('按语言代码而不是标题判断，带地区的代码也能匹配', () => {
+    const withRegion = [
+      { ...tracks[1]!, language: 'zh-Hans' },
+      { ...tracks[0]!, language: 'en-US' },
+    ]
+    expect(selectPreferredSubtitleTrack(withRegion, undefined, 'en')?.id).toBe('embedded:0')
+    // 恰好以 en 开头的其他语言代码（如中古英语 enm）不当成英文
+    const notEnglish = [
+      { ...tracks[1]!, language: 'zho' },
+      { ...tracks[0]!, language: 'enm' },
+    ]
+    expect(selectPreferredSubtitleTrack(notEnglish, undefined, 'en')?.id).toBe('embedded:1')
+  })
+
+  it('伪本地化按英文处理', () => {
+    expect(selectPreferredSubtitleTrack(tracks, undefined, 'pseudo')?.id).toBe('embedded:0')
+  })
+
   it('外挂字幕 id 保持为小于现有值的负数', () => {
     expect(allocateExternalHistoryId([{ id: -2 }, { id: 1 }], new Set([-3]))).toBe(-4)
   })

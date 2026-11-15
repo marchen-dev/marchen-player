@@ -7,6 +7,7 @@ import { Checkbox } from '@renderer/components/ui/checkbox'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@renderer/components/ui/dialog'
 import { Input } from '@renderer/components/ui/input'
 import { ScrollArea } from '@renderer/components/ui/scrollArea'
+import { formatNumber } from '@renderer/lib/i18n'
 import { cn } from '@renderer/lib/utils'
 import { usePlayerPortalContainer } from '@renderer/services/player-runtime'
 import {
@@ -50,7 +51,7 @@ export const DanmakuBlock = memo(() => {
         onClick={() => setOpen(true)}
       >
         <span className="truncate">
-          {ruleCount === 0 ? '添加屏蔽规则' : `管理 ${ruleCount.toLocaleString('zh-CN')} 条规则`}
+          {ruleCount === 0 ? '添加屏蔽规则' : `管理 ${formatNumber(ruleCount)} 条规则`}
         </span>
       </Button>
       <DanmakuBlockDialog open={open} onOpenChange={setOpen} />
@@ -154,7 +155,7 @@ const DanmakuBlockBody = () => {
           弹幕屏蔽
           {enabled && (
             <span className="text-muted-foreground text-sm font-normal">
-              本集已屏蔽 {blockedCount.toLocaleString('zh-CN')} 条
+              本集已屏蔽 {formatNumber(blockedCount)} 条
             </span>
           )}
         </DialogTitle>
