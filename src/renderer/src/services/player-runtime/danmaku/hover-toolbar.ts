@@ -1,11 +1,13 @@
 /**
  * 弹幕悬停工具条：悬停画面上的一条弹幕时，在其旁边显示「复制」「屏蔽」两个操作。
+ * 弹幕显示的是译文时，操作上方多一行原文，方便对照；复制与屏蔽针对的也是原文。
  *
  * 工具条出现在文字正下方、鼠标所在的位置，带一个指回文字的小箭头。
  * 整个弹幕层只有这一个工具条元素，悬停谁就定位到谁旁边。不往弹幕节点里加子元素：
  * 弹幕节点是池化复用的，宽度还参与测量与碰撞计算，加子元素会同时污染这两处。
  * 工具条位于弹幕层内，弹幕层在全屏元素内，全屏时无需额外处理。
  */
+import { translationMessages } from '@renderer/services/translation/messages'
 import { computeHoverToolbarPosition } from './hover-toolbar-position'
 
 /** 驻留这么久才显示，避免弹幕密集时鼠标划过画面一路闪出工具条 */
@@ -21,6 +23,9 @@ const ARROW_INSET = 20
  * 颜色取播放器材质的 popover 档；工具条位于高频增删的弹幕层，不加背景模糊以免拖累渲染。
  */
 const SURFACE_COLOR = 'var(--color-player-popover)'
+/** 只有按钮时是胶囊；带原文行时改为圆角矩形，避免多行文字被胶囊的大圆角裁切 */
+const PILL_RADIUS = '9999px'
+const PANEL_RADIUS = '16px'
 
 export interface DanmakuHoverToolbarHandlers {
   onCopy: (id: string) => void
@@ -32,6 +37,8 @@ export interface DanmakuHoverToolbarHandlers {
 export class DanmakuHoverToolbar {
   private readonly element: HTMLDivElement
   private readonly arrow: HTMLDivElement
+  private readonly pill: HTMLDivElement
+  private readonly original: HTMLDivElement
   private cursorX = 0
   private targetId: string | null = null
   private targetNode: HTMLElement | null = null
@@ -58,10 +65,22 @@ export class DanmakuHoverToolbar {
     arrow.style.borderLeft = `${ARROW_SIZE}px solid transparent`
     arrow.style.borderRight = `${ARROW_SIZE}px solid transparent`
 
+    // 原文行与按钮同处一个底色块内；仍然只有这一个工具条元素，不往弹幕节点里加任何东西
     const pill = document.createElement('div')
-    pill.className = 'flex items-center gap-1 rounded-full px-2 py-1 text-white shadow-lg'
+    pill.className = 'flex flex-col items-center px-2 py-1 text-white shadow-lg'
     pill.style.backgroundColor = SURFACE_COLOR
-    pill.append(
+    pill.style.borderRadius = PILL_RADIUS
+
+    const original = document.createElement('div')
+    original.dataset.danmakuHoverOriginal = ''
+    original.setAttribute('aria-label', translationMessages.hoverOriginalLabel)
+    original.className =
+      'max-w-[min(26rem,70vw)] px-2 pt-1.5 pb-0.5 text-center text-sm leading-snug break-words text-white/90 select-text'
+    original.style.display = 'none'
+
+    const actions = document.createElement('div')
+    actions.className = 'flex items-center gap-1'
+    actions.append(
       createButton('复制', 'icon-[mingcute--copy-2-line] size-5', () => {
         if (this.targetId !== null) handlers.onCopy(this.targetId)
       }),
@@ -69,6 +88,7 @@ export class DanmakuHoverToolbar {
         if (this.targetId !== null) handlers.onBlock(this.targetId)
       }),
     )
+    pill.append(original, actions)
     element.append(arrow, pill)
     // 工具条上的点击不能冒泡成播放器手势
     element.onclick = (event) => event.stopPropagation()
@@ -82,17 +102,26 @@ export class DanmakuHoverToolbar {
     }
     this.element = element
     this.arrow = arrow
+    this.pill = pill
+    this.original = original
     container.append(element)
   }
 
-  /** 开始悬停一条弹幕：此时弹幕已暂停，驻留到点后才显示。clientX 为鼠标的视口横坐标 */
-  attach(id: string, node: HTMLElement, clientX: number): void {
+  /**
+   * 开始悬停一条弹幕：此时弹幕已暂停，驻留到点后才显示。clientX 为鼠标的视口横坐标。
+   * originalText 仅在画面显示的不是原文（已翻译）时传入，工具条会多显示一行原文。
+   */
+  attach(id: string, node: HTMLElement, clientX: number, originalText: string | null = null): void {
     // 鼠标从工具条回到同一条弹幕：保持现状，不重新计时
     if (this.targetId === id && this.targetNode === node) return
     this.hide()
     this.targetId = id
     this.targetNode = node
     this.cursorX = clientX
+    // 在显示之前写好内容：定位要读取工具条的实际尺寸
+    this.original.textContent = originalText ?? ''
+    this.original.style.display = originalText ? 'block' : 'none'
+    this.pill.style.borderRadius = originalText ? PANEL_RADIUS : PILL_RADIUS
     this.timer = setTimeout(() => {
       this.timer = null
       this.show()

@@ -101,6 +101,29 @@ export interface TelemetryEventMap {
   app_session_ended: { duration_ms: number; reason: 'quit' | 'reload' | 'reset' | 'unknown' }
   page_viewed: { route: string; previous_route?: string }
   feature_used: { feature: string; action: string; value?: string | number | boolean }
+  /** 翻译引擎与模型的一次下载结果；cancelled 包含首次确认时取消与下载中途关闭翻译 */
+  danmaku_translation_assets_downloaded: {
+    result: 'success' | 'failed' | 'cancelled'
+    /** first_enable：首次开启并确认；auto_recover：开关已开但本机资源缺失；retry：失败后手动重试 */
+    trigger: 'first_enable' | 'auto_recover' | 'retry'
+    error_code?: string
+    duration_ms: number
+    /** 本次实际下载并落盘的字节数（解压后） */
+    bytes: number
+  }
+  /** 一集弹幕全部翻译完成 */
+  danmaku_translation_completed: {
+    /** 需要翻译的弹幕条数（未屏蔽、含中文） */
+    items: number
+    /** 去重后的文本数 */
+    unique_texts: number
+    /** 本次实际送入引擎的文本数，其余来自会话内已有译文 */
+    translated_texts: number
+    duration_ms: number
+    /** 加载引擎与模型的耗时 */
+    engine_start_ms: number
+    target: string
+  }
   video_import_started: {
     operation_id: string
     source:

@@ -13,6 +13,10 @@ import {
 import { normalizeDanmakuOpacity } from '@renderer/services/player-runtime/danmaku/opacity'
 import { normalizeEnginePreference } from '@renderer/services/player-runtime/engine-policy'
 import { normalizeSubtitleScale } from '@renderer/services/player-runtime/subtitles/font-scale'
+import {
+  createDefaultDanmakuTranslationSettings,
+  normalizeDanmakuTranslationSettings,
+} from '@renderer/services/translation/settings'
 import { useAtom, useAtomValue } from 'jotai'
 
 import { jotaiStore } from '../store'
@@ -42,6 +46,8 @@ const createPlayerDefaultSettings = () => {
     danmakuEndArea: getSelectedDefaultValue(danmakuEndAreaList)!,
     // 全局屏蔽规则，对所有视频与弹幕来源生效；只影响显示，不改写缓存与 HISTORY 中的弹幕
     danmakuBlock: createDefaultDanmakuBlockSettings(),
+    // 弹幕翻译：全局开关与目标语言；只影响显示，不改写缓存与 HISTORY 中的弹幕
+    danmakuTranslation: createDefaultDanmakuTranslationSettings(),
   }
 }
 
@@ -52,6 +58,7 @@ const playerSettingAtom = createSettingATom('player', createPlayerDefaultSetting
   subtitleScale: normalizeSubtitleScale(settings?.subtitleScale),
   danmakuOpacity: normalizeDanmakuOpacity(settings?.danmakuOpacity),
   danmakuBlock: normalizeDanmakuBlockSettings(settings?.danmakuBlock),
+  danmakuTranslation: normalizeDanmakuTranslationSettings(settings?.danmakuTranslation),
 }))
 
 // 加载服务每次加载开始时读取最新偏好，播放中切换只影响下一次加载

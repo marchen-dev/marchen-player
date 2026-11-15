@@ -84,14 +84,31 @@ const setup = () => {
   const handlers = { onCopy: vi.fn(), onBlock: vi.fn(), onLeave: vi.fn() }
   const toolbar = new DanmakuHoverToolbar(container as unknown as HTMLElement, handlers)
   const element = container.children.at(-1) as FakeElement
-  // 外层命中区域内依次是箭头和承载按钮的胶囊
+  // 外层命中区域内依次是箭头和底色块；底色块里是原文行与承载按钮的一行
   const [arrow, pill] = element.children as FakeElement[]
-  const [copyButton, blockButton] = pill.children as FakeElement[]
-  return { container, node, handlers, toolbar, element, arrow, copyButton, blockButton }
+  const [original, actions] = pill.children as FakeElement[]
+  const [copyButton, blockButton] = actions.children as FakeElement[]
+  return {
+    container,
+    node,
+    handlers,
+    toolbar,
+    element,
+    arrow,
+    pill,
+    original,
+    copyButton,
+    blockButton,
+  }
 }
 
-const attach = (toolbar: DanmakuHoverToolbar, id: string, node: FakeElement, clientX = 300) =>
-  toolbar.attach(id, node as unknown as HTMLElement, clientX)
+const attach = (
+  toolbar: DanmakuHoverToolbar,
+  id: string,
+  node: FakeElement,
+  clientX = 300,
+  originalText: string | null = null,
+) => toolbar.attach(id, node as unknown as HTMLElement, clientX, originalText)
 
 describe('弹幕悬停工具条', () => {
   beforeEach(() => {
@@ -111,6 +128,28 @@ describe('弹幕悬停工具条', () => {
     expect([copyButton.title, blockButton.title]).toEqual(['复制', '屏蔽'])
     expect(copyButton.attributes['aria-label']).toBe('复制')
     expect(blockButton.attributes['aria-label']).toBe('屏蔽')
+  })
+
+  it('没有原文时不显示原文行，底色块保持胶囊形', () => {
+    const { toolbar, node, original, pill } = setup()
+    attach(toolbar, 'a', node)
+    expect(original.style.display).toBe('none')
+    expect(pill.style.borderRadius).toBe('9999px')
+  })
+
+  it('显示的是译文时附带原文行，换到未翻译的弹幕后收起', () => {
+    const { toolbar, node, container, original, pill } = setup()
+    attach(toolbar, 'a', node, 300, '前方高能')
+    expect(original.style.display).toBe('block')
+    expect((original as unknown as { textContent: string }).textContent).toBe('前方高能')
+    expect(pill.style.borderRadius).toBe('16px')
+
+    const other = new FakeElement()
+    container.append(other)
+    attach(toolbar, 'b', other)
+    expect(original.style.display).toBe('none')
+    expect((original as unknown as { textContent: string }).textContent).toBe('')
+    expect(pill.style.borderRadius).toBe('9999px')
   })
 
   it('驻留约 150 毫秒后才显示，定位到文字正下方的鼠标位置，箭头朝上指向文字', () => {

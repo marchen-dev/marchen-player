@@ -16,6 +16,8 @@ export const CRITICAL_TELEMETRY_EVENTS = new Set<TelemetryEventName>([
   'video_import_completed',
   'video_import_failed',
   'danmaku_match_completed',
+  'danmaku_translation_assets_downloaded',
+  'danmaku_translation_completed',
   'playback_ready',
   'playback_started',
   'playback_ended',

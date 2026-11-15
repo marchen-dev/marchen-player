@@ -29,10 +29,17 @@ export interface DomDanmakuRendererOptions {
   onBlock?: (text: string) => void
 }
 
+/** 返回一条弹幕此刻应显示的文本；默认就是条目自身的文本 */
+export type DanmakuTextResolver = (item: DanmakuItem) => string
+
 interface ActiveAnimation {
   node: HTMLSpanElement
   animation: Animation
   duration: number
+  /** 条目自身的文本。复制与屏蔽始终用它，而不是画面上可能已被替换的显示文本 */
+  originalText: string
+  /** 画面上实际显示的文本（开启弹幕翻译时可能是译文） */
+  displayText: string
 }
 
 interface MeasuredCandidate {
@@ -52,6 +59,12 @@ export class DomDanmakuRenderer {
   private readonly measurementLayer: HTMLDivElement
   private readonly hoverToolbar: DanmakuHoverToolbar
   private readonly metricsCache = new Map<string, DanmakuMetrics>()
+  private resolveText: DanmakuTextResolver = (item) => item.text
+  /**
+   * 测量时为每条候选定下的显示文本，上屏时取用同一份。
+   * 译文可能在测量与上屏之间到达（seek 恢复是异步的），两处必须一致，否则宽度与文字对不上。
+   */
+  private readonly displayTexts = new Map<string, string>()
   private readonly resizeObserver: ResizeObserver
   private readonly resizeSettler: DanmakuResizeSettler
   private frameId: number | null = null
@@ -85,9 +98,10 @@ export class DomDanmakuRenderer {
     this.measurementLayer = createMeasurementLayer()
     this.container.append(this.measurementLayer)
     this.hoverToolbar = new DanmakuHoverToolbar(container, {
-      onCopy: (id) => this.copyText(this.animations.get(id)?.node.textContent ?? ''),
+      // 复制与屏蔽都基于原文：显示的可能是译文，屏蔽规则只对原文生效
+      onCopy: (id) => this.copyText(this.animations.get(id)?.originalText ?? ''),
       onBlock: (id) => {
-        const text = this.animations.get(id)?.node.textContent
+        const text = this.animations.get(id)?.originalText
         // 规则生效后该弹幕会经 setBlockedIds 被撤掉，工具条随之隐藏
         if (text) this.options.onBlock?.(text)
       },
@@ -133,6 +147,14 @@ export class DomDanmakuRenderer {
       if (ids.has(id)) this.releaseNode(id)
     }
     this.refreshDiagnostics()
+  }
+
+  /**
+   * 设置显示文本的来源（弹幕翻译用）。只影响之后出场的弹幕：
+   * 在屏弹幕保持原样，也不触发清屏或重排。
+   */
+  setTextResolver(resolver: DanmakuTextResolver | null): void {
+    this.resolveText = resolver ?? ((item) => item.text)
   }
 
   play(): void {
@@ -260,6 +282,8 @@ export class DomDanmakuRenderer {
     } finally {
       if (this.recovery === controller) {
         this.recovery = null
+        // 恢复阶段测量过但没有上屏的候选不再需要
+        this.displayTexts.clear()
         this.startLoop()
       }
     }
@@ -270,23 +294,26 @@ export class DomDanmakuRenderer {
     const pending: MeasuredCandidate[] = []
     try {
       for (const item of items) {
-        const metrics = this.metricsCache.get(this.getMetricsKey(item)) ?? null
+        const text = this.resolveText(item)
+        this.displayTexts.set(item.id, text)
+        const metrics = this.metricsCache.get(this.getMetricsKey(item, text)) ?? null
         const node = metrics ? null : this.pool.acquire()
         pending.push({ item, metrics, node })
         if (node) {
-          prepareMeasureNode(node, item, this.config.fontSize ?? 26)
+          prepareMeasureNode(node, item, text, this.config.fontSize ?? 26)
           this.measurementLayer.append(node)
         }
       }
       return pending.map(({ item, metrics, node }) => {
         if (metrics) return { item, metrics }
         if (!node) throw new Error('弹幕恢复测量节点不足')
+        const text = this.displayTexts.get(item.id) ?? item.text
         const measured = normalizeMeasuredMetrics(
           node.getBoundingClientRect(),
-          item.text,
+          text,
           item.fontSize ?? this.config.fontSize ?? 26,
         )
-        this.cacheMetrics(item, measured)
+        this.cacheMetrics(item, text, measured)
         return { item, metrics: measured }
       })
     } finally {
@@ -294,11 +321,11 @@ export class DomDanmakuRenderer {
     }
   }
 
-  private cacheMetrics(item: DanmakuItem, metrics: DanmakuMetrics): void {
+  private cacheMetrics(item: DanmakuItem, text: string, metrics: DanmakuMetrics): void {
     // 长时间反复跳转也不能令测量缓存随全部弹幕无限增长。
     if (this.metricsCache.size >= 8192)
       this.metricsCache.delete(this.metricsCache.keys().next().value!)
-    this.metricsCache.set(this.getMetricsKey(item), metrics)
+    this.metricsCache.set(this.getMetricsKey(item, text), metrics)
   }
 
   setRate(rate: number): void {
@@ -439,6 +466,8 @@ export class DomDanmakuRenderer {
       if (placement) this.renderPlacement(candidate.node, placement)
       else this.releaseUnplacedNode(candidate.node)
     }
+    // 没排上轨道的候选不会上屏，丢掉为它们记下的显示文本
+    this.displayTexts.clear()
   }
 
   /** 先统一写 DOM，再集中读布局，避免逐条读写交错造成 layout thrashing。 */
@@ -446,17 +475,20 @@ export class DomDanmakuRenderer {
     const candidates = items.map<MeasuredCandidate>((item) => {
       const node = this.pool.acquire()
       if (!node) return { item, metrics: null, node: null }
-      prepareMeasureNode(node, item, this.config.fontSize ?? 26)
+      const text = this.resolveText(item)
+      this.displayTexts.set(item.id, text)
+      prepareMeasureNode(node, item, text, this.config.fontSize ?? 26)
       this.measurementLayer.append(node)
-      return { item, metrics: this.metricsCache.get(this.getMetricsKey(item)) ?? null, node }
+      return { item, metrics: this.metricsCache.get(this.getMetricsKey(item, text)) ?? null, node }
     })
 
     for (const candidate of candidates) {
       if (!candidate.node || candidate.metrics) continue
       const rect = candidate.node.getBoundingClientRect()
       const fontSize = candidate.item.fontSize ?? this.config.fontSize ?? 26
-      const metrics = normalizeMeasuredMetrics(rect, candidate.item.text, fontSize)
-      this.cacheMetrics(candidate.item, metrics)
+      const text = this.displayTexts.get(candidate.item.id) ?? candidate.item.text
+      const metrics = normalizeMeasuredMetrics(rect, text, fontSize)
+      this.cacheMetrics(candidate.item, text, metrics)
       candidate.metrics = metrics
     }
     return candidates
@@ -468,10 +500,13 @@ export class DomDanmakuRenderer {
     elapsed?: number,
   ): void {
     let animation: Animation | undefined
+    // 与测量时使用的文本保持一致；没有记录时（不应发生）退回当前解析结果
+    const displayText = this.displayTexts.get(placement.item.id) ?? this.resolveText(placement.item)
     try {
       prepareNode(
         node,
         placement,
+        displayText,
         this.container.clientWidth,
         Boolean(this.config.hoverPause),
         this.config.fontSize ?? 26,
@@ -485,7 +520,13 @@ export class DomDanmakuRenderer {
         if (this.playing) animation.play()
       }
       node.style.visibility = 'visible'
-      const active = { node, animation, duration: placement.duration }
+      const active: ActiveAnimation = {
+        node,
+        animation,
+        duration: placement.duration,
+        originalText: placement.item.text,
+        displayText,
+      }
       this.animations.set(placement.item.id, active)
       this.bindHoverBehavior(placement.item.id, active)
 
@@ -532,7 +573,13 @@ export class DomDanmakuRenderer {
         this.hoverPaused.add(id)
         active.animation.pause()
       }
-      this.hoverToolbar.attach(id, active.node, event.clientX)
+      // 显示的是译文时，工具条里附带原文
+      this.hoverToolbar.attach(
+        id,
+        active.node,
+        event.clientX,
+        active.displayText === active.originalText ? null : active.originalText,
+      )
     }
     // 工具条出现在鼠标正下方：驻留期间持续记录鼠标位置
     active.node.onmousemove = (event) => this.hoverToolbar.track(id, event.clientX)
@@ -580,6 +627,7 @@ export class DomDanmakuRenderer {
     for (const id of [...this.animations.keys()]) this.releaseNode(id)
     this.hoverToolbar.hide()
     this.pool.releaseAll()
+    this.displayTexts.clear()
   }
 
   /**
@@ -640,8 +688,9 @@ export class DomDanmakuRenderer {
     this.displayLayer.style.opacity = String(clamp(opacity ?? 1, 0, 1))
   }
 
-  private getMetricsKey(item: DanmakuItem) {
-    return `${this.styleRevision}:${item.fontSize ?? this.config.fontSize ?? 26}:${item.text}`
+  /** 宽度取决于实际显示的文本，译文与原文各自缓存 */
+  private getMetricsKey(item: DanmakuItem, text: string) {
+    return `${this.styleRevision}:${item.fontSize ?? this.config.fontSize ?? 26}:${text}`
   }
 
   private refreshDiagnostics(): void {
@@ -666,9 +715,14 @@ const createMeasurementLayer = () => {
 
 const createDanmakuNode = () => document.createElement('span')
 
-const applyTextStyle = (node: HTMLSpanElement, item: DanmakuItem, defaultFontSize: number) => {
+const applyTextStyle = (
+  node: HTMLSpanElement,
+  item: DanmakuItem,
+  text: string,
+  defaultFontSize: number,
+) => {
   node.setAttribute('aria-hidden', 'true')
-  node.textContent = item.text
+  node.textContent = text
   node.className = 'absolute top-0 left-0 whitespace-nowrap font-semibold will-change-transform'
   node.style.color = item.color
   node.style.fontSize = `${item.fontSize ?? defaultFontSize}px`
@@ -676,8 +730,13 @@ const applyTextStyle = (node: HTMLSpanElement, item: DanmakuItem, defaultFontSiz
   node.style.textShadow = '0 1px 2px rgb(0 0 0 / 90%), 1px 0 1px rgb(0 0 0 / 70%)'
 }
 
-const prepareMeasureNode = (node: HTMLSpanElement, item: DanmakuItem, defaultFontSize: number) => {
-  applyTextStyle(node, item, defaultFontSize)
+const prepareMeasureNode = (
+  node: HTMLSpanElement,
+  item: DanmakuItem,
+  text: string,
+  defaultFontSize: number,
+) => {
+  applyTextStyle(node, item, text, defaultFontSize)
   node.style.position = 'absolute'
   node.style.width = 'max-content'
   node.style.transform = 'none'
@@ -688,6 +747,7 @@ const prepareMeasureNode = (node: HTMLSpanElement, item: DanmakuItem, defaultFon
 const prepareNode = (
   node: HTMLSpanElement,
   placement: DanmakuPlacement,
+  text: string,
   viewportWidth: number,
   hoverPause: boolean,
   defaultFontSize: number,
@@ -695,7 +755,7 @@ const prepareNode = (
   node.dataset.danmakuNode = placement.item.id
   node.dataset.danmakuMode = placement.item.mode
   node.dataset.danmakuLane = String(placement.lane)
-  applyTextStyle(node, placement.item, defaultFontSize)
+  applyTextStyle(node, placement.item, text, defaultFontSize)
   node.style.width = ''
   node.style.pointerEvents = hoverPause ? 'auto' : 'none'
   node.style.visibility = 'hidden'
