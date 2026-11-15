@@ -51,6 +51,7 @@ pnpm format              # Prettier
 | `@marchen/playback-core`   | 媒体会话、时钟和播放命令（纯 TS）             |
 | `@marchen/danmaku-engine`  | DOM 弹幕调度、轨道和节点池（纯 TS）           |
 | `@marchen/sparkle-updater` | macOS Sparkle 原生更新桥接                    |
+| `@marchen/i18n`            | 界面文案、语言解析与 i18next 配置（纯 TS）    |
 
 ### IPC 通信
 
@@ -123,6 +124,20 @@ idle → importing → hashing → matching → [waiting_user] → loading_danma
 - 引擎只在开关开启、资源就绪且播放页确有需要翻译的弹幕时加载；关闭翻译、离开播放页、清除资源时终止 Worker 释放内存。引擎出错后不自动重启。清除「翻译模型」会同时关闭开关；重置应用在 `resetApp` 里显式清空 OPFS。
 - 本功能的界面文案集中在 `services/translation/messages.ts`，服务层只产出状态码（`status.ts`）与数值，不在别处写面向用户的字符串，为后续界面多语言留口。新增目标语言时扩展 `assets/manifest.ts` 的语言对与 `TranslationTarget`。
 
+### 界面多语言
+
+- 支持简体中文（源语言）与 English。基于 i18next + react-i18next，文案、语言解析规则与实例配置集中在 `packages/i18n`，main 与 renderer 共用同一份。i18next 由根 `package.json` 提供，`packages/i18n` 不单独声明这个依赖（否则会装出第二份，类型扩展只对其中一份生效）。纯逻辑包（`player-loading`、`playback-core`、`danmaku-engine`、`shared`）不得引用 `@marchen/i18n`，它们只产出状态码与错误码。
+- **分步迁移中**：界面文案按变更逐步迁入，尚未迁移的位置记在 `scripts/eslint/i18n-pending.mjs`。在这之前由发布开关（`packages/i18n/src/languages.ts` 的 `LANGUAGE_SWITCH_RELEASED`）保证正式构建固定显示简体中文、不显示语言选项，开发态可以切换；全部迁完后把常量改为 `true` 即放开。
+- **文案**放在 `packages/i18n/src/locales/<语言>/<命名空间>.ts`（`as const` 的对象），命名空间按界面区域划分。键按「区域.元素.用途」命名，不用文案本身当键；插值用具名变量，不拼接字符串；带数量的文案用 `count` 与单复数键（中文只写 `_other`，英文写 `_one` / `_other`）。键的类型来自简体中文，引用不存在的键、漏传插值变量在类型检查时报错；英文是否齐全由 `packages/i18n/tests/parity.test.ts` 检查。产品名（Marchen）与语言自称名不进文案文件。
+- **取用**：组件里 `useTranslation('命名空间')`，要用别的命名空间时传数组并写 `命名空间:键`；组件之外（全局提示、服务）从 `@renderer/lib/i18n` 引入 `t`，在调用时求值；主进程从 `@main/lib/i18n` 引入 `t`。数量用 `@renderer/lib/i18n` 的 `formatNumber`，不要写死 `toLocaleString('zh-CN')`。
+- **模块顶层的常量不存文字**：它们在 import 时求值，存了文字就不会随语言切换更新。存键或稳定 ID，渲染时再翻译（参考 `settings/tabs.tsx`、`DarkMode.tsx`）。调用了「组件外返回文案的函数」而自己没有用 `useTranslation` 的组件，用 `useLanguage()` 订阅语言变化。
+- **语言的来源**：偏好保存在 `appSettingAtom.language`（`system` / `zh-CN` / `en`），renderer 是唯一来源。`initialize/i18n.ts` 在挂载前解析并应用，之后订阅设置变化；应用语言时同步 `<html lang>`、dayjs 与主进程。「跟随系统」按系统首选语言的顺序取第一个中文或英文，都没有用英文；Electron 的页面向主进程取系统语言列表，保证两边结论一致。
+- **主进程**只保存一份镜像（`<userData>/language.json`，内容是实际语言），用于页面加载之前的应用菜单；页面每次启动都会重新上报，语言变化时重建菜单。重置应用会删除镜像。
+- **不翻译的**：日志、`console` 输出、给开发者看的 `Error` 文本保持中文；番剧标题、弹幕等来自弹弹play 的内容没有其他语言。弹幕层固定标注 `lang="zh-CN"`，避免英文界面下汉字回落到其他地区的字形。
+- **ESLint**：`marchen/no-hardcoded-ui-text` 在豁免名单之外禁止直接写中文界面文字（JSX 文本、字符串、模板字符串；日志与 `Error` 参数、注释、测试除外）。名单只能缩短，新写的界面文字一律走文案包。
+- **伪本地化**：开发态的语言选项里有 Pseudo，文案变成带方括号、加长约 40% 的样子；没有方括号的就是还没走文案包的文字，用它检查遗漏与溢出。正式构建不包含。
+- **英文术语**：弹幕 danmaku、番剧 anime、剧集 episode、匹配 match、影视库 Library、媒体源 Media Sources。设置等界面用句首大写，macOS 菜单项按系统惯例每个词首字母大写。
+
 ### API 请求
 
 `ofetch` 封装于 `request/ofetch.ts`，API 模块在 `request/api/`（match、comment、bangumi、search），类型在 `request/models/`。主备 URL 从 `VITE_API_CLOUDFLARE_URL` / `VITE_API_EDGEONE_URL` 读取，在 `request/api-route-config.ts` 统一校验；两端启动与构建都要求有效 HTTPS 地址。
@@ -180,14 +195,14 @@ src/
     ├── atoms/            # Jotai
     ├── hooks/  request/  database/  router/  providers/  initialize/  constants/  lib/
 
-packages/{electron-ipc,shared,player-loading,playback-core,danmaku-engine,sparkle-updater}
+packages/{electron-ipc,shared,player-loading,playback-core,danmaku-engine,sparkle-updater,i18n}
 marchen/                  # 变更规划（changes / archive / ideas），配合 /marchen:* 技能使用
 docs/                     # 发布、部署、可观测性文档
 ```
 
 ## 路径别名
 
-`@renderer` → `src/renderer/src`，`@main` → `src/main`，`@pkg` → `package.json`，`@marchen/*` → `packages/*`。
+`@renderer` → `src/renderer/src`，`@main` → `src/main`，`@pkg` → `package.json`，`@marchen/*` → `packages/*`。新增包时要同时在 `tsconfig.node.json` / `tsconfig.web.json`、`electron.vite.config.ts`、`vite.config.ts` 与两个 vitest 配置里加上对应路径。
 
 ## 代码风格
 
@@ -197,7 +212,7 @@ docs/                     # 发布、部署、可观测性文档
 
 ### 规范要求
 
-- UI 与注释使用**中文**
+- 注释、日志与给开发者看的错误信息使用**中文**；界面文字不直接写在代码里，统一放进 `packages/i18n`（简体中文为源语言，同时补英文），见「界面多语言」
 - 视频入口格式以 `packages/shared/src/media/formats.ts` 为准（MP4/M4V、MOV/QT、MKV/MK3D、WebM、TS/MTS/M2TS/M2T），实际播放取决于容器和编码探测；hash 为 16MB 前缀 MD5
 - **注释**：积极写中文注释，解释意图、上下文、设计决策
 - **类型安全**：避免 `any`，优先 discriminated union / 泛型约束

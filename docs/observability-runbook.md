@@ -134,6 +134,15 @@ FFmpeg/Gateway/media.generation 与 compat_fallback_triggered 为历史版本口
 
 下载事件属性仅使用白名单枚举和数值，以保证聚合维度稳定；下载页、弹窗、目录设置和错误详情与其他页面一样参与 PostHog 自动采集与两端回放，不做屏蔽。开发环境仍遵循既有 `VITE_TELEMETRY_DEBUG` 开关，不为验收自动开启线上上报。
 
+## 界面语言
+
+界面支持简体中文与 English（`2026-11` 起分步迁移）。在界面多语言整体放开之前，正式构建固定为简体中文，下面的属性在线上恒为 `zh-CN`、切换事件不会出现；放开之后才有区分度。
+
+- 公共属性 `ui_language`：上报当时界面实际使用的语言，取值 `zh-CN` / `en`（开发态可能是 `pseudo`，即伪本地化）。它是「实际语言」而不是用户的偏好：偏好为跟随系统时，这里是解析后的结果。只有 renderer 的事件带这个属性，主进程的事件没有。
+- `feature_used(app_language, change, value)`：用户在设置里改了语言偏好，`value` 为所选项 `system` / `zh-CN` / `en`。启动时按偏好应用语言不触发。
+- 本机诊断日志的 `renderer_start` 快照里有 `uiLanguage`（实际语言）与 `languagePreference`（偏好），以及原有的 `language`（浏览器报告的语言）。排查「界面语言不对」先对这三个值。
+- 按语言拆分留存或功能使用率时用 `ui_language`；评估「有多少用户主动改过语言」用 `feature_used(app_language, change)`，两者口径不同。
+
 ## 本地诊断日志与用户反馈
 
 ### 本地日志（Electron）
