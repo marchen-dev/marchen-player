@@ -1,5 +1,7 @@
 import antfu from '@antfu/eslint-config'
 import reactHooks from 'eslint-plugin-react-hooks'
+import { I18N_PENDING } from './scripts/eslint/i18n-pending.mjs'
+import noHardcodedUiText from './scripts/eslint/no-hardcoded-ui-text.mjs'
 
 export default antfu(
   {
@@ -21,6 +23,18 @@ export default antfu(
     },
     rules: {
       'react-hooks/rules-of-hooks': 'error',
+    },
+  },
+  {
+    // 界面多语言：已迁移的代码里不允许再直接写中文界面文字（注释、日志与 Error 不受限制）。
+    // 尚未迁移的位置记在豁免名单里，名单只能缩短，见 scripts/eslint/i18n-pending.mjs。
+    files: ['src/renderer/src/**/*.{ts,tsx}', 'src/main/**/*.ts'],
+    ignores: ['**/*.test.*', '**/tests/**', ...I18N_PENDING],
+    plugins: {
+      marchen: { rules: { 'no-hardcoded-ui-text': noHardcodedUiText } },
+    },
+    rules: {
+      'marchen/no-hardcoded-ui-text': 'error',
     },
   },
   {
