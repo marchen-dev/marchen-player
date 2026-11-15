@@ -1,4 +1,5 @@
 import { db } from '@renderer/database/db'
+import { danmakuTranslation } from '@renderer/services/translation/service'
 
 import { stripAutoDanmaku } from './measure'
 
@@ -14,6 +15,19 @@ export async function clearAutoDanmakuCache(): Promise<void> {
     if (next) record.danmaku = next
     else delete record.danmaku
   })
+}
+
+/**
+ * 清除弹幕翻译的引擎与模型。同时会关闭弹幕翻译开关并终止翻译引擎：
+ * 开关若保持开启，下次播放会自动重新下载，等于清不掉。
+ */
+export async function clearTranslationAssets(): Promise<void> {
+  await danmakuTranslation.clearAssets()
+}
+
+/** 弹幕翻译资源占用的字节数 */
+export async function estimateTranslationAssetsUsage(): Promise<number> {
+  return danmakuTranslation.usage()
 }
 
 /** 清除播放缩略图；进度、弹幕、字幕与海报 cover 不受影响，再次播放会重新生成 */

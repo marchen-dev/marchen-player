@@ -14,9 +14,15 @@ import { ipcClient } from '@renderer/lib/client'
 import { formatBytes } from '@renderer/lib/format-bytes'
 import { resetApp } from '@renderer/lib/ns'
 import { isWeb } from '@renderer/lib/utils'
-import { clearAutoDanmakuCache, clearThumbnails, useStorageUsage } from '@renderer/services/storage'
+import {
+  clearAutoDanmakuCache,
+  clearThumbnails,
+  clearTranslationAssets,
+  useStorageUsage,
+} from '@renderer/services/storage'
 import { captureFeatureUsed } from '@renderer/services/telemetry/features'
 import { reportOperationalError } from '@renderer/services/telemetry/operational-errors'
+import { translationMessages } from '@renderer/services/translation/messages'
 import { useCallback, useState } from 'react'
 
 import {
@@ -64,8 +70,9 @@ export const GeneralView = () => {
           danmaku: usage.history?.danmaku.bytes,
           thumbnail: usage.history?.thumbnail.bytes,
           network: usage.network,
+          translation: usage.translation,
         }
-      : { danmaku: undefined, thumbnail: undefined, network: undefined }
+      : { danmaku: undefined, thumbnail: undefined, network: undefined, translation: undefined }
 
   return (
     <SettingsPage sectionId="general" title="通用" description="管理应用行为、外观与本地数据">
@@ -182,9 +189,9 @@ export const GeneralView = () => {
   )
 }
 
-type ClearTarget = 'danmaku' | 'thumbnail' | 'network'
+type ClearTarget = 'danmaku' | 'thumbnail' | 'network' | 'translation'
 
-const CLEAR_TARGETS: ClearTarget[] = ['danmaku', 'thumbnail', 'network']
+const CLEAR_TARGETS: ClearTarget[] = ['danmaku', 'thumbnail', 'network', 'translation']
 
 /**
  * 各缓存类清除项：行标题、埋点 action 与执行函数。
@@ -213,6 +220,12 @@ const CLEAR_ACTIONS: Record<
     run: async () => {
       await ipcClient?.app.clearNetworkCache()
     },
+  },
+  translation: {
+    label: translationMessages.storage.label,
+    description: translationMessages.storage.description,
+    action: 'clear_translation_assets',
+    run: clearTranslationAssets,
   },
 }
 

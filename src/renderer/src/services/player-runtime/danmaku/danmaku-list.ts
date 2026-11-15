@@ -86,14 +86,25 @@ export function buildDanmakuList(
 
 export function filterDanmakuList(
   rows: readonly DanmakuListRow[],
-  filter: { keyword?: string; sourceId?: string },
+  filter: {
+    keyword?: string
+    sourceId?: string
+    /**
+     * 弹幕翻译开启时传入：按原文查译文。搜索会同时匹配原文与译文。
+     * 译文在后台陆续产生，所以不写进行数据，而是在过滤与渲染时现查。
+     */
+    translate?: (text: string) => string | undefined
+  },
 ): DanmakuListRow[] {
   const keyword = filter.keyword?.trim().toLowerCase()
   if (!keyword && !filter.sourceId) return rows as DanmakuListRow[]
+  const { translate } = filter
   return rows.filter(
     (row) =>
       (!filter.sourceId || row.sourceId === filter.sourceId) &&
-      (!keyword || row.text.toLowerCase().includes(keyword)),
+      (!keyword ||
+        row.text.toLowerCase().includes(keyword) ||
+        Boolean(translate?.(row.text)?.toLowerCase().includes(keyword))),
   )
 }
 

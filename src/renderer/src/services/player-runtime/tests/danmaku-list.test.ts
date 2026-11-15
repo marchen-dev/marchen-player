@@ -137,6 +137,28 @@ describe('弹幕列表过滤与定位', () => {
     expect(filterDanmakuList(rows, { keyword: '弹幕', sourceId: 'dandanplay' })).toEqual([])
   })
 
+  it('提供译文查询时搜索同时匹配原文与译文', () => {
+    const translations = new Map(rows.map((row) => [row.text, `Translated ${row.text.length}`]))
+    const first = rows[0]
+    translations.set(first.text, 'A nice Wallpaper')
+    const translate = (text: string) => translations.get(text)
+
+    // 译文命中（忽略大小写），原文里并没有这个词
+    expect(filterDanmakuList(rows, { keyword: 'wallpaper', translate })).toEqual([first])
+    // 原文命中的行为不变
+    expect(filterDanmakuList(rows, { keyword: 'hello', translate }).map((row) => row.text)).toEqual(
+      ['Hello'],
+    )
+    // 没有提供译文查询时不匹配译文
+    expect(filterDanmakuList(rows, { keyword: 'wallpaper' })).toEqual([])
+  })
+
+  it('尚未翻译的条目只按原文匹配', () => {
+    expect(filterDanmakuList(rows, { keyword: 'wallpaper', translate: () => undefined })).toEqual(
+      [],
+    )
+  })
+
   it('没有过滤条件时复用原数组', () => {
     expect(filterDanmakuList(rows, { keyword: '  ' })).toBe(rows)
   })

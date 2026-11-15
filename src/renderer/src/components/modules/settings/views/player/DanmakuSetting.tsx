@@ -6,6 +6,7 @@ import { usePlayerPortalContainer } from '@renderer/services/player-runtime'
 import { captureFeatureUsed } from '@renderer/services/telemetry/features'
 
 import { FieldLayout, FieldsCardLayout } from '../Layout'
+import { DanmakuTranslationRow } from './DanmakuTranslationRow'
 import {
   danmakuDensityList,
   danmakuDurationList,
@@ -49,6 +50,11 @@ export const DanmakuSetting: FC<DanmakuSettingProps> = (props) => {
           }}
         />
       </FieldLayout>
+      {/* 本机翻译，只换显示文本；状态与下载进度在这一行内呈现 */}
+      <DanmakuTranslationRow
+        playerMaterial={isPlaying}
+        portalContainer={isPlaying ? portalContainer : undefined}
+      />
       <FieldLayout title="字体大小">
         <SettingSelect
           container={isPlaying ? portalContainer : undefined}

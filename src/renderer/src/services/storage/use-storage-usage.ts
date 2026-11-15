@@ -3,6 +3,7 @@ import { ipcClient } from '@renderer/lib/client'
 import { reportOperationalError } from '@renderer/services/telemetry/operational-errors'
 import { useCallback, useEffect, useRef, useState } from 'react'
 
+import { estimateTranslationAssetsUsage } from './cleanup'
 import { estimateHistoryUsage } from './usage'
 
 /**
@@ -16,6 +17,8 @@ export type StorageUsageState =
       history?: HistoryUsage
       /** Electron session HTTP 缓存；Web 恒为 undefined */
       network?: number
+      /** 弹幕翻译的引擎与模型 */
+      translation?: number
     }
 
 async function loadNetworkCacheSize(): Promise<number | undefined> {
@@ -24,6 +27,15 @@ async function loadNetworkCacheSize(): Promise<number | undefined> {
     return await ipcClient.app.getNetworkCacheSize()
   } catch (error) {
     reportOperationalError('ipc', 'settings.network_cache_size', error, true)
+    return undefined
+  }
+}
+
+async function loadTranslationUsage(): Promise<number | undefined> {
+  try {
+    return await estimateTranslationAssetsUsage()
+  } catch (error) {
+    reportOperationalError('player', 'settings.estimate_translation_usage', error, true)
     return undefined
   }
 }
@@ -48,9 +60,13 @@ export function useStorageUsage() {
 
   const refresh = useCallback(async () => {
     const request = ++requestRef.current
-    const [history, network] = await Promise.all([loadHistoryUsage(), loadNetworkCacheSize()])
+    const [history, network, translation] = await Promise.all([
+      loadHistoryUsage(),
+      loadNetworkCacheSize(),
+      loadTranslationUsage(),
+    ])
     if (request !== requestRef.current) return
-    setState({ status: 'ready', history, network })
+    setState({ status: 'ready', history, network, translation })
   }, [])
 
   useEffect(() => {

@@ -26,6 +26,7 @@ import {
   findCurrentRowIndex,
 } from '@renderer/services/player-runtime/danmaku/danmaku-list'
 import { captureFeatureUsed } from '@renderer/services/telemetry/features'
+import { useTranslationLookup } from '@renderer/services/translation/use-translation-lookup'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { memo, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
 
@@ -94,7 +95,8 @@ const DanmakuListDialog = ({ open, onOpenChange }: DanmakuListDialogProps) => {
 
 const DanmakuListBody = () => {
   const { danmaku } = useDanmakuSourceConfig()
-  const [{ danmakuBlock, enableTraditionalToSimplified }] = usePlayerSettings()
+  const [{ danmakuBlock, enableTraditionalToSimplified, danmakuTranslation }] = usePlayerSettings()
+  const translationEnabled = danmakuTranslation.enabled
   const clock = usePlaybackClock()
   const portalContainer = usePlayerPortalContainer()
   const [keyword, setKeyword] = useState('')
@@ -108,13 +110,18 @@ const DanmakuListBody = () => {
     () => buildDanmakuList(danmaku, { simplified: enableTraditionalToSimplified, blocker }),
     [blocker, danmaku, enableTraditionalToSimplified],
   )
+  // 与画面使用同一份译文表；查询函数随译文的产生按固定间隔更新
+  const translate = useTranslationLookup(translationEnabled)
+  // 没有输入关键词时过滤结果与译文无关，避免译文每次刷新都重算数千行
+  const searchTranslate = deferredKeyword.trim() ? translate : undefined
   const rows = useMemo(
     () =>
       filterDanmakuList(list.rows, {
         keyword: deferredKeyword,
         sourceId: sourceId === ALL_SOURCES ? undefined : sourceId,
+        translate: searchTranslate,
       }),
-    [deferredKeyword, list.rows, sourceId],
+    [deferredKeyword, list.rows, searchTranslate, sourceId],
   )
   const showSource = list.sources.length > 1
   const filtered = rows.length !== list.rows.length
@@ -228,6 +235,7 @@ const DanmakuListBody = () => {
                 >
                   <DanmakuRow
                     row={rows[virtualRow.index]}
+                    translation={translate?.(rows[virtualRow.index].text)}
                     current={virtualRow.index === currentIndex}
                     showSource={showSource}
                   />
@@ -251,11 +259,13 @@ const MODE_LABELS: Partial<Record<DanmakuListRow['mode'], string>> = { top: '顶
 
 interface DanmakuRowProps {
   row: DanmakuListRow
+  /** 弹幕翻译开启且该条已翻译时的译文 */
+  translation?: string
   current: boolean
   showSource: boolean
 }
 
-const DanmakuRow = memo(({ row, current, showSource }: DanmakuRowProps) => {
+const DanmakuRow = memo(({ row, translation, current, showSource }: DanmakuRowProps) => {
   const modeLabel = MODE_LABELS[row.mode]
   const blocked = Boolean(row.blocked)
   // 被屏蔽的行只减弱内容，不减弱整行：当前播放位置的高亮仍要看得清
@@ -280,7 +290,18 @@ const DanmakuRow = memo(({ row, current, showSource }: DanmakuRowProps) => {
           style={{ backgroundColor: row.color }}
         />
         {/* 全局默认禁止选中文本，这里单独放开，方便用鼠标选中复制弹幕内容 */}
-        <span className="min-w-0 break-words whitespace-pre-wrap select-text">{row.text}</span>
+        <span className="flex min-w-0 flex-col">
+          <span className="min-w-0 break-words whitespace-pre-wrap select-text">{row.text}</span>
+          {translation && (
+            // 译文作为第二行对照显示；尚未翻译或不需要翻译的条目只有原文
+            <span
+              lang="en"
+              className="text-muted-foreground min-w-0 break-words whitespace-pre-wrap select-text"
+            >
+              {translation}
+            </span>
+          )}
+        </span>
         {modeLabel && (
           <span className="bg-muted text-muted-foreground shrink-0 rounded px-1 text-xs">
             {modeLabel}

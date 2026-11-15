@@ -24,13 +24,23 @@ interface SettingSelectProps {
   onValueChange: (value: string) => void
   container?: Element | DocumentFragment | null
   playerMaterial?: boolean
+  disabled?: boolean
 }
 
 export const SettingSelect: FC<SettingSelectProps> = (props) => {
-  const { placeholder, groups, value, onValueChange, container, playerMaterial, ariaLabel } = props
+  const {
+    placeholder,
+    groups,
+    value,
+    onValueChange,
+    container,
+    playerMaterial,
+    ariaLabel,
+    disabled,
+  } = props
 
   return (
-    <Select value={value} onValueChange={onValueChange}>
+    <Select value={value} onValueChange={onValueChange} disabled={disabled}>
       <SelectTrigger
         aria-label={ariaLabel}
         className={cn(

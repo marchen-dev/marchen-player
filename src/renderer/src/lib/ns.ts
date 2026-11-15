@@ -1,6 +1,7 @@
 import { toast } from '@renderer/components/ui/toast'
 import { db } from '@renderer/database/db'
 import { telemetry } from '@renderer/services/telemetry'
+import { opfsAssetStore } from '@renderer/services/translation/assets/store'
 
 import { ipcClient } from './client'
 import { isWeb } from './utils'
@@ -19,6 +20,9 @@ export const clearStorage = () => {
 
 export const resetApp = async () => {
   await telemetry.reset()
+  // 弹幕翻译的引擎与模型存在浏览器私有文件系统里，不随 localStorage / IndexedDB 一起清掉，
+  // 两端都在这里显式删除；失败不阻断重置。
+  await opfsAssetStore.clear().catch(() => {})
   if (isWeb) {
     localStorage.clear()
     await db.deleteDatabase()
