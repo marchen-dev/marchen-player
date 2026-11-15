@@ -1,6 +1,8 @@
+import type { NewFeatureId } from '@renderer/lib/new-features'
 import { normalizeApiRouteMode } from '@renderer/request/api-route-client'
 import { useAtom, useAtomValue } from 'jotai'
 
+import { jotaiStore } from '../store'
 import { createSettingATom } from './helper'
 
 const createAppDefaultSettings = () => {
@@ -10,6 +12,8 @@ const createAppDefaultSettings = () => {
     apiRouteMode: normalizeApiRouteMode('auto'),
     /** 反馈时是否附带诊断日志，记住用户上次选择 */
     feedbackAttachLogs: true,
+    /** 用户已经用过、不再显示「New」标记的功能 ID，见 lib/new-features.ts */
+    seenNewFeatures: [] as string[],
   }
 }
 
@@ -19,7 +23,19 @@ export const appSettingAtom = createSettingATom('app', createAppDefaultSettings,
   ...createAppDefaultSettings(),
   ...settings,
   apiRouteMode: normalizeApiRouteMode(settings.apiRouteMode),
+  seenNewFeatures: Array.isArray(settings.seenNewFeatures)
+    ? settings.seenNewFeatures.filter((id): id is string => typeof id === 'string')
+    : [],
 }))
+
+/** 记下用户已经用过某个新功能，对应的「New」标记从此不再显示 */
+export const markNewFeatureSeen = (feature: NewFeatureId): void => {
+  if (jotaiStore.get(appSettingAtom).seenNewFeatures.includes(feature)) return
+  jotaiStore.set(appSettingAtom, (current) => ({
+    ...current,
+    seenNewFeatures: [...current.seenNewFeatures, feature],
+  }))
+}
 
 export const useAppSettings = () => useAtom(appSettingAtom)
 export const useAppSettingsValue = () => useAtomValue(appSettingAtom)
