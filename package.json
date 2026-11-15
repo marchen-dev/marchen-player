@@ -54,12 +54,14 @@
     "@suemor/libav-hevc": "0.1.1",
     "@tanstack/react-virtual": "^3.14.14",
     "bencode": "4.0.1",
+    "i18next": "^27.1.1",
     "mediabunny": "1.62.1",
     "memory-chunk-store": "1.3.5",
     "nanoid": "^6.0.2",
     "parse-torrent": "11.0.24",
     "posthog-js": "1.438.7",
     "radix-ui": "^1.7.0",
+    "react-i18next": "^18.0.1",
     "webtorrent": "3.0.21"
   },
   "devDependencies": {

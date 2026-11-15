@@ -8,6 +8,7 @@ export default defineConfig({
       '@marchen/danmaku-engine': resolve('packages/danmaku-engine/src/index.ts'),
       '@marchen/playback-core': resolve('packages/playback-core/src/index.ts'),
       '@marchen/shared': resolve('packages/shared/src'),
+      '@marchen/i18n': resolve('packages/i18n/src/index.ts'),
     },
   },
   test: {

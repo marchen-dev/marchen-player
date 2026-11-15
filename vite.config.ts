@@ -54,6 +54,7 @@ const vite = ({ mode }: { mode: string }) => {
         '@marchen/electron-ipc': resolve('packages/electron-ipc/src'),
         '@marchen/danmaku-engine': resolve('packages/danmaku-engine/src'),
         '@marchen/shared': resolve('packages/shared/src'),
+        '@marchen/i18n': resolve('packages/i18n/src/index.ts'),
       },
     },
     base: '/',

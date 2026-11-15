@@ -8,6 +8,7 @@ export default defineConfig({
       '@main': resolve('src/main'),
       '@marchen/sparkle-updater': resolve('packages/sparkle-updater/src/index.ts'),
       '@marchen/shared': resolve('packages/shared/src'),
+      '@marchen/i18n': resolve('packages/i18n/src/index.ts'),
     },
   },
   test: {
@@ -21,7 +22,9 @@ export default defineConfig({
       'src/main/**/*.test.ts',
       'scripts/web/*.test.mjs',
       'scripts/desktop/*.test.mjs',
+      'scripts/eslint/*.test.mjs',
       'packages/sparkle-updater/src/*.test.ts',
+      'packages/i18n/tests/**/*.test.ts',
     ],
   },
 })
