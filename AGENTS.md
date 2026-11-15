@@ -113,30 +113,40 @@ idle → importing → hashing → matching → [waiting_user] → loading_danma
 
 ### 弹幕翻译
 
-- 把中文弹幕在本机翻译成英文显示，Electron 与 Web 共用 renderer 里的同一套实现（`services/translation/`），不经过主进程，也没有任何翻译接口。设置是全局偏好 `playerSettingAtom.danmakuTranslation`（`enabled` / `target`，当前只有 `en`），入口是播放器侧栏弹幕页的下拉框（「不翻译 / English」，语言名用该语言自己的写法），不存入单视频 HISTORY，译文也不持久化。
+- 把中文弹幕在本机翻译成英文显示，Electron 与 Web 共用 renderer 里的同一套实现（`services/translation/`），不经过主进程，也没有任何翻译接口。设置是全局偏好 `playerSettingAtom.danmakuTranslation`（`enabled` / `target`，当前只有 `en`），入口是弹幕设置里的下拉框（「不翻译 / English」，语言名用该语言自己的写法），不存入单视频 HISTORY，译文也不持久化。
 - 引擎是 Mozilla 的 Bergamot WASM（Firefox 网页翻译同款，MPL-2.0）。胶水脚本 `services/translation/vendor/bergamot-translator.js` 是上游自动生成文件，原样收录、禁止修改，由 Worker 以 `?raw` 源码文本载入；升级时连同 `vendor/README.md`、清单里的引擎哈希一起替换。
-- 引擎 WASM 与模型不进安装包和 Web 构建：首次开启经用户确认后从存储桶（`VITE_TRANSLATION_ASSETS_URL`）下载 gzip 文件，流式解压并与 `assets/manifest.ts` 中写死的 SHA-256 比对，一致才写入 OPFS（`navigator.storage.getDirectory()` 下的 `translation/`）。清单里的哈希是完整性的唯一依据，改动必须与存储桶文件一起核对。禁止把模型或引擎二进制提交进仓库，禁止运行时拉取未校验的脚本。
+- 引擎 WASM 与模型不进安装包和 Web 构建：首次开启时（或预下载时，见下）从存储桶（`VITE_TRANSLATION_ASSETS_URL`）下载 gzip 文件，流式解压并与 `assets/manifest.ts` 中写死的 SHA-256 比对，一致才写入 OPFS（`navigator.storage.getDirectory()` 下的 `translation/`）。清单里的哈希是完整性的唯一依据，改动必须与存储桶文件一起核对。禁止把模型或引擎二进制提交进仓库，禁止运行时拉取未校验的脚本。
 - 大文件分段下载（`assets/download.ts`）：先用 HEAD 取压缩后的大小，超过 8 MB 的文件按 8 MB 一段用 `Range: bytes=a-b` 请求、3 段并发，单段因网络中断或服务器临时错误（5xx / 408 / 429）失败时只重试这一段（最多两次），按顺序拼接后再解压校验；其余文件一个请求取完。原因是资源走跨境线路（Cloudflare，大陆没有节点），大陆用户下载 44 MB 的主模型可能要几十秒，慢线路上分段便于重试：整文件一个请求断了只能从头再来。HEAD 拿不到大小或服务器对 Range 回 200 时退回整文件下载。
 - 存储桶目录为 `engine/<版本>/bergamot-translator.wasm.gz` 与 `models/<语言对>/<版本>/*.gz`：文件以普通二进制返回、不叠加传输压缩，支持 HEAD 与 Range 请求（含带 `Range` 头的预检），允许 Web 各 Origin 与 `marchen://app` 跨域读取并暴露 `Content-Length`，带版本的路径不可变。未配置基址或环境缺少 WASM SIMD / Worker / `DecompressionStream` / OPFS 时功能显示为不支持，弹幕照常按原文显示。
 - 生效方式是给渲染器换「显示文本」的来源（`DomDanmakuRenderer.setTextResolver`），不走 `replaceItems`：译文陆续到达、开关切换都不清屏，在屏弹幕不变，之后出场的弹幕才读到译文；出场时译文未就绪就显示原文。测量、上屏、宽度缓存必须用同一份显示文本。`packages/danmaku-engine` 不感知翻译，禁止把翻译逻辑引入引擎包。
 - 屏蔽判定、悬停工具条的复制与屏蔽始终基于原文；显示的是译文时工具条多一行原文。弹幕列表原文与译文对照显示，搜索两者都匹配，译文在渲染与过滤时现查（`useTranslationLookup`），不写进行数据。
 - 调度是全量后台翻译（`schedule.ts`）：只翻含汉字且不含假名的文本，统一转简体后按文本去重，被屏蔽的不翻；每批从当前播放位置之后最近的未翻译文本取起，翻到片尾再回头，因此跳转无需特殊处理。Worker 内逐条调用引擎（比整批快约 40%）。
+- 翻译资源预下载：界面语言有对应的翻译模型时（`policy.ts` 的 `translationTargetForLanguage`，目前是 English，伪本地化按英文），不等用户开启翻译就在空闲时把引擎与模型下载好（`preload.ts` 负责时机，`service.preload` 只下载、不改设置、不启动引擎，与主动开启共用同一个下载任务）。条件集中在 `policy.ts` 的 `shouldPreloadTranslation`：环境支持、本机缺资源、没有退出标记（`appSettingAtom.translationPreloadOptOut`：清除过模型或在询问里选过「不用」，主动开启翻译时清掉）、不在省流量模式；Web 端还要等本次运行里打开过视频。预下载期间设置行显示「准备中」（状态 `preparing`），失败不提示。简体中文界面不预下载。
+- 下载确认：界面语言就是目标语言时开启翻译不再确认（省流量模式除外），简体中文界面首次开启仍先确认，规则是 `shouldConfirmTranslationDownload`；确认弹窗由 `useTranslationDownloadConfirm`（`components/modules/shared/TranslationDownloadConfirm.tsx`）提供，设置行与加载提示共用。
+- 首次询问：界面语言不是中文、用户从未对弹幕翻译做过选择（`appSettingAtom.danmakuTranslationPrompt`）时，「弹幕加载完成」的提示（`MatchResultToast`）里问一次是否翻译，带「翻译」「不用」，停留 12 秒，同一次运行最多问一次，条件是 `shouldAskDanmakuTranslation`。在设置里操作过弹幕翻译、或翻译已经开着，都算做过选择。
+- 弹幕翻译选了目标语言时「繁体转简体」置灰并保留原值：有译文的弹幕显示译文，没有译文的仍按原来的开关值决定是否转简体。
 - 引擎只在开关开启、资源就绪且播放页确有需要翻译的弹幕时加载；关闭翻译、离开播放页、清除资源时终止 Worker 释放内存。引擎出错后不自动重启。清除「翻译模型」会同时关闭开关；重置应用在 `resetApp` 里显式清空 OPFS。
-- 本功能的界面文案集中在 `services/translation/messages.ts`，服务层只产出状态码（`status.ts`）与数值，不在别处写面向用户的字符串，为后续界面多语言留口。新增目标语言时扩展 `assets/manifest.ts` 的语言对与 `TranslationTarget`。
+- 服务层只产出状态码（`status.ts`）与数值，不写面向用户的字符串；状态说明由 `services/translation/status-text.ts` 按当前界面语言生成，文案在 `packages/i18n` 的 `danmaku` 命名空间。新增目标语言时扩展 `assets/manifest.ts` 的语言对与 `TranslationTarget`。
 
 ### 界面多语言
 
 - 支持简体中文（源语言）与 English。基于 i18next + react-i18next，文案、语言解析规则与实例配置集中在 `packages/i18n`，main 与 renderer 共用同一份。i18next 由根 `package.json` 提供，`packages/i18n` 不单独声明这个依赖（否则会装出第二份，类型扩展只对其中一份生效）。纯逻辑包（`player-loading`、`playback-core`、`danmaku-engine`、`shared`）不得引用 `@marchen/i18n`，它们只产出状态码与错误码。
-- **分步迁移中**：界面文案按变更逐步迁入，尚未迁移的位置记在 `scripts/eslint/i18n-pending.mjs`。在这之前由发布开关（`packages/i18n/src/languages.ts` 的 `LANGUAGE_SWITCH_RELEASED`）保证正式构建固定显示简体中文、不显示语言选项，开发态可以切换；全部迁完后把常量改为 `true` 即放开。
+- **全部界面已迁移，尚未放开**：renderer 与 main 的界面文字都已走文案包，没有豁免名单。发布开关（`packages/i18n/src/languages.ts` 的 `LANGUAGE_SWITCH_RELEASED`）仍为 `false`：正式构建固定显示简体中文、不显示语言选项，开发态可以切换。把常量改为 `true` 即放开，这一步须由用户确认英文界面之后再做。
 - **文案**放在 `packages/i18n/src/locales/<语言>/<命名空间>.ts`（`as const` 的对象），命名空间按界面区域划分。键按「区域.元素.用途」命名，不用文案本身当键；插值用具名变量，不拼接字符串；带数量的文案用 `count` 与单复数键（中文只写 `_other`，英文写 `_one` / `_other`）。键的类型来自简体中文，引用不存在的键、漏传插值变量在类型检查时报错；英文是否齐全由 `packages/i18n/tests/parity.test.ts` 检查。产品名（Marchen）与语言自称名不进文案文件。
 - **取用**：组件里 `useTranslation('命名空间')`，要用别的命名空间时传数组并写 `命名空间:键`；组件之外（全局提示、服务）从 `@renderer/lib/i18n` 引入 `t`，在调用时求值；主进程从 `@main/lib/i18n` 引入 `t`。数量用 `@renderer/lib/i18n` 的 `formatNumber`，不要写死 `toLocaleString('zh-CN')`。
 - **模块顶层的常量不存文字**：它们在 import 时求值，存了文字就不会随语言切换更新。存键或稳定 ID，渲染时再翻译（参考 `settings/tabs.tsx`、`DarkMode.tsx`）。调用了「组件外返回文案的函数」而自己没有用 `useTranslation` 的组件，用 `useLanguage()` 订阅语言变化。
 - **语言的来源**：偏好保存在 `appSettingAtom.language`（`system` / `zh-CN` / `en`），renderer 是唯一来源。`initialize/i18n.ts` 在挂载前解析并应用，之后订阅设置变化；应用语言时同步 `<html lang>`、dayjs 与主进程。「跟随系统」按系统首选语言的顺序取第一个中文或英文，都没有用英文；Electron 的页面向主进程取系统语言列表，保证两边结论一致。
 - **主进程**只保存一份镜像（`<userData>/language.json`，内容是实际语言），用于页面加载之前的应用菜单；页面每次启动都会重新上报，语言变化时重建菜单。重置应用会删除镜像。
-- **不翻译的**：日志、`console` 输出、给开发者看的 `Error` 文本保持中文；番剧标题、弹幕等来自弹弹play 的内容没有其他语言。弹幕层固定标注 `lang="zh-CN"`，避免英文界面下汉字回落到其他地区的字形。
-- **ESLint**：`marchen/no-hardcoded-ui-text` 在豁免名单之外禁止直接写中文界面文字（JSX 文本、字符串、模板字符串；日志与 `Error` 参数、注释、测试除外）。名单只能缩短，新写的界面文字一律走文案包。
+- **不翻译的**：日志、`console` 输出、给开发者看的 `Error` 文本保持中文；番剧标题、剧集名、弹幕、搜索结果等来自弹弹play 的内容没有其他语言，接口返回什么就显示什么。显示这些外部内容（含文件名）的元素标注 `lang={CONTENT_LANG}`（`@renderer/lib/i18n`，弹幕层共用），避免英文界面下汉字回落到其他地区的字形。
+- **ESLint**：`marchen/no-hardcoded-ui-text` 对 renderer 与 main 的全部源码生效，禁止直接写中文界面文字，含没有汉字的中文标点（拼接用的分隔符也要按语言取）。JSX 文本、字符串、模板字符串都查；日志调用、`new XxxError(...)` 的参数、带 `code` 的对象里的 `message` / `reason`、注释、测试除外。确实不是界面文字的（例如解析文件名用的括号）用 `eslint-disable` 并写明原因。
 - **伪本地化**：开发态的语言选项里有 Pseudo，文案变成带方括号、加长约 40% 的样子；没有方括号的就是还没走文案包的文字，用它检查遗漏与溢出。正式构建不包含。
-- **英文术语**：弹幕 danmaku、番剧 anime、剧集 episode、匹配 match、影视库 Library、媒体源 Media Sources。设置等界面用句首大写，macOS 菜单项按系统惯例每个词首字母大写。
+- **失败提示（错误码）**：错误对象的 `message` 始终是简体中文，只用于日志、遥测与简体中文界面；界面上显示错误一律经 `@renderer/lib/errors` 的 `describeError(error, 概括说明, { domain? })`，不直接显示 `error.message`，也不按错误文字做判断（用 `hasErrorCode`）。
+  - 用户看了能明白、能采取行动的失败带稳定错误码：新写的用 `@marchen/shared/errors` 的 `new UserError('域.原因', '中文说明', 参数?)`；已有的错误类型（`MediaSourceError`、`RemoteMediaError`、`SubtitleError`、`PlaybackError` 等）沿用自己的裸错误码，显示时由 `describeError` 的 `domain` 映射。错误码就是 `packages/i18n` 里 `errors` 命名空间的键（`errors:<域>.<原因>`），两边是否对得上由 `scripts/i18n/error-codes.test.mjs` 检查。
+  - 解析器、解码器等内部校验不加错误码、不逐条翻译，继续 `new Error('中文')`：英文界面只显示调用方给的概括说明（原始说明不含汉字时附在后面），细节留在日志、遥测与「错误详情」里。
+  - 显示规则：简体中文界面优先显示错误原来的说明（多处具体失败会合并到同一个错误码，原说明更具体，也保证中文文字不因多语言而变化）；其他语言按错误码取文案，取不到显示概括说明。
+  - 错误码要穿过只能传文字的边界时用 `encodeUserError` / `errorToText` 编码成 `⟦域.原因|{参数}⟧中文说明`，接收端用 `decodeUserError` / `errorFromText` 还原：`@marchen/electron-ipc` 对抛出的 `UserError` 自动处理；返回结果对象的 IPC 用 `toFailureResult` / `errorFromFailure`；下载子进程的应答与下载任务保存在状态文件里的失败原因也是这种文字，旧版本保存的纯中文按原文显示。
+  - 主进程的对话框与推给页面的提示用 `@main/lib/i18n` 的 `t` 与 `describeMainError`。utilityProcess（下载子进程）里没有界面文案，需要文字的地方传稳定值或留空，由页面补上。
+- **英文术语**：弹幕 danmaku（不加复数 s，不译成 bullet comments）、番剧 anime、剧集 episode、匹配 match、影视库 Library、媒体源 Media Sources、下载 Downloads、播放记录 History（句子里写 playback history）、屏蔽 block、弹幕翻译 danmaku translation、翻译资源 translation resources、繁体转简体 Traditional to Simplified、字幕 subtitles、音轨 audio track、网络视频 Play from URL。页面与侧栏名称首字母大写（Library、Media Sources），句子里泛指时小写（a media source）。失败提示统一用「Couldn't …」开头，不用 Failed to / Unable to。设置等界面用句首大写，macOS 菜单项按系统惯例每个词首字母大写。
 
 ### API 请求
 

@@ -112,12 +112,14 @@ FFmpeg/Gateway/media.generation 与 compat_fallback_triggered 为历史版本口
 
 ## 弹幕翻译事件
 
-弹幕翻译在本机用 WASM 引擎完成，不产生任何翻译接口请求；唯一的网络行为是首次开启时从翻译资源存储桶下载引擎与模型。
+弹幕翻译在本机用 WASM 引擎完成，不产生任何翻译接口请求；唯一的网络行为是从翻译资源存储桶下载引擎与模型：首次开启时下载，或者界面语言有对应的翻译模型（目前是 English）时在用户开启之前预下载。
 
 - `feature_used(danmaku_translation, action, value)`：`enable`（在下拉框选择某个目标语言，含首次确认通过）、`enable_cancelled`（首次下载确认时取消），这两个的 `value` 为目标语言（如 `en`）；`disable`（选择「不翻译」）、`retry`（下载失败或引擎出错后手动重试）不带 value。清除翻译模型为 `feature_used(settings, clear_translation_assets)`。
+- 翻译询问（界面语言不是中文、用户还没对弹幕翻译做过选择时，「弹幕加载完成」的提示里问一次）：`prompt_shown`（询问出现）、`prompt_accept`（点了「翻译」，随后还会有一次 `enable`）、`prompt_decline`（点了「不用」），`value` 均为目标语言。提示自行消失、用户没有选择时只有 `prompt_shown`。接受率用 `prompt_accept / prompt_shown`；同一次应用运行最多问一次，所以 `prompt_shown` 可以近似看作「被问到的会话数」。
 - `danmaku_translation_assets_downloaded`（关键事件）：一次资源下载的结果。
   - `result`：`success` / `failed` / `cancelled`（首次确认时取消，或下载途中关闭翻译、清除资源）。
-  - `trigger`：`first_enable`（首次开启并确认）、`auto_recover`（开关已开但本机资源缺失，例如被浏览器回收）、`retry`。
+  - `trigger`：`first_enable`（首次开启并确认）、`auto_recover`（开关已开但本机资源缺失，例如被浏览器回收）、`retry`、`preload`（预下载：界面语言有对应模型，在用户开启翻译之前后台下载）。预下载途中用户开启了翻译时沿用同一个下载，仍记为 `preload`。
+  - 预下载的条件：环境支持、本机缺资源、用户没有清除过模型也没有在询问里选「不用」、不在省流量模式；Web 端还要等本次运行里打开过视频。预下载失败不提示用户、不进入失败状态，下次启动或切换语言时再试，所以 `preload` 的 `failed` 不代表用户看到了错误。
   - `error_code`：仅失败时有，取值 `assets_network` / `assets_http` / `assets_integrity` / `assets_storage`。
   - `duration_ms`、`bytes`（本次实际下载并落盘的解压后字节数；重试只补缺失文件，所以可能小于总量）。
 - `danmaku_translation_completed`（关键事件）：一集弹幕全部翻译完成；之后弹幕变化（重新匹配、增删来源、解除屏蔽）产生新的待翻译文本并再次翻完时会再报一次。
@@ -142,6 +144,8 @@ FFmpeg/Gateway/media.generation 与 compat_fallback_triggered 为历史版本口
 - `feature_used(app_language, change, value)`：用户在设置里改了语言偏好，`value` 为所选项 `system` / `zh-CN` / `en`。启动时按偏好应用语言不触发。
 - 本机诊断日志的 `renderer_start` 快照里有 `uiLanguage`（实际语言）与 `languagePreference`（偏好），以及原有的 `language`（浏览器报告的语言）。排查「界面语言不对」先对这三个值。
 - 按语言拆分留存或功能使用率时用 `ui_language`；评估「有多少用户主动改过语言」用 `feature_used(app_language, change)`，两者口径不同。
+- **错误码不随界面语言变化**：错误的 fingerprint、tag 与产品事件的 `error_code` 只用稳定错误码；错误对象的 `message` 始终是简体中文（给日志和排障看的），界面上显示的是按错误码取的对应语言文案。所以同一个问题在中英文用户那里归到同一个 issue，不要按界面文字去搜错误。用户反馈里贴的英文提示可以到 `packages/i18n/src/locales/en/errors.ts` 反查错误码。
+- 下载任务保存在本机的失败原因带着错误码（`⟦域.原因⟧中文说明` 的形式），日志里看到这种前缀是正常的，不是乱码。
 
 ## 本地诊断日志与用户反馈
 
