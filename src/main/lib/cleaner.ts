@@ -5,6 +5,7 @@ import { getMainWindow } from '@main/windows/main'
 import { app } from 'electron'
 import { clearDownloads } from '../services/downloads/service'
 import { clearMediaSources } from '../services/media-sources'
+import { resetMainLanguage } from './i18n'
 
 export const clearAllData = async () => {
   const win = getMainWindow()
@@ -31,6 +32,9 @@ export const clearAllData = async () => {
     app.setLoginItemSettings({
       openAtLogin: false,
     })
+    // 界面语言的镜像是 userData 下的普通文件，session 清理不会删除；
+    // 页面重新加载后语言偏好回到「跟随系统」，并会重新上报
+    resetMainLanguage()
     resetMainTelemetryIdentity()
     await resetTelemetryInstallId()
     // 重置即清除全部记录；日志目录不在 userData 下，需单独清空，并留下重置时间点
