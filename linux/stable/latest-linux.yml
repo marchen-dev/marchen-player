@@ -1,26 +1,23 @@
-version: 1.1.7
+version: 1.1.8
 files:
-  - url: https://github.com/marchen-dev/marchen-player/releases/download/v1.1.7/Marchen-1.1.7-linux-x86_64.AppImage
-    sha512: gDSjkqsAwYQTbbep5idItqgtFSBSr89Tk+xkCjIp7OFn1tPYBTJZwKCzoKuY5TrfuGv/1uy4dtkgccgqwRp7Tg==
-    size: 199252342
-    blockMapSize: 207242
-  - url: https://github.com/marchen-dev/marchen-player/releases/download/v1.1.7/Marchen-1.1.7-linux-amd64.deb
-    sha512: LJMFGT8kvM3ZuWALn14cxC/Pvdqv2dldTdskYDRpWOGTgOapwnBcxSBEQYS1t2Z2M0vGeqUwi24V3y2SmLeEdA==
-    size: 155904108
-path: https://github.com/marchen-dev/marchen-player/releases/download/v1.1.7/Marchen-1.1.7-linux-x86_64.AppImage
-sha512: gDSjkqsAwYQTbbep5idItqgtFSBSr89Tk+xkCjIp7OFn1tPYBTJZwKCzoKuY5TrfuGv/1uy4dtkgccgqwRp7Tg==
+  - url: https://github.com/marchen-dev/marchen-player/releases/download/v1.1.8/Marchen-1.1.8-linux-x86_64.AppImage
+    sha512: XSLEWVj3NetFg9oZpWpus7O1JawxbbYUqdy93IIVhJih6my+ZFs3zmiNC/Ukyn/SantsPqscMQjHDUVsp7OwdA==
+    size: 199626038
+    blockMapSize: 208202
+  - url: https://github.com/marchen-dev/marchen-player/releases/download/v1.1.8/Marchen-1.1.8-linux-amd64.deb
+    sha512: gHf/91oL01J3SBGci948TEkBVeDBvcPh1BhuOCyjGzTMi9w3P4cGfwJYIjCbMvIkwHHCgGEGX873SqDf5Yb8Cg==
+    size: 156381340
+path: https://github.com/marchen-dev/marchen-player/releases/download/v1.1.8/Marchen-1.1.8-linux-x86_64.AppImage
+sha512: XSLEWVj3NetFg9oZpWpus7O1JawxbbYUqdy93IIVhJih6my+ZFs3zmiNC/Ukyn/SantsPqscMQjHDUVsp7OwdA==
 releaseNotes: |
-  # Marchen 1.1.7
+  # Marchen 1.1.8
 
-  ## 播放器
+  ## 新功能
 
-  - 控制栏更紧凑，减少对画面的遮挡。
-  - 移除画面顶部的渐变遮罩。
-  - 鼠标移出播放窗口时自动隐藏控制栏，移回后恢复显示。
+  - 界面新增 English，默认跟随系统语言，可在「设置 → 通用」里切换。
+  - 新增弹幕翻译：把中文弹幕翻译成英文，本地翻译，离线可用，在弹幕设置里开启。
 
-  ## 窗口与设置
+  ## 修复
 
-  - macOS 窗口按钮随控制栏显示和隐藏，全屏时保留系统退出全屏入口。
-  - Windows 打开设置侧栏时隐藏右上角窗口按钮，关闭侧栏后恢复。
-  - 设置侧栏始终保留开合动画，不再随系统“减少动态效果”设置关闭。
-releaseDate: 2026-11-12T20:09:15.143Z
+  - 修复调整窗口大小时弹幕被清空的问题。
+releaseDate: 2026-11-15T18:06:18.357Z

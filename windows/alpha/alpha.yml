@@ -1,33 +1,27 @@
-version: 1.1.7
+version: 1.1.8
 files:
-  - url: https://github.com/marchen-dev/marchen-player/releases/download/v1.1.7/Marchen-1.1.7-windows-x64-setup.exe
-    sha512: kiDhluDJs81wDKuEBaozaKuPG2NxUJywNy5A+6UjxAIXcCqsYs+rlDoyckccM1FtWnPumIN4qJ+XHwz8ZzXwkw==
-    size: 173435629
-path: https://github.com/marchen-dev/marchen-player/releases/download/v1.1.7/Marchen-1.1.7-windows-x64-setup.exe
-sha512: kiDhluDJs81wDKuEBaozaKuPG2NxUJywNy5A+6UjxAIXcCqsYs+rlDoyckccM1FtWnPumIN4qJ+XHwz8ZzXwkw==
-releaseNotes: "# Marchen 1.1.7\r
+  - url: https://github.com/marchen-dev/marchen-player/releases/download/v1.1.8/Marchen-1.1.8-windows-x64-setup.exe
+    sha512: rYzv+lg56+DP/gdN+Y57Scl2w/8X3GPJqggCz3dlnwCf9Zu+hY0/rAhdcnCP3wSso4hFQZksqVXc2SkmkUGWKw==
+    size: 173509895
+path: https://github.com/marchen-dev/marchen-player/releases/download/v1.1.8/Marchen-1.1.8-windows-x64-setup.exe
+sha512: rYzv+lg56+DP/gdN+Y57Scl2w/8X3GPJqggCz3dlnwCf9Zu+hY0/rAhdcnCP3wSso4hFQZksqVXc2SkmkUGWKw==
+releaseNotes: "# Marchen 1.1.8\r
 
   \r
 
-  ## 播放器\r
+  ## 新功能\r
 
   \r
 
-  - 控制栏更紧凑，减少对画面的遮挡。\r
+  - 界面新增 English，默认跟随系统语言，可在「设置 → 通用」里切换。\r
 
-  - 移除画面顶部的渐变遮罩。\r
-
-  - 鼠标移出播放窗口时自动隐藏控制栏，移回后恢复显示。\r
+  - 新增弹幕翻译：把中文弹幕翻译成英文，本地翻译，离线可用，在弹幕设置里开启。\r
 
   \r
 
-  ## 窗口与设置\r
+  ## 修复\r
 
   \r
 
-  - macOS 窗口按钮随控制栏显示和隐藏，全屏时保留系统退出全屏入口。\r
-
-  - Windows 打开设置侧栏时隐藏右上角窗口按钮，关闭侧栏后恢复。\r
-
-  - 设置侧栏始终保留开合动画，不再随系统“减少动态效果”设置关闭。\r\n"
-releaseDate: 2026-11-12T20:10:49.470Z
+  - 修复调整窗口大小时弹幕被清空的问题。\r\n"
+releaseDate: 2026-11-15T18:06:28.058Z
