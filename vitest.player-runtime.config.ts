@@ -19,6 +19,7 @@ export default defineConfig({
       VITE_API_EDGEONE_URL: 'https://edgeone.example.invalid/api/v2',
     },
     include: [
+      'src/renderer/src/lib/tests/**/*.test.ts',
       'src/renderer/src/services/history/tests/**/*.test.ts',
       'src/renderer/src/services/media/tests/**/*.test.ts',
       'src/renderer/src/services/player-loading/**/*.test.ts',

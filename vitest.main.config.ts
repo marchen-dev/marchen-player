@@ -25,6 +25,9 @@ export default defineConfig({
       'scripts/eslint/*.test.mjs',
       'packages/sparkle-updater/src/*.test.ts',
       'packages/i18n/tests/**/*.test.ts',
+      'packages/shared/src/**/*.test.ts',
+      'packages/electron-ipc/src/**/*.test.ts',
+      'scripts/i18n/*.test.mjs',
     ],
   },
 })
