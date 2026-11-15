@@ -1,5 +1,6 @@
 import { useAppSettings } from '@renderer/atoms/settings/app'
 import { useToast } from '@renderer/components/ui/toast'
+import { t } from '@renderer/lib/i18n'
 import { appLog } from '@renderer/lib/log'
 import { isMac } from '@renderer/lib/utils'
 import { useEffect } from 'react'
@@ -14,8 +15,8 @@ export const Prepare = () => {
     try {
       if (!localStorage.getItem('marchen-player-storage-notice')) {
         toast({
-          title: '播放存储已更新',
-          description: '本版本使用新的播放记录和媒体库，旧版本数据保留，不会自动导入。',
+          title: t('app:storageNotice.title'),
+          description: t('app:storageNotice.description'),
           duration: 10000,
         })
         localStorage.setItem('marchen-player-storage-notice', '1')

@@ -1,4 +1,5 @@
 import type { DanmakuBlockRule } from '@renderer/services/player-runtime/danmaku/danmaku-block-settings'
+import { SOURCE_LANGUAGE } from '@marchen/i18n'
 import { usePlayerSettings } from '@renderer/atoms/settings/player'
 import { FieldLayout } from '@renderer/components/modules/settings/views/Layout'
 import { SettingSwitch } from '@renderer/components/modules/shared/setting/SettingSwitch'
@@ -7,7 +8,7 @@ import { Checkbox } from '@renderer/components/ui/checkbox'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@renderer/components/ui/dialog'
 import { Input } from '@renderer/components/ui/input'
 import { ScrollArea } from '@renderer/components/ui/scrollArea'
-import { formatNumber } from '@renderer/lib/i18n'
+import { formatNumber, useLanguage } from '@renderer/lib/i18n'
 import { cn } from '@renderer/lib/utils'
 import { usePlayerPortalContainer } from '@renderer/services/player-runtime'
 import {
@@ -24,14 +25,10 @@ import {
 import { buildDanmakuList } from '@renderer/services/player-runtime/danmaku/danmaku-list'
 import { captureFeatureUsed } from '@renderer/services/telemetry/features'
 import { memo, useEffect, useMemo, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import { useDanmakuSourceConfig } from '../../../danmaku-source-context'
 
-const MODE_LABELS: Record<(typeof DANMAKU_BLOCK_MODES)[number], string> = {
-  scroll: '滚动',
-  top: '顶部',
-  bottom: '底部',
-}
 /** 重复添加时已有标签的强调时长 */
 const HIGHLIGHT_DURATION = 1200
 
@@ -42,16 +39,19 @@ export const DanmakuBlock = memo(() => {
   const [{ danmakuBlock }] = usePlayerSettings()
   const [open, setOpen] = useState(false)
   const ruleCount = danmakuBlock.rules.length
+  const { t } = useTranslation('danmaku')
 
   return (
-    <FieldLayout title="弹幕屏蔽">
+    <FieldLayout title={t('block.title')}>
       <Button
         className="max-w-[80%] min-w-0 border-white/11 bg-white/8 text-white hover:bg-white/14 hover:text-white"
         variant="outline"
         onClick={() => setOpen(true)}
       >
         <span className="truncate">
-          {ruleCount === 0 ? '添加屏蔽规则' : `管理 ${formatNumber(ruleCount)} 条规则`}
+          {ruleCount === 0
+            ? t('block.addRule')
+            : t('block.manageRules', { total: formatNumber(ruleCount) })}
         </span>
       </Button>
       <DanmakuBlockDialog open={open} onOpenChange={setOpen} />
@@ -82,6 +82,8 @@ const DanmakuBlockDialog = ({ open, onOpenChange }: DanmakuBlockDialogProps) => 
 }
 
 const DanmakuBlockBody = () => {
+  const { t } = useTranslation('danmaku')
+  const language = useLanguage()
   const { danmaku } = useDanmakuSourceConfig()
   const [{ danmakuBlock }, setPlayerSetting] = usePlayerSettings()
   const [input, setInput] = useState('')
@@ -126,7 +128,7 @@ const DanmakuBlockBody = () => {
     }
     const result = addBlockRule(danmakuBlock, parsed.rule)
     if (result.status === 'limit') {
-      setError(`规则已达上限（${MAX_DANMAKU_BLOCK_RULES} 条），请先移除不需要的规则`)
+      setError(t('block.limitInline', { max: MAX_DANMAKU_BLOCK_RULES }))
       return
     }
     if (result.status === 'exists') {
@@ -152,15 +154,18 @@ const DanmakuBlockBody = () => {
     <>
       <DialogHeader>
         <DialogTitle className="flex items-baseline gap-3 text-xl">
-          弹幕屏蔽
+          {t('block.title')}
           {enabled && (
             <span className="text-muted-foreground text-sm font-normal">
-              本集已屏蔽 {formatNumber(blockedCount)} 条
+              {t('block.blockedCount', { total: formatNumber(blockedCount) })}
             </span>
           )}
         </DialogTitle>
       </DialogHeader>
-      <FieldLayout title={<span id="danmaku-block-enabled">启用屏蔽</span>} className="text-sm">
+      <FieldLayout
+        title={<span id="danmaku-block-enabled">{t('block.enable')}</span>}
+        className="text-sm"
+      >
         <SettingSwitch
           aria-labelledby="danmaku-block-enabled"
           playerMaterial
@@ -179,7 +184,7 @@ const DanmakuBlockBody = () => {
         )}
       >
         <div className="flex items-center justify-between text-sm">
-          <span className="font-medium">屏蔽类型</span>
+          <span className="font-medium">{t('block.modesTitle')}</span>
           <div className="flex items-center gap-5">
             {DANMAKU_BLOCK_MODES.map((mode) => (
               <label key={mode} className="flex items-center gap-2">
@@ -200,7 +205,7 @@ const DanmakuBlockBody = () => {
                     }))
                   }}
                 />
-                {MODE_LABELS[mode]}
+                {t(`block.modes.${mode}`)}
               </label>
             ))}
           </div>
@@ -216,8 +221,8 @@ const DanmakuBlockBody = () => {
             <Input
               ref={inputRef}
               value={input}
-              placeholder="输入关键词，或用 /…/ 写正则"
-              aria-label="屏蔽规则"
+              placeholder={t('block.inputPlaceholder')}
+              aria-label={t('block.inputLabel')}
               aria-invalid={error ? true : undefined}
               aria-describedby={error ? 'danmaku-block-error' : undefined}
               className="min-w-0 flex-1"
@@ -230,7 +235,7 @@ const DanmakuBlockBody = () => {
             />
             {/* 中性填充：强调色只留给开关和选中态，避免面板上出现大块亮蓝 */}
             <Button type="submit" variant="secondary" className="shrink-0">
-              添加
+              {t('block.add')}
             </Button>
           </div>
           {error && (
@@ -238,10 +243,14 @@ const DanmakuBlockBody = () => {
               {error}
             </p>
           )}
+          {/* 非中文界面的用户多半开着弹幕翻译：提醒规则是按弹幕原文匹配的，照着译文写不会生效 */}
+          {language !== SOURCE_LANGUAGE && (
+            <p className="text-muted-foreground text-xs">{t('block.originalTextHint')}</p>
+          )}
         </form>
         {rules.length === 0 ? (
           <p className="text-muted-foreground rounded-md border border-dashed px-4 py-8 text-center text-sm">
-            还没有屏蔽规则。也可以在画面上悬停弹幕直接屏蔽。
+            {t('block.empty')}
           </p>
         ) : (
           <ScrollArea
@@ -250,7 +259,7 @@ const DanmakuBlockBody = () => {
             // 高度上限必须加在视口上：Radix 视口是实际的滚动元素，加在根节点只会裁掉内容
             classNames={{ viewport: 'max-h-64', thumb: 'bg-foreground/30' }}
           >
-            <ul className="flex flex-wrap gap-2 p-3" aria-label="屏蔽规则列表">
+            <ul className="flex flex-wrap gap-2 p-3" aria-label={t('block.listLabel')}>
               {rules.map((rule) => (
                 <RuleChip
                   key={ruleKey(rule)}
@@ -279,6 +288,7 @@ interface RuleChipProps {
 const RuleChip = ({ rule, highlighted, onRemove }: RuleChipProps) => {
   const ref = useRef<HTMLLIElement>(null)
   const text = formatBlockRule(rule)
+  const { t } = useTranslation('danmaku')
 
   // 重复添加时把已有标签滚入视野，配合描边提示「这条已经有了」
   useEffect(() => {
@@ -299,7 +309,7 @@ const RuleChip = ({ rule, highlighted, onRemove }: RuleChipProps) => {
       </span>
       <button
         type="button"
-        aria-label={`移除规则 ${text}`}
+        aria-label={t('block.removeRule', { rule: text })}
         className="text-muted-foreground hover:bg-foreground/10 hover:text-foreground focus-visible:ring-ring flex size-5 shrink-0 items-center justify-center rounded focus-visible:ring-2 focus-visible:outline-none"
         onClick={onRemove}
       >

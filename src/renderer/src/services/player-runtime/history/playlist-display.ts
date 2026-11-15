@@ -33,8 +33,11 @@ interface ParsedName {
 }
 
 const WORD = /[^\s._\-[\]()【】]+/g
+// 解析文件名用的括号对，不是界面文字
+/* eslint-disable marchen/no-hardcoded-ui-text */
 const OPENERS: Record<string, string> = { '[': ']', '(': ')', '【': '】' }
 const CLOSERS: Record<string, string> = { ']': '[', ')': '(', '】': '【' }
+/* eslint-enable marchen/no-hardcoded-ui-text */
 const VIDEO_EXTENSION = /\.[a-z0-9]{2,5}$/i
 
 /** 公共前缀的最小显示宽度（中日韩字符计 2），避免只因共享年份、短词就把不同作品并到一起 */

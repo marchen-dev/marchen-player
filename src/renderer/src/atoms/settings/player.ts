@@ -1,4 +1,3 @@
-import type { SelectOption } from '@renderer/components/modules/shared/setting/SettingSelect'
 import type { EnginePreference } from '@renderer/services/player-runtime/engine-policy'
 import {
   danmakuDurationList,
@@ -22,7 +21,8 @@ import { useAtom, useAtomValue } from 'jotai'
 import { jotaiStore } from '../store'
 import { createSettingATom } from './helper'
 
-const getSelectedDefaultValue = (list: SelectOption[]) => {
+// 只关心取值与是否默认；选项的显示名称不在这里（部分列表只存 id，名称在渲染时翻译）
+const getSelectedDefaultValue = (list: ReadonlyArray<{ value: string; default?: boolean }>) => {
   return list.find((item) => item.default)?.value
 }
 

@@ -13,6 +13,7 @@ import { MediaSourceError } from '@marchen/shared/media-sources'
 import { jotaiStore } from '@renderer/atoms/store'
 import { windowFullscreenAtom } from '@renderer/atoms/window'
 import { handlers, ipcClient } from '@renderer/lib/client'
+import { t } from '@renderer/lib/i18n'
 import { getPlayerLoadingService } from '@renderer/services/player-loading/index'
 import { reportOperationalError } from '@renderer/services/telemetry/operational-errors'
 import { markNextPlayerImportSource } from '@renderer/services/telemetry/player-loading-observer'
@@ -155,7 +156,7 @@ export const createElectronSubtitleCatalogPort = (): SubtitleCatalogPort => {
           })
           return {
             id,
-            title: subtitle.title,
+            title: subtitle.title || t('player:subtitle.numbered', { number: subtitle.id }),
             language: subtitle.language,
             origin: 'external' as const,
             persistenceKey: id,
@@ -276,7 +277,7 @@ const resolveSubtitleText = (
     kind: 'text',
     url,
     persistencePath,
-    warning: converted?.warnings.join('；') || undefined,
+    warning: converted?.warnings.join(t('player:subtitle.warning.separator')) || undefined,
     release: () => {
       if (released) return
       released = true

@@ -1,6 +1,7 @@
 import { jotaiStore } from '@renderer/atoms/store'
 import { toast } from '@renderer/components/ui/toast/use-toast'
 import { handlers, ipcClient } from '@renderer/lib/client'
+import { t } from '@renderer/lib/i18n'
 import { downloadTelemetry } from '@renderer/services/telemetry/downloads'
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router'
@@ -17,7 +18,8 @@ export function DownloadObserver() {
       if (previous)
         for (const task of snapshot.tasks) {
           const old = previous.tasks.find((t) => t.id === task.id)
-          if (old && !old.completedAt && task.completedAt) toast({ title: '下载完成' })
+          if (old && !old.completedAt && task.completedAt)
+            toast({ title: t('downloads:completed') })
         }
       jotaiStore.set(downloadsAtom, snapshot)
     })

@@ -124,6 +124,7 @@ class Cursor {
 }
 
 function parseComposition(payload: Uint8Array): Composition {
+  // eslint-disable-next-line marchen/no-hardcoded-ui-text -- 段名只出现在内部解析错误里
   const cursor = new Cursor(payload, '合成段')
   const width = cursor.u16()
   const height = cursor.u16()
@@ -154,6 +155,7 @@ function parseComposition(payload: Uint8Array): Composition {
 }
 
 function parseWindows(payload: Uint8Array): WindowDefinition[] {
+  // eslint-disable-next-line marchen/no-hardcoded-ui-text -- 段名只出现在内部解析错误里
   const cursor = new Cursor(payload, '窗口段')
   const count = cursor.u8()
   const windows: WindowDefinition[] = []
@@ -163,6 +165,7 @@ function parseWindows(payload: Uint8Array): WindowDefinition[] {
 }
 
 function parsePalette(payload: Uint8Array): PaletteDefinition {
+  // eslint-disable-next-line marchen/no-hardcoded-ui-text -- 段名只出现在内部解析错误里
   const cursor = new Cursor(payload, '调色板段')
   const id = cursor.u8()
   const version = cursor.u8()
@@ -218,6 +221,7 @@ export function parseDisplaySet(data: Uint8Array): DisplaySet {
         palettes.push(parsePalette(payload))
         break
       case SegmentType.object: {
+        // eslint-disable-next-line marchen/no-hardcoded-ui-text -- 段名只出现在内部解析错误里
         const cursor = new Cursor(payload, '对象段')
         const id = cursor.u16()
         const version = cursor.u8()

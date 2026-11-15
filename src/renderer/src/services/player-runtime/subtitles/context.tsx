@@ -7,9 +7,11 @@ import type {
   SubtitleTrackDescriptor,
 } from '@renderer/services/player-runtime'
 import type { PropsWithChildren } from 'react'
+import { SubtitleError } from '@marchen/shared/media'
 import { usePlayerSettingsValue } from '@renderer/atoms/settings/player'
 import { db } from '@renderer/database/db'
-import { getLanguage } from '@renderer/lib/i18n'
+import { describeError } from '@renderer/lib/errors'
+import { getLanguage, t  } from '@renderer/lib/i18n'
 import { captureFeatureUsed } from '@renderer/services/telemetry/features'
 import { reportBitmapSubtitleSession, reportSubtitleFailure } from '@renderer/services/telemetry/subtitles'
 import { createContext, use, useCallback, useEffect, useMemo, useRef, useState } from 'react'
@@ -41,6 +43,19 @@ interface NativeSubtitleContextValue {
   selectTrack: (id: string) => Promise<void>
   importTrack: () => Promise<void>
   setTimeOffset: (offset: number) => Promise<void>
+}
+
+/**
+ * 字幕失败时显示的说明。图片字幕（PGS）的会话错误带错误码，按错误码取文案；
+ * 其余是解析器的内部细节：简体中文界面照原样显示，其他语言只显示概括说明。
+ */
+const describeSubtitleError = (cause: unknown, fallback: string) => {
+  // 外挂字幕导入失败（SubtitleError）用 reason 作错误码，对应 errors:subtitle.<reason>
+  if (cause instanceof SubtitleError)
+    return describeError({ code: cause.reason, message: cause.message }, fallback, {
+      domain: 'subtitle',
+    })
+  return describeError(cause, fallback, { domain: 'pgs' })
 }
 
 const NativeSubtitleContext = createContext<NativeSubtitleContextValue | null>(null)
@@ -115,7 +130,7 @@ export const NativeSubtitleProvider = ({
         )
         if (bytes > 32 * 1024 * 1024) {
           tag.content = undefined
-          setError('字幕已加载；保存内容超过 32 MiB，下次需要重新选择此字幕。')
+          setError(t('player:subtitle.savedTooLarge'))
         }
       }
       await db.history.update(hash, {
@@ -179,7 +194,7 @@ export const NativeSubtitleProvider = ({
         if (!trackResolved) reportSubtitleFailure('resolve', cause)
         adapter.close()
         setSelectedId('off')
-        setError(cause instanceof Error ? cause.message : '字幕加载失败')
+        setError(describeSubtitleError(cause, t('player:subtitle.failed.load')))
       } finally {
         if (!request.signal.aborted && requestRef.current === request) {
           setLoading(false)
@@ -213,7 +228,7 @@ export const NativeSubtitleProvider = ({
         reportSubtitleFailure(stage, cause)
         setLoading(false)
         setSelectedId('off')
-        setError(cause instanceof Error ? cause.message : '字幕渲染失败')
+        setError(describeSubtitleError(cause, t('player:subtitle.failed.render')))
       }
       const adapter = new SubtitleRenderers(
         new LibassSubtitleAdapter(textCanvas, runtime.clock, fail('renderer')),
@@ -323,7 +338,7 @@ export const NativeSubtitleProvider = ({
             options.push({ ...resolved, historyId: tag.id, language: tag.language })
           } catch (cause) {
             if (!cancelled)
-              setError(cause instanceof Error ? cause.message : '外挂字幕需要重新选择')
+              setError(describeSubtitleError(cause, t('player:subtitle.failed.reselect')))
           }
         }
         if (cancelled) return
@@ -363,7 +378,7 @@ export const NativeSubtitleProvider = ({
         if (!cancelled && initialIntent === intentRef.current) {
           adapter.close()
           reportSubtitleFailure('catalog', cause)
-          setError(cause instanceof Error ? cause.message : '字幕初始化失败')
+          setError(describeSubtitleError(cause, t('player:subtitle.failed.init')))
         }
       } finally {
         if (!cancelled && initialIntent === intentRef.current) setLoading(false)
@@ -438,7 +453,7 @@ export const NativeSubtitleProvider = ({
     } catch (cause) {
       if (intent !== intentRef.current) return
       reportSubtitleFailure('import', cause)
-      setError(cause instanceof Error ? cause.message : '字幕导入失败')
+      setError(describeSubtitleError(cause, t('player:subtitle.failed.import')))
     } finally {
       if (intent === intentRef.current) setLoading(false)
     }

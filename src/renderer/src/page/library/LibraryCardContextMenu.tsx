@@ -8,8 +8,9 @@ import {
   ContextMenuSeparator,
   ContextMenuTrigger,
 } from '@renderer/components/ui/menu'
-
 import { getRevealInFileManagerLabel } from '@renderer/lib/utils'
+
+import { useTranslation } from 'react-i18next'
 import { hasLocalSource, isCompleted, pickNextEpisode } from './selectors'
 
 /** 右键菜单可触发的动作；由影视库页面统一实现，卡片只负责转发 */
@@ -30,9 +31,6 @@ interface LibraryCardContextMenuProps {
   children: ReactNode
 }
 
-// 影视库仅 Electron 可见，平台只需区分 Windows 与 macOS
-const revealLabel = getRevealInFileManagerLabel()
-
 /**
  * 影视库卡片（继续观看横向卡 / 所有作品海报卡）共用的右键菜单。
  * 菜单内容 Portal 到 body，脱离 data-page="library" 的 token scope，
@@ -44,6 +42,9 @@ export const LibraryCardContextMenu: FC<LibraryCardContextMenuProps> = ({
   source,
   children,
 }) => {
+  const { t } = useTranslation('library')
+  // 影视库仅 Electron 可见，平台只需区分 Windows 与 macOS；在渲染时取，随界面语言变化
+  const revealLabel = getRevealInFileManagerLabel()
   const next = pickNextEpisode(item)
   const completed = isCompleted(item)
   // 远程 URL 播放的作品没有磁盘文件，不提供定位入口；具体路径在点击时再查 history
@@ -55,11 +56,13 @@ export const LibraryCardContextMenu: FC<LibraryCardContextMenuProps> = ({
       <ContextMenuContent className="min-w-44">
         <ContextMenuItem disabled={!next} onSelect={() => actions.onPlay(item)}>
           <i className="icon-[mingcute--play-line] mr-2 size-4" />
-          {next ? `播放 · 第 ${String(next.episodeNumber).padStart(2, '0')} 话` : '播放'}
+          {next
+            ? t('menu.playEpisode', { episode: String(next.episodeNumber).padStart(2, '0') })
+            : t('menu.play')}
         </ContextMenuItem>
         <ContextMenuItem onSelect={() => actions.onDetails(item)}>
           <i className="icon-[mingcute--information-line] mr-2 size-4" />
-          查看详情
+          {t('menu.details')}
         </ContextMenuItem>
 
         <ContextMenuSeparator />
@@ -67,7 +70,7 @@ export const LibraryCardContextMenu: FC<LibraryCardContextMenuProps> = ({
         {completed ? (
           <ContextMenuItem onSelect={() => actions.onResetProgress(item)}>
             <i className="icon-[mingcute--refresh-2-line] mr-2 size-4" />
-            重置观看进度
+            {t('menu.resetProgress')}
           </ContextMenuItem>
         ) : (
           <ContextMenuItem
@@ -75,7 +78,7 @@ export const LibraryCardContextMenu: FC<LibraryCardContextMenuProps> = ({
             onSelect={() => actions.onMarkAllWatched(item)}
           >
             <i className="icon-[mingcute--check-circle-line] mr-2 size-4" />
-            标记全部已看
+            {t('menu.markAllWatched')}
           </ContextMenuItem>
         )}
 
@@ -96,7 +99,7 @@ export const LibraryCardContextMenu: FC<LibraryCardContextMenuProps> = ({
           onSelect={() => actions.onRemove(item)}
         >
           <i className="icon-[mingcute--delete-2-line] mr-2 size-4" />
-          从影视库移除…
+          {t('menu.remove')}
         </ContextMenuItem>
       </ContextMenuContent>
     </ContextMenu>

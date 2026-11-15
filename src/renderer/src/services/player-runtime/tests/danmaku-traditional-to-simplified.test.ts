@@ -31,3 +31,27 @@ describe('弹幕繁体转简体', () => {
     expect(result[1]).toBe(items[1])
   })
 })
+
+describe('弹幕翻译开启时「繁体转简体」的作用', () => {
+  // 翻译开启时这个开关在界面上置灰，但值保留：条目先按开关转简体，再由显示文本解析决定是否用译文
+  it('没有译文的弹幕沿用开关值，有译文的显示译文', async () => {
+    const { createDisplayTextResolver } = await import('../../translation/display-text')
+    const { TranslationStore } = await import('../../translation/translation-store')
+    const store = new TranslationStore()
+    store.setMany([['这集作画好赞', 'The animation is great this episode']])
+    const resolve = createDisplayTextResolver(store)
+    const items: DanmakuItem[] = [
+      { id: '1', time: 1, text: '這集作畫好讚', mode: 'scroll', color: '#fff' },
+      { id: '2', time: 2, text: '還沒翻譯的彈幕', mode: 'scroll', color: '#fff' },
+    ]
+
+    // 开关开启：没有译文的那条以简体显示
+    const simplified = convertDanmakuItemsToSimplified(items)
+    expect(simplified.map(resolve)).toEqual([
+      'The animation is great this episode',
+      '还没翻译的弹幕',
+    ])
+    // 开关关闭：没有译文的那条保持繁体原文；译文按简体查找，不受开关影响
+    expect(items.map(resolve)).toEqual(['The animation is great this episode', '還沒翻譯的彈幕'])
+  })
+})

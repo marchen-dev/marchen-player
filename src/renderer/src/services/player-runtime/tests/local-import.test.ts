@@ -5,7 +5,14 @@ import { importLocalDanmaku } from '../../danmaku/local-import'
 import { reportOperationalError } from '../../telemetry/operational-errors'
 
 vi.mock('../../../lib/local-danmaku', () => ({
-  LocalDanmakuValidationError: class extends Error {},
+  LocalDanmakuValidationError: class extends Error {
+    constructor(
+      readonly code: string,
+      message: string,
+    ) {
+      super(message)
+    }
+  },
   readLocalDanmaku: vi.fn(),
 }))
 vi.mock('../../telemetry/operational-errors', () => ({ reportOperationalError: vi.fn() }))
@@ -63,16 +70,19 @@ describe('共享本地导入协调', () => {
   it('保存失败只上报一次稳定原因，校验拒绝不上报', async () => {
     const service = setup()
     service.addLocalDanmaku.mockRejectedValueOnce(new Error('quota'))
-    await expect(importLocalDanmaku(file, service, new AbortController().signal)).rejects.toThrow(
-      '保存弹幕失败',
-    )
+    const saving = importLocalDanmaku(file, service, new AbortController().signal)
+    await expect(saving).rejects.toThrow('保存弹幕失败')
+    // 界面按错误码取对应语言的文案
+    await expect(saving).rejects.toMatchObject({ code: 'localDanmaku.save_failed' })
     expect(reportOperationalError).toHaveBeenCalledExactlyOnceWith(
       'player',
       'local_danmaku_import',
       expect.objectContaining({ code: 'local_danmaku_save_failed' }),
     )
     vi.mocked(reportOperationalError).mockClear()
-    vi.mocked(readLocalDanmaku).mockRejectedValueOnce(new LocalDanmakuValidationError('格式错误'))
+    vi.mocked(readLocalDanmaku).mockRejectedValueOnce(
+      new LocalDanmakuValidationError('invalid_format', '格式错误'),
+    )
     await expect(importLocalDanmaku(file, service, new AbortController().signal)).rejects.toThrow(
       '格式错误',
     )
@@ -81,9 +91,9 @@ describe('共享本地导入协调', () => {
 
   it('读取失败上报，读取过程中取消则静默结束', async () => {
     vi.mocked(readLocalDanmaku).mockRejectedValueOnce(new Error('读取失败'))
-    await expect(importLocalDanmaku(file, setup(), new AbortController().signal)).rejects.toThrow(
-      '读取弹幕文件失败',
-    )
+    const reading = importLocalDanmaku(file, setup(), new AbortController().signal)
+    await expect(reading).rejects.toThrow('读取弹幕文件失败')
+    await expect(reading).rejects.toMatchObject({ code: 'localDanmaku.read_failed' })
     expect(reportOperationalError).toHaveBeenCalledExactlyOnceWith(
       'player',
       'local_danmaku_import',

@@ -5,6 +5,8 @@ interface SettingSwitchProps {
   onCheckedChange: (value: boolean) => void
   value: boolean
   playerMaterial?: boolean
+  /** 当前不适用时置灰，开关保持原来的值 */
+  disabled?: boolean
   id?: string
   'aria-labelledby'?: string
   'aria-describedby'?: string

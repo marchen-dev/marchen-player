@@ -1,6 +1,7 @@
 import type { HistoryRecordView } from '@renderer/services/history/records'
 import type { FC } from 'react'
 import type { HistoryRecordActions } from './use-history-record-actions'
+import { CONTENT_LANG } from '@renderer/lib/i18n'
 import { formatHistoryProgress } from '@renderer/services/history/records'
 import { memo, useState } from 'react'
 
@@ -34,7 +35,9 @@ export const HistoryRecordCard: FC<HistoryRecordCardProps> = memo(
             </div>
           )}
         </div>
-        <span className="w-full truncate text-xs">{record.title}</span>
+        <span className="w-full truncate text-xs" lang={CONTENT_LANG}>
+          {record.title}
+        </span>
         <span className="text-muted-foreground -mt-1 text-xs tabular-nums">
           {formatHistoryProgress(record)}
         </span>

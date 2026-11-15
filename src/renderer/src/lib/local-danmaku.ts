@@ -3,9 +3,23 @@ import type { CommentModel } from '@renderer/request/models/comment'
 import SparkMD5 from 'spark-md5'
 
 /** 可预期的文件校验拒绝，不作为运行异常上报。 */
-export class LocalDanmakuValidationError extends Error {}
+/**
+ * 弹幕文件本身的问题（格式不对、没有可导入的内容）。
+ * `code` 对应文案 `errors:localDanmaku.<code>`，界面按当前语言显示；message 是简体中文，用于日志。
+ */
+export class LocalDanmakuValidationError extends Error {
+  constructor(
+    readonly code: 'invalid_format' | 'empty',
+    message: string,
+  ) {
+    super(message)
+  }
+}
 const invalidFormat = () =>
-  new LocalDanmakuValidationError('弹幕格式不正确，请选择 B 站格式的 XML 或 JSON 文件')
+  new LocalDanmakuValidationError(
+    'invalid_format',
+    '弹幕格式不正确，请选择 B 站格式的 XML 或 JSON 文件',
+  )
 
 const makeComment = (
   time: number,
@@ -92,7 +106,7 @@ export function parseLocalDanmaku(text: string, extension: string) {
   } else {
     throw invalidFormat()
   }
-  if (!comments.length) throw new LocalDanmakuValidationError('文件中没有可导入的弹幕')
+  if (!comments.length) throw new LocalDanmakuValidationError('empty', '文件中没有可导入的弹幕')
   return { comments, skippedCount }
 }
 

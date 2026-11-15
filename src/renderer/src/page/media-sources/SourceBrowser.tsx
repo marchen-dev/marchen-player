@@ -5,12 +5,15 @@ import { providerHistoryKey } from '@marchen/shared/media'
 import { Button } from '@renderer/components/ui/button'
 import { segmentedActiveClassName } from '@renderer/components/ui/tabs'
 import { db } from '@renderer/database/db'
+import { describeError } from '@renderer/lib/errors'
+import { t } from '@renderer/lib/i18n'
 import { cn } from '@renderer/lib/utils'
 import { isCompleted } from '@renderer/services/player-runtime/history/playback-history-adapter'
 import { captureFeatureUsed } from '@renderer/services/telemetry/features'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { useAtom } from 'jotai'
 import { useEffect, useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
 import { errorCodeOf, useBrowse } from './api'
 import { browseViewOverridesAtom, mediaSourceLocationsAtom } from './state'
 import { formatDuration, formatSize, pickBrowseView } from './view'
@@ -30,6 +33,7 @@ interface SourceBrowserProps {
 const EMPTY_TRAIL: BrowseCrumb[] = []
 
 export function SourceBrowser({ source, onBack, onRelogin, onPlay }: SourceBrowserProps) {
+  const { t } = useTranslation(['mediaSources', 'common'])
   const [locations, setLocations] = useAtom(mediaSourceLocationsAtom)
   const [overrides, setOverrides] = useAtom(browseViewOverridesAtom)
   const trail = locations[source.id] ?? EMPTY_TRAIL
@@ -60,16 +64,19 @@ export function SourceBrowser({ source, onBack, onRelogin, onPlay }: SourceBrows
   return (
     <>
       <header className="mb-6 flex items-center justify-between gap-4">
-        <nav aria-label="浏览位置" className="flex min-w-0 items-center gap-1 text-sm">
+        <nav
+          aria-label={t('browser.breadcrumbLabel')}
+          className="flex min-w-0 items-center gap-1 text-sm"
+        >
           <Button
             size="sm"
             variant="ghost"
-            aria-label="返回媒体源列表"
+            aria-label={t('browser.back')}
             onClick={trail.length > 0 ? () => setTrail(trail.slice(0, -1)) : onBack}
           >
             <i className="icon-[mingcute--left-line] text-lg" aria-hidden="true" />
           </Button>
-          <Crumb label="媒体源" onClick={onBack} />
+          <Crumb label={t('browser.root')} onClick={onBack} />
           <Separator />
           <Crumb label={source.name} current={trail.length === 0} onClick={() => setTrail([])} />
           {trail.map((crumb, index) => (
@@ -90,7 +97,7 @@ export function SourceBrowser({ source, onBack, onRelogin, onPlay }: SourceBrows
                 key={value}
                 size="sm"
                 variant="ghost"
-                aria-label={value === 'grid' ? '海报网格' : '列表'}
+                aria-label={value === 'grid' ? t('browser.viewGrid') : t('browser.viewList')}
                 aria-pressed={view === value}
                 className={view === value ? segmentedActiveClassName : undefined}
                 onClick={() => {
@@ -112,7 +119,7 @@ export function SourceBrowser({ source, onBack, onRelogin, onPlay }: SourceBrows
           <Button
             size="sm"
             variant="ghost"
-            aria-label="刷新"
+            aria-label={t('browser.refresh')}
             disabled={browse.isFetching}
             onClick={() => {
               captureFeatureUsed('media_source', 'refresh')
@@ -133,36 +140,38 @@ export function SourceBrowser({ source, onBack, onRelogin, onPlay }: SourceBrows
       {source.needsLogin || errorCode === 'auth_failed' ? (
         <StatusPanel
           icon="icon-[mingcute--key-2-line]"
-          title="登录已失效"
-          description="服务器拒绝了当前登录，请重新输入密码。"
+          title={t('browser.loginExpiredTitle')}
+          description={t('browser.loginExpiredDescription')}
           action={
             <Button className="mt-5 rounded-full" onClick={() => onRelogin(source)}>
-              重新登录
+              {t('browser.relogin')}
             </Button>
           }
         />
       ) : browse.isError ? (
         <StatusPanel
           icon="icon-[mingcute--wifi-off-line]"
-          title="加载失败"
-          description={browse.error instanceof Error ? browse.error.message : '无法读取目录'}
+          title={t('browser.loadFailedTitle')}
+          description={describeError(browse.error, t('browser.loadFailedDescription'), {
+            domain: 'mediaSource',
+          })}
           action={
             <Button
               className="mt-5 rounded-full"
               disabled={browse.isFetching}
               onClick={() => void browse.refetch()}
             >
-              重试
+              {t('common:action.retry')}
             </Button>
           }
         />
       ) : browse.isPending ? (
-        <p className="text-muted-foreground p-12 text-center text-sm">正在读取…</p>
+        <p className="text-muted-foreground p-12 text-center text-sm">{t('browser.loading')}</p>
       ) : nodes.length === 0 ? (
         <StatusPanel
           icon="icon-[mingcute--folder-line]"
-          title="这里没有视频"
-          description="当前目录中没有文件夹或支持的视频文件"
+          title={t('browser.emptyTitle')}
+          description={t('browser.emptyDescription')}
         />
       ) : view === 'grid' ? (
         <BrowseGrid nodes={nodes} watch={watch} onOpen={enter} />
@@ -228,7 +237,7 @@ export function BrowseGrid({ nodes, watch, onOpen }: BrowseItemsProps) {
               <NodeImage node={node} />
               {state?.done && (
                 <span className="bg-background/85 absolute top-2 right-2 rounded-md px-1.5 py-0.5 text-[11px] font-medium">
-                  已看完
+                  {t('mediaSources:browser.watched')}
                 </span>
               )}
               {state && !state.done && <ProgressBar ratio={state.ratio} overlay />}
@@ -300,7 +309,7 @@ export function BrowseList({ nodes, watch, onOpen }: BrowseItemsProps) {
             {state?.done && (
               <span className="text-muted-foreground flex shrink-0 items-center gap-1 text-xs">
                 <i className="icon-[mingcute--check-circle-line]" aria-hidden="true" />
-                已看完
+                {t('mediaSources:browser.watched')}
               </span>
             )}
             {!video && (
@@ -324,9 +333,12 @@ function describe(node: BrowseNode) {
     ].filter(Boolean)
     return parts.join(' · ')
   }
-  if (node.type === 'series') return node.year ? `剧集 · ${node.year}` : '剧集'
-  if (node.type === 'season') return '季'
-  if (node.type === 'collection') return '媒体库'
+  if (node.type === 'series')
+    return node.year
+      ? t('mediaSources:browser.type.seriesWithYear', { year: node.year })
+      : t('mediaSources:browser.type.series')
+  if (node.type === 'season') return t('mediaSources:browser.type.season')
+  if (node.type === 'collection') return t('mediaSources:browser.type.collection')
   return ''
 }
 
@@ -367,7 +379,7 @@ function ProgressBar({ ratio, overlay }: { ratio: number; overlay?: boolean }) {
         overlay ? 'absolute inset-x-2 bottom-2 bg-black/40' : 'bg-muted',
       )}
       role="progressbar"
-      aria-label="观看进度"
+      aria-label={t('mediaSources:browser.progressLabel')}
       aria-valuenow={Math.round(ratio * 100)}
       aria-valuemin={0}
       aria-valuemax={100}

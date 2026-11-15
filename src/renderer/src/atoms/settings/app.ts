@@ -18,6 +18,16 @@ const createAppDefaultSettings = () => {
     seenNewFeatures: [] as string[],
     /** 界面语言偏好；实际使用的语言由 initialize/i18n.ts 结合系统语言解析 */
     language: SYSTEM_PREFERENCE as LanguagePreference,
+    /**
+     * 用户是否对弹幕翻译做过选择（在加载提示里点了「翻译」或「不用」，或在设置里操作过下拉框）。
+     * 还没选过、界面又不是中文时，弹幕加载完成的提示里会问一次。
+     */
+    danmakuTranslationPrompt: 'pending' as 'pending' | 'answered',
+    /**
+     * 不要自动预下载翻译资源：用户清除过翻译模型，或在询问里选了「不用」。
+     * 用户主动开启翻译时清掉。
+     */
+    translationPreloadOptOut: false,
   }
 }
 
@@ -31,7 +41,25 @@ export const appSettingAtom = createSettingATom('app', createAppDefaultSettings,
     ? settings.seenNewFeatures.filter((id): id is string => typeof id === 'string')
     : [],
   language: normalizeLanguagePreference(settings.language),
+  danmakuTranslationPrompt:
+    settings.danmakuTranslationPrompt === 'answered' ? ('answered' as const) : ('pending' as const),
+  translationPreloadOptOut: settings.translationPreloadOptOut === true,
 }))
+
+/** 记下用户已经对弹幕翻译做过选择，之后不再询问 */
+export const markTranslationPromptAnswered = (): void => {
+  if (jotaiStore.get(appSettingAtom).danmakuTranslationPrompt === 'answered') return
+  jotaiStore.set(appSettingAtom, (current) => ({
+    ...current,
+    danmakuTranslationPrompt: 'answered',
+  }))
+}
+
+/** 设置或清除「不要自动预下载翻译资源」 */
+export const setTranslationPreloadOptOut = (optOut: boolean): void => {
+  if (jotaiStore.get(appSettingAtom).translationPreloadOptOut === optOut) return
+  jotaiStore.set(appSettingAtom, (current) => ({ ...current, translationPreloadOptOut: optOut }))
+}
 
 /** 记下用户已经用过某个新功能，对应的「New」标记从此不再显示 */
 export const markNewFeatureSeen = (feature: NewFeatureId): void => {

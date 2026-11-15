@@ -10,6 +10,8 @@ import type { ProgressStep } from '@renderer/services/player-loading/loading-pro
 import type { ExtractAtomValue } from 'jotai'
 import type { FC } from 'react'
 import { Button } from '@renderer/components/ui/button'
+import { errorDetail } from '@renderer/lib/errors'
+import { CONTENT_LANG, t } from '@renderer/lib/i18n'
 import { cn, isWeb } from '@renderer/lib/utils'
 import { remoteImportProgressAtom } from '@renderer/services/media/remote-progress'
 import {
@@ -25,6 +27,7 @@ import {
 import { AnimatePresence, m } from 'framer-motion'
 import { useAtomValue } from 'jotai'
 import { useEffect, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { LoadFailureActions } from './LoadFailureActions'
 
 /** 加载很快时（已匹配且有缓存）不闪出加载界面 */
@@ -44,6 +47,8 @@ interface LoadingProgressProps {
 }
 
 export const LoadingProgress: FC<LoadingProgressProps> = ({ onReselect }) => {
+  // 订阅语言变化；下面取状态文案的函数用的是模块级的 t，按调用时的语言求值
+  const { t } = useTranslation('player')
   const state = usePlayerLoadingState()
   const service = usePlayerLoadingService()
   const remote = useAtomValue(remoteImportProgressAtom)
@@ -98,7 +103,7 @@ export const LoadingProgress: FC<LoadingProgressProps> = ({ onReselect }) => {
 
       <div
         role="progressbar"
-        aria-label="视频加载进度"
+        aria-label={t('loading.progressLabel')}
         // 固定宽度、不随窗口伸缩：字号不变，进度条略宽于常见副标题最协调，再长会显得空
         className="bg-muted-foreground/15 relative h-1.5 w-[320px] max-w-[80vw] overflow-hidden rounded-full"
       >
@@ -130,6 +135,8 @@ export const LoadingProgress: FC<LoadingProgressProps> = ({ onReselect }) => {
             transition={{ duration: reducedMotion ? 0 : 0.18 }}
             className="text-muted-foreground absolute inset-x-0 truncate text-center text-sm tabular-nums"
             title={subtitle.text}
+            // 文件名与作品名是外部内容，按中文标注；读取进度、失败说明是界面文字，跟随界面语言
+            lang={subtitle.kind === 'file' || subtitle.kind === 'title' ? CONTENT_LANG : undefined}
           >
             {subtitle.text}
           </m.p>
@@ -147,12 +154,12 @@ export const LoadingProgress: FC<LoadingProgressProps> = ({ onReselect }) => {
         <div className="flex h-9 items-center gap-2">
           {failed ? (
             <>
-              <Button onClick={() => service.playNow()}>直接播放</Button>
+              <Button onClick={() => service.playNow()}>{t('loading.playNow')}</Button>
               <Button variant="secondary" onClick={() => service.retryMatch()}>
-                重试匹配
+                {t('loading.retryMatch')}
               </Button>
               <Button variant="ghost" onClick={() => service.manualMatch()}>
-                手动匹配
+                {t('loading.manualMatch')}
               </Button>
             </>
           ) : (
@@ -168,7 +175,7 @@ export const LoadingProgress: FC<LoadingProgressProps> = ({ onReselect }) => {
                   playNowShown ? 'opacity-100' : 'pointer-events-none opacity-0',
                 )}
               >
-                先播放，弹幕后台加载
+                {t('loading.playFirst')}
               </Button>
             )
           )}
@@ -242,17 +249,24 @@ function useProgressBar(state: LoadingState, remote: RemoteProgress, reducedMoti
 function getStatusText(state: LoadingState, remote: RemoteProgress): string {
   switch (state.step) {
     case 'importing':
-      return remote?.stage === 'connecting' ? '正在连接视频来源…' : '正在读取视频…'
+      return remote?.stage === 'connecting'
+        ? t('player:loading.status.connecting')
+        : t('player:loading.status.reading')
     case 'hashing':
-      return '正在识别视频…'
+      return t('player:loading.status.hashing')
     case 'matching':
-      return '正在匹配番剧…'
+      return t('player:loading.status.matching')
     case 'loading_danmaku':
-      return '正在获取弹幕…'
+      return t('player:loading.status.loadingDanmaku')
     case 'waiting_user':
-      return '请选择匹配的剧集'
-    case 'match_failed':
-      return `匹配失败：${state.error.message}`
+      return t('player:loading.status.waitingUser')
+    case 'match_failed': {
+      // 细节不适合当前语言显示时（英文界面下的中文内部错误）只显示「匹配失败」
+      const detail = errorDetail(state.error)
+      return detail
+        ? t('player:loading.status.matchFailedWithDetail', { detail })
+        : t('player:loading.status.matchFailed')
+    }
     default:
       return ''
   }
@@ -272,7 +286,9 @@ function getSubtitle(state: LoadingState, remote: RemoteProgress): Subtitle {
       return remote?.stage === 'reading' && remote.total > 0
         ? {
             kind: 'reading',
-            text: `已读取识别片段 ${Math.floor((remote.received / remote.total) * 100)}%`,
+            text: t('player:loading.readPercent', {
+              percent: Math.floor((remote.received / remote.total) * 100),
+            }),
           }
         : { kind: 'none', text: '' }
     case 'hashing':

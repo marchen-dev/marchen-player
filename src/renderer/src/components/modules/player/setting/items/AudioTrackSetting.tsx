@@ -1,12 +1,21 @@
 import { SettingSelect } from '@renderer/components/modules/shared/setting/SettingSelect'
+import { describeError } from '@renderer/lib/errors'
 import {
   usePlaybackViewModel,
   usePlayerPortalContainer,
   usePlayerRuntime,
 } from '@renderer/services/player-runtime'
+import { parseDefaultAudioTrackNumber } from '@renderer/services/player-runtime/audio-track-label'
 import { useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
 export const AudioTrackSetting = () => {
+  const { t } = useTranslation('player')
+  // 没有名称的音轨内部用固定的默认名称（见 audio-track-label.ts），显示时换成当前语言的写法
+  const displayAudioTrackLabel = (label: string) => {
+    const number = parseDefaultAudioTrackNumber(label)
+    return number === null ? label : t('audio.track', { number })
+  }
   const runtime = usePlayerRuntime()
   usePlaybackViewModel()
   const portal = usePlayerPortalContainer()
@@ -27,7 +36,7 @@ export const AudioTrackSetting = () => {
         request === requestRef.current &&
         !(cause instanceof DOMException && cause.name === 'AbortError')
       )
-        setError(cause instanceof Error ? cause.message : '音轨切换失败')
+        setError(describeError(cause, t('audio.switchFailed')))
     } finally {
       if (request === requestRef.current) setPending(undefined)
     }
@@ -35,20 +44,20 @@ export const AudioTrackSetting = () => {
   return (
     <div className="space-y-2 px-4 py-3">
       <div className="flex items-center justify-between gap-4 text-sm">
-        <span>音轨</span>
+        <span>{t('audio.title')}</span>
         <SettingSelect
           playerMaterial
           container={portal}
           groups={tracks.map((track) => ({
             value: String(track.id),
-            label: `${track.label} · ${track.language}`,
+            label: `${displayAudioTrackLabel(track.label)} · ${track.language}`,
           }))}
           value={String(pending ?? selectedId ?? '')}
           onValueChange={(value) => void select(value)}
         />
       </div>
       {runtime.presentation?.audioOutputChannels === 2 && (
-        <p className="text-xs text-[var(--player-settings-muted)]">当前输出：立体声</p>
+        <p className="text-xs text-[var(--player-settings-muted)]">{t('audio.stereo')}</p>
       )}
       {error && <p className="text-xs text-amber-300">{error}</p>}
     </div>

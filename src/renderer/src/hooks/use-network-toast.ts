@@ -1,4 +1,5 @@
 import { toast } from '@renderer/components/ui/toast/use-toast'
+import { t } from '@renderer/lib/i18n'
 import { isWeb } from '@renderer/lib/utils'
 import { useEffect, useRef } from 'react'
 
@@ -29,13 +30,13 @@ export function useNetworkToast() {
     if (!online) {
       // 已经在显示则不重复弹（避免 useNetworkStatus 重复触发）
       if (dismissRef.current) return
-      const t = toast({
-        title: '网络异常',
-        description: '请检查网络连接',
+      const shown = toast({
+        title: t('app:network.offlineTitle'),
+        description: t('app:network.offlineDescription'),
         variant: 'destructive',
         // 不传 duration，让 toast 持续显示到 dismiss 主动清除
       })
-      dismissRef.current = t.dismiss
+      dismissRef.current = shown.dismiss
     } else {
       dismissRef.current?.()
       dismissRef.current = null

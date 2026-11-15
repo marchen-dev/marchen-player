@@ -7,15 +7,9 @@ import { RouteName } from '@renderer/router/name'
 import { usePlayerLoadingService } from '@renderer/services/player-loading/hooks'
 import { getLastImportOperationId } from '@renderer/services/telemetry/local-log'
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router'
 import { openRemoteVideoDialog } from './RemoteVideoDialog'
-
-const ACTION_LABELS: Record<LoadFailureAction, string> = {
-  retry: '重试',
-  change_link: '更换链接',
-  reselect: '重新选择视频',
-  open_source: '前往媒体源',
-}
 
 interface LoadFailureActionsProps {
   state: ErrorState
@@ -38,6 +32,8 @@ export const LoadFailureActions: FC<LoadFailureActionsProps> = ({
   const service = usePlayerLoadingService()
   const navigate = useNavigate()
   const [detailOpen, setDetailOpen] = useState(false)
+  const { t } = useTranslation('player')
+  // 底层错误的原文：只在用户展开「错误详情」或发反馈时出现，用于诊断，不翻译
   const detail = state.error.message
   const available = actions.filter((action) => action !== 'reselect' || onReselect)
 
@@ -72,11 +68,11 @@ export const LoadFailureActions: FC<LoadFailureActionsProps> = ({
             variant={index === 0 ? 'default' : 'secondary'}
             onClick={() => run(action)}
           >
-            {ACTION_LABELS[action]}
+            {t(`loadFailure.actions.${action}`)}
           </Button>
         ))}
         <Button variant="ghost" onClick={() => service.cancel()}>
-          返回
+          {t('loadFailure.back')}
         </Button>
       </div>
 
@@ -87,7 +83,7 @@ export const LoadFailureActions: FC<LoadFailureActionsProps> = ({
           className="hover:text-foreground"
           onClick={() => setDetailOpen((open) => !open)}
         >
-          错误详情
+          {t('loadFailure.detail')}
         </button>
         <span aria-hidden>·</span>
         <button
@@ -99,12 +95,12 @@ export const LoadFailureActions: FC<LoadFailureActionsProps> = ({
             // 预填失败说明与底层错误，并关联最近一次导入操作，后台可直接定位这次失败
             openFeedbackDialog({
               source: 'playback_error',
-              prefill: `播放失败：${title}\n错误详情：${detail}\n`,
+              prefill: t('loadFailure.feedbackPrefill', { title, detail }),
               operationId: getLastImportOperationId(),
             })
           }}
         >
-          反馈问题
+          {t('loadFailure.feedback')}
         </button>
       </div>
 

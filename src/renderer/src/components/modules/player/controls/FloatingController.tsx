@@ -13,6 +13,7 @@ import {
   useRef,
   useState,
 } from 'react'
+import { useTranslation } from 'react-i18next'
 import { canStartControllerDrag } from './controller-drag'
 import { resolveControllerPosition, withControllerPosition } from './controller-position'
 
@@ -61,6 +62,7 @@ export const FloatingController = ({
   onHoverChange,
   onRectChange,
 }: FloatingControllerProps) => {
+  const { t } = useTranslation('player')
   const controllerRef = useRef<HTMLDivElement | null>(null)
   const rootRef = useRef<HTMLElement | null>(null)
   const x = useMotionValue(0)
@@ -203,7 +205,7 @@ export const FloatingController = ({
         inert={!visible}
         aria-hidden={!visible}
         role="group"
-        aria-label="播放控制"
+        aria-label={t('controls.label')}
         drag
         dragListener={false}
         dragControls={dragControls}
@@ -229,7 +231,7 @@ export const FloatingController = ({
       >
         <button
           type="button"
-          aria-label="拖动播放控制器"
+          aria-label={t('controls.drag')}
           aria-keyshortcuts="ArrowLeft ArrowRight ArrowUp ArrowDown Shift+ArrowLeft Shift+ArrowRight Shift+ArrowUp Shift+ArrowDown Home"
           className="absolute top-1 left-1/2 flex h-3 w-24 -translate-x-1/2 cursor-default items-center justify-center rounded-full opacity-0 focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-[var(--player-focus)] focus-visible:outline-none"
           onPointerDown={startDrag}

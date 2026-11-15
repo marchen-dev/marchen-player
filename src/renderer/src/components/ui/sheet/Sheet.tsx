@@ -6,6 +6,10 @@ import { cva } from 'class-variance-authority'
 import { X } from 'lucide-react'
 import { Dialog as SheetPrimitive } from 'radix-ui'
 import * as React from 'react'
+import { useTranslation } from 'react-i18next'
+
+/** 关闭按钮给读屏用的名称；单独成组件是为了在不带函数体的组件里也能取到当前语言的文案 */
+const CloseLabel = () => useTranslation('common').t('action.close')
 
 const Sheet = SheetPrimitive.Root
 
@@ -71,7 +75,7 @@ const SheetContent = ({
   className,
   classNames,
   closeIcon,
-  closeLabel = '关闭',
+  closeLabel,
   overlay = true,
   container = document.body,
   children,
@@ -85,7 +89,7 @@ const SheetContent = ({
       {children}
       <SheetPrimitive.Close className="data-[state=open]:bg-secondary no-drag-region ring-offset-background focus:ring-ring absolute top-4 right-4 cursor-default rounded-sm opacity-70 transition-opacity hover:opacity-100 focus:ring-2 focus:ring-offset-2 focus:outline-none disabled:pointer-events-none">
         {closeIcon ?? <X className="size-4" />}
-        <span className="sr-only">{closeLabel}</span>
+        <span className="sr-only">{closeLabel ?? <CloseLabel />}</span>
       </SheetPrimitive.Close>
     </SheetPrimitive.Content>
   </SheetPortal>

@@ -1,5 +1,6 @@
 import type { PlayerCapabilities } from '@renderer/services/player-runtime'
 import { playerEngineStateAtom } from '@renderer/atoms/player-engine'
+import { errorDetail } from '@renderer/lib/errors'
 import {
   usePlayerLoadingService,
   usePlayerLoadingState,
@@ -7,6 +8,7 @@ import {
 import { usePlaybackViewModel } from '@renderer/services/player-runtime'
 import { getCompatSupport } from '@renderer/services/player-runtime/compat-support'
 import { useAtomValue } from 'jotai'
+import { useTranslation } from 'react-i18next'
 import { openRemoteVideoDialog } from '../loading/RemoteVideoDialog'
 import { PlaybackFailure } from './PlaybackFailure'
 
@@ -21,13 +23,20 @@ export const PlayerCompatibilityNotice = ({
   const state = usePlaybackViewModel()
   const engine = useAtomValue(playerEngineStateAtom)
   const support = getCompatSupport()
+  const { t } = useTranslation('player')
   if (engine?.switching) return null
+  // 「查看错误详情」里的底层说明：播放内核的错误按错误码取对应语言的文案，
+  // 取不到适合当前语言显示的内容时不显示这一栏
+  const detail =
+    (state.status === 'error'
+      ? errorDetail(state.error, { domain: 'playback' })
+      : errorDetail(engine?.error)) ?? undefined
   const source = 'video' in loading ? loading.video.source : undefined
   if (source?.kind === 'provider-item' && (state.status === 'error' || engine?.error))
     return (
       <PlaybackFailure
-        description="媒体源视频播放失败，请检查服务器连接或重试。"
-        detail={state.status === 'error' ? state.error.message : engine?.error}
+        description={t('failure.description.provider')}
+        detail={detail}
         onExit={onExit}
         onRetry={() => service.loadFromProvider(source.sourceId, source.itemRef)}
       />
@@ -35,8 +44,8 @@ export const PlayerCompatibilityNotice = ({
   if (source?.kind === 'remote-url' && (state.status === 'error' || engine?.error))
     return (
       <PlaybackFailure
-        description="网络视频播放失败，请检查链接或重试。"
-        detail={state.status === 'error' ? state.error.message : engine?.error}
+        description={t('failure.description.remote')}
+        detail={detail}
         onExit={onExit}
         onRetry={() => service.loadFromUrl(source.url, source.hash)}
         onChangeSource={() => openRemoteVideoDialog(source.url, source.hash)}
@@ -48,10 +57,10 @@ export const PlayerCompatibilityNotice = ({
       <PlaybackFailure
         description={
           support.supported
-            ? '无法打开此视频，请检查文件格式或重新选择视频。'
-            : '当前浏览器无法播放此视频，且不支持 兼容播放。请换用桌面 Chrome / Edge 或其他格式的视频。'
+            ? t('failure.description.openFailed')
+            : t('failure.description.unsupportedBrowser')
         }
-        detail={engine.error}
+        detail={detail}
         onExit={onExit}
       />
     )
@@ -60,21 +69,24 @@ export const PlayerCompatibilityNotice = ({
   const retry = Boolean(engine) && support.supported && compatibilityError
   const description =
     state.error.code === 'network'
-      ? '媒体读取失败，请检查网络连接后重新打开视频。'
+      ? t('failure.description.network')
       : state.error.code === 'source-unavailable'
-        ? '视频文件无法访问，请确认文件仍然存在并重新打开。'
+        ? t('failure.description.sourceUnavailable')
         : compatibilityError && !support.supported
-          ? '原生播放器无法播放这个文件，当前浏览器暂不支持 兼容播放。请换用桌面 Chrome / Edge，或使用其他格式的视频。'
-          : /audio track cannot be decoded/i.test(state.error.message)
-            ? '当前音轨的编码暂不支持，无法开始播放。请使用包含受支持音轨的视频。'
-            : '播放器无法读取或解码这个视频，请重试或打开其他视频。'
+          ? t('failure.description.nativeUnsupported')
+          : // 这条判断针对的是解码库给出的英文原始错误，没有对应的错误码可用
+            /audio track cannot be decoded/i.test(state.error.message)
+            ? t('failure.description.audioUnsupported')
+            : t('failure.description.decode')
   return (
     <PlaybackFailure
       description={description}
-      detail={state.error.message}
+      detail={detail}
       onExit={onExit}
       onRetry={retry ? () => void engine?.retryCompat() : undefined}
-      retryLabel={engine?.actual === 'compat' ? '重试兼容播放' : '使用兼容内核重试'}
+      retryLabel={
+        engine?.actual === 'compat' ? t('failure.retryCompat') : t('failure.retryWithCompat')
+      }
     />
   )
 }

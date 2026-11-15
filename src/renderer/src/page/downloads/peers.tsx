@@ -7,15 +7,11 @@ import {
   DialogTitle,
 } from '@renderer/components/ui/dialog'
 import { ipcClient } from '@renderer/lib/client'
+import { describeError } from '@renderer/lib/errors'
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { bytes, downloadCall } from './state'
 
-const states = {
-  downloading: '正在接收',
-  choked: '等待对方允许',
-  ready: '等待传输',
-  unneeded: '暂无所需分片',
-}
 export function PeerDialog({
   id,
   name,
@@ -25,6 +21,7 @@ export function PeerDialog({
   name: string
   onClose: () => void
 }) {
+  const { t } = useTranslation('downloads')
   const [peers, setPeers] = useState<DownloadPeer[] | null>(null)
   const [error, setError] = useState('')
   useEffect(() => {
@@ -41,7 +38,7 @@ export function PeerDialog({
       } catch (e) {
         if (!cancelled) {
           setPeers(null)
-          setError(e instanceof Error ? e.message : '节点信息读取失败')
+          setError(describeError(e, t('peers.readFailed')))
         }
       } finally {
         if (!cancelled) timer = setTimeout(refresh, 2000)
@@ -52,7 +49,7 @@ export function PeerDialog({
       cancelled = true
       clearTimeout(timer)
     }
-  }, [id])
+  }, [id, t])
   return (
     <Dialog
       open
@@ -68,40 +65,42 @@ export function PeerDialog({
         }}
       >
         <DialogHeader>
-          <DialogTitle>节点详情{peers ? ` · ${peers.length} 个连接` : ''}</DialogTitle>
+          <DialogTitle>
+            {peers ? t('peers.titleWithCount', { count: peers.length }) : t('peers.title')}
+          </DialogTitle>
           <DialogDescription className="truncate" title={name}>
             {name}
           </DialogDescription>
         </DialogHeader>
-        <p className="text-muted-foreground text-xs">
-          每 2 秒刷新。分片占比针对整个种子；传输量仅统计当前连接。连接成功不代表正在传输。
-        </p>
+        <p className="text-muted-foreground text-xs">{t('peers.hint')}</p>
         {error ? (
           <p role="alert" className="text-destructive text-sm">
             {error}
           </p>
         ) : peers === null ? (
-          <p className="text-muted-foreground py-8 text-center">正在读取节点信息…</p>
+          <p className="text-muted-foreground py-8 text-center">{t('peers.loading')}</p>
         ) : peers.length === 0 ? (
-          <p className="text-muted-foreground py-8 text-center">
-            暂无已连接节点，暂停或完成后会断开连接。
-          </p>
+          <p className="text-muted-foreground py-8 text-center">{t('peers.empty')}</p>
         ) : (
           <div className="max-h-[55vh] overflow-auto">
             <table className="w-full text-left text-sm whitespace-nowrap">
               <thead className="bg-background text-muted-foreground sticky top-0">
                 <tr>
-                  {['地址', '下载 / 上传', '累计接收 / 发送', '持有分片', '状态'].map((label) => (
-                    <th key={label} className="px-3 py-2 font-medium">
-                      {label}
-                    </th>
-                  ))}
+                  {(['address', 'speed', 'transferred', 'pieces', 'state'] as const).map(
+                    (column) => (
+                      <th key={column} className="px-3 py-2 font-medium">
+                        {t(`peers.columns.${column}`)}
+                      </th>
+                    ),
+                  )}
                 </tr>
               </thead>
               <tbody>
                 {peers.map((peer) => (
                   <tr key={peer.id} className="border-t">
-                    <td className="px-3 py-3 font-mono text-xs select-text">{peer.address}</td>
+                    <td className="px-3 py-3 font-mono text-xs select-text">
+                      {peer.address || t('peers.addressUnavailable')}
+                    </td>
                     <td className="px-3 py-3">
                       {bytes(peer.downloadSpeed)}/s / {bytes(peer.uploadSpeed)}/s
                     </td>
@@ -113,7 +112,7 @@ export function PeerDialog({
                         ? '—'
                         : `${peer.availablePercent.toFixed(1)}%`}
                     </td>
-                    <td className="px-3 py-3">{states[peer.state]}</td>
+                    <td className="px-3 py-3">{t(`peers.states.${peer.state}`)}</td>
                   </tr>
                 ))}
               </tbody>

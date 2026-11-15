@@ -6,12 +6,14 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@renderer/components/ui/Tooltip'
+import { CONTENT_LANG } from '@renderer/lib/i18n'
 import { cn } from '@renderer/lib/utils'
 import { usePlayerLoadingSelector } from '@renderer/services/player-loading/hooks'
 import { usePlayerPortalContainer } from '@renderer/services/player-runtime'
 import { samePlaylistSource } from '@renderer/services/player-runtime/history/playlist'
 import { groupPlaylistForDisplay } from '@renderer/services/player-runtime/history/playlist-display'
 import { useEffect, useMemo, useRef } from 'react'
+import { useTranslation } from 'react-i18next'
 
 const PlayList = ({
   entries,
@@ -22,6 +24,7 @@ const PlayList = ({
   onSelect?: (entry: PlaylistEntry) => void
   onRefresh?: () => void
 }) => {
+  const { t } = useTranslation('player')
   // 从 service state 读取匹配信息和视频信息
   const match = usePlayerLoadingSelector((s) => ('match' in s ? s.match : null))
   const video = usePlayerLoadingSelector((s) => ('video' in s ? s.video : null))
@@ -96,16 +99,24 @@ const PlayList = ({
                           />
                           <span className="min-w-0 flex-1">
                             {/* 折叠后仍过长时最多两行，文件名常无空格，需允许任意位置断行 */}
-                            <span className="line-clamp-2 leading-5 [overflow-wrap:anywhere]">
+                            <span
+                              className="line-clamp-2 leading-5 [overflow-wrap:anywhere]"
+                              lang={CONTENT_LANG}
+                            >
                               {label}
                             </span>
                             {matchTitle && (
-                              <span className="mt-0.5 block truncate text-xs leading-5 text-white/60">
+                              <span
+                                className="mt-0.5 block truncate text-xs leading-5 text-white/60"
+                                lang={CONTENT_LANG}
+                              >
                                 {matchTitle}
                               </span>
                             )}
                           </span>
-                          {playingVideo && <span className="shrink-0 text-xs">正在播放</span>}
+                          {playingVideo && (
+                              <span className="shrink-0 text-xs">{t('playlist.playing')}</span>
+                            )}
                         </button>
                       </TooltipTrigger>
                       <TooltipContent

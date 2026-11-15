@@ -1,6 +1,7 @@
 import type { DB_Danmaku } from '@renderer/database/schemas/history'
 import type { CommentModel } from '@renderer/request/models/comment'
 import { mergeSources } from '@marchen/shared/danmaku'
+import { t } from '@renderer/lib/i18n'
 
 /**
  * 将32位整数表示的颜色转换成十六进制颜色格式
@@ -33,12 +34,12 @@ export const DanmuPosition: Record<number, Mode> = {
  */
 export const danmakuSourceName = (danmaku?: DB_Danmaku) => {
   if (!danmaku) {
-    return '未知弹幕'
+    return t('danmaku:source.unknown')
   }
 
   switch (danmaku.type) {
     case 'auto': {
-      return '弹弹play'
+      return t('danmaku:source.dandanplay')
     }
     case 'link': {
       // 视频标题里常见「𝟒𝐊」这类数学粗体字符，会让整段文字回退到衬线字体；
@@ -53,10 +54,10 @@ export const danmakuSourceName = (danmaku?: DB_Danmaku) => {
           // 旧缓存或损坏的来源标识仍显示通用名称。
         }
       }
-      return '本地弹幕'
+      return t('danmaku:source.local')
     }
     default: {
-      return '未知弹幕'
+      return t('danmaku:source.unknown')
     }
   }
 }
@@ -66,10 +67,13 @@ export const danmakuSourceName = (danmaku?: DB_Danmaku) => {
  */
 export const danmakuPlatformMap = (danmaku?: DB_Danmaku) => {
   if (!danmaku) {
-    return '未知弹幕'
+    return t('danmaku:source.unknown')
   }
 
-  return `${danmakuSourceName(danmaku)} (${danmaku.content.count}条)`
+  return t('danmaku:source.withCount', {
+    name: danmakuSourceName(danmaku),
+    total: danmaku.content.count,
+  })
 }
 
 /**
@@ -77,11 +81,11 @@ export const danmakuPlatformMap = (danmaku?: DB_Danmaku) => {
  */
 export const mostDanmakuPlatform = (danmaku?: DB_Danmaku[]) => {
   if (!danmaku || danmaku.length === 0) {
-    return '暂无弹幕'
+    return t('danmaku:source.empty')
   }
   const danmakuCount = danmaku.filter((item) => item.selected).map((item) => item.content.count)
   if (danmakuCount.length === 0) {
-    return '暂无弹幕'
+    return t('danmaku:source.empty')
   }
   const maxDanmakuItem = danmaku.find((item) => item.content.count === Math.max(...danmakuCount))
   return danmakuPlatformMap(maxDanmakuItem)

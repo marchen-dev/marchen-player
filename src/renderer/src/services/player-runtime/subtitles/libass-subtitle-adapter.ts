@@ -202,8 +202,10 @@ export class LibassSubtitleAdapter {
     this.canvas.width = width
     const message = error instanceof Error ? error.message
       : typeof ErrorEvent !== 'undefined' && error instanceof ErrorEvent
+        // eslint-disable-next-line marchen/no-hardcoded-ui-text -- 内部错误说明，随后包进 Error
         ? error.message || '字幕 Worker 运行失败'
         : typeof Event !== 'undefined' && error instanceof Event
+          // eslint-disable-next-line marchen/no-hardcoded-ui-text -- 内部错误说明，随后包进 Error
           ? '字幕 Worker 加载或执行失败，请查看开发者工具中的错误详情'
           : String(error)
     this.onError(new Error(message))

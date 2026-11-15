@@ -1,6 +1,8 @@
 import type { DB_Library, DB_LibraryEpisode } from '@renderer/database/schemas/library'
 import type { FC } from 'react'
+import { CONTENT_LANG } from '@renderer/lib/i18n'
 import { memo, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import { EpisodeGrid } from './EpisodeGrid'
 import { ctaLabel, isWatching, pickNextEpisode } from './selectors'
@@ -30,6 +32,7 @@ interface DetailOverlayProps {
 }
 
 export const DetailOverlay: FC<DetailOverlayProps> = memo(({ item, onClose, onPlayEpisode }) => {
+  const { t } = useTranslation('library')
   // ESC 关闭。仅在挂载期间监听。
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -67,7 +70,7 @@ export const DetailOverlay: FC<DetailOverlayProps> = memo(({ item, onClose, onPl
           type="button"
           className="library-dt-close"
           onClick={onClose}
-          aria-label="关闭详情"
+          aria-label={t('detail.close')}
         >
           <CrossGlyph />
         </button>
@@ -100,13 +103,15 @@ export const DetailOverlay: FC<DetailOverlayProps> = memo(({ item, onClose, onPl
           </div>
 
           <div className="library-dt-info">
-            <h2 id="library-dt-title" className="library-dt-title">
+            <h2 id="library-dt-title" className="library-dt-title" lang={CONTENT_LANG}>
               {item.title}
             </h2>
 
             <div className="library-dt-meta-row">
               {item.typeDescription && <span>{item.typeDescription}</span>}
-              {item.totalEpisodes > 0 && <span>{item.totalEpisodes} 话</span>}
+              {item.totalEpisodes > 0 && (
+                <span>{t('episodeCount', { count: item.totalEpisodes })}</span>
+              )}
               {yearLabel && <span>{yearLabel}</span>}
               {item.rating > 0 && (
                 <span className="library-hero-rating">
@@ -140,8 +145,10 @@ export const DetailOverlay: FC<DetailOverlayProps> = memo(({ item, onClose, onPl
               <div className="library-dt-progress">
                 <div className="library-dt-progress-row">
                   <span>
-                    第 {String(watched).padStart(2, '0')} /{' '}
-                    {String(item.totalEpisodes).padStart(2, '0')} 话
+                    {t('detail.progress', {
+                      watched: String(watched).padStart(2, '0'),
+                      total: String(item.totalEpisodes).padStart(2, '0'),
+                    })}
                   </span>
                   <span className="library-dt-progress-val">{percent}%</span>
                 </div>
@@ -155,7 +162,7 @@ export const DetailOverlay: FC<DetailOverlayProps> = memo(({ item, onClose, onPl
 
             <div className="library-dt-section">
               <div className="library-dt-section-head">
-                <h3>剧集</h3>
+                <h3>{t('detail.episodesTitle')}</h3>
                 <span className="library-muted">
                   {watched}/{item.totalEpisodes}
                 </span>

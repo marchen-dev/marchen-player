@@ -1,6 +1,7 @@
 import type { DurableMediaSource } from '@marchen/shared/media'
 import type { EmbeddedSubtitleTrack } from '../../media/subtitles/matroska'
 import type { ResolvedSubtitleTrack, SubtitleTrackDescriptor } from './ports'
+import { t } from '@renderer/lib/i18n'
 import { reportUnsupportedSubtitleTracks } from '@renderer/services/telemetry/subtitles'
 import { measureSubtitleRead } from '../../media/subtitles/diagnostics'
 import { MatroskaSubtitles } from '../../media/subtitles/matroska'
@@ -28,7 +29,9 @@ export async function listEmbeddedSubtitles(
     }
     return reader.tracks.map((track) => ({
       id: `embedded:${track.number}`,
-      title: (track.title || `内嵌字幕 ${track.number}`) + unsupportedSuffix(track),
+      title:
+        (track.title || t('player:subtitle.embedded', { number: track.number })) +
+        unsupportedSuffix(track),
       language: track.language,
       origin: 'embedded',
       embedded: { number: track.number, uid: track.uid, codec: track.codec },
@@ -44,9 +47,10 @@ export async function listEmbeddedSubtitles(
 /** 图片字幕说明原因，避免用户以为是故障；其他不支持的轨道保持原文案 */
 function unsupportedSuffix(track: EmbeddedSubtitleTrack) {
   if (track.supported) return ''
-  if (track.unsupportedCode === 'bitmap_codec') return '（图片字幕，暂不支持）'
-  if (track.unsupportedCode === 'missing_index') return '（图片字幕，文件缺少索引）'
-  return '（暂不支持）'
+  if (track.unsupportedCode === 'bitmap_codec') return t('player:subtitle.unsupportedSuffix.bitmap')
+  if (track.unsupportedCode === 'missing_index')
+    return t('player:subtitle.unsupportedSuffix.missingIndex')
+  return t('player:subtitle.unsupportedSuffix.other')
 }
 
 export async function resolveEmbeddedTrack(

@@ -6,6 +6,9 @@ import type {
   LinkSelection,
 } from '@marchen/shared/danmaku'
 import { linkSourceId, validateOffset } from '@marchen/shared/danmaku'
+import { errorFromFailure, UserError } from '@marchen/shared/errors'
+import { describeError } from '@renderer/lib/errors'
+import { t } from '@renderer/lib/i18n'
 
 export interface LinkTransport {
   identify: (
@@ -56,13 +59,17 @@ export class LinkImportController {
   cancel = () => {
     if (this.pendingSession !== undefined) {
       this.pendingSession = undefined
-      this.publish({ status: 'cancelled', message: '已取消选集', selection: undefined })
+      this.publish({
+        status: 'cancelled',
+        message: t('danmaku:link.status.selectionCancelled'),
+        selection: undefined,
+      })
     }
     const task = this.active
     if (!task || task.controller.signal.aborted) return
     task.controller.abort()
     void this.transport.cancel(task.id).catch(() => {})
-    this.publish({ status: 'cancelled', message: '已取消导入' })
+    this.publish({ status: 'cancelled', message: t('danmaku:link.status.cancelled') })
   }
   /** 只允许提交当前媒体会话里刚返回的候选项，换视频后旧选集立即失效。 */
   choose = async (url: string): Promise<void> => {
@@ -83,7 +90,7 @@ export class LinkImportController {
     this.pendingSession = undefined
     const state = this.player.currentState
     if (state.step !== 'ready') {
-      this.publish({ status: 'error', message: '请先打开视频' })
+      this.publish({ status: 'error', message: t('danmaku:link.status.needVideo') })
       return
     }
     try {
@@ -91,7 +98,7 @@ export class LinkImportController {
     } catch (error) {
       this.publish({
         status: 'error',
-        message: error instanceof Error ? error.message : '偏移无效',
+        message: describeError(error, t('danmaku:link.offset.invalid')),
       })
       return
     }
@@ -105,7 +112,7 @@ export class LinkImportController {
       status: 'loading',
       url,
       offset,
-      message: '正在识别链接…',
+      message: t('danmaku:link.status.identifying'),
       progress: undefined,
       source: undefined,
       selection: undefined,
@@ -117,31 +124,36 @@ export class LinkImportController {
           progress,
           message:
             progress.stage === 'metadata'
-              ? '正在读取视频信息…'
-              : `${progress.title ?? ''} · ${progress.completed}/${progress.total} 段 · ${progress.count} 条`,
+              ? t('danmaku:link.status.readingInfo')
+              : t('danmaku:link.status.progress', {
+                  title: progress.title ?? '',
+                  completed: progress.completed,
+                  segments: progress.total ?? 0,
+                  danmaku: progress.count,
+                }),
         })
     })
     try {
       const identity = await this.transport.identify(url)
       if (!current()) return
-      if (!identity.ok) throw new Error(identity.message)
+      if (!identity.ok) throw errorFromFailure(identity, t('danmaku:link.status.failed'))
       let source = linkSourceId(identity.identity)
       const now = this.player.currentState
       if (
         (now.step === 'ready' || now.step === 'reloading') &&
         now.danmaku.some((entry) => entry.source === source)
       )
-        throw new Error('已经添加过该来源')
+        throw new UserError('danmakuLink.duplicate', '已经添加过该来源')
       const response = await this.transport.fetch(task.id, identity.identity.canonicalUrl)
       if (!current()) return
-      if (!response.ok) throw new Error(response.message)
+      if (!response.ok) throw errorFromFailure(response, t('danmaku:link.status.failed'))
       if (response.selection) {
         this.pendingSession = task.session
         this.publish({
           status: 'selecting',
           selection: response.selection,
           progress: undefined,
-          message: '请选择要导入弹幕的剧集',
+          message: t('danmaku:link.status.chooseEpisode'),
         })
         return
       }
@@ -153,8 +165,8 @@ export class LinkImportController {
         (latest.step === 'ready' || latest.step === 'reloading') &&
         latest.danmaku.some((entry) => entry.source === source)
       )
-        throw new Error('已经添加过该来源')
-      this.publish({ status: 'committing', message: '正在保存弹幕…' })
+        throw new UserError('danmakuLink.duplicate', '已经添加过该来源')
+      this.publish({ status: 'committing', message: t('danmaku:link.status.saving') })
       await this.player.addLinkDanmaku(
         {
           type: 'link',
@@ -172,13 +184,22 @@ export class LinkImportController {
       this.publish({
         status: 'success',
         source,
-        message: `已添加 ${result.content.count} 条弹幕${result.skipped ? `，跳过 ${result.skipped} 条无效或不支持的记录` : ''}${result.identity.provider === 'bilibili' ? '（当前弹幕池）' : ''}`,
+        message:
+          (result.skipped
+            ? t('danmaku:link.status.addedSkipped', {
+                total: result.content.count,
+                skipped: result.skipped,
+              })
+            : t('danmaku:link.status.added', { total: result.content.count })) +
+          (result.identity.provider === 'bilibili'
+            ? t('danmaku:link.status.currentPoolSuffix')
+            : ''),
       })
     } catch (error) {
       if (current())
         this.publish({
           status: 'error',
-          message: error instanceof Error ? error.message : '导入失败，请重试',
+          message: describeError(error, t('danmaku:link.status.failed')),
         })
     } finally {
       unlisten()

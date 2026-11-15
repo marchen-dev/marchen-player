@@ -1,6 +1,7 @@
 import { Button } from '@renderer/components/ui/button'
 import { useModalStack } from '@renderer/components/ui/modal'
 import { ipcClient } from '@renderer/lib/client'
+import { t } from '@renderer/lib/i18n'
 import { isWeb } from '@renderer/lib/utils'
 import { useCallback } from 'react'
 
@@ -32,7 +33,7 @@ export const useConfirmationDialog = () => {
                 }}
                 variant={'outline'}
               >
-                取消
+                {t('action.cancel')}
               </Button>
               <Button
                 onClick={() => {
@@ -41,7 +42,7 @@ export const useConfirmationDialog = () => {
                 }}
                 variant={'destructive'}
               >
-                确认
+                {t('action.confirm')}
               </Button>
             </div>
           ),

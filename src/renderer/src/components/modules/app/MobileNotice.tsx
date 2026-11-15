@@ -9,6 +9,7 @@ import {
 import { useToast } from '@renderer/components/ui/toast'
 import { getStorageNS } from '@renderer/lib/ns'
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
 const CONTINUED_KEY = getStorageNS('mobile-notice-continued')
 
@@ -38,6 +39,7 @@ const markContinued = () => {
  */
 export const MobileNotice = () => {
   const [open, setOpen] = useState(() => !hasContinued())
+  const { t } = useTranslation(['app', 'common'])
   const { toast } = useToast()
 
   const dismiss = () => {
@@ -59,9 +61,12 @@ export const MobileNotice = () => {
     }
     try {
       await navigator.clipboard.writeText(url)
-      toast({ title: '链接已复制', description: '在电脑浏览器中打开即可使用' })
+      toast({
+        title: t('mobileNotice.copiedTitle'),
+        description: t('mobileNotice.copiedDescription'),
+      })
     } catch {
-      toast({ title: '复制失败', description: url, variant: 'destructive' })
+      toast({ title: t('common:copyFailed'), description: url, variant: 'destructive' })
     }
   }
 
@@ -73,18 +78,18 @@ export const MobileNotice = () => {
             className="icon-[mingcute--computer-line] text-muted-foreground text-4xl"
             aria-hidden="true"
           />
-          <DialogTitle>请在电脑上打开</DialogTitle>
+          <DialogTitle>{t('mobileNotice.title')}</DialogTitle>
           <DialogDescription className="leading-relaxed">
-            Marchen Player 目前只为电脑浏览器和桌面客户端设计，手机上无法正常拖入视频和操作播放器。
+            {t('mobileNotice.description')}
           </DialogDescription>
         </DialogHeader>
         <div className="flex flex-col gap-2">
           <Button onClick={share}>
             <i className="icon-[mingcute--share-forward-line] mr-1 text-base" aria-hidden="true" />
-            分享链接到电脑
+            {t('mobileNotice.share')}
           </Button>
           <Button variant="ghost" onClick={dismiss}>
-            仍要继续访问
+            {t('mobileNotice.continue')}
           </Button>
         </div>
       </DialogContent>

@@ -319,6 +319,7 @@ export class MatroskaSubtitles {
         if (track.kind !== 'bitmap' || !track.supported) continue
         track.supported = false
         track.unsupportedCode = 'missing_index'
+        // eslint-disable-next-line marchen/no-hardcoded-ui-text -- 内部诊断说明；界面按 unsupportedCode 显示
         track.unsupportedReason = '文件缺少索引，暂不支持此图片字幕'
       }
     }

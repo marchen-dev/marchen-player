@@ -1,4 +1,5 @@
 import type { SubtitleSource } from './matroska'
+import { t } from '@renderer/lib/i18n'
 import { AttachedFile, CustomSource, Input, MATROSKA } from 'mediabunny'
 import { FONT_ATTACHMENT_BUDGET, preflightMatroskaAttachments } from './matroska'
 
@@ -32,7 +33,7 @@ export async function loadSubtitleFonts(
   signal?.addEventListener('abort', onAbort, { once: true })
   try {
     const preflight = await preflightMatroskaAttachments(source, signal)
-    if (!preflight.allowed) return fallback('内嵌附件超过 32 MiB，已使用默认字体')
+    if (!preflight.allowed) return fallback(t('player:subtitle.warning.attachmentsTooLarge'))
     if (!preflight.bytes) return { urls, bytes: 0, close }
     input = new Input({
       formats: [MATROSKA],
@@ -68,7 +69,8 @@ export async function loadSubtitleFonts(
         continue
       }
       bytes += file.data.byteLength
-      if (bytes > FONT_ATTACHMENT_BUDGET) return fallback('内嵌字体超过预算，已使用默认字体')
+      if (bytes > FONT_ATTACHMENT_BUDGET)
+        return fallback(t('player:subtitle.warning.fontsOverBudget'))
       urls.push(
         URL.createObjectURL(
           new Blob([new Uint8Array(file.data)], { type: 'application/octet-stream' }),
@@ -79,14 +81,14 @@ export async function loadSubtitleFonts(
       urls,
       bytes,
       close,
-      warning: rejected ? '部分内嵌字体无效，缺失字体使用默认字体' : undefined,
+      warning: rejected ? t('player:subtitle.warning.fontsPartiallyInvalid') : undefined,
     }
   } catch {
     if (signal?.aborted) {
       close()
       signal.throwIfAborted()
     }
-    return fallback('内嵌字体读取失败，已使用默认字体')
+    return fallback(t('player:subtitle.warning.fontsReadFailed'))
   } finally {
     input?.dispose()
     signal?.removeEventListener('abort', onAbort)

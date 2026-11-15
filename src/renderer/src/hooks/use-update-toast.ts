@@ -2,6 +2,7 @@ import { desktopUpdateAtom } from '@renderer/atoms/progress'
 import { useSettingModal } from '@renderer/components/modules/settings/hooks'
 import { ToastAction } from '@renderer/components/ui/toast/toast'
 import { toast } from '@renderer/components/ui/toast/use-toast'
+import { t } from '@renderer/lib/i18n'
 import { useAtomValue } from 'jotai'
 import { createElement, useEffect, useRef } from 'react'
 
@@ -19,12 +20,12 @@ export function useUpdateToast() {
       return
     notifiedRef.current = state.version
     toast({
-      title: '新版本已准备好',
-      description: '可以在关于页查看更新并选择安装。',
+      title: t('app:update.readyTitle'),
+      description: t('app:update.readyDescription'),
       action: createElement(
         ToastAction,
-        { altText: '查看更新', onClick: () => showSettings('about') },
-        '查看更新',
+        { altText: t('app:update.view'), onClick: () => showSettings('about') },
+        t('app:update.view'),
       ),
     })
   }, [state, showSettings])

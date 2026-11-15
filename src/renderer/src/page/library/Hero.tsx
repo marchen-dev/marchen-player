@@ -1,6 +1,8 @@
 import type { DB_Library } from '@renderer/database/schemas/library'
 import type { FC } from 'react'
+import { CONTENT_LANG } from '@renderer/lib/i18n'
 import { memo } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import { ctaLabel } from './selectors'
 
@@ -26,6 +28,7 @@ interface HeroProps {
 }
 
 export const Hero: FC<HeroProps> = memo(({ item, onPlay, onDetails, playDisabled, episodePct }) => {
+  const { t } = useTranslation('library')
   const yearLabel = item.airDate ? `${new Date(item.airDate).getFullYear()}` : ''
   const pct = episodePct ? Math.round(episodePct.ratio * 100) : null
 
@@ -50,14 +53,16 @@ export const Hero: FC<HeroProps> = memo(({ item, onPlay, onDetails, playDisabled
 
       <div className="library-hero-inner">
         <div className="library-hero-eyebrow">
-          {item.isOnAir ? 'On Air · 连载中' : 'Continue Watching · 继续观看'}
+          {item.isOnAir ? t('hero.onAir') : t('hero.continueWatching')}
         </div>
 
-        <h1 className="library-hero-title">{item.title}</h1>
+        <h1 className="library-hero-title" lang={CONTENT_LANG}>
+          {item.title}
+        </h1>
 
         <div className="library-hero-meta">
           {item.typeDescription && <span>{item.typeDescription}</span>}
-          {item.totalEpisodes > 0 && <span>{item.totalEpisodes} 话</span>}
+          {item.totalEpisodes > 0 && <span>{t('episodeCount', { count: item.totalEpisodes })}</span>}
           {yearLabel && <span>{yearLabel}</span>}
           {item.rating > 0 && (
             <span className="library-hero-rating">
@@ -91,7 +96,7 @@ export const Hero: FC<HeroProps> = memo(({ item, onPlay, onDetails, playDisabled
           </button>
           <button type="button" className="library-btn-ghost" onClick={onDetails}>
             <InfoGlyph />
-            详情
+            {t('hero.details')}
           </button>
         </div>
 
@@ -102,7 +107,11 @@ export const Hero: FC<HeroProps> = memo(({ item, onPlay, onDetails, playDisabled
               <div className="library-hero-progress-fill" style={{ width: `${pct}%` }} />
             </div>
             <div className="library-hero-progress-meta">
-              <span>上次到 第 {String(episodePct.episodeNumber).padStart(2, '0')} 话</span>
+              <span>
+                {t('hero.lastWatched', {
+                  episode: String(episodePct.episodeNumber).padStart(2, '0'),
+                })}
+              </span>
               <span>{pct}%</span>
             </div>
           </div>

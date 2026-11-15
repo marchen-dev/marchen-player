@@ -7,7 +7,7 @@
  * 弹幕节点是池化复用的，宽度还参与测量与碰撞计算，加子元素会同时污染这两处。
  * 工具条位于弹幕层内，弹幕层在全屏元素内，全屏时无需额外处理。
  */
-import { translationMessages } from '@renderer/services/translation/messages'
+import { t } from '@renderer/lib/i18n'
 import { computeHoverToolbarPosition } from './hover-toolbar-position'
 
 /** 驻留这么久才显示，避免弹幕密集时鼠标划过画面一路闪出工具条 */
@@ -39,6 +39,8 @@ export class DanmakuHoverToolbar {
   private readonly arrow: HTMLDivElement
   private readonly pill: HTMLDivElement
   private readonly original: HTMLDivElement
+  private readonly copyButton: HTMLButtonElement
+  private readonly blockButton: HTMLButtonElement
   private cursorX = 0
   private targetId: string | null = null
   private targetNode: HTMLElement | null = null
@@ -73,21 +75,19 @@ export class DanmakuHoverToolbar {
 
     const original = document.createElement('div')
     original.dataset.danmakuHoverOriginal = ''
-    original.setAttribute('aria-label', translationMessages.hoverOriginalLabel)
     original.className =
       'max-w-[min(26rem,70vw)] px-2 pt-1.5 pb-0.5 text-center text-sm leading-snug break-words text-white/90 select-text'
     original.style.display = 'none'
 
     const actions = document.createElement('div')
     actions.className = 'flex items-center gap-1'
-    actions.append(
-      createButton('复制', 'icon-[mingcute--copy-2-line] size-5', () => {
-        if (this.targetId !== null) handlers.onCopy(this.targetId)
-      }),
-      createButton('屏蔽', 'icon-[mingcute--forbid-circle-line] size-5', () => {
-        if (this.targetId !== null) handlers.onBlock(this.targetId)
-      }),
-    )
+    const copyButton = createButton('icon-[mingcute--copy-2-line] size-5', () => {
+      if (this.targetId !== null) handlers.onCopy(this.targetId)
+    })
+    const blockButton = createButton('icon-[mingcute--forbid-circle-line] size-5', () => {
+      if (this.targetId !== null) handlers.onBlock(this.targetId)
+    })
+    actions.append(copyButton, blockButton)
     pill.append(original, actions)
     element.append(arrow, pill)
     // 工具条上的点击不能冒泡成播放器手势
@@ -104,7 +104,16 @@ export class DanmakuHoverToolbar {
     this.arrow = arrow
     this.pill = pill
     this.original = original
+    this.copyButton = copyButton
+    this.blockButton = blockButton
+    this.applyLabels()
     container.append(element)
+  }
+
+  private applyLabels(): void {
+    setLabel(this.copyButton, t('danmaku:hover.copy'))
+    setLabel(this.blockButton, t('danmaku:hover.block'))
+    setLabel(this.original, t('danmaku:hover.original'), false)
   }
 
   /**
@@ -118,6 +127,8 @@ export class DanmakuHoverToolbar {
     this.targetId = id
     this.targetNode = node
     this.cursorX = clientX
+    // 工具条只创建一次，文案在每次悬停时按当前界面语言刷新
+    this.applyLabels()
     // 在显示之前写好内容：定位要读取工具条的实际尺寸
     this.original.textContent = originalText ?? ''
     this.original.style.display = originalText ? 'block' : 'none'
@@ -193,11 +204,14 @@ export class DanmakuHoverToolbar {
 const isInside = (parent: HTMLElement | null, target: EventTarget | null) =>
   parent !== null && target instanceof Node && parent.contains(target)
 
-const createButton = (label: string, iconClassName: string, onClick: () => void) => {
+const setLabel = (element: HTMLElement, label: string, withTitle = true) => {
+  if (withTitle) element.title = label
+  element.setAttribute('aria-label', label)
+}
+
+const createButton = (iconClassName: string, onClick: () => void) => {
   const button = document.createElement('button')
   button.type = 'button'
-  button.title = label
-  button.setAttribute('aria-label', label)
   // 弹幕层整体对辅助技术隐藏，按钮不进入 Tab 顺序
   button.tabIndex = -1
   button.className =

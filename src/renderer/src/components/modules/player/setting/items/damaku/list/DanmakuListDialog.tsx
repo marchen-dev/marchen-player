@@ -12,7 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@renderer/components/ui/select'
-import { formatNumber } from '@renderer/lib/i18n'
+import { CONTENT_LANG, formatNumber } from '@renderer/lib/i18n'
 import { cn } from '@renderer/lib/utils'
 import { usePlayerPortalContainer } from '@renderer/services/player-runtime'
 import { usePlaybackClock } from '@renderer/services/player-runtime/context'
@@ -30,6 +30,7 @@ import { captureFeatureUsed } from '@renderer/services/telemetry/features'
 import { useTranslationLookup } from '@renderer/services/translation/use-translation-lookup'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { memo, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import { formatTime } from '../../../../controls/utils'
 import { useDanmakuSourceConfig } from '../../../danmaku-source-context'
@@ -41,6 +42,7 @@ const CURRENT_ROW_REFRESH_INTERVAL = 500
 
 /** 「来源」下方的入口行：显示实际在用的弹幕总数，点击后弹窗查看全部弹幕 */
 export const DanmakuList = memo(() => {
+  const { t } = useTranslation('danmaku')
   const { danmaku } = useDanmakuSourceConfig()
   const [open, setOpen] = useState(false)
   // 条数与弹窗内保持同一口径（已勾选来源、应用偏移后实际会显示的弹幕），不受繁简开关影响
@@ -50,7 +52,7 @@ export const DanmakuList = memo(() => {
   )
 
   return (
-    <FieldLayout title="弹幕列表">
+    <FieldLayout title={t('list.title')}>
       <Button
         className="max-w-[80%] min-w-0 border-white/11 bg-white/8 text-white hover:bg-white/14 hover:text-white"
         variant="outline"
@@ -61,7 +63,7 @@ export const DanmakuList = memo(() => {
         }}
       >
         <span className="truncate">
-          {total === 0 ? '暂无弹幕' : `查看全部 ${formatNumber(total)} 条`}
+          {total === 0 ? t('list.empty') : t('list.viewAll', { total: formatNumber(total) })}
         </span>
       </Button>
       <DanmakuListDialog open={open} onOpenChange={setOpen} />
@@ -95,6 +97,7 @@ const DanmakuListDialog = ({ open, onOpenChange }: DanmakuListDialogProps) => {
 }
 
 const DanmakuListBody = () => {
+  const { t } = useTranslation('danmaku')
   const { danmaku } = useDanmakuSourceConfig()
   const [{ danmakuBlock, enableTraditionalToSimplified, danmakuTranslation }] = usePlayerSettings()
   const translationEnabled = danmakuTranslation.enabled
@@ -161,11 +164,14 @@ const DanmakuListBody = () => {
     <>
       <DialogHeader>
         <DialogTitle className="flex items-baseline gap-3 text-xl">
-          弹幕列表
+          {t('list.title')}
           <span className="text-muted-foreground text-sm font-normal">
             {filtered
-              ? `${formatNumber(rows.length)} / ${formatNumber(list.rows.length)} 条`
-              : `共 ${formatNumber(list.rows.length)} 条`}
+              ? t('list.filteredCount', {
+                  shown: formatNumber(rows.length),
+                  total: formatNumber(list.rows.length),
+                })
+              : t('list.totalCount', { total: formatNumber(list.rows.length) })}
           </span>
         </DialogTitle>
       </DialogHeader>
@@ -173,21 +179,24 @@ const DanmakuListBody = () => {
         <Input
           type="search"
           value={keyword}
-          placeholder="搜索弹幕内容"
-          aria-label="搜索弹幕内容"
+          placeholder={t('list.searchPlaceholder')}
+          aria-label={t('list.searchPlaceholder')}
           className="min-w-0 flex-1"
           onChange={(event) => setKeyword(event.target.value)}
         />
         {showSource && (
           <Select value={sourceId} onValueChange={setSourceId}>
-            <SelectTrigger className="w-56 shrink-0" aria-label="按来源筛选">
+            <SelectTrigger className="w-56 shrink-0" aria-label={t('list.sourceFilterLabel')}>
               <SelectValue />
             </SelectTrigger>
             <SelectContent container={portalContainer}>
-              <SelectItem value={ALL_SOURCES}>全部来源</SelectItem>
+              <SelectItem value={ALL_SOURCES}>{t('list.allSources')}</SelectItem>
               {list.sources.map((source) => (
                 <SelectItem key={source.id} value={source.id}>
-                  {source.name} ({formatNumber(source.count)}条)
+                  {t('source.withCount', {
+                    name: source.name,
+                    total: formatNumber(source.count),
+                  })}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -201,14 +210,14 @@ const DanmakuListBody = () => {
             rowGridClassName(showSource),
           )}
         >
-          <span>时间</span>
-          <span>内容</span>
-          {showSource && <span>来源</span>}
+          <span>{t('list.columns.time')}</span>
+          <span>{t('list.columns.content')}</span>
+          {showSource && <span>{t('list.columns.source')}</span>}
           <span aria-hidden />
         </div>
         {rows.length === 0 ? (
           <p className="text-muted-foreground flex min-h-0 flex-1 items-center justify-center">
-            {filtered ? '没有匹配的弹幕' : '当前没有已启用的弹幕'}
+            {filtered ? t('list.noMatch') : t('list.noEnabled')}
           </p>
         ) : (
           // 使用项目统一的 ScrollArea；长列表需要看到当前位置，滚动条常驻而不是悬停才出现
@@ -256,7 +265,9 @@ const rowGridClassName = (showSource: boolean) =>
     ? 'grid-cols-[4rem_minmax(0,1fr)_9rem_1.5rem]'
     : 'grid-cols-[4rem_minmax(0,1fr)_1.5rem]'
 
-const MODE_LABELS: Partial<Record<DanmakuListRow['mode'], string>> = { top: '顶', bottom: '底' }
+/** 只有顶部、底部弹幕在列表里带角标 */
+const hasModeBadge = (mode: DanmakuListRow['mode']): mode is 'top' | 'bottom' =>
+  mode === 'top' || mode === 'bottom'
 
 interface DanmakuRowProps {
   row: DanmakuListRow
@@ -267,7 +278,8 @@ interface DanmakuRowProps {
 }
 
 const DanmakuRow = memo(({ row, translation, current, showSource }: DanmakuRowProps) => {
-  const modeLabel = MODE_LABELS[row.mode]
+  const { t } = useTranslation('danmaku')
+  const modeLabel = hasModeBadge(row.mode) ? t(`list.modes.${row.mode}`) : undefined
   const blocked = Boolean(row.blocked)
   // 被屏蔽的行只减弱内容，不减弱整行：当前播放位置的高亮仍要看得清
   const dimmed = blocked && 'opacity-50'
@@ -292,7 +304,9 @@ const DanmakuRow = memo(({ row, translation, current, showSource }: DanmakuRowPr
         />
         {/* 全局默认禁止选中文本，这里单独放开，方便用鼠标选中复制弹幕内容 */}
         <span className="flex min-w-0 flex-col">
-          <span className="min-w-0 break-words whitespace-pre-wrap select-text">{row.text}</span>
+          <span className="min-w-0 break-words whitespace-pre-wrap select-text" lang={CONTENT_LANG}>
+            {row.text}
+          </span>
           {translation && (
             // 译文作为第二行对照显示；尚未翻译或不需要翻译的条目只有原文
             <span
@@ -314,7 +328,7 @@ const DanmakuRow = memo(({ row, translation, current, showSource }: DanmakuRowPr
             className="bg-muted text-muted-foreground shrink-0 rounded px-1 text-xs"
             title={describeBlockHit(row.blocked)}
           >
-            已屏蔽
+            {t('list.blocked')}
           </span>
         )}
       </span>
@@ -328,8 +342,8 @@ const DanmakuRow = memo(({ row, translation, current, showSource }: DanmakuRowPr
       ) : (
         <button
           type="button"
-          title="屏蔽"
-          aria-label={`屏蔽弹幕：${row.text}`}
+          title={t('list.block')}
+          aria-label={t('list.blockAria', { text: row.text })}
           className="text-muted-foreground hover:bg-foreground/10 hover:text-foreground focus-visible:ring-ring invisible flex size-5 items-center justify-center rounded group-hover:visible focus-visible:visible focus-visible:ring-2 focus-visible:outline-none"
           onClick={() => blockDanmakuByText(row.text, 'list')}
         >

@@ -8,7 +8,9 @@ import {
   ContextMenuSeparator,
   ContextMenuTrigger,
 } from '@renderer/components/ui/menu'
+import { describeError } from '@renderer/lib/errors'
 import { cn } from '@renderer/lib/utils'
+import { useTranslation } from 'react-i18next'
 import { useBrowse } from './api'
 
 const KIND_ICON: Record<MediaSourceKind, string> = {
@@ -31,32 +33,29 @@ interface SourcesOverviewProps {
 }
 
 export function SourcesOverview({ sources, onAdd, actions }: SourcesOverviewProps) {
+  const { t } = useTranslation('mediaSources')
   return (
     <>
       <header className="mb-8 flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-semibold">媒体源</h1>
-          <p className="text-muted-foreground mt-2 text-sm">
-            连接 Jellyfin、Emby 或 WebDAV，直接浏览并播放服务器上的视频
-          </p>
+          <h1 className="text-3xl font-semibold">{t('overview.title')}</h1>
+          <p className="text-muted-foreground mt-2 text-sm">{t('overview.subtitle')}</p>
         </div>
         {sources.length > 0 && (
           <Button className="rounded-full" onClick={onAdd}>
             <i className="icon-[mingcute--add-line] mr-2" />
-            添加媒体源
+            {t('overview.add')}
           </Button>
         )}
       </header>
       {sources.length === 0 ? (
         <div className="rounded-2xl border border-dashed p-16 text-center">
           <i className="icon-[mingcute--server-line] text-muted-foreground mb-4 text-4xl" />
-          <h2 className="text-lg font-medium">还没有媒体源</h2>
-          <p className="text-muted-foreground mt-2 text-sm">
-            添加家里 NAS 上的 Jellyfin、Emby 或 WebDAV，弹幕会像本地视频一样自动匹配
-          </p>
+          <h2 className="text-lg font-medium">{t('overview.emptyTitle')}</h2>
+          <p className="text-muted-foreground mt-2 text-sm">{t('overview.emptyDescription')}</p>
           <Button className="mt-5 rounded-full" onClick={onAdd}>
             <i className="icon-[mingcute--add-line] mr-2" />
-            添加媒体源
+            {t('overview.add')}
           </Button>
         </div>
       ) : (
@@ -77,20 +76,24 @@ function SourceCard({
   source: MediaSourceSummary
   actions: SourceCardActions
 }) {
+  const { t } = useTranslation(['mediaSources', 'common'])
   // 根目录查询兼作连接状态探测，结果也会被浏览页直接复用
   const root = useBrowse(source, null)
   const status = source.needsLogin
-    ? { tone: 'warn', text: '需要重新登录' }
+    ? { tone: 'warn', text: t('overview.status.needsLogin') }
     : root.isError
-      ? { tone: 'error', text: root.error instanceof Error ? root.error.message : '连接失败' }
+      ? {
+          tone: 'error',
+          text: describeError(root.error, t('overview.status.failed'), { domain: 'mediaSource' }),
+        }
       : root.isPending
-        ? { tone: 'muted', text: '正在连接…' }
+        ? { tone: 'muted', text: t('overview.status.connecting') }
         : {
             tone: 'ok',
             text:
               source.kind === 'webdav'
-                ? `${root.data.nodes.length} 个项目`
-                : `${root.data.nodes.length} 个媒体库`,
+                ? t('overview.status.items', { count: root.data.nodes.length })
+                : t('overview.status.libraries', { count: root.data.nodes.length }),
           }
 
   const open = () => (source.needsLogin ? actions.onRelogin(source) : actions.onOpen(source))
@@ -144,7 +147,7 @@ function SourceCard({
                 className="relative z-10"
                 onClick={() => actions.onRelogin(source)}
               >
-                重新登录
+                {t('overview.relogin')}
               </Button>
             ) : (
               root.isError && (
@@ -156,7 +159,7 @@ function SourceCard({
                   onClick={() => void root.refetch()}
                 >
                   <i className="icon-[mingcute--refresh-2-line] mr-1" aria-hidden="true" />
-                  重试
+                  {t('common:action.retry')}
                 </Button>
               )
             )}
@@ -166,15 +169,15 @@ function SourceCard({
       <ContextMenuContent className="min-w-40">
         <ContextMenuItem disabled={source.needsLogin} onSelect={() => actions.onOpen(source)}>
           <i className="icon-[mingcute--folder-open-line] mr-2 size-4" />
-          浏览
+          {t('overview.menu.browse')}
         </ContextMenuItem>
         <ContextMenuItem onSelect={() => actions.onEdit(source)}>
           <i className="icon-[mingcute--edit-2-line] mr-2 size-4" />
-          编辑
+          {t('overview.menu.edit')}
         </ContextMenuItem>
         <ContextMenuItem onSelect={() => actions.onRelogin(source)}>
           <i className="icon-[mingcute--key-2-line] mr-2 size-4" />
-          重新登录
+          {t('overview.menu.relogin')}
         </ContextMenuItem>
         <ContextMenuSeparator />
         <ContextMenuItem
@@ -182,7 +185,7 @@ function SourceCard({
           onSelect={() => actions.onRemove(source)}
         >
           <i className="icon-[mingcute--delete-2-line] mr-2 size-4" />
-          移除…
+          {t('overview.menu.remove')}
         </ContextMenuItem>
       </ContextMenuContent>
     </ContextMenu>

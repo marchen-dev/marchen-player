@@ -7,6 +7,7 @@ import type {
   SubtitleTrackDescriptor,
 } from './ports'
 import { isRemoteKind, SubtitleError } from '@marchen/shared/media'
+import { t } from '@renderer/lib/i18n'
 import { mediaFrameQueue } from '../../media/frame-queue'
 import { parseTextSubtitles, textSubtitlesToAss } from '../../media/subtitles/text'
 import { getWebPlaylist } from '../../player-loading/file-playlist'
@@ -92,7 +93,7 @@ export const createWebSubtitleCatalogPort = (
       kind: 'text',
       url: source.url,
       persistenceContent: content,
-      warning: converted?.warnings.join('；') || undefined,
+      warning: converted?.warnings.join(t('player:subtitle.warning.separator')) || undefined,
       release: () => {
         source.release()
         tracks.delete(id)

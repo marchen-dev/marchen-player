@@ -8,6 +8,8 @@ import { playerSettingAtom } from '@renderer/atoms/settings/player'
 import { jotaiStore } from '@renderer/atoms/store'
 import { toast } from '@renderer/components/ui/toast/use-toast'
 import { db } from '@renderer/database/db'
+import { describeError } from '@renderer/lib/errors'
+import { t } from '@renderer/lib/i18n'
 import { usePlayerLoadingState } from '@renderer/services/player-loading/hooks'
 import { reportOperationalError } from '@renderer/services/telemetry/operational-errors'
 import { PlaybackTelemetryObserver } from '@renderer/services/telemetry/playback-observer'
@@ -18,6 +20,7 @@ import { VideoFramePresenter } from '../media/compat/video-frame-presenter'
 import { HtmlVideoMediaAdapter } from './adapters'
 import { DualMediaAdapter } from './adapters/dual-media-adapter'
 import { restoreAudioPreference } from './audio-preference'
+import { defaultAudioTrackLabel } from './audio-track-label'
 import { waitForBrowserFirstFrame } from './browser-playback-readiness'
 import { getCompatSupport } from './compat-support'
 import {
@@ -212,8 +215,8 @@ export const useNativePlayerRuntime = (
         if (engine === 'compat')
           notify(
             reason === 'native-incompatible' || reason === 'preference'
-              ? '正在使用兼容内核播放'
-              : '已切换到兼容内核',
+              ? t('player:engine.usingCompat')
+              : t('player:engine.switchedToCompat'),
           )
       } catch (error) {
         if (signal.aborted || token !== generation)
@@ -317,7 +320,7 @@ export const useNativePlayerRuntime = (
         pendingRestore = undefined
         pendingPrevious = undefined
         pendingPreference = undefined
-        publish({ error: error instanceof Error ? error.message : '内核切换失败' })
+        publish({ error: describeError(error, t('player:engine.failed.switch')) })
       }
     }
     const retryCompat = async () => {
@@ -347,7 +350,7 @@ export const useNativePlayerRuntime = (
             result: 'failed',
             committed_preference: preference,
           })
-          publish({ error: error instanceof Error ? error.message : '兼容内核启动失败' })
+          publish({ error: describeError(error, t('player:engine.failed.compatStart')) })
         }
       }
     }
@@ -372,7 +375,7 @@ export const useNativePlayerRuntime = (
               .then(() => publish())
               .catch((error) => {
                 if (intent === userIntent && !controller.signal.aborted)
-                  publish({ error: error instanceof Error ? error.message : '播放恢复失败' })
+                  publish({ error: describeError(error, t('player:engine.failed.restore')) })
               })
         })
       }
@@ -441,7 +444,7 @@ export const useNativePlayerRuntime = (
         const state = { ...(activeRestore ?? runtime.clock.snapshot()) }
         const intent = userIntent
         publish({ switching: true })
-        notify('正在切换兼容内核…', false, true)
+        notify(t('player:engine.switching'), false, true)
         // 先让当前会话消费 error，再进入新 attempt，避免重入覆盖新状态。
         queueMicrotask(() => {
           if (intent !== userIntent || controller.signal.aborted) return
@@ -467,14 +470,18 @@ export const useNativePlayerRuntime = (
                   result: 'failed',
                   committed_preference: preference,
                 })
-                publish({ error: '兼容内核启动失败' })
+                publish({ error: t('player:engine.failed.compatStart') })
               }
             })
         })
       } else {
         failedRestore = { ...(activeRestore ?? runtime.clock.snapshot()) }
         if (!pendingRestore) observer.failAttempt(event.error.code)
-        publish({ error: event.error.message })
+        publish({
+          error: describeError(event.error, t('player:engine.failed.start'), {
+            domain: 'playback',
+          }),
+        })
       }
     })
 
@@ -495,7 +502,7 @@ export const useNativePlayerRuntime = (
         .filter((track) => track.type === 'audio')
         .map((track) => ({
           id: track.id,
-          label: track.name || `音轨 ${track.number}`,
+          label: track.name || defaultAudioTrackLabel(track.number),
           language: track.language,
           codec: track.codec,
           default: track.default,
@@ -539,7 +546,7 @@ export const useNativePlayerRuntime = (
           (error instanceof DOMException && error.name === 'AbortError')
         )
           return
-        publish({ error: error instanceof Error ? error.message : '媒体读取失败' })
+        publish({ error: describeError(error, t('player:engine.failed.read')) })
         runtime.fail({
           code:
             error instanceof RemoteMediaError

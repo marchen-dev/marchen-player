@@ -16,6 +16,7 @@ import {
 import { captureFeatureUsed } from '@renderer/services/telemetry/features'
 import { useAtomValue } from 'jotai'
 import { useCallback, useMemo, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { PlayerSettingsPanel } from '../setting/PlayerSettingsPanel'
 import { PlayerWindowChrome } from '../shell/PlayerWindowChrome'
 import { FloatingController } from './FloatingController'
@@ -59,6 +60,7 @@ export const PlayerControls = ({
   onRotationChange,
   pictureInPicture,
 }: PlayerControlsProps) => {
+  const { t } = useTranslation('player')
   const controlsRef = useRef<HTMLDivElement | null>(null)
   const { setExclusionRect } = useNativeDanmaku()
   const state = usePlaybackViewModel()
@@ -191,7 +193,7 @@ export const PlayerControls = ({
           left={
             <>
               <PlayerIconButton
-                label={muted ? '取消静音' : '静音'}
+                label={muted ? t('controls.unmute') : t('controls.mute')}
                 icon={
                   muted || volume === 0
                     ? 'icon-[mingcute--volume-mute-line]'
@@ -217,7 +219,7 @@ export const PlayerControls = ({
             <>
               {availability.transport === 'playlist' && (
                 <PlayerIconButton
-                  label="上一集"
+                  label={t('controls.previous')}
                   icon="icon-[mingcute--skip-previous-line]"
                   disabled={!onPrevious}
                   compact
@@ -225,26 +227,26 @@ export const PlayerControls = ({
                 />
               )}
               <PlayerIconButton
-                label="后退 5 秒"
+                label={t('controls.back')}
                 icon="icon-[mingcute--rewind-backward-5-line]"
                 compact
                 onClick={() => seekBy(-5)}
               />
               <PlayerIconButton
-                label={playing ? '暂停' : '播放'}
+                label={playing ? t('controls.pause') : t('controls.play')}
                 icon={playing ? 'icon-[mingcute--pause-fill]' : 'icon-[mingcute--play-fill]'}
                 className="size-9 bg-transparent text-white hover:bg-white/10 [&>i]:text-[1.9rem]"
                 onClick={() => (playing ? commands.pause() : void commands.play())}
               />
               <PlayerIconButton
-                label="前进 5 秒"
+                label={t('controls.forward')}
                 icon="icon-[mingcute--rewind-forward-5-line]"
                 compact
                 onClick={() => seekBy(5)}
               />
               {availability.transport === 'playlist' && (
                 <PlayerIconButton
-                  label="下一集"
+                  label={t('controls.next')}
                   icon="icon-[mingcute--skip-forward-line]"
                   disabled={!onNext}
                   compact
@@ -256,7 +258,13 @@ export const PlayerControls = ({
           tools={
             <>
               <PlayerIconButton
-                label={!hasDanmaku ? '暂无弹幕' : enableDanmaku ? '关闭弹幕（D）' : '开启弹幕（D）'}
+                label={
+                  !hasDanmaku
+                    ? t('controls.noDanmaku')
+                    : enableDanmaku
+                      ? t('controls.hideDanmaku')
+                      : t('controls.showDanmaku')
+                }
                 icon={
                   enableDanmaku
                     ? 'icon-[mingcute--danmaku-on-line]'
@@ -270,14 +278,14 @@ export const PlayerControls = ({
                 onClick={toggleDanmaku}
               />
               <PlayerIconButton
-                label="设置"
+                label={t('controls.settings')}
                 icon="icon-[mingcute--settings-3-line]"
                 compact
                 onClick={() => showPlayerSettingsPanel('playback')}
               />
               {availability.fullscreen && (
                 <PlayerIconButton
-                  label={fullscreen ? '退出全屏' : '全屏'}
+                  label={fullscreen ? t('controls.exitFullscreen') : t('controls.fullscreen')}
                   icon={
                     fullscreen
                       ? 'icon-[mingcute--fullscreen-exit-line]'

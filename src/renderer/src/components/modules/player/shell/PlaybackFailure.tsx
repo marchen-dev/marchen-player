@@ -1,5 +1,6 @@
 import { openFeedbackDialog } from '@renderer/atoms/feedback'
 import { getLastImportOperationId } from '@renderer/services/telemetry/local-log'
+import { useTranslation } from 'react-i18next'
 
 interface PlaybackFailureProps {
   description: string
@@ -18,7 +19,9 @@ export const PlaybackFailure = ({
   onRetry,
   onChangeSource,
   retryLabel,
-}: PlaybackFailureProps) => (
+}: PlaybackFailureProps) => {
+  const { t } = useTranslation('player')
+  return (
   <div
     role="alert"
     data-player-compatibility-error
@@ -26,11 +29,11 @@ export const PlaybackFailure = ({
   >
     <div className="w-full max-w-md rounded-2xl border border-white/12 bg-player-popover p-6 text-center shadow-xl">
       <i className="icon-[mingcute--warning-line] text-4xl text-white/60" aria-hidden />
-      <h2 className="mt-4 text-xl font-semibold text-white">无法播放此视频</h2>
+      <h2 className="mt-4 text-xl font-semibold text-white">{t('failure.title')}</h2>
       <p className="mt-3 text-sm leading-6 text-white/70">{description}</p>
       {detail && (
         <details className="mt-4 text-left text-xs text-white/50">
-          <summary className="py-2">查看错误详情</summary>
+          <summary className="py-2">{t('failure.details')}</summary>
           <p className="max-h-32 overflow-auto break-words select-text">{detail}</p>
         </details>
       )}
@@ -41,7 +44,7 @@ export const PlaybackFailure = ({
             className="min-h-11 rounded-lg border border-white/15 px-4 text-sm text-white"
             onClick={onChangeSource}
           >
-            更换链接
+            {t('failure.changeLink')}
           </button>
         )}
         {onRetry && (
@@ -50,7 +53,7 @@ export const PlaybackFailure = ({
             className="min-h-11 rounded-lg bg-white px-4 text-sm font-semibold text-black"
             onClick={onRetry}
           >
-            {retryLabel ?? '重试播放'}
+            {retryLabel ?? t('failure.retry')}
           </button>
         )}
         <button
@@ -58,7 +61,7 @@ export const PlaybackFailure = ({
           className="min-h-11 rounded-lg border border-white/15 px-4 text-sm text-white hover:bg-white/8"
           onClick={onExit}
         >
-          退出当前播放
+          {t('failure.exit')}
         </button>
       </div>
       <button
@@ -70,13 +73,16 @@ export const PlaybackFailure = ({
           // 预填失败说明与底层错误，并关联最近一次导入操作，后台可直接定位这次失败
           openFeedbackDialog({
             source: 'playback_error',
-            prefill: `播放失败：${description}${detail ? `\n错误详情：${detail}` : ''}\n`,
+            prefill: detail
+              ? t('failure.feedbackPrefillWithDetail', { description, detail })
+              : t('failure.feedbackPrefill', { description }),
             operationId: getLastImportOperationId(),
           })
         }}
       >
-        反馈此问题
+        {t('failure.feedback')}
       </button>
     </div>
   </div>
-)
+  )
+}

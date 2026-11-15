@@ -4,12 +4,14 @@ import type { SourceCardActions } from './SourcesOverview'
 import { useToast } from '@renderer/components/ui/toast'
 import { useConfirmationDialog } from '@renderer/hooks/use-dialog'
 import { usePageHeader } from '@renderer/hooks/use-page-header'
+import { describeError, errorDetail } from '@renderer/lib/errors'
 import { RouteName } from '@renderer/router/name'
 import { usePlayerLoadingService } from '@renderer/services/player-loading/hooks'
 import { captureFeatureUsed } from '@renderer/services/telemetry/features'
 import { markNextPlayerImportSource } from '@renderer/services/telemetry/player-loading-observer'
 import { useSetAtom } from 'jotai'
 import { useCallback, useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useNavigate, useSearchParams } from 'react-router'
 import { useMediaSources, useRemoveMediaSource } from './api'
 import { SourceBrowser } from './SourceBrowser'
@@ -17,14 +19,14 @@ import { SourceFormDialog } from './SourceFormDialog'
 import { SourcesOverview } from './SourcesOverview'
 import { mediaSourceLocationsAtom } from './state'
 
-const HEADER = { title: '媒体源', actions: null }
-
 /**
  * 媒体源 tab（仅桌面端）。当前打开的来源放在 ?source= 查询参数里：
  * 侧栏高亮按路径精确匹配，用子路由会让进入来源后侧栏失去高亮。
  */
 export default function MediaSources() {
-  usePageHeader(HEADER)
+  const { t } = useTranslation(['mediaSources', 'app'])
+  const pageTitle = t('app:routes.mediaSources')
+  usePageHeader(useMemo(() => ({ title: pageTitle, actions: null }), [pageTitle]))
   const navigate = useNavigate()
   const [params, setParams] = useSearchParams()
   const service = usePlayerLoadingService()
@@ -65,7 +67,7 @@ export default function MediaSources() {
       onRelogin: (source) => setForm({ mode: 'relogin', source }),
       onRemove: (source) =>
         void confirm({
-          title: `移除媒体源「${source.name}」？已保存的账号信息会一并删除，播放记录会保留。`,
+          title: t('overview.removeConfirm', { name: source.name }),
           handleConfirm: () => {
             captureFeatureUsed('media_source', 'remove', source.kind)
             remove.mutate(source.id, {
@@ -75,15 +77,15 @@ export default function MediaSources() {
               },
               onError: (error) =>
                 toast({
-                  title: '移除失败',
-                  description: error instanceof Error ? error.message : undefined,
+                  title: t('overview.removeFailed'),
+                  description: errorDetail(error, { domain: 'mediaSource' }) ?? undefined,
                   variant: 'destructive',
                 }),
             })
           },
         }),
     }),
-    [back, confirm, open, openedId, remove, setLocations, toast],
+    [back, confirm, open, openedId, remove, setLocations, t, toast],
   )
 
   return (
@@ -91,7 +93,7 @@ export default function MediaSources() {
       <div className="mx-auto max-w-6xl">
         {sources.isPending ? null : sources.isError ? (
           <p role="alert" className="text-destructive p-12 text-center text-sm">
-            {sources.error instanceof Error ? sources.error.message : '读取媒体源失败'}
+            {describeError(sources.error, t('overview.readFailed'), { domain: 'mediaSource' })}
           </p>
         ) : opened ? (
           <SourceBrowser

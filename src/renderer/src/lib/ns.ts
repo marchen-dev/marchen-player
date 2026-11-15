@@ -4,6 +4,7 @@ import { telemetry } from '@renderer/services/telemetry'
 import { opfsAssetStore } from '@renderer/services/translation/assets/store'
 
 import { ipcClient } from './client'
+import { t } from './i18n'
 import { isWeb } from './utils'
 
 const ns = 'marchen'
@@ -27,8 +28,8 @@ export const resetApp = async () => {
     localStorage.clear()
     await db.deleteDatabase()
     toast({
-      title: '重置成功',
-      description: '网页将在 3 秒后重新加载',
+      title: t('app:reset.successTitle'),
+      description: t('app:reset.successDescription'),
     })
     setTimeout(() => {
       window.location.reload()

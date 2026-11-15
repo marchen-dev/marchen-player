@@ -2,6 +2,7 @@ import type { ClassValue } from 'clsx'
 import { clsx } from 'clsx'
 import { memoize } from 'lodash-es'
 import { twMerge } from 'tailwind-merge'
+import { t } from './i18n'
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -69,17 +70,20 @@ export const isPhone = (() => {
   return mobileUA && Math.min(screen.width, screen.height) < PHONE_SCREEN_SHORT_SIDE
 })()
 
-/** 「在系统文件管理器中定位文件」的平台文案，历史记录与影视库右键菜单共用 */
+/**
+ * 「在系统文件管理器中定位文件」的平台文案，历史记录与影视库右键菜单共用。
+ * 每次调用按当时的界面语言取，所以要在渲染时调用，不要存进模块顶层的常量。
+ */
 export const getRevealInFileManagerLabel = (os: OS = getOS()) => {
   switch (os) {
     case 'macOS': {
-      return '在 Finder 中显示'
+      return t('app:revealInFileManager.mac')
     }
     case 'Windows': {
-      return '在资源管理器中显示'
+      return t('app:revealInFileManager.windows')
     }
     default: {
-      return '在文件管理器中显示'
+      return t('app:revealInFileManager.other')
     }
   }
 }

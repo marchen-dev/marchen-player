@@ -1,4 +1,5 @@
 import type { VideoImporter, VideoInfo } from '@marchen/player-loading'
+import { errorFromFailure } from '@marchen/shared/errors'
 /**
  * VideoImporter adapter (Electron)：通过 IPC 获取视频文件信息
  *
@@ -43,7 +44,7 @@ export class ElectronImporter implements VideoImporter {
   async importFromPath(path: string): Promise<VideoInfo> {
     const animeData = await ipcClient?.player.getAnimeDetailByPath({ path })
     if (!animeData?.ok) {
-      throw new Error(animeData?.message || '无法读取视频文件')
+      throw errorFromFailure(animeData, '无法读取视频文件')
     }
 
     const { fileHash, fileName, fileSize, rawPath } = animeData

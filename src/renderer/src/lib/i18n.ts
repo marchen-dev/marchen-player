@@ -34,6 +34,14 @@ export const i18n = createI18n({
 // 直接写 import.meta.env.DEV 而不是上面的常量：打包器据此在正式构建里去掉伪本地化的代码
 if (import.meta.env.DEV) registerPseudoLanguage(i18n)
 
+/**
+ * 外部内容的语言标注：番剧标题、剧集名、弹幕、文件名来自中文数据源，与界面语言无关。
+ * 浏览器给汉字选回落字体时会参考元素的语言，界面是英文（`<html lang="en">`）且系统首选语言里
+ * 没有中文时，汉字可能用到日文字形。显示这些内容的元素标上 `lang={CONTENT_LANG}`，
+ * 保证汉字始终按简体中文字形显示；弹幕层用的是同一个常量。
+ */
+export const CONTENT_LANG = SOURCE_LANGUAGE
+
 /** 组件之外取文案；每次调用都按当时的语言求值。默认命名空间之外的键写成 `命名空间:键` */
 export const t: Translate = i18n.t
 

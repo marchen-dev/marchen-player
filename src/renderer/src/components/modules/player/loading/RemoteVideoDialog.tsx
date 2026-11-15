@@ -3,6 +3,7 @@ import { jotaiStore } from '@renderer/atoms/store'
 import { Button } from '@renderer/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@renderer/components/ui/dialog'
 import { Input } from '@renderer/components/ui/input'
+import { describeError } from '@renderer/lib/errors'
 import { isWeb } from '@renderer/lib/utils'
 import {
   usePlayerLoadingService,
@@ -11,6 +12,7 @@ import {
 import { markNextPlayerImportSource } from '@renderer/services/telemetry/player-loading-observer'
 import { atom, useAtom } from 'jotai'
 import { useEffect, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { RemoteReadProgress } from './RemoteReadProgress'
 
 const remoteDialogAtom = atom<{ url: string; recordId?: string } | null>(null)
@@ -25,6 +27,7 @@ export function RemoteVideoDialog() {
   const submittedRef = useRef(false)
   const service = usePlayerLoadingService()
   const state = usePlayerLoadingState()
+  const { t } = useTranslation(['player', 'common', 'errors'])
   const busy = submittedRef.current && state.step === 'importing'
   useEffect(() => {
     setUrl(request?.url ?? '')
@@ -33,12 +36,14 @@ export function RemoteVideoDialog() {
   }, [request])
   useEffect(() => {
     if (!submittedRef.current) return
-    if (state.step === 'error') setError(state.error.message)
+    // 网络视频的错误码是裸的（access、range 等，见 RemoteMediaError），归到 remoteMedia 域
+    if (state.step === 'error')
+      setError(describeError(state.error, t('errors:generic.openVideo'), { domain: 'remoteMedia' }))
     else if (state.step !== 'importing' && state.step !== 'idle') {
       submittedRef.current = false
       setRequest(null)
     }
-  }, [state, setRequest])
+  }, [state, setRequest, t])
   const close = () => {
     if (submittedRef.current && state.step === 'importing') service.cancel()
     submittedRef.current = false
@@ -52,7 +57,7 @@ export function RemoteVideoDialog() {
       markNextPlayerImportSource('remote_url')
       service.loadFromUrl(valid, asNew ? undefined : request?.recordId)
     } catch (error) {
-      setError(error instanceof Error ? error.message : '链接无效')
+      setError(describeError(error, t('remoteDialog.invalid'), { domain: 'remoteMedia' }))
     }
   }
   return (
@@ -70,7 +75,9 @@ export function RemoteVideoDialog() {
         onPointerDownOutside={(event) => event.preventDefault()}
       >
         <DialogHeader>
-          <DialogTitle>{request?.recordId ? '更换视频链接' : '通过 URL 播放'}</DialogTitle>
+          <DialogTitle>
+            {request?.recordId ? t('remoteDialog.titleChange') : t('remoteDialog.titleNew')}
+          </DialogTitle>
         </DialogHeader>
         <form
           onSubmit={(event) => {
@@ -81,7 +88,7 @@ export function RemoteVideoDialog() {
         >
           <div className="space-y-2">
             <label htmlFor="remote-video-url" className="text-sm font-medium">
-              视频链接
+              {t('remoteDialog.urlLabel')}
             </label>
             <Input
               id="remote-video-url"
@@ -95,12 +102,12 @@ export function RemoteVideoDialog() {
                 setUrl(event.target.value)
                 setError('')
               }}
-              placeholder="粘贴视频链接"
+              placeholder={t('remoteDialog.urlPlaceholder')}
               disabled={busy}
               className="focus-visible:ring-1 focus-visible:ring-offset-0"
             />
             <p id="remote-video-description" className="text-muted-foreground text-sm">
-              支持 HTTP / HTTPS 视频文件直链
+              {t('remoteDialog.hint')}
             </p>
             {error && (
               <p id="remote-video-error" role="alert" className="text-destructive text-sm">
@@ -111,7 +118,7 @@ export function RemoteVideoDialog() {
           {busy && <RemoteReadProgress />}
           <div className="flex justify-end gap-2">
             <Button type="button" variant="ghost" onClick={close}>
-              取消
+              {t('common:action.cancel')}
             </Button>
             {error && request?.recordId && (
               <Button
@@ -120,7 +127,7 @@ export function RemoteVideoDialog() {
                 disabled={busy}
                 onClick={() => submit(true)}
               >
-                作为新视频打开
+                {t('remoteDialog.openAsNew')}
               </Button>
             )}
             <Button type="submit" className="gap-2" disabled={busy || !url.trim()} aria-busy={busy}>
@@ -130,7 +137,7 @@ export function RemoteVideoDialog() {
                   className="icon-[mingcute--loading-line] size-4 animate-spin motion-reduce:animate-none"
                 />
               )}
-              {busy ? '正在读取…' : '开始播放'}
+              {busy ? t('remoteDialog.reading') : t('remoteDialog.start')}
             </Button>
           </div>
         </form>

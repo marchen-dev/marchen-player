@@ -4,6 +4,7 @@ import type { CompatReply, CompatRequest } from './protocol'
 import { RemoteMediaError } from '@marchen/shared/media/remote'
 import { registerAc3Decoder } from '@mediabunny/ac3'
 import { registerDtsDecoder } from '@mediabunny/dts'
+import { defaultAudioTrackLabel } from '@renderer/services/player-runtime/audio-track-label'
 import {
   ALL_FORMATS,
   AudioSampleSink,
@@ -161,7 +162,7 @@ globalThis.onmessage = async ({ data: request }: MessageEvent<CompatRequest>) =>
         audioTracks: await Promise.all(
           audioTracks.map(async (track) => ({
             id: track.id,
-            label: (await track.getName()) || `音轨 ${track.number}`,
+            label: (await track.getName()) || defaultAudioTrackLabel(track.number),
             language: await track.getLanguageCode(),
             codec: await track.getCodec(),
             channels: await track.getNumberOfChannels(),
@@ -252,6 +253,7 @@ globalThis.onmessage = async ({ data: request }: MessageEvent<CompatRequest>) =>
       ...token,
       type: 'error',
       network: error instanceof RemoteMediaError,
+      // eslint-disable-next-line marchen/no-hardcoded-ui-text -- Worker 里的内部错误说明，不是界面文字
       message: error instanceof Error ? error.message : '媒体 Worker 失败',
     })
   }

@@ -6,6 +6,8 @@
  */
 
 import { usePlayAnimeFailedToast } from '@renderer/hooks/use-toast'
+import { describeError } from '@renderer/lib/errors'
+import { t } from '@renderer/lib/i18n'
 import { RouteName } from '@renderer/router'
 import { usePlayerLoadingService } from '@renderer/services/player-loading/hooks'
 import {
@@ -55,13 +57,11 @@ export const useLoadingHistoricalAnime = () => {
         result.status !== 'error',
       )
       showFailedToast({
-        title: '无法继续播放',
+        title: t('player:resume.failedTitle'),
         description:
           result.status === 'error'
-            ? result.error instanceof Error
-              ? result.error.message
-              : '读取播放记录失败，请稍后重试'
-            : '播放记录已失效，请重新导入视频',
+            ? describeError(result.error, t('player:resume.readFailed'))
+            : t('player:resume.expired'),
       })
     })
   }, [hash, importSource, location.pathname, navigate, service, showFailedToast])

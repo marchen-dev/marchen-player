@@ -1,6 +1,7 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@renderer/components/ui/dialog'
 import { ScrollArea } from '@renderer/components/ui/scrollArea'
 import { useAtom } from 'jotai'
+import { useTranslation } from 'react-i18next'
 
 import { playbackHistoryDialogAtom } from './dialog-state'
 import { HistoryRecordCard } from './HistoryRecordCard'
@@ -37,17 +38,18 @@ const PlaybackHistoryBody = () => {
   const records = useHistoryRecords(DIALOG_RECORD_LIMIT)
   const actions = useHistoryRecordActions()
   const loadedHash = useLoadedVideoHash()
+  const { t } = useTranslation('player')
 
   return (
     <>
       <DialogHeader>
         <DialogTitle className="flex items-baseline gap-3 text-xl">
-          播放记录
+          {t('history.title')}
           {!!records?.length && (
             <span className="text-muted-foreground text-sm font-normal">
               {records.length >= DIALOG_RECORD_LIMIT
-                ? `最近 ${DIALOG_RECORD_LIMIT} 条`
-                : `共 ${records.length} 条`}
+                ? t('history.recent', { count: DIALOG_RECORD_LIMIT })
+                : t('history.total', { count: records.length })}
             </span>
           )}
         </DialogTitle>
@@ -57,7 +59,7 @@ const PlaybackHistoryBody = () => {
       {records === undefined ? null : records.length === 0 ? (
         <div className="text-muted-foreground flex flex-1 flex-col items-center justify-center gap-2">
           <i aria-hidden="true" className="icon-[mingcute--history-line] text-4xl" />
-          <p className="text-sm">还没有播放记录</p>
+          <p className="text-sm">{t('history.empty')}</p>
         </div>
       ) : (
         <ScrollArea className="min-h-0 flex-1">

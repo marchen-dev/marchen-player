@@ -4,6 +4,7 @@ import { db } from '@renderer/database/db'
 import { cn } from '@renderer/lib/utils'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { memo, useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
 
 /**
  * DetailOverlay 内的剧集网格。
@@ -17,6 +18,7 @@ interface EpisodeGridProps {
 }
 
 export const EpisodeGrid: FC<EpisodeGridProps> = memo(({ item, onPlay }) => {
+  const { t } = useTranslation('library')
   const watchedSet = useMemo(() => new Set(item.watchedEpisodeIds), [item.watchedEpisodeIds])
 
   const sortedEpisodes = useMemo(
@@ -73,7 +75,13 @@ export const EpisodeGrid: FC<EpisodeGridProps> = memo(({ item, onPlay }) => {
                 (pct >= 95 || (watched && pct < 1)) && 'is-watched',
               )}
               aria-label={
-                pct >= 95 ? '已看完' : pct >= 1 ? `已观看 ${pct}%` : watched ? '已看完' : '未开始'
+                pct >= 95
+                  ? t('episode.watched')
+                  : pct >= 1
+                    ? t('episode.watchedPercent', { percent: pct })
+                    : watched
+                      ? t('episode.watched')
+                      : t('episode.notStarted')
               }
             >
               {pct >= 95 ? '✓' : pct >= 1 ? `${pct}%` : watched ? '✓' : '—'}

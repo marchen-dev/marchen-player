@@ -3,6 +3,7 @@ import { useToast } from '@renderer/components/ui/toast'
 import { deleteHistoryRecord } from '@renderer/database/lib/history-writer'
 import { useConfirmationDialog } from '@renderer/hooks/use-dialog'
 import { ipcClient } from '@renderer/lib/client'
+import { t } from '@renderer/lib/i18n'
 import { RouteName } from '@renderer/router'
 import { usePlayerLoadingSelector } from '@renderer/services/player-loading/hooks'
 import { captureFeatureUsed } from '@renderer/services/telemetry/features'
@@ -43,8 +44,8 @@ export function useHistoryRecordActions(): HistoryRecordActions {
           // 文件被移动属于可预期的外部状态变化，按已恢复（提示用户）上报
           reportOperationalError('ipc', 'history.show_item_in_folder', error, true)
           toast({
-            title: '无法定位文件',
-            description: '视频文件可能已被移动或删除',
+            title: t('player:history.revealFailedTitle'),
+            description: t('player:history.revealFailedDescription'),
             variant: 'destructive',
           })
         })
@@ -52,14 +53,14 @@ export function useHistoryRecordActions(): HistoryRecordActions {
       remove: (record) => {
         void confirm({
           // Electron 使用系统确认框，只有标题一处文案，需要把后果一次说清
-          title: `删除「${record.title}」的播放记录？播放进度、本地导入的弹幕、字幕与音轨偏好会一并清除，视频文件不会被删除。`,
+          title: t('player:history.deleteConfirm', { title: record.title }),
           handleConfirm: () => {
             captureFeatureUsed('playback_history', 'delete')
             void deleteHistoryRecord(record.hash).catch((error) => {
               reportOperationalError('player', 'history.delete', error)
               toast({
-                title: '删除失败',
-                description: '播放记录未能删除，请稍后重试',
+                title: t('player:history.deleteFailedTitle'),
+                description: t('player:history.deleteFailedDescription'),
                 variant: 'destructive',
               })
             })

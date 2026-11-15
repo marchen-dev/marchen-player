@@ -216,6 +216,7 @@ export class PgsWindowLoader {
         result.steps !== index + 1
       ) {
         this.reportedBacktrack = index
+        // eslint-disable-next-line marchen/no-hardcoded-ui-text -- 留给日志的说明；界面按错误码取 errors:pgs.backtrack_exceeded
         this.events.error('backtrack_exceeded', '字幕依赖链过长，当前位置暂不显示', false)
       }
     }

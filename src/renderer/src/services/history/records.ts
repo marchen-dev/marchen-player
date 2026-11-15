@@ -1,5 +1,6 @@
 import type { DB_History } from '@renderer/database/schemas/history'
 import type { DB_LibraryEpisode } from '@renderer/database/schemas/library'
+import { t } from '@renderer/lib/i18n'
 import { isCompleted } from '@renderer/services/player-runtime/history/playback-history-adapter'
 
 /**
@@ -23,15 +24,16 @@ export interface HistoryRecordView {
   localPath?: string
 }
 
-const FALLBACK_TITLE = '未知视频'
+/** 既没有作品名也没有文件名时的标题；取用时按当前界面语言求值 */
+const fallbackTitle = () => t('player:history.fallbackTitle')
 
 /** 已匹配显示「作品名 集名」，未匹配显示文件名（跳过匹配时 animeTitle 即文件名） */
 function resolveTitle(record: DB_History, matched: boolean): string {
   const animeTitle = record.animeTitle?.trim() ?? ''
   const sourceName = record.source?.name?.trim() ?? ''
-  if (!matched) return animeTitle || sourceName || FALLBACK_TITLE
+  if (!matched) return animeTitle || sourceName || fallbackTitle()
   const episodeTitle = record.episodeTitle?.trim() ?? ''
-  return [animeTitle, episodeTitle].filter(Boolean).join(' ') || sourceName || FALLBACK_TITLE
+  return [animeTitle, episodeTitle].filter(Boolean).join(' ') || sourceName || fallbackTitle()
 }
 
 export function toHistoryRecordView(record: DB_History): HistoryRecordView {
@@ -54,9 +56,9 @@ export function toHistoryRecordView(record: DB_History): HistoryRecordView {
 
 /** 弹窗中的进度文案：看完显示「已看完」，尚无进度显示「未开始」 */
 export function formatHistoryProgress(view: Pick<HistoryRecordView, 'ratio' | 'completed'>) {
-  if (view.completed) return '已看完'
+  if (view.completed) return t('player:history.completed')
   const percent = Math.round(view.ratio * 100)
-  return percent > 0 ? `${percent}%` : '未开始'
+  return percent > 0 ? `${percent}%` : t('player:history.notStarted')
 }
 
 /**

@@ -1,5 +1,6 @@
 import type { SubtitleCue } from './matroska'
 import { SubtitleError } from '@marchen/shared/media'
+import { t } from '@renderer/lib/i18n'
 
 export interface TextSubtitleDocument {
   cues: SubtitleCue[]
@@ -25,7 +26,7 @@ export function parseTextSubtitles(input: string, format: 'srt' | 'vtt'): TextSu
     const block = blocks[index]
     if (/^NOTE(?:\s|$)/.test(block) && format === 'vtt') continue
     if (/^(?:STYLE|REGION)(?:\s|$)/.test(block) && format === 'vtt') {
-      warnings.add('WebVTT 区域与 CSS 样式暂不保留')
+      warnings.add(t('player:subtitle.warning.vttRegions'))
       continue
     }
     const lines = block.split('\n')
@@ -37,11 +38,11 @@ export function parseTextSubtitles(input: string, format: 'srt' | 'vtt'): TextSu
       skipped++
       continue
     }
-    if (match?.[3]) warnings.add('字幕位置与排版参数暂按默认布局显示')
+    if (match?.[3]) warnings.add(t('player:subtitle.warning.positioning'))
     const text = lines.slice(timingIndex + 1).join('\n')
     if (!text) continue
     if (/<(?:c[. >]|v[ >]|lang[ >]|ruby[ >]|rt[ >]|\d\d:)/i.test(text))
-      warnings.add('WebVTT 扩展标记暂按普通文本显示')
+      warnings.add(t('player:subtitle.warning.vttMarkup'))
     cues.push({ start, end, text })
   }
   if (!cues.length) {
@@ -49,7 +50,7 @@ export function parseTextSubtitles(input: string, format: 'srt' | 'vtt'): TextSu
     if (skipped) throw new SubtitleError('timestamp_invalid', '字幕时间格式无效')
     throw new SubtitleError('empty', '没有可显示的字幕事件')
   }
-  if (skipped) warnings.add(`已跳过 ${skipped} 条时间格式无效的字幕`)
+  if (skipped) warnings.add(t('player:subtitle.warning.skippedCues', { total: skipped }))
   return { cues, warnings: [...warnings] }
 }
 

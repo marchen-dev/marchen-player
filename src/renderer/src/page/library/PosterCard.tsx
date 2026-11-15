@@ -2,7 +2,9 @@ import type { DB_Library } from '@renderer/database/schemas/library'
 import type { FC } from 'react'
 import type { LibraryCardActions } from './LibraryCardContextMenu'
 import type { LibrarySource } from './selectors'
+import { CONTENT_LANG } from '@renderer/lib/i18n'
 import { memo } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import { LibraryCardContextMenu } from './LibraryCardContextMenu'
 import { isCompleted, isWatching } from './selectors'
@@ -16,6 +18,7 @@ interface PosterCardProps {
 }
 
 export const PosterCard: FC<PosterCardProps> = memo(({ item, onClick, actions, source }) => {
+  const { t } = useTranslation('library')
   const watched = item.watchedEpisodeIds.length
   const completed = isCompleted(item)
   const watching = isWatching(item)
@@ -44,11 +47,11 @@ export const PosterCard: FC<PosterCardProps> = memo(({ item, onClick, actions, s
           {item.isOnAir && (
             <span className="library-tr-badge library-tr-onair">
               <span className="library-live-dot" />
-              连载中
+              {t('card.onAir')}
             </span>
           )}
           {completed && !item.isOnAir && (
-            <span className="library-tr-badge library-tr-done">已看完</span>
+            <span className="library-tr-badge library-tr-done">{t('card.completed')}</span>
           )}
 
           {watching && (
@@ -61,7 +64,9 @@ export const PosterCard: FC<PosterCardProps> = memo(({ item, onClick, actions, s
         </div>
 
         <div className="library-poster-text">
-          <p className="library-poster-title">{item.title}</p>
+          <p className="library-poster-title" lang={CONTENT_LANG}>
+            {item.title}
+          </p>
           <div className="library-poster-sub">
             <span className="library-tabular">
               {watched}/{item.totalEpisodes}

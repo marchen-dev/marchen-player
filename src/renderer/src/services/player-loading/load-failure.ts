@@ -1,6 +1,7 @@
 import type { ErrorState } from '@marchen/player-loading'
 import type { MediaSourceErrorCode } from '@marchen/shared/media-sources'
-import { isMediaSourceErrorCode, MEDIA_SOURCE_ERROR_MESSAGES } from '@marchen/shared/media-sources'
+import { isMediaSourceErrorCode } from '@marchen/shared/media-sources'
+import { t } from '@renderer/lib/i18n'
 
 /**
  * 加载失败（导入或识别阶段出错）时的文案与可用操作。
@@ -18,13 +19,14 @@ export interface LoadFailureView {
   actions: LoadFailureAction[]
 }
 
-/** 重试无效、需要到媒体源页面重新登录或检查配置的错误 */
-const OPEN_SOURCE_TITLES: Partial<Record<MediaSourceErrorCode, string>> = {
-  auth_failed: '媒体源需要重新登录',
-  forbidden: '没有访问权限',
-  source_removed: '媒体源已被移除',
-  not_found: '找不到这个视频',
-}
+/**
+ * 重试无效、需要到媒体源页面重新登录或检查配置的错误。
+ * 标题在取用时按错误码查 `player:loadFailure.provider.titles.<错误码>`，不放在模块顶层的常量里。
+ */
+const OPEN_SOURCE_CODES = ['auth_failed', 'forbidden', 'source_removed', 'not_found'] as const
+type OpenSourceCode = (typeof OPEN_SOURCE_CODES)[number]
+const isOpenSourceCode = (code: MediaSourceErrorCode): code is OpenSourceCode =>
+  (OPEN_SOURCE_CODES as readonly string[]).includes(code)
 
 /** 服务器能力或证书问题，重试与重新登录都无法解决 */
 const UNRECOVERABLE = new Set<MediaSourceErrorCode>([
@@ -38,16 +40,16 @@ export function describeLoadFailure(state: ErrorState, isWeb: boolean): LoadFail
 
   if (state.remoteRequest) {
     return {
-      title: '无法打开视频链接',
-      description: '链接可能已失效，请重试或更换链接',
+      title: t('player:loadFailure.remote.title'),
+      description: t('player:loadFailure.remote.description'),
       // Web 端没有网络视频能力，只能返回
       actions: isWeb ? [] : ['retry', 'change_link'],
     }
   }
 
   return {
-    title: '无法打开视频文件',
-    description: '文件可能已被移动、删除或无法读取',
+    title: t('player:loadFailure.local.title'),
+    description: t('player:loadFailure.local.description'),
     actions: ['reselect'],
   }
 }
@@ -56,25 +58,28 @@ function describeProviderFailure(code: string | undefined, isWeb: boolean): Load
   // 媒体源只在桌面端提供，Web 端既不能重试也没有媒体源页面
   if (!isMediaSourceErrorCode(code)) {
     return {
-      title: '无法连接媒体源',
-      description: '请检查服务器是否在线后重试',
+      title: t('player:loadFailure.provider.unreachableTitle'),
+      description: t('player:loadFailure.provider.unreachableDescription'),
       actions: isWeb ? [] : ['retry'],
     }
   }
 
-  const description = MEDIA_SOURCE_ERROR_MESSAGES[code]
-  const openSourceTitle = OPEN_SOURCE_TITLES[code]
-  if (openSourceTitle) {
-    return { title: openSourceTitle, description, actions: isWeb ? [] : ['open_source'] }
+  const description = t(`errors:mediaSource.${code}`)
+  if (isOpenSourceCode(code)) {
+    return {
+      title: t(`player:loadFailure.provider.titles.${code}`),
+      description,
+      actions: isWeb ? [] : ['open_source'],
+    }
   }
   if (UNRECOVERABLE.has(code)) {
-    return { title: '无法播放此媒体源视频', description, actions: [] }
+    return { title: t('player:loadFailure.provider.unplayableTitle'), description, actions: [] }
   }
   return {
     title:
       code === 'unreachable' || code === 'invalid_response'
-        ? '无法连接媒体源'
-        : '无法打开媒体源视频',
+        ? t('player:loadFailure.provider.unreachableTitle')
+        : t('player:loadFailure.provider.openFailedTitle'),
     description,
     actions: isWeb ? [] : ['retry'],
   }

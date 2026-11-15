@@ -13,11 +13,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@renderer/components/ui/select'
+import { describeError } from '@renderer/lib/errors'
 import { getLinkImportController } from '@renderer/services/danmaku'
 import { getPlayerLoadingService } from '@renderer/services/player-loading'
 import { usePlayerLoadingSelector } from '@renderer/services/player-loading/hooks'
 import { usePlayerPortalContainer } from '@renderer/services/player-runtime'
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react'
+import { useTranslation } from 'react-i18next'
 
 // 与字幕、来源控件保持同一套深色样式；焦点环不带 offset，避免在毛玻璃面板上出现白色双圈。
 const inputClass =
@@ -33,6 +35,7 @@ const formatOffset = (value: number) => `${value > 0 ? '+' : ''}${value.toFixed(
 
 /** 新入口只存在于弹幕设置；平台识别交给适配层。 */
 export function LinkDanmaku() {
+  const { t } = useTranslation(['danmaku', 'common'])
   const controller = getLinkImportController()
   const snapshot = useSyncExternalStore(controller.subscribe, controller.getSnapshot)
   const [url, setUrl] = useState(snapshot.url)
@@ -56,10 +59,10 @@ export function LinkDanmaku() {
   }
 
   return (
-    <section className="space-y-3 border-t border-white/10 pt-4" aria-label="从链接添加弹幕">
+    <section className="space-y-3 border-t border-white/10 pt-4" aria-label={t('link.title')}>
       {/* label 是行内元素，space-y 加在它身上的纵向外边距不生效；改为块级后与输入框的间距才是 12px */}
       <Label htmlFor="link-danmaku-url" className="block text-[var(--player-settings-muted)]">
-        从链接添加弹幕
+        {t('link.title')}
       </Label>
       {/* 关闭原生校验：空链接直接禁用按钮，其余错误在状态区内联展示 */}
       <form
@@ -80,11 +83,11 @@ export function LinkDanmaku() {
             if (snapshot.status === 'selecting') controller.cancel()
             setUrl(event.target.value)
           }}
-          placeholder="粘贴视频页面链接"
+          placeholder={t('link.urlPlaceholder')}
           disabled={busy}
         />
         <Button type="submit" variant="outline" className={buttonClass} disabled={!canSubmit}>
-          添加
+          {t('link.add')}
         </Button>
       </form>
       <ImportStatus snapshot={snapshot} onCancel={controller.cancel} onRetry={submit} />
@@ -119,15 +122,16 @@ function EpisodeSelection({
 }) {
   const [episode, setEpisode] = useState('')
   const portalContainer = usePlayerPortalContainer()
+  const { t } = useTranslation(['danmaku', 'common'])
   return (
     <div className="space-y-2">
       <p className="text-sm text-white">{selection.title}</p>
       <Select value={episode} onValueChange={setEpisode} disabled={disabled}>
         <SelectTrigger
-          aria-label="选择番剧剧集"
+          aria-label={t('link.chooseEpisodeLabel')}
           className="w-full border-white/11 bg-white/8 text-white focus:ring-[var(--player-settings-focus)] focus:ring-offset-0"
         >
-          <SelectValue placeholder="请选择剧集" />
+          <SelectValue placeholder={t('link.chooseEpisodePlaceholder')} />
         </SelectTrigger>
         <SelectContent
           container={portalContainer}
@@ -153,7 +157,7 @@ function EpisodeSelection({
         disabled={disabled || !episode}
         onClick={() => onChoose(episode)}
       >
-        导入所选剧集弹幕
+        {t('link.importEpisode')}
       </Button>
     </div>
   )
@@ -172,6 +176,7 @@ function ImportStatus({
   onRetry: () => void
 }) {
   const { status, message, progress } = snapshot
+  const { t } = useTranslation(['danmaku', 'common'])
   if (status === 'idle') return null
   if (status === 'error') {
     return (
@@ -188,7 +193,7 @@ function ImportStatus({
           className={`shrink-0 ${buttonClass}`}
           onClick={onRetry}
         >
-          重试
+          {t('common:action.retry')}
         </Button>
       </Alert>
     )
@@ -211,14 +216,14 @@ function ImportStatus({
             className={`shrink-0 ${buttonClass}`}
             onClick={onCancel}
           >
-            取消
+            {t('common:action.cancel')}
           </Button>
         )}
       </div>
       {percent !== undefined && (
         <Progress
           value={percent}
-          aria-label="链接弹幕获取进度"
+          aria-label={t('link.progressLabel')}
           className="h-1.5 bg-white/12 [&>div]:bg-[var(--player-settings-accent)]"
         />
       )}
@@ -237,13 +242,14 @@ function SourceOffset({
   onSelect: (source: string) => void
 }) {
   const portalContainer = usePlayerPortalContainer()
+  const { t } = useTranslation(['danmaku', 'common'])
   return (
     <div className="space-y-3 border-t border-white/10 pt-3">
-      <Label className="text-[var(--player-settings-muted)]">链接弹幕偏移</Label>
+      <Label className="text-[var(--player-settings-muted)]">{t('link.offset.title')}</Label>
       {entries.length > 1 ? (
         <Select value={selected.source} onValueChange={onSelect}>
           <SelectTrigger
-            aria-label="选择链接弹幕来源"
+            aria-label={t('link.offset.sourceLabel')}
             className="w-full border-white/11 bg-white/8 text-white focus:ring-[var(--player-settings-focus)] focus:ring-offset-0"
           >
             <SelectValue />
@@ -270,7 +276,7 @@ function SourceOffset({
       )}
       {/* 切换来源时重建步进器，丢弃上一个来源未保存的草稿 */}
       <OffsetStepper key={selected.source} entry={selected} />
-      <p className="text-xs text-[var(--player-settings-muted)]">正数延后，负数提前</p>
+      <p className="text-xs text-[var(--player-settings-muted)]">{t('link.offset.hint')}</p>
     </div>
   )
 }
@@ -281,6 +287,7 @@ function SourceOffset({
  */
 function OffsetStepper({ entry }: { entry: LinkDanmakuEntry }) {
   const saved = entry.offsetSeconds
+  const { t } = useTranslation(['danmaku', 'common'])
   const [text, setText] = useState(() => formatOffset(saved))
   const [error, setError] = useState('')
   const timerRef = useRef<ReturnType<typeof setTimeout>>(undefined)
@@ -292,7 +299,7 @@ function OffsetStepper({ entry }: { entry: LinkDanmakuEntry }) {
     } catch (err) {
       // 服务端状态未变，显示回退为当前已保存的值。
       setText(formatOffset(getSavedOffset(entry.source) ?? saved))
-      setError(err instanceof Error ? err.message : '保存偏移失败')
+      setError(describeError(err, t('link.offset.saveFailed')))
     }
   }
 
@@ -333,7 +340,7 @@ function OffsetStepper({ entry }: { entry: LinkDanmakuEntry }) {
       else schedule(value, 0)
     } catch (err) {
       setText(formatOffset(saved))
-      setError(err instanceof Error ? err.message : '偏移无效')
+      setError(describeError(err, t('link.offset.invalid')))
     }
   }
 
@@ -343,7 +350,7 @@ function OffsetStepper({ entry }: { entry: LinkDanmakuEntry }) {
         <Button
           type="button"
           variant="outline"
-          aria-label="提前 0.1 秒"
+          aria-label={t('link.offset.earlier')}
           className={`size-10 shrink-0 px-0 ${buttonClass}`}
           onClick={() => step(-OFFSET_STEP)}
         >
@@ -351,7 +358,7 @@ function OffsetStepper({ entry }: { entry: LinkDanmakuEntry }) {
         </Button>
         <div className="relative min-w-0 flex-1">
           <Input
-            aria-label="链接弹幕时间偏移（秒）"
+            aria-label={t('link.offset.inputLabel')}
             inputMode="decimal"
             className={`pr-9 text-center tabular-nums ${inputClass}`}
             value={text}
@@ -362,13 +369,13 @@ function OffsetStepper({ entry }: { entry: LinkDanmakuEntry }) {
             }}
           />
           <span className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-sm text-white/50">
-            秒
+            {t('link.offset.unit')}
           </span>
         </div>
         <Button
           type="button"
           variant="outline"
-          aria-label="延后 0.1 秒"
+          aria-label={t('link.offset.later')}
           className={`size-10 shrink-0 px-0 ${buttonClass}`}
           onClick={() => step(OFFSET_STEP)}
         >
@@ -381,7 +388,7 @@ function OffsetStepper({ entry }: { entry: LinkDanmakuEntry }) {
           disabled={current() === 0}
           onClick={() => schedule(0, 0)}
         >
-          重置
+          {t('link.offset.reset')}
         </Button>
       </div>
       {error && (

@@ -10,6 +10,7 @@ import type { PlaybackClock } from '@marchen/playback-core'
 import type { DanmakuStageSize } from './resize-settler'
 import { DanmakuEngineCore, DanmakuNodePool } from '@marchen/danmaku-engine'
 import { toast } from '@renderer/components/ui/toast/use-toast'
+import { CONTENT_LANG, t } from '@renderer/lib/i18n'
 import { captureFeatureUsed } from '@renderer/services/telemetry/features'
 import { reportOperationalError } from '@renderer/services/telemetry/operational-errors'
 import { DanmakuHoverToolbar } from './hover-toolbar'
@@ -608,12 +609,16 @@ export class DomDanmakuRenderer {
     void (navigator.clipboard?.writeText(text) ?? Promise.reject(new Error('剪贴板不可用'))).then(
       () => {
         captureFeatureUsed('danmaku_copy', 'success')
-        if (!this.destroyed) toast({ title: '已复制弹幕', duration: 1500 })
+        if (!this.destroyed) toast({ title: t('danmaku:hover.copied'), duration: 1500 })
       },
       () => {
         if (!this.destroyed) {
           captureFeatureUsed('danmaku_copy', 'failed')
-          toast({ title: '复制失败，请重试', variant: 'destructive', duration: 3000 })
+          toast({
+            title: t('danmaku:hover.copyFailed'),
+            variant: 'destructive',
+            duration: 3000,
+          })
         }
       },
     )
@@ -703,12 +708,10 @@ export class DomDanmakuRenderer {
 }
 
 /**
- * 弹幕内容的语言标注。弹幕来自中文弹幕源，与界面语言无关：浏览器给汉字选回落字体时会参考
- * 元素的语言，界面是英文（`<html lang="en">`）且系统首选语言里没有中文时，汉字可能用到
- * 日文字形。在弹幕层上固定标注，保证汉字始终按简体中文字形显示。
+ * 弹幕内容的语言标注，与其他外部中文内容共用同一个常量（说明见 CONTENT_LANG）。
  * 英文译文也落在这个标注下，渲染与全页都是 `lang="zh-CN"` 时相同。
  */
-const DANMAKU_CONTENT_LANG = 'zh-CN'
+const DANMAKU_CONTENT_LANG = CONTENT_LANG
 
 const createMeasurementLayer = () => {
   const layer = document.createElement('div')

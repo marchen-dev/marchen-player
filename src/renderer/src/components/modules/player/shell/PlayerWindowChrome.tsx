@@ -5,6 +5,7 @@ import { cn, isMac, isWeb, isWindows } from '@renderer/lib/utils'
 import { reportOperationalError } from '@renderer/services/telemetry/operational-errors'
 import { useAtomValue } from 'jotai'
 import { useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 
 const setMacWindowButtonsVisible = (visible: boolean) => {
   if (isWeb || !isMac) return
@@ -22,6 +23,7 @@ export const PlayerWindowChrome = ({
   visible?: boolean
   onHoverChange?: (hovered: boolean) => void
 }) => {
+  const { t } = useTranslation(['player', 'common', 'app'])
   const fullscreen = useWindowFullscreen()
   const windowState = useWindowState()
   const settingsPanelOpen = useAtomValue(playerSettingsPanelAtom).open
@@ -51,7 +53,7 @@ export const PlayerWindowChrome = ({
     >
       <button
         type="button"
-        aria-label="关闭当前播放"
+        aria-label={t('shell.closePlayback')}
         className={cn(
           'no-drag-region bg-player-popover player-glass pointer-events-auto absolute flex h-8 cursor-default items-center gap-1 rounded-lg px-2 text-xs font-semibold text-white/85 transition-colors',
           'hover:text-white hover:brightness-125 focus-visible:ring-2 focus-visible:ring-[var(--player-focus)] focus-visible:outline-none',
@@ -60,19 +62,23 @@ export const PlayerWindowChrome = ({
         onClick={onClose}
       >
         <i className="icon-[mingcute--close-line] text-base" aria-hidden />
-        <span>关闭</span>
+        <span>{t('common:action.close')}</span>
       </button>
 
       {/* 侧栏打开时隐藏窗口按钮，避免跟随顶部拖动区左移到画面中间。 */}
       {!isWeb && !fullscreen && isWindows && !settingsPanelOpen && (
         <div className="no-drag-region pointer-events-auto absolute top-0 right-0 flex h-12 items-start">
           <WindowButton
-            label="最小化"
+            label={t('app:titlebar.minimize')}
             icon="icon-[mingcute--minimize-line]"
             onClick={() => ipcClient?.app.windowAction({ action: 'minimize' })}
           />
           <WindowButton
-            label={windowState === WindowState.MAXIMIZED ? '还原窗口' : '最大化'}
+            label={
+              windowState === WindowState.MAXIMIZED
+                ? t('app:titlebar.restore')
+                : t('app:titlebar.maximize')
+            }
             icon={
               windowState === WindowState.MAXIMIZED
                 ? 'icon-[mingcute--restore-line]'
@@ -81,7 +87,7 @@ export const PlayerWindowChrome = ({
             onClick={() => ipcClient?.app.windowAction({ action: 'maximum' })}
           />
           <WindowButton
-            label="关闭"
+            label={t('common:action.close')}
             icon="icon-[mingcute--close-line]"
             danger
             onClick={() => ipcClient?.app.windowAction({ action: 'close' })}

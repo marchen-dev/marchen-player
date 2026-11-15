@@ -5,11 +5,13 @@ import {
   usePlayerLoadingState,
 } from '@renderer/services/player-loading/hooks'
 import { getMatchInfo } from '@renderer/services/player-loading/match-info'
+import { useTranslation } from 'react-i18next'
 import { showMatchAnimeDialog } from '../../../loading/dialog/hooks'
 
 export const MatchInfo = () => {
   const state = usePlayerLoadingState()
   const service = usePlayerLoadingService()
+  const { t } = useTranslation('danmaku')
   if (state.step !== 'ready' && state.step !== 'reloading') return null
   const info = getMatchInfo(state)
   const buttonClassName =
@@ -18,7 +20,7 @@ export const MatchInfo = () => {
   return (
     <section data-player-match-info className="mb-6 space-y-3">
       <div className="flex items-center justify-between gap-3">
-        <h3 className="text-sm font-semibold">匹配信息</h3>
+        <h3 className="text-sm font-semibold">{t('matchInfo.title')}</h3>
         <div className="flex items-center gap-1">
           {info.matchFailed && (
             <button
@@ -27,7 +29,7 @@ export const MatchInfo = () => {
               className={buttonClassName}
               onClick={() => service.retryMatch()}
             >
-              重试匹配
+              {t('matchInfo.retryMatch')}
             </button>
           )}
           {/* 后台加载中不提供重试，避免与进行中的请求重复 */}
@@ -38,7 +40,7 @@ export const MatchInfo = () => {
               className={buttonClassName}
               onClick={() => service.retryDanmaku()}
             >
-              {state.step === 'reloading' ? '正在加载…' : '重试弹幕'}
+              {state.step === 'reloading' ? t('matchInfo.loading') : t('matchInfo.retryDanmaku')}
             </button>
           )}
           <button
@@ -50,7 +52,7 @@ export const MatchInfo = () => {
               showMatchAnimeDialog(true, state.video.hash)
             }}
           >
-            {info.matched ? '重新匹配' : '匹配动漫'}
+            {info.matched ? t('matchInfo.rematch') : t('matchInfo.match')}
           </button>
         </div>
       </div>
@@ -61,20 +63,20 @@ export const MatchInfo = () => {
         )}
         <p className="text-xs text-[var(--player-settings-muted)]">
           {state.step === 'reloading'
-            ? '正在加载弹幕…'
+            ? t('matchInfo.status.reloading')
             : info.pending === 'matching'
-              ? '正在后台匹配动漫…'
+              ? t('matchInfo.status.matching')
               : info.pending === 'loading_danmaku'
-                ? '正在后台加载弹幕…'
+                ? t('matchInfo.status.loadingDanmaku')
                 : info.matchFailed
-                  ? '弹幕匹配失败，视频可正常播放'
+                  ? t('matchInfo.status.matchFailed')
                   : info.failed
-                    ? '弹幕加载失败，视频可正常播放'
+                    ? t('matchInfo.status.failed')
                     : info.unmatched
-                      ? '未精确匹配，可手动选择剧集'
+                      ? t('matchInfo.status.unmatched')
                       : info.matched
-                        ? `匹配弹幕 ${formatNumber(info.count)} 条`
-                        : '尚未匹配动漫'}
+                        ? t('matchInfo.status.matched', { total: formatNumber(info.count) })
+                        : t('matchInfo.status.none')}
         </p>
       </div>
     </section>

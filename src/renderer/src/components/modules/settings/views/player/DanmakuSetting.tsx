@@ -2,8 +2,10 @@ import type { FC, PropsWithChildren } from 'react'
 import { usePlayerSettings } from '@renderer/atoms/settings/player'
 import { SettingSelect } from '@renderer/components/modules/shared/setting/SettingSelect'
 import { SettingSwitch } from '@renderer/components/modules/shared/setting/SettingSwitch'
+import { cn } from '@renderer/lib/utils'
 import { usePlayerPortalContainer } from '@renderer/services/player-runtime'
 import { captureFeatureUsed } from '@renderer/services/telemetry/features'
+import { useTranslation } from 'react-i18next'
 
 import { FieldLayout, FieldsCardLayout } from '../Layout'
 import { DanmakuTranslationRow } from './DanmakuTranslationRow'
@@ -24,11 +26,15 @@ export const DanmakuSetting: FC<DanmakuSettingProps> = (props) => {
   const [playerSetting, setPlayerSetting] = usePlayerSettings()
   const isPlaying = !!classNames?.cardLayout
   const portalContainer = usePlayerPortalContainer()
+  const { t } = useTranslation('danmaku')
+  // 弹幕翻译选了目标语言时「繁体转简体」不适用：有译文的弹幕显示译文。
+  // 开关置灰但保留原来的值，没有译文的弹幕仍按它决定是否转简体
+  const translationOn = playerSetting.danmakuTranslation.enabled
 
   const content = (
     <>
       {isPlaying && (
-        <FieldLayout title="显示弹幕">
+        <FieldLayout title={t('settings.show')}>
           <SettingSwitch
             playerMaterial
             value={playerSetting.enableDanmaku}
@@ -40,9 +46,30 @@ export const DanmakuSetting: FC<DanmakuSettingProps> = (props) => {
         </FieldLayout>
       )}
       {/* 客户端转换，切换即时作用于当前弹幕，无需重新请求 */}
-      <FieldLayout title="繁体转简体">
+      <FieldLayout
+        title={
+          translationOn ? (
+            <span className="flex min-w-0 flex-col gap-0.5">
+              {t('settings.traditionalToSimplified')}
+              <span
+                id="danmaku-t2s-disabled-hint"
+                className={cn(
+                  'text-xs font-normal',
+                  isPlaying ? 'text-[var(--player-fg-muted)]' : 'text-muted-foreground',
+                )}
+              >
+                {t('settings.traditionalToSimplifiedDisabled')}
+              </span>
+            </span>
+          ) : (
+            t('settings.traditionalToSimplified')
+          )
+        }
+      >
         <SettingSwitch
           playerMaterial={isPlaying}
+          disabled={translationOn}
+          aria-describedby={translationOn ? 'danmaku-t2s-disabled-hint' : undefined}
           value={playerSetting.enableTraditionalToSimplified}
           onCheckedChange={(value) => {
             captureFeatureUsed('danmaku_traditional_to_simplified', value ? 'enable' : 'disable')
@@ -55,11 +82,11 @@ export const DanmakuSetting: FC<DanmakuSettingProps> = (props) => {
         playerMaterial={isPlaying}
         portalContainer={isPlaying ? portalContainer : undefined}
       />
-      <FieldLayout title="字体大小">
+      <FieldLayout title={t('settings.fontSize')}>
         <SettingSelect
           container={isPlaying ? portalContainer : undefined}
           playerMaterial={isPlaying}
-          placeholder="弹幕字体大小"
+          placeholder={t('settings.fontSizePlaceholder')}
           groups={danmakuFontSizeList}
           value={playerSetting.danmakuFontSize}
           onValueChange={(value) =>
@@ -67,12 +94,12 @@ export const DanmakuSetting: FC<DanmakuSettingProps> = (props) => {
           }
         />
       </FieldLayout>
-      <FieldLayout title="不透明度">
+      <FieldLayout title={t('settings.opacity')}>
         <SettingSelect
           container={isPlaying ? portalContainer : undefined}
           playerMaterial={isPlaying}
-          ariaLabel="弹幕不透明度"
-          placeholder="弹幕不透明度"
+          ariaLabel={t('settings.opacityPlaceholder')}
+          placeholder={t('settings.opacityPlaceholder')}
           groups={danmakuOpacityList}
           value={String(playerSetting.danmakuOpacity)}
           onValueChange={(value) =>
@@ -80,23 +107,26 @@ export const DanmakuSetting: FC<DanmakuSettingProps> = (props) => {
           }
         />
       </FieldLayout>
-      <FieldLayout title="持续时间">
+      <FieldLayout title={t('settings.duration')}>
         <SettingSelect
           container={isPlaying ? portalContainer : undefined}
           playerMaterial={isPlaying}
-          placeholder="弹幕持续时间"
-          groups={danmakuDurationList}
+          placeholder={t('settings.durationPlaceholder')}
+          groups={danmakuDurationList.map((item) => ({
+            ...item,
+            label: t(`settings.durationOptions.${item.id}`),
+          }))}
           value={playerSetting.danmakuDuration}
           onValueChange={(value) =>
             setPlayerSetting((prev) => ({ ...prev, danmakuDuration: value }))
           }
         />
       </FieldLayout>
-      <FieldLayout title="显示区域">
+      <FieldLayout title={t('settings.area')}>
         <SettingSelect
           container={isPlaying ? portalContainer : undefined}
           playerMaterial={isPlaying}
-          placeholder="弹幕显示区域"
+          placeholder={t('settings.areaPlaceholder')}
           groups={danmakuEndAreaList}
           value={playerSetting.danmakuEndArea}
           onValueChange={(value) =>
@@ -105,12 +135,15 @@ export const DanmakuSetting: FC<DanmakuSettingProps> = (props) => {
         />
       </FieldLayout>
       {isPlaying && (
-        <FieldLayout title="在屏密度">
+        <FieldLayout title={t('settings.density')}>
           <SettingSelect
             container={portalContainer}
             playerMaterial
-            placeholder="弹幕密度"
-            groups={danmakuDensityList}
+            placeholder={t('settings.densityPlaceholder')}
+            groups={danmakuDensityList.map((item) => ({
+              ...item,
+              label: t(`settings.densityOptions.${item.id}`),
+            }))}
             value={playerSetting.danmakuMaxOnScreen}
             onValueChange={(value) =>
               setPlayerSetting((previous) => ({ ...previous, danmakuMaxOnScreen: value }))
@@ -125,6 +158,6 @@ export const DanmakuSetting: FC<DanmakuSettingProps> = (props) => {
   return isPlaying ? (
     <div className={classNames?.cardLayout}>{content}</div>
   ) : (
-    <FieldsCardLayout title="弹幕">{content}</FieldsCardLayout>
+    <FieldsCardLayout title={t('settings.cardTitle')}>{content}</FieldsCardLayout>
   )
 }

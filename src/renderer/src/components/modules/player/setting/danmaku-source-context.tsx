@@ -5,12 +5,14 @@ import { usePlayerLoadingSelector } from '@renderer/services/player-loading/hook
 import { useQuery } from '@tanstack/react-query'
 import { useAtomValue } from 'jotai'
 import { createContext, use } from 'react'
+import { useTranslation } from 'react-i18next'
 
 export const danmakuSourceQueryKey = 'player-danmaku-source'
 
 const DanmakuSourceContext = createContext<DB_History | null>(null)
 
 export const DanmakuSourceProvider = ({ children }: React.PropsWithChildren) => {
+  const { t } = useTranslation('player')
   const { hash } = useAtomValue(videoAtom)
   const activeDanmaku = usePlayerLoadingSelector((state) =>
     (state.step === 'ready' || state.step === 'reloading') && state.video.hash === hash
@@ -24,13 +26,21 @@ export const DanmakuSourceProvider = ({ children }: React.PropsWithChildren) => 
   })
 
   if (isPending) {
-    return <p className="text-sm text-[var(--player-settings-muted)]">正在读取弹幕来源…</p>
+    return (
+      <p className="text-sm text-[var(--player-settings-muted)]">
+        {t('settingsPanel.danmakuSources.loading')}
+      </p>
+    )
   }
   if (error) {
-    return <p className="text-sm text-red-300">弹幕来源读取失败，显示设置仍可使用。</p>
+    return <p className="text-sm text-red-300">{t('settingsPanel.danmakuSources.failed')}</p>
   }
   if (!data) {
-    return <p className="text-sm text-[var(--player-settings-muted)]">暂无弹幕来源记录。</p>
+    return (
+      <p className="text-sm text-[var(--player-settings-muted)]">
+        {t('settingsPanel.danmakuSources.empty')}
+      </p>
+    )
   }
   return (
     <DanmakuSourceContext value={{ ...data, danmaku: activeDanmaku ?? data.danmaku }}>

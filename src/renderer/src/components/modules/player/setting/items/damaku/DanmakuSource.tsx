@@ -17,6 +17,7 @@ import {
 import { db } from '@renderer/database/db'
 import { useConfirmationDialog } from '@renderer/hooks/use-dialog'
 import { danmakuPlatformMap, mostDanmakuPlatform } from '@renderer/lib/danmaku'
+import { describeError } from '@renderer/lib/errors'
 import queryClient from '@renderer/lib/query-client'
 import { isWeb } from '@renderer/lib/utils'
 import { getPlayerLoadingService } from '@renderer/services/player-loading/index'
@@ -25,6 +26,7 @@ import { useAtomValue } from 'jotai'
 import { debounce } from 'lodash-es'
 import { Select as SelectPrimitive } from 'radix-ui'
 import { memo } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import { showMatchAnimeDialog } from '../../../loading/dialog/hooks'
 import { danmakuSourceQueryKey, useDanmakuSourceConfig } from '../../danmaku-source-context'
@@ -32,8 +34,9 @@ import { danmakuSourceQueryKey, useDanmakuSourceConfig } from '../../danmaku-sou
 export const DanmakuSource = memo(() => {
   const { danmaku } = useDanmakuSourceConfig()
   const portalContainer = usePlayerPortalContainer()
+  const { t } = useTranslation('danmaku')
   return (
-    <FieldLayout title="来源">
+    <FieldLayout title={t('source.title')}>
       <Popover>
         <PopoverTrigger asChild>
           <Button
@@ -48,7 +51,7 @@ export const DanmakuSource = memo(() => {
           container={portalContainer}
           className="mx-2 w-80 border-white/11 bg-player-popover player-glass text-white shadow-xl"
         >
-          <PopoverContentLayout title="来源">
+          <PopoverContentLayout title={t('source.title')}>
             <SourceList />
             <div className="flex flex-col gap-2.5">
               <RematchDanmaku />
@@ -64,6 +67,7 @@ export const DanmakuSource = memo(() => {
 
 const SourceList = memo(() => {
   const { toast } = useToast()
+  const { t } = useTranslation('danmaku')
   const portalContainer = usePlayerPortalContainer()
   const { danmaku } = useDanmakuSourceConfig()
   const video = useAtomValue(videoAtom)
@@ -80,7 +84,7 @@ const SourceList = memo(() => {
       try {
         await service.setDanmakuSourceSelected(source, checked, params.session)
       } catch (error) {
-        toast({ title: error instanceof Error ? error.message : '保存弹幕来源失败' })
+        toast({ title: describeError(error, t('source.saveFailed')) })
         return
       }
       const state = service.currentState
@@ -94,7 +98,7 @@ const SourceList = memo(() => {
     300,
   )
   if (!danmaku) {
-    return <p>暂无弹幕</p>
+    return <p>{t('source.empty')}</p>
   }
   return (
     <TooltipProvider delayDuration={250}>
@@ -139,11 +143,11 @@ const SourceList = memo(() => {
                     className="shrink-0 border-0 bg-white/12 py-0 leading-5 text-white"
                     variant="secondary"
                   >
-                    {item.type === 'link' ? '链接弹幕' : '本地弹幕文件'}
+                    {item.type === 'link' ? t('source.linkBadge') : t('source.localBadge')}
                   </Badge>
                   {item.type === 'link' && (
                     <span className="text-xs leading-5 font-normal text-white/60">
-                      {item.content.count} 条
+                      {t('source.itemCount', { total: item.content.count })}
                     </span>
                   )}
                 </span>
@@ -173,6 +177,7 @@ const sourceActionClass = 'border-white/11 bg-white/8 text-white hover:bg-white/
 
 const RematchDanmaku = () => {
   const video = useAtomValue(videoAtom)
+  const { t } = useTranslation('danmaku')
   return (
     <Button
       variant="outline"
@@ -182,7 +187,7 @@ const RematchDanmaku = () => {
         showMatchAnimeDialog(true, video.hash)
       }}
     >
-      重新匹配弹幕库
+      {t('source.rematch')}
     </Button>
   )
 }
@@ -190,6 +195,7 @@ const RematchDanmaku = () => {
 const ClearDanmakuCache = () => {
   const video = useAtomValue(videoAtom)
   const present = useConfirmationDialog()
+  const { t } = useTranslation('danmaku')
   if (isWeb) {
     return null
   }
@@ -199,7 +205,7 @@ const ClearDanmakuCache = () => {
       className={sourceActionClass}
       onClick={async () => {
         present({
-          title: '是否清除弹幕缓存? 清除后将重新匹配弹幕库',
+          title: t('source.clearCacheConfirm'),
           handleConfirm: async () => {
             await db.history.update(video.hash, { danmaku: undefined })
             hidePlayerSettingsPanel()
@@ -211,7 +217,7 @@ const ClearDanmakuCache = () => {
         })
       }}
     >
-      清除弹幕缓存
+      {t('source.clearCache')}
     </Button>
   )
 }

@@ -1,10 +1,7 @@
 import type { MediaPresentation } from '@marchen/playback-core'
 import type { PlayerSettingsSection } from '@renderer/atoms/player-settings-state'
 import type { PlayerCapabilities, PlaylistEntry } from '@renderer/services/player-runtime'
-import type {
-  PictureInPictureControl,
-  PictureInPictureUnavailableReason,
-} from '../usePictureInPicture'
+import type { PictureInPictureControl } from '../usePictureInPicture'
 import { playerSettingsPanelAtom } from '@renderer/atoms/player'
 import {
   getAvailablePlayerSettingsSections,
@@ -23,6 +20,7 @@ import { createPlaybackInfoRows } from '@renderer/services/player-runtime/playba
 import { captureFeatureUsed } from '@renderer/services/telemetry/features'
 import { useAtom, useSetAtom } from 'jotai'
 import { lazy, useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { withControllerPosition } from '../controls/controller-position'
 import { AudioTrackSetting } from './items/AudioTrackSetting'
 
@@ -52,11 +50,15 @@ interface PlayerSettingsPanelProps {
   pictureInPicture?: PictureInPictureControl
 }
 
-const sectionMetadata: Record<PlayerSettingsSection, { label: string; icon: string }> = {
-  playback: { label: '播放', icon: 'icon-[mingcute--play-circle-line]' },
-  danmaku: { label: '弹幕', icon: 'icon-[mingcute--danmaku-line]' },
-  subtitle: { label: '字幕', icon: 'icon-[mingcute--subtitle-line]' },
-  playlist: { label: '播放列表', icon: 'icon-[mingcute--playlist-2-line]' },
+/** 分类名称不超过这么多个字符时，标签上同时显示图标 */
+const TAB_ICON_MAX_LABEL_LENGTH = 4
+
+// 分类名称在渲染时取 `settingsPanel.tabs.<分类>`，不放在这个模块顶层的常量里
+const sectionIcons: Record<PlayerSettingsSection, string> = {
+  playback: 'icon-[mingcute--play-circle-line]',
+  danmaku: 'icon-[mingcute--danmaku-line]',
+  subtitle: 'icon-[mingcute--subtitle-line]',
+  playlist: 'icon-[mingcute--playlist-2-line]',
 }
 
 export const PlayerSettingsPanel = ({
@@ -72,6 +74,12 @@ export const PlayerSettingsPanel = ({
   onRotationChange,
   pictureInPicture,
 }: PlayerSettingsPanelProps) => {
+  const { t } = useTranslation('player')
+  // 面板只有约 400px 宽，四个标签并排。名称较长时（英文等）图标加文字放不下，
+  // 这时只显示文字；简体中文的名称都很短，图标照常显示。按文字长度判断，不按语言判断。
+  const showTabIcons = (['playback', 'danmaku', 'subtitle', 'playlist'] as const).every(
+    (section) => t(`settingsPanel.tabs.${section}`).length <= TAB_ICON_MAX_LABEL_LENGTH,
+  )
   const [panel, setPanel] = useAtom(playerSettingsPanelAtom)
   const portalContainer = usePlayerPortalContainer()
   const sections = getAvailablePlayerSettingsSections(capabilities)
@@ -104,10 +112,10 @@ export const PlayerSettingsPanel = ({
             'player-glass sm:max-w-none',
           )}
           closeIcon={<i className="icon-[mingcute--close-line] block text-lg" aria-hidden />}
-          closeLabel="关闭播放器设置"
+          closeLabel={t('settingsPanel.close')}
           aria-describedby={undefined}
         >
-          <SheetTitle className="sr-only">播放器设置</SheetTitle>
+          <SheetTitle className="sr-only">{t('settingsPanel.title')}</SheetTitle>
           <Tabs
             value={panel.section}
             className="flex h-full min-h-0 min-w-0 flex-col"
@@ -116,24 +124,31 @@ export const PlayerSettingsPanel = ({
             }
           >
             <TabsList
-              aria-label="播放器设置分类"
+              aria-label={t('settingsPanel.tabsLabel')}
               className="no-drag-region h-16 shrink-0 justify-start gap-1 rounded-none border-b border-white/11 bg-transparent px-5 pr-14"
             >
               {sections.map((section) => {
-                const metadata = sectionMetadata[section]
+                const label = t(`settingsPanel.tabs.${section}`)
                 return (
                   <TabsTrigger
                     key={section}
                     value={section}
+                    // 只显示文字的时候名称可能被截断，悬停能看到完整名称
+                    title={showTabIcons ? undefined : label}
                     className={cn(
                       'no-drag-region h-10 flex-1 gap-2 rounded-lg px-2 text-[var(--player-settings-muted)] shadow-none',
+                      // 名称较长、只显示文字时：允许在自己的格子里截断，不伸到右上角的关闭按钮下面。
+                      // 名称短（简体中文）时不加：四个标签等宽，加了会把四个字的「播放列表」截掉
+                      !showTabIcons && 'min-w-0',
                       'hover:bg-white/6 hover:text-[var(--player-settings-fg)]',
                       'focus-visible:ring-2 focus-visible:ring-[var(--player-settings-focus)] focus-visible:ring-offset-0',
                       'data-[state=active]:bg-white/14 data-[state=active]:text-[var(--player-settings-fg)] data-[state=active]:shadow-none',
                     )}
                   >
-                    <i className={cn(metadata.icon, 'text-lg')} aria-hidden />
-                    <span>{metadata.label}</span>
+                    {showTabIcons && (
+                      <i className={cn(sectionIcons[section], 'text-lg')} aria-hidden />
+                    )}
+                    <span className={showTabIcons ? undefined : 'truncate'}>{label}</span>
                   </TabsTrigger>
                 )
               })}
@@ -186,12 +201,6 @@ export const PlayerSettingsPanel = ({
   )
 }
 
-const PICTURE_IN_PICTURE_UNAVAILABLE_TEXT: Record<PictureInPictureUnavailableReason, string> = {
-  unsupported: '当前浏览器不支持画中画',
-  compat: '兼容内核暂不支持画中画',
-  switching: '播放内核切换中，请稍候',
-}
-
 const PlaybackSettings = ({
   capabilities,
   playbackInfo,
@@ -205,15 +214,16 @@ const PlaybackSettings = ({
   const setPanel = useSetAtom(playerSettingsPanelAtom)
   const portalContainer = usePlayerPortalContainer()
   const playbackInfoRows = createPlaybackInfoRows(playbackInfo)
+  const { t } = useTranslation('player')
   const positionPresets = [
-    { label: '上方', xRatio: 0.5, yRatio: 0.18 },
-    { label: '默认', xRatio: 0.5, yRatio: 0.72 },
-    { label: '下方', xRatio: 0.5, yRatio: 0.92 },
-  ]
+    { id: 'top', xRatio: 0.5, yRatio: 0.18 },
+    { id: 'default', xRatio: 0.5, yRatio: 0.72 },
+    { id: 'bottom', xRatio: 0.5, yRatio: 0.92 },
+  ] as const
 
   return (
     <div className="space-y-7">
-      <PanelSection title="媒体兼容">
+      <PanelSection title={t('settingsPanel.compat')}>
         <PanelCard>
           <div className="px-4 py-3">
             <PlayerEngineSetting playerMaterial container={portalContainer} />
@@ -234,17 +244,17 @@ const PlaybackSettings = ({
         </PanelCard>
       </PanelSection>
 
-      <PanelSection title="播放速度">
+      <PanelSection title={t('settingsPanel.speed')}>
         <div className="grid grid-cols-3 gap-2">
           {PLAYBACK_RATES.map((value) => (
             <PanelChoice key={value} active={value === rate} onClick={() => onRateChange(value)}>
-              {value === 1 ? '正常' : `${value}x`}
+              {value === 1 ? t('settingsPanel.speedNormal') : `${value}x`}
             </PanelChoice>
           ))}
         </div>
       </PanelSection>
 
-      <PanelSection title="画面旋转">
+      <PanelSection title={t('settingsPanel.rotation')}>
         <div className="grid grid-cols-4 gap-2">
           {ROTATIONS.map((value) => (
             <PanelChoice
@@ -258,11 +268,11 @@ const PlaybackSettings = ({
         </div>
       </PanelSection>
 
-      <PanelSection title="播放偏好">
+      <PanelSection title={t('settingsPanel.preferences')}>
         <PanelCard>
           {capabilities.playlist && (
             <PanelSwitchRow
-              label="自动续播下一集"
+              label={t('settingsPanel.autoNext')}
               checked={settings.enableAutomaticEpisodeSwitching}
               onCheckedChange={(checked) =>
                 setSettings((current) => ({
@@ -273,14 +283,14 @@ const PlaybackSettings = ({
             />
           )}
           <PanelSwitchRow
-            label="控制器隐藏时显示底部进度"
+            label={t('settingsPanel.bottomProgress')}
             checked={settings.enableMiniProgress}
             onCheckedChange={(checked) =>
               setSettings((current) => ({ ...current, enableMiniProgress: checked }))
             }
           />
           <PanelSwitchRow
-            label="点击画面暂停/播放"
+            label={t('settingsPanel.clickToToggle')}
             checked={settings.enableClickToTogglePlay}
             onCheckedChange={(checked) => {
               captureFeatureUsed('click_to_toggle_play', checked ? 'enable' : 'disable')
@@ -290,11 +300,11 @@ const PlaybackSettings = ({
           {pictureInPicture && (
             <div className="flex min-h-12 items-center justify-between gap-4 py-2 text-sm">
               <div className="min-w-0">
-                <div>画中画</div>
+                <div>{t('settingsPanel.pip.title')}</div>
                 {/* 退出始终可用，只有进入受内核与浏览器能力限制 */}
                 {!pictureInPicture.active && pictureInPicture.unavailableReason && (
                   <div className="mt-0.5 text-xs text-[var(--player-settings-muted)]">
-                    {PICTURE_IN_PICTURE_UNAVAILABLE_TEXT[pictureInPicture.unavailableReason]}
+                    {t(`settingsPanel.pip.unavailable.${pictureInPicture.unavailableReason}`)}
                   </div>
                 )}
               </div>
@@ -309,25 +319,27 @@ const PlaybackSettings = ({
                   if (entering) setPanel((state) => ({ ...state, open: false }))
                 }}
               >
-                {pictureInPicture.active ? '退出画中画' : '进入画中画'}
+                {pictureInPicture.active
+                  ? t('settingsPanel.pip.exit')
+                  : t('settingsPanel.pip.enter')}
               </PanelChoice>
             </div>
           )}
         </PanelCard>
       </PanelSection>
 
-      <PanelSection title="控制器位置">
+      <PanelSection title={t('settingsPanel.controllerPosition.title')}>
         <div className="grid grid-cols-4 gap-2">
           {positionPresets.map((preset) => (
             <PanelChoice
-              key={preset.label}
+              key={preset.id}
               onClick={() => setSettings((current) => withControllerPosition(current, preset))}
             >
-              {preset.label}
+              {t(`settingsPanel.controllerPosition.${preset.id}`)}
             </PanelChoice>
           ))}
           <PanelChoice
-            aria-label="重置控制器位置"
+            aria-label={t('settingsPanel.controllerPosition.resetLabel')}
             onClick={() =>
               setSettings((current) =>
                 withControllerPosition(current, { xRatio: 0.5, yRatio: 0.72 }),
@@ -335,7 +347,7 @@ const PlaybackSettings = ({
             }
           >
             <i className="icon-[mingcute--refresh-2-line] text-lg" aria-hidden />
-            重置
+            {t('settingsPanel.controllerPosition.reset')}
           </PanelChoice>
         </div>
       </PanelSection>

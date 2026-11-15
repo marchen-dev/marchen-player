@@ -2,7 +2,11 @@ import { cn } from '@renderer/lib/utils'
 import { X } from 'lucide-react'
 import { Dialog as DialogPrimitive } from 'radix-ui'
 import * as React from 'react'
+import { useTranslation } from 'react-i18next'
 import { DIALOG_OVERLAY_CLASS_NAME } from './visual'
+
+/** 关闭按钮给读屏用的名称；单独成组件是为了在不带函数体的组件里也能取到当前语言的文案 */
+const CloseLabel = () => useTranslation('common').t('action.close')
 
 const Dialog = DialogPrimitive.Root
 
@@ -68,7 +72,9 @@ const DialogContent = ({
         className="ring-offset-background focus:ring-ring data-[state=open]:bg-accent data-[state=open]:text-muted-foreground absolute top-4 right-4 cursor-default rounded-sm opacity-70 transition-opacity hover:opacity-100 focus:ring-2 focus:ring-offset-2 focus:outline-none disabled:pointer-events-none"
       >
         <X className="size-4" />
-        <span className="sr-only">关闭</span>
+        <span className="sr-only">
+          <CloseLabel />
+        </span>
       </DialogPrimitive.Close>
     </DialogPrimitive.Content>
   </DialogPortal>

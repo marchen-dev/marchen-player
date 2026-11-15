@@ -3,9 +3,11 @@ import {
   remoteImportProgressAtom,
 } from '@renderer/services/media/remote-progress'
 import { useAtomValue } from 'jotai'
+import { useTranslation } from 'react-i18next'
 
 export function RemoteReadProgress() {
   const progress = useAtomValue(remoteImportProgressAtom)
+  const { t } = useTranslation('player')
   if (!progress) return null
   const percent = progress.total
     ? Math.min(100, Math.floor((progress.received / progress.total) * 100))
@@ -13,13 +15,15 @@ export function RemoteReadProgress() {
   return (
     <div className="w-full max-w-sm space-y-2 text-sm">
       <p className="text-muted-foreground">
-        {progress.stage === 'connecting' ? '正在连接视频来源…' : '正在读取视频识别数据…'}
+        {progress.stage === 'connecting'
+          ? t('loading.status.connecting')
+          : t('loading.remoteReading')}
       </p>
       {progress.stage === 'reading' && (
         <>
           <div
             role="progressbar"
-            aria-label="视频识别数据读取进度"
+            aria-label={t('loading.remoteProgressLabel')}
             aria-valuemin={0}
             aria-valuemax={100}
             aria-valuenow={percent}

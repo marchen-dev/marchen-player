@@ -7,6 +7,7 @@ import { useSettingModal } from '@renderer/components/modules/settings/hooks'
 import { ToastAction } from '@renderer/components/ui/toast/toast'
 import { toast } from '@renderer/components/ui/toast/use-toast'
 import { handlers, ipcClient } from '@renderer/lib/client'
+import { t } from '@renderer/lib/i18n'
 import { DownloadObserver } from '@renderer/page/downloads/observer'
 import { RouteName } from '@renderer/router'
 import { getPlayerLoadingService } from '@renderer/services/player-loading/index'
@@ -27,7 +28,7 @@ export const IpcListener = () => {
               ipcClient?.app.updateSaved({
                 id,
                 success: false,
-                message: '播放进度保存失败，请重试',
+                message: t('app:update.saveFailed'),
               }),
           )
           .catch(console.error)
@@ -80,17 +81,17 @@ export const IpcListener = () => {
       .then((notice) => {
         if (notice)
           toast({
-            title: `已更新至 ${notice.version}`,
+            title: t('app:update.updatedTitle', { version: notice.version }),
             // 完整 Markdown 留在对应版本的发布页，避免长篇原文挤满通知。
-            description: '当前已运行新版本。',
+            description: t('app:update.updatedDescription'),
             action: (
-              <ToastAction altText="在浏览器中查看此版本的更新内容" asChild>
+              <ToastAction altText={t('app:update.viewNotesAlt')} asChild>
                 <a
                   href={`https://github.com/${RELEASE_REPOSITORY}/releases/tag/v${encodeURIComponent(notice.version)}`}
                   target="_blank"
                   rel="noreferrer"
                 >
-                  查看更新内容
+                  {t('app:update.viewNotes')}
                 </a>
               </ToastAction>
             ),

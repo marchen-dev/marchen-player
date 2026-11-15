@@ -30,7 +30,9 @@ export const FieldLayout = ({
   className,
 }: FieldLayoutProps & { ref?: React.RefObject<HTMLDivElement> }) => {
   return (
-    <div className={cn('flex items-center justify-between', className)} ref={ref}>
+    // 标题较长时（英文等）自然换行；右侧是下拉框、开关这类固定宽度的控件时由控件自己声明
+    // shrink-0（见 SettingSelect），不在这里统一禁止收缩——有的行右侧是占满剩余宽度的滑块
+    <div className={cn('flex items-center justify-between gap-3', className)} ref={ref}>
       <span className="font-medium">{title}</span>
       {children}
     </div>

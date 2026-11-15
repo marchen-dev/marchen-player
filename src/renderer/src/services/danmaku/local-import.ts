@@ -1,5 +1,6 @@
 import type { PlayerLoadingService } from '@marchen/player-loading'
 import { LocalDanmakuImportError } from '@marchen/player-loading'
+import { UserError } from '@marchen/shared/errors'
 import { LocalDanmakuValidationError, readLocalDanmaku } from '@renderer/lib/local-danmaku'
 import { reportOperationalError } from '@renderer/services/telemetry/operational-errors'
 
@@ -48,10 +49,16 @@ export async function importLocalDanmaku(
         },
       )
       reportOperationalError('player', 'local_danmaku_import', failure)
-      throw new Error(
-        stage === 'read' ? '读取弹幕文件失败，请重试' : '保存弹幕失败，请检查存储空间后重试',
-        { cause: error },
-      )
+      throw stage === 'read'
+        ? new UserError('localDanmaku.read_failed', '读取弹幕文件失败，请重试', undefined, {
+            cause: error,
+          })
+        : new UserError(
+            'localDanmaku.save_failed',
+            '保存弹幕失败，请检查存储空间后重试',
+            undefined,
+            { cause: error },
+          )
     }
     throw error
   }

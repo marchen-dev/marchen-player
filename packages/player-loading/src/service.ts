@@ -25,6 +25,7 @@ import type {
   VideoInfo,
 } from './types'
 import { validateOffset } from '@marchen/shared/danmaku'
+import { UserError } from '@marchen/shared/errors'
 import { BehaviorSubject, concat, defer, EMPTY, firstValueFrom, of, Subject } from 'rxjs'
 import { catchError, filter, ignoreElements, map, switchMap, takeUntil } from 'rxjs/operators'
 
@@ -420,7 +421,7 @@ export class PlayerLoadingService {
     return this.mutateDanmaku(
       (entries) => {
         if (entries.some((item) => item.source === entry.source))
-          throw new Error('已经添加过该来源')
+          throw new UserError('danmakuLink.duplicate', '已经添加过该来源')
         return [...entries, entry]
       },
       session,

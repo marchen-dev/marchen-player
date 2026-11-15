@@ -8,6 +8,7 @@ import {
 } from '@renderer/components/ui/Tooltip'
 import { cn } from '@renderer/lib/utils'
 import { siderbarRoutes } from '@renderer/router'
+import { useTranslation } from 'react-i18next'
 import { NavLink, useLocation } from 'react-router'
 
 import { useSettingModal } from '../../modules/settings/hooks'
@@ -18,6 +19,7 @@ import { useSettingModal } from '../../modules/settings/hooks'
  */
 export const Sidebar = () => {
   const showModal = useSettingModal()
+  const { t } = useTranslation('app')
 
   return (
     <TooltipProvider delayDuration={300}>
@@ -35,13 +37,13 @@ export const Sidebar = () => {
                 type="button"
                 className="sidebar-nav-item"
                 onClick={() => showModal()}
-                aria-label="设置"
+                aria-label={t('sidebar.settings')}
               >
                 <i className="icon-[mingcute--settings-3-line]" />
               </button>
             </TooltipTrigger>
             <TooltipContent side="right" sideOffset={8}>
-              设置
+              {t('sidebar.settings')}
             </TooltipContent>
           </Tooltip>
         </div>
@@ -56,9 +58,11 @@ export const Sidebar = () => {
  */
 const SidebarNavItem: FC<SidebarRouteObject> = ({ path, meta }) => {
   const { pathname } = useLocation()
+  const { t } = useTranslation('app')
   if (!meta || !path) return null
 
-  const { title, icon } = meta
+  const title = t(meta.titleKey)
+  const { icon } = meta
   const isActive = pathname === path
 
   return (

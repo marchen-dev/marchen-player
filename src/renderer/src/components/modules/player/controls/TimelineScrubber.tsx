@@ -2,6 +2,7 @@ import type { KeyboardEvent, PointerEvent } from 'react'
 import { cn } from '@renderer/lib/utils'
 import { AnimatePresence, m } from 'framer-motion'
 import { useEffect, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { placePreviewBubble, timelineTimeFromPointer } from './timeline-scrubber-math'
 import { formatTime } from './utils'
 
@@ -44,6 +45,7 @@ export const TimelineScrubber = ({
   onPreview,
   onSeekingChange,
 }: TimelineScrubberProps) => {
+  const { t } = useTranslation('player')
   const activePointerRef = useRef<number | null>(null)
   const releasePointerListenersRef = useRef<(() => void) | null>(null)
   const leaveTimerRef = useRef<number | null>(null)
@@ -201,7 +203,7 @@ export const TimelineScrubber = ({
       data-no-controller-drag
       role="slider"
       tabIndex={disabled ? -1 : 0}
-      aria-label="播放进度"
+      aria-label={t('controls.progress')}
       aria-disabled={disabled}
       aria-valuemin={0}
       aria-valuemax={Math.max(duration, 0)}

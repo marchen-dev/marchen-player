@@ -9,10 +9,15 @@
  *   关闭翻译、离开播放页或清除资源时立即终止 Worker，释放几百 MB 内存。
  * - 引擎出错后不自动重启（避免崩溃循环），弹幕回退原文；用户重新开关或点重试才再试。
  * - 遥测调用失败不影响这里的流程：telemetry 封装内部已自行降级。
+ * - 预下载（preload）只把资源准备好：不改设置、不启动引擎，与用户主动开启共用同一个下载任务。
  */
 import type { TranslationAssetFile, TranslationTarget } from './assets/manifest'
 import type { TranslatableItem } from './schedule'
 import type { DanmakuTranslationSettings } from './settings'
+import {
+  markTranslationPromptAnswered,
+  setTranslationPreloadOptOut,
+} from '@renderer/atoms/settings/app'
 import { playerSettingAtom } from '@renderer/atoms/settings/player'
 import { jotaiStore } from '@renderer/atoms/store'
 import { TRANSLATION_ASSETS_BASE } from '@renderer/lib/env'
@@ -38,7 +43,7 @@ import { getDanmakuTranslationStatus, setDanmakuTranslationStatus } from './stat
 import { browserSupportEnvironment, detectUnsupportedReason } from './support'
 import { translationStore } from './translation-store'
 
-type AssetTrigger = 'first_enable' | 'auto_recover' | 'retry'
+type AssetTrigger = 'first_enable' | 'auto_recover' | 'retry' | 'preload'
 
 /** 播放页提供的会话：目前只需要当前播放位置 */
 export interface TranslationSession {
@@ -57,7 +62,17 @@ class DanmakuTranslationService {
   /** 引擎出错后置位，直到用户重新开关或重试 */
   private engineFailed = false
   private epoch = 0
-  private download: { promise: Promise<boolean>; controller: AbortController } | null = null
+  private download: {
+    promise: Promise<boolean>
+    controller: AbortController
+    /**
+     * 这次下载只是预下载：翻译关着时不随「开关关闭」中止，进度显示为「准备中」，失败不提示。
+     * 用户在下载途中开启翻译后变为 false，此后与主动下载完全一样。
+     */
+    preload: boolean
+    loaded: number
+    total: number
+  } | null = null
   /** 用户刚确认过首次下载：下一次 reconcile 的下载归因为 first_enable */
   private pendingTrigger: AssetTrigger | null = null
   private lastSetting = ''
@@ -133,6 +148,8 @@ class DanmakuTranslationService {
    */
   async select(target: TranslationTarget | null, confirm: () => Promise<boolean>): Promise<void> {
     this.ensureSubscribed()
+    // 用户亲自操作过弹幕翻译，之后不再在加载提示里询问
+    markTranslationPromptAnswered()
     if (target === null) {
       captureFeatureUsed('danmaku_translation', 'disable')
       this.writeSetting({ enabled: false })
@@ -161,6 +178,8 @@ class DanmakuTranslationService {
       }
       this.pendingTrigger = 'first_enable'
     }
+    // 主动开启视为同意下载：清掉「不要自动预下载」的标记（此前清除过模型或选过「不用」）
+    setTranslationPreloadOptOut(false)
     captureFeatureUsed('danmaku_translation', 'enable', target)
     const current = this.setting
     if (current.enabled && current.target === target) {
@@ -171,6 +190,34 @@ class DanmakuTranslationService {
     } else {
       this.writeSetting({ enabled: true, target })
     }
+  }
+
+  /** 本机是否缺少该目标语言的翻译资源；查询失败按缺失处理 */
+  async hasMissingAssets(target: TranslationTarget): Promise<boolean> {
+    const files = listTranslationAssets(target)
+    const missing = await findMissingAssets(files, opfsAssetStore).catch(() => files)
+    return missing.length > 0
+  }
+
+  /**
+   * 预下载：在用户开启翻译之前把引擎与模型下载好，第一次点「翻译」就能立即生效。
+   * 只准备资源，不改设置、不启动引擎；失败不提示（下次启动再试）。
+   * 该不该预下载由调用方判断（见 policy.ts 与 preload.ts），这里只负责「下」。
+   */
+  async preload(target: TranslationTarget): Promise<void> {
+    this.ensureSubscribed()
+    // 翻译已经开着或已有下载在进行：资源由正常流程负责，不需要预下载
+    if (this.unsupportedReason || this.setting.enabled || this.download) return
+    const files = listTranslationAssets(target)
+    let missing: TranslationAssetFile[]
+    try {
+      missing = await findMissingAssets(files, opfsAssetStore)
+    } catch {
+      return
+    }
+    // 查询期间用户可能已经开启翻译或触发了下载
+    if (missing.length === 0 || this.setting.enabled || this.download) return
+    await this.ensureAssets(files, 'preload')
   }
 
   /** 下载失败或引擎出错后的手动重试 */
@@ -194,6 +241,8 @@ class DanmakuTranslationService {
     this.download?.controller.abort()
     this.stopEngine()
     this.writeSetting({ enabled: false })
+    // 用户亲手清掉的模型不再自动下回来；之后主动开启翻译时会清掉这个标记
+    setTranslationPreloadOptOut(true)
     setDanmakuTranslationStatus(this.unsupportedState() ?? { state: 'off' })
     await opfsAssetStore.clear()
   }
@@ -226,12 +275,14 @@ class DanmakuTranslationService {
     }
     const { enabled, target } = this.setting
     if (!enabled) {
-      this.download?.controller.abort()
+      // 预下载不随开关关闭而中止：它本来就是在翻译关着的时候进行的
+      if (this.download && !this.download.preload) this.download.controller.abort()
       this.stopEngine()
       this.engineFailed = false
       // 确认弹窗打开期间保留「等待确认」，由 toggle 自己收尾
       if (getDanmakuTranslationStatus().state !== 'confirming') {
-        setDanmakuTranslationStatus({ state: 'off' })
+        if (this.download?.preload) this.publishDownloadProgress()
+        else setDanmakuTranslationStatus({ state: 'off' })
       }
       return
     }
@@ -273,12 +324,19 @@ class DanmakuTranslationService {
     files: readonly TranslationAssetFile[],
     trigger: AssetTrigger,
   ): Promise<boolean> {
-    if (this.download) return this.download.promise
+    if (this.download) {
+      // 预下载途中用户开启了翻译：沿用正在进行的下载，此后按主动下载对待
+      if (trigger !== 'preload' && this.download.preload) {
+        this.download.preload = false
+        this.publishDownloadProgress()
+      }
+      return this.download.promise
+    }
     const controller = new AbortController()
     const startedAt = performance.now()
     const total = totalAssetSize(files)
+    const preload = trigger === 'preload'
     let lastPercent = -1
-    setDanmakuTranslationStatus({ state: 'downloading', loaded: 0, total })
 
     const promise = ensureTranslationAssets({
       base: TRANSLATION_ASSETS_BASE!,
@@ -290,7 +348,9 @@ class DanmakuTranslationService {
         const percent = Math.floor((loaded / total) * 100)
         if (percent === lastPercent || controller.signal.aborted) return
         lastPercent = percent
-        setDanmakuTranslationStatus({ state: 'downloading', loaded, total })
+        if (this.download?.controller !== controller) return
+        this.download.loaded = loaded
+        this.publishDownloadProgress()
       },
     })
       .then((result) => {
@@ -330,13 +390,30 @@ class DanmakuTranslationService {
           code === 'assets_network',
         )
         if (this.setting.enabled) setDanmakuTranslationStatus({ state: 'download_failed', code })
+        // 预下载失败不打扰用户：回到「未开启」，不进入带重试按钮的失败状态
+        else if (getDanmakuTranslationStatus().state === 'preparing')
+          setDanmakuTranslationStatus({ state: 'off' })
         return false
       })
       .finally(() => {
-        if (this.download?.controller === controller) this.download = null
+        if (this.download?.controller !== controller) return
+        this.download = null
+        // 预下载结束（成功或中止）而翻译仍关着：收起「准备中」
+        if (!this.setting.enabled && getDanmakuTranslationStatus().state === 'preparing')
+          setDanmakuTranslationStatus({ state: 'off' })
       })
-    this.download = { promise, controller }
+    this.download = { promise, controller, preload, loaded: 0, total }
+    this.publishDownloadProgress()
     return promise
+  }
+
+  /** 把当前下载的进度写进状态：预下载显示为「准备中」，主动下载显示为「下载中」 */
+  private publishDownloadProgress(): void {
+    if (!this.download) return
+    const { preload, loaded, total } = this.download
+    // 预下载期间确认弹窗开着（界面语言中途切回了中文）：保留「等待确认」
+    if (preload && getDanmakuTranslationStatus().state === 'confirming') return
+    setDanmakuTranslationStatus({ state: preload ? 'preparing' : 'downloading', loaded, total })
   }
 
   private async startEngine(

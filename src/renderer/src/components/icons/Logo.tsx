@@ -1,15 +1,19 @@
 import { cn } from '@renderer/lib/utils'
+import { useTranslation } from 'react-i18next'
 import appIcon from '../../../../../resources/icon.png'
 
 /** 关于页与各桌面平台共用已确认的猫耳图标。 */
-export const Logo = ({ className }: { className?: string }) => (
-  <img
-    src={appIcon}
-    alt="Marchen 应用图标"
-    className={cn('size-full object-contain', className)}
-    draggable={false}
-  />
-)
+export const Logo = ({ className }: { className?: string }) => {
+  const { t } = useTranslation('app')
+  return (
+    <img
+      src={appIcon}
+      alt={t('logoAlt')}
+      className={cn('size-full object-contain', className)}
+      draggable={false}
+    />
+  )
+}
 
 /**
  * 单色猫耳标志，取自应用图标的前景图形，不含圆角底板。

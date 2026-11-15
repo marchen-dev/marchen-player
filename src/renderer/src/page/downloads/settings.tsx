@@ -11,10 +11,16 @@ import { ipcClient } from '@renderer/lib/client'
 import { captureFeatureUsed } from '@renderer/services/telemetry/features'
 import { useAtomValue } from 'jotai'
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { downloadCall, downloadError, downloadsAtom } from './state'
 export function DownloadSettingsView() {
+  const { t } = useTranslation('settings')
   return (
-    <SettingsPage sectionId="downloads" title="下载" description="管理下载目录与传输设置">
+    <SettingsPage
+      sectionId="downloads"
+      title={t('tabs.downloads.label')}
+      description={t('tabs.downloads.description')}
+    >
       <DownloadSettingsSection />
     </SettingsPage>
   )
@@ -24,19 +30,17 @@ function DownloadSettingsSection() {
   return snapshot ? <DownloadSettingsForm initial={snapshot.settings} /> : null
 }
 function DownloadSettingsForm({ initial }: { initial: DownloadSettings }) {
+  const { t } = useTranslation(['downloads', 'app'])
   const [value, setValue] = useState(initial)
   const [busy, setBusy] = useState(false)
   return (
-    <SettingsSection
-      title="下载"
-      description="下载完成后自动停止传输；上传限速仅用于下载期间的分片交换。"
-    >
+    <SettingsSection title={t('app:routes.downloads')} description={t('settings.description')}>
       <SettingsGroup>
         <div className="space-y-4 p-4">
           <label className="block text-sm">
-            默认保存目录
+            {t('settings.directory')}
             <div className="mt-2 flex gap-2">
-              <Input readOnly value={value.directory} aria-label="默认保存目录" />
+              <Input readOnly value={value.directory} aria-label={t('settings.directory')} />
               <Button
                 variant="outline"
                 onClick={() => {
@@ -47,16 +51,16 @@ function DownloadSettingsForm({ initial }: { initial: DownloadSettings }) {
                     .catch(downloadError)
                 }}
               >
-                选择
+                {t('newDialog.choose')}
               </Button>
             </div>
           </label>
           <label className="block text-sm">
-            上传限速（KB/s，-1 表示不限速）
+            {t('settings.uploadLimit')}
             <Input
               className="mt-2"
               type="number"
-              aria-label="上传限速"
+              aria-label={t('settings.uploadLimitLabel')}
               value={value.uploadLimit === -1 ? -1 : value.uploadLimit / 1024}
               onChange={(e) =>
                 setValue({
@@ -74,13 +78,13 @@ function DownloadSettingsForm({ initial }: { initial: DownloadSettings }) {
               void downloadCall(ipcClient?.downloads.settings(value))
                 .then(() => {
                   captureFeatureUsed('download_settings', 'save_upload_limit', value.uploadLimit)
-                  toast({ title: '下载设置已保存' })
+                  toast({ title: t('settings.saved') })
                 })
                 .catch(downloadError)
                 .finally(() => setBusy(false))
             }}
           >
-            保存下载设置
+            {t('settings.save')}
           </Button>
         </div>
       </SettingsGroup>

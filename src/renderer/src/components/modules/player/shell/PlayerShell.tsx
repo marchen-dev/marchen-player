@@ -1,5 +1,6 @@
 import type { ComponentPropsWithoutRef, PropsWithChildren, Ref } from 'react'
 import { cn } from '@renderer/lib/utils'
+import { useTranslation } from 'react-i18next'
 
 export interface PlayerShellProps extends PropsWithChildren {
   className?: string
@@ -7,21 +8,24 @@ export interface PlayerShellProps extends PropsWithChildren {
   rootRef?: Ref<HTMLElement>
 }
 
-export const PlayerShell = ({ className, title, rootRef, children }: PlayerShellProps) => (
-  <section
-    ref={rootRef}
-    data-player-root
-    data-player-active
-    aria-label={title ? `正在播放：${title}` : '视频播放器'}
-    className={cn(
-      // 播放器及其 portal 始终使用深色变量，避免浅色应用主题造成白底白字。
-      'dark fixed inset-0 isolate overflow-hidden bg-black text-white selection:bg-white/25',
-      className,
-    )}
-  >
-    {children}
-  </section>
-)
+export const PlayerShell = ({ className, title, rootRef, children }: PlayerShellProps) => {
+  const { t } = useTranslation('player')
+  return (
+    <section
+      ref={rootRef}
+      data-player-root
+      data-player-active
+      aria-label={title ? t('shell.playing', { title }) : t('shell.player')}
+      className={cn(
+        // 播放器及其 portal 始终使用深色变量，避免浅色应用主题造成白底白字。
+        'dark fixed inset-0 isolate overflow-hidden bg-black text-white selection:bg-white/25',
+        className,
+      )}
+    >
+      {children}
+    </section>
+  )
+}
 
 interface VideoSurfaceProps extends Omit<ComponentPropsWithoutRef<'video'>, 'ref'> {
   videoRef?: Ref<HTMLVideoElement>
@@ -34,24 +38,27 @@ export const VideoSurface = ({
   className,
   style,
   ...props
-}: VideoSurfaceProps) => (
-  <video
-    ref={videoRef}
-    data-player-video
-    data-rotation={rotation}
-    className={cn('absolute top-1/2 left-1/2 z-0 bg-black object-contain', className)}
-    style={{
-      width: rotation === 90 || rotation === 270 ? '100dvh' : '100dvw',
-      height: rotation === 90 || rotation === 270 ? '100dvw' : '100dvh',
-      transform: `translate(-50%, -50%) rotate(${rotation}deg)`,
-      ...style,
-    }}
-    playsInline
-    preload="metadata"
-    aria-label="视频画面"
-    {...props}
-  />
-)
+}: VideoSurfaceProps) => {
+  const { t } = useTranslation('player')
+  return (
+    <video
+      ref={videoRef}
+      data-player-video
+      data-rotation={rotation}
+      className={cn('absolute top-1/2 left-1/2 z-0 bg-black object-contain', className)}
+      style={{
+        width: rotation === 90 || rotation === 270 ? '100dvh' : '100dvw',
+        height: rotation === 90 || rotation === 270 ? '100dvw' : '100dvh',
+        transform: `translate(-50%, -50%) rotate(${rotation}deg)`,
+        ...style,
+      }}
+      playsInline
+      preload="metadata"
+      aria-label={t('shell.video')}
+      {...props}
+    />
+  )
+}
 
 interface SurfaceProps extends ComponentPropsWithoutRef<'div'> {
   surfaceRef?: Ref<HTMLDivElement>

@@ -27,9 +27,8 @@ import { captureFeatureUsed } from '@renderer/services/telemetry/features'
 import { markNextPlayerImportSource } from '@renderer/services/telemetry/player-loading-observer'
 import { AnimatePresence } from 'framer-motion'
 import { useCallback, useMemo, useRef } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router'
-
-const PLAYER_HEADER = { title: '视频播放', actions: null }
 
 /** 空态下方次级入口（媒体源、URL 播放、播放记录）共用的按钮样式 */
 const SECONDARY_ENTRY_CLASS = 'gap-2 bg-muted hover:bg-accent'
@@ -39,6 +38,7 @@ export default function VideoPlayer() {
   const navigate = useNavigate()
   const { showFailedToast } = usePlayAnimeFailedToast()
   const fileInputRef = useRef<HTMLInputElement | null>(null)
+  const { t } = useTranslation(['player', 'app'])
   // 实验室开关只控制新建入口；失败重试、更换链接和历史远程记录不受影响
   const { remoteUrlPlayback } = useLabsSettingsValue()
 
@@ -49,7 +49,9 @@ export default function VideoPlayer() {
   // 媒体源只在桌面端提供
   const showMediaSourceEntry = !isWeb
 
-  usePageHeader(PLAYER_HEADER)
+  // 标题随界面语言变化；对象引用保持稳定，避免页头反复更新
+  const playerTitle = t('app:routes.player')
+  usePageHeader(useMemo(() => ({ title: playerTitle, actions: null }), [playerTitle]))
 
   const preparedVideo = usePlayerLoadingSelector((state) =>
     state.step === 'ready' || state.step === 'reloading' ? state.video : null,
@@ -60,14 +62,14 @@ export default function VideoPlayer() {
     (file: File | undefined, source: 'click' | 'drop') => {
       if (!file || !checkIsVideoType(file.name)) {
         return showFailedToast({
-          title: '格式错误',
-          description: '请选择 MP4、MKV、MOV、WebM 或 TS 等支持的视频文件',
+          title: t('home.invalidFormatTitle'),
+          description: t('home.invalidFormatDescription'),
         })
       }
       markNextPlayerImportSource(source)
       service.loadFromFile(file)
     },
-    [service, showFailedToast],
+    [service, showFailedToast, t],
   )
 
   const handleInputChange = useCallback(
@@ -109,7 +111,7 @@ export default function VideoPlayer() {
                   }}
                 >
                   <i aria-hidden="true" className="icon-[mingcute--server-line] text-base" />
-                  从媒体源打开
+                  {t('home.openFromMediaSource')}
                 </Button>
               )}
               {showRemoteEntry && (
@@ -118,7 +120,7 @@ export default function VideoPlayer() {
                   className={SECONDARY_ENTRY_CLASS}
                   onClick={() => openRemoteVideoDialog()}
                 >
-                  通过 URL 播放
+                  {t('home.playFromUrl')}
                   <BetaBadge />
                 </Button>
               )}
@@ -129,7 +131,7 @@ export default function VideoPlayer() {
                   onClick={() => openPlaybackHistoryDialog()}
                 >
                   <i aria-hidden="true" className="icon-[mingcute--history-line] text-base" />
-                  播放记录
+                  {t('home.history')}
                 </Button>
               )}
             </div>
@@ -143,6 +145,7 @@ export default function VideoPlayer() {
       showHistoryEntry,
       showMediaSourceEntry,
       navigate,
+      t,
     ],
   )
 
@@ -172,6 +175,8 @@ export default function VideoPlayer() {
   )
 }
 
+const DropHint = () => useTranslation('player').t('home.dropHint')
+
 const DragTips: FC<{ onClick: () => void }> = ({ onClick }) => (
   <button
     type="button"
@@ -184,6 +189,8 @@ const DragTips: FC<{ onClick: () => void }> = ({ onClick }) => (
       className="group-hover:text-brand group-focus-visible:text-brand text-6xl transition-colors duration-150"
       triangleClassName="transition-colors duration-150 group-hover:fill-white group-focus-visible:fill-white"
     />
-    <p className="text-xl select-none">点击或拖拽视频到此处播放</p>
+    <p className="text-xl select-none">
+      <DropHint />
+    </p>
   </button>
 )

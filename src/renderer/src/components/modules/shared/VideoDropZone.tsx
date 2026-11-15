@@ -1,5 +1,6 @@
 import type { FC, HTMLAttributes, PropsWithChildren } from 'react'
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import { hasDraggedFiles } from './video-drop-utils'
 
@@ -92,6 +93,8 @@ const ActiveVideoDropZone: FC<Omit<VideoDropZoneProps, 'active'>> = ({
   )
 }
 
+const DropHint = () => useTranslation('app').t('dropZone.release')
+
 const VideoDropOverlay: FC = () => (
   <div
     className="border-foreground/30 bg-background/95 text-foreground pointer-events-none absolute inset-4 z-20 flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed shadow-sm"
@@ -104,6 +107,8 @@ const VideoDropOverlay: FC = () => (
     >
       <i className="icon-[mingcute--download-2-line] text-2xl" />
     </span>
-    <strong className="mt-2 text-lg font-semibold">释放以打开视频</strong>
+    <strong className="mt-2 text-lg font-semibold">
+      <DropHint />
+    </strong>
   </div>
 )

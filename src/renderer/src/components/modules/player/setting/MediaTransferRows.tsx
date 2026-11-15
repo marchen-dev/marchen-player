@@ -4,8 +4,10 @@ import { activeRemoteLeaseAtom, formatMediaBytes } from '@renderer/services/medi
 import { usePlayerLoadingSelector } from '@renderer/services/player-loading/hooks'
 import { useAtomValue } from 'jotai'
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
 export function MediaTransferRows() {
+  const { t } = useTranslation('player')
   const remote = usePlayerLoadingSelector(
     (state) => 'video' in state && isRemoteKind(state.video.source),
   )
@@ -34,11 +36,19 @@ export function MediaTransferRows() {
       clearTimeout(timer)
     }
   }, [remote, lease])
-  const rows = [{ label: '媒体来源', value: remote ? '远程 · HTTP/HTTPS' : '本地文件' }]
+  const rows: Array<{ label: string; value: string }> = [
+    {
+      label: t('mediaInfo.source'),
+      value: remote ? t('mediaInfo.remote') : t('mediaInfo.local'),
+    },
+  ]
   if (remote)
     rows.push(
-      { label: '当前接收速度', value: stats ? `${formatMediaBytes(stats.speed)}/s` : '—' },
-      { label: '本次累计接收', value: stats ? formatMediaBytes(stats.received) : '—' },
+      {
+        label: t('mediaInfo.receiveSpeed'),
+        value: stats ? `${formatMediaBytes(stats.speed)}/s` : '—',
+      },
+      { label: t('mediaInfo.received'), value: stats ? formatMediaBytes(stats.received) : '—' },
     )
   return (
     <>

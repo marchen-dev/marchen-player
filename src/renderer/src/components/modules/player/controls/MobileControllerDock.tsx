@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import { cn } from '@renderer/lib/utils'
 import { useLayoutEffect, useRef } from 'react'
+import { useTranslation } from 'react-i18next'
 
 export const MobileControllerDock = ({
   transport,
@@ -15,6 +16,7 @@ export const MobileControllerDock = ({
   visible?: boolean
   onRectChange?: (rect: DOMRect | null) => void
 }) => {
+  const { t } = useTranslation('player')
   const dockRef = useRef<HTMLDivElement | null>(null)
   useLayoutEffect(() => {
     const report = () => {
@@ -32,7 +34,7 @@ export const MobileControllerDock = ({
       ref={dockRef}
       data-player-mobile-dock
       role="group"
-      aria-label="移动端播放控制"
+      aria-label={t('controls.mobileLabel')}
       className={cn(
         'absolute inset-x-0 bottom-0 z-40 bg-gradient-to-t from-black/90 via-black/60 to-transparent px-3 pt-16 transition-opacity duration-200 motion-reduce:transition-none sm:hidden',
         visible ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0',

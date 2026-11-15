@@ -1,4 +1,5 @@
 import type { DownloadFile, DownloadTask } from '@marchen/shared/downloads'
+import { t } from '@renderer/lib/i18n'
 
 /** 分片失败超过这个次数才提示用户；偶发失败会自动重新下载，不打扰 */
 export const HASH_FAILURE_NOTICE_THRESHOLD = 5
@@ -58,6 +59,6 @@ export function fileProgressLabel(
   format: (bytes: number) => string,
 ) {
   const done = fileDownloadedBytes(file)
-  if (file.size > 0 && done >= file.size) return '正在完成…'
+  if (file.size > 0 && done >= file.size) return t('downloads:task.finishing')
   return `${format(done)} / ${format(file.size)}`
 }

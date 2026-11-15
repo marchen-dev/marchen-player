@@ -1,7 +1,6 @@
 import type {
   DownloadDraft,
   DownloadInput,
-  DownloadState,
   DownloadTask,
 } from '@marchen/shared/downloads'
 import type { TelemetryEventMap } from '@renderer/services/telemetry/contracts'
@@ -27,29 +26,23 @@ import { segmentedActiveClassName } from '@renderer/components/ui/tabs'
 import { toast } from '@renderer/components/ui/toast/use-toast'
 import { usePageHeader } from '@renderer/hooks/use-page-header'
 import { ipcClient } from '@renderer/lib/client'
+import { describeError } from '@renderer/lib/errors'
 import { getPlayerLoadingService } from '@renderer/services/player-loading'
 import { trackDownloadAction, trackDownloadAdd } from '@renderer/services/telemetry/downloads'
 import { captureFeatureUsed } from '@renderer/services/telemetry/features'
 import { markNextPlayerImportSource } from '@renderer/services/telemetry/player-loading-observer'
 import { useAtom, useAtomValue } from 'jotai'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router'
 import { PeerDialog } from './peers'
 import { fileProgressLabel, HASH_FAILURE_NOTICE_THRESHOLD, taskProgress } from './progress'
 import { bytes, downloadCall, downloadError, downloadsAtom, torrentRequestAtom } from './state'
 
-const labels: Record<DownloadState, string> = {
-  checking: '正在检查已下载的文件',
-  waiting: '等待连接',
-  downloading: '下载中',
-  pausing: '正在暂停',
-  paused: '已暂停',
-  completed: '已完成',
-  error: '下载失败',
-}
-const DOWNLOAD_HEADER = { title: '下载', actions: null }
 export default function Downloads() {
-  usePageHeader(DOWNLOAD_HEADER)
+  const { t } = useTranslation(['downloads', 'common', 'app'])
+  const pageTitle = t('app:routes.downloads')
+  usePageHeader(useMemo(() => ({ title: pageTitle, actions: null }), [pageTitle]))
   const snapshot = useAtomValue(downloadsAtom)
   const [request, setRequest] = useAtom(torrentRequestAtom)
   const [filter, setFilter] = useState('all')
@@ -96,8 +89,8 @@ export default function Downloads() {
       <div className="mx-auto max-w-5xl">
         <header className="mb-8 flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-semibold">下载</h1>
-            <p className="text-muted-foreground mt-2 text-sm">下载完成后，随时开始观看</p>
+            <h1 className="text-3xl font-semibold">{pageTitle}</h1>
+            <p className="text-muted-foreground mt-2 text-sm">{t('subtitle')}</p>
           </div>
           <Button
             id="new-download"
@@ -108,16 +101,12 @@ export default function Downloads() {
             }}
           >
             <i className="icon-[mingcute--add-line] mr-2" />
-            新建下载
+            {t('new')}
           </Button>
         </header>
         <div className="mb-5 flex items-center justify-between gap-4">
           <div className="bg-muted flex rounded-xl p-1">
-            {[
-              ['all', '全部'],
-              ['active', '进行中'],
-              ['done', '已完成'],
-            ].map(([value, title]) => (
+            {(['all', 'active', 'done'] as const).map((value) => (
               <Button
                 key={value}
                 size="sm"
@@ -126,35 +115,35 @@ export default function Downloads() {
                 aria-pressed={filter === value}
                 onClick={() => setFilter(value)}
               >
-                {title}
+                {t(`filter.${value}`)}
               </Button>
             ))}
           </div>
           <Input
             className="max-w-64"
-            aria-label="搜索下载任务"
-            placeholder="搜索任务名称"
+            aria-label={t('searchLabel')}
+            placeholder={t('searchPlaceholder')}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
         {snapshot?.error && (
           <p role="alert" className="text-destructive mb-4">
-            {snapshot.error}
+            {describeError(snapshot.error, t('operationFailed'))}
           </p>
         )}
         {!snapshot ? (
-          <p className="text-muted-foreground p-12 text-center">正在读取下载任务…</p>
+          <p className="text-muted-foreground p-12 text-center">{t('loading')}</p>
         ) : !tasks.length ? (
           <div className="rounded-2xl border border-dashed p-16 text-center">
             <i className="icon-[mingcute--download-2-line] text-muted-foreground mb-4 text-4xl" />
             <h2 className="text-lg font-medium">
-              {search || filter !== 'all' ? '没有符合条件的任务' : '还没有下载任务'}
+              {search || filter !== 'all' ? t('empty.filteredTitle') : t('empty.title')}
             </h2>
             <p className="text-muted-foreground mt-2 text-sm">
               {search || filter !== 'all'
-                ? '试试清空搜索或切换筛选'
-                : '粘贴 HTTP/HTTPS 或磁力链接，或拖入种子文件'}
+                ? t('empty.filteredDescription')
+                : t('empty.description')}
             </p>
             <Button
               variant="outline"
@@ -166,7 +155,7 @@ export default function Downloads() {
                 } else setOpen(true)
               }}
             >
-              {search || filter !== 'all' ? '清空筛选' : '添加第一个下载'}
+              {search || filter !== 'all' ? t('empty.clearFilters') : t('empty.action')}
             </Button>
           </div>
         ) : (
@@ -187,7 +176,7 @@ export default function Downloads() {
             setSearch('')
             setFilter('all')
             close()
-            toast({ title: '该下载任务已存在' })
+            toast({ title: t('exists') })
             requestAnimationFrame(() =>
               document.getElementById(`download-${id}`)?.scrollIntoView({ block: 'nearest' }),
             )
@@ -198,6 +187,7 @@ export default function Downloads() {
   )
 }
 function TaskRow({ task }: { task: DownloadTask }) {
+  const { t } = useTranslation(['downloads', 'common', 'app'])
   const [showPeers, setShowPeers] = useState(false)
   const [expanded, setExpanded] = useState(false)
   const [remove, setRemove] = useState(false)
@@ -229,7 +219,7 @@ function TaskRow({ task }: { task: DownloadTask }) {
       <div className="flex items-start gap-4">
         <button
           className="bg-muted flex size-11 shrink-0 items-center justify-center rounded-xl"
-          aria-label={`${expanded ? '收起' : '展开'} ${task.name}`}
+          aria-label={t(expanded ? 'task.collapse' : 'task.expand', { name: task.name })}
           aria-expanded={expanded}
           onClick={() => {
             captureFeatureUsed('download_files', expanded ? 'collapse' : 'expand')
@@ -241,7 +231,7 @@ function TaskRow({ task }: { task: DownloadTask }) {
         <div className="min-w-0 flex-1">
           <button
             className="hover:text-brand-text focus-visible:text-brand-text block max-w-full truncate text-left font-medium transition-colors"
-            title={`${task.name}（点击${expanded ? '收起' : '展开'}文件）`}
+            title={t(expanded ? 'task.collapseTitle' : 'task.expandTitle', { name: task.name })}
             aria-controls={`download-file-list-${task.id}`}
             aria-expanded={expanded}
             onClick={() => {
@@ -253,14 +243,20 @@ function TaskRow({ task }: { task: DownloadTask }) {
           </button>
           <p className="text-muted-foreground mt-1 text-xs">
             {task.http
-              ? `HTTP · ${task.state === 'waiting' ? '排队 / 连接中' : labels[task.state]}`
-              : `${labels[task.state]} · 已选 ${selected.length} 个文件`}
+              ? t('task.httpStatus', {
+                  state:
+                    task.state === 'waiting' ? t('task.httpQueued') : t(`state.${task.state}`),
+                })
+              : t('task.torrentStatus', {
+                  state: t(`state.${task.state}`),
+                  count: selected.length,
+                })}
           </p>
         </div>
         <div className="flex shrink-0 gap-2">
           {selected.length === 1 && selected[0].complete && isVideoFile(selected[0].path) && (
             <Button size="sm" disabled={busy} onClick={() => play(selected[0].index)}>
-              播放
+              {t('task.play')}
             </Button>
           )}
           {!completed && (
@@ -280,7 +276,11 @@ function TaskRow({ task }: { task: DownloadTask }) {
                 )
               }
             >
-              {active ? '暂停' : task.state === 'error' ? '重试' : '继续'}
+              {active
+                ? t('task.pause')
+                : task.state === 'error'
+                  ? t('common:action.retry')
+                  : t('task.resume')}
             </Button>
           )}
           <DropdownMenu>
@@ -289,7 +289,7 @@ function TaskRow({ task }: { task: DownloadTask }) {
                 id={`download-menu-${task.id}`}
                 size="sm"
                 variant="ghost"
-                aria-label={`更多操作：${task.name}`}
+                aria-label={t('task.more', { name: task.name })}
                 disabled={busy}
               >
                 <i className="icon-[mingcute--more-1-line] text-lg" aria-hidden="true" />
@@ -310,7 +310,7 @@ function TaskRow({ task }: { task: DownloadTask }) {
                   )
                 }
               >
-                打开目录
+                {t('task.openFolder')}
               </DropdownMenuItem>
               {!task.http && (
                 <DropdownMenuItem
@@ -319,7 +319,7 @@ function TaskRow({ task }: { task: DownloadTask }) {
                     setShowPeers(true)
                   }}
                 >
-                  节点详情
+                  {t('task.peers')}
                 </DropdownMenuItem>
               )}
               <DropdownMenuSeparator />
@@ -327,7 +327,7 @@ function TaskRow({ task }: { task: DownloadTask }) {
                 className="text-destructive focus:text-destructive hover:text-destructive"
                 onSelect={() => setRemove(true)}
               >
-                移除任务
+                {t('task.remove')}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -336,7 +336,7 @@ function TaskRow({ task }: { task: DownloadTask }) {
       <div
         className="bg-muted mt-4 h-1.5 overflow-hidden rounded-full"
         role="progressbar"
-        aria-label="下载进度"
+        aria-label={t('task.progressLabel')}
         aria-valuenow={total ? percentage : undefined}
         aria-valuemin={0}
         aria-valuemax={100}
@@ -345,36 +345,39 @@ function TaskRow({ task }: { task: DownloadTask }) {
       </div>
       <div className="text-muted-foreground mt-2 flex justify-between text-xs">
         <span>
-          {bytes(done)} / {total ? bytes(total) : '大小未知'}
+          {bytes(done)} / {total ? bytes(total) : t('task.sizeUnknown')}
           {total ? ` · ${percentage}%` : ''}
         </span>
         <span>
           {!task.http && (task.state === 'downloading' || task.state === 'waiting') && (
-            <span title="当前已连接的对等节点数，不代表每个节点都在传输">
-              已连接 {task.peers} 个节点 ·{' '}
+            <span title={t('task.peersHint')}>
+              {t('task.peersConnected', { count: task.peers })}{' '}
             </span>
           )}
           {finishing && (task.state === 'downloading' || task.state === 'waiting')
-            ? '正在完成…'
+            ? t('task.finishing')
             : task.state === 'downloading'
-              ? `${bytes(task.downloadSpeed)}/s · ${eta === null ? '估算中' : `约 ${eta} 分钟`}`
+              ? `${bytes(task.downloadSpeed)}/s · ${
+                  eta === null ? t('task.estimating') : t('task.eta', { count: eta })
+                }`
               : ''}
         </span>
       </div>
       {/* 偶发的分片失败会自动重新下载，只有反复失败才提示，且不向用户暴露分片和校验的概念 */}
       {!task.http && !completed && (task.hashFailures ?? 0) > HASH_FAILURE_NOTICE_THRESHOLD && (
-        <p className="text-muted-foreground mt-2 text-xs">部分数据异常，正在重新下载</p>
+        <p className="text-muted-foreground mt-2 text-xs">{t('task.hashRetry')}</p>
       )}
       {task.error && (
         <p role="alert" className="text-destructive mt-3 text-sm">
-          {task.error}
+          {describeError(task.error, t('state.error'))}
         </p>
       )}
       {expanded && !task.http && (
         <div id={`download-file-list-${task.id}`} className="mt-3 border-t pt-3">
           <div className="mb-2 flex items-center justify-between gap-3">
             <p className="text-muted-foreground text-xs">
-              勾选下载，取消勾选保留已有文件。{busy ? '正在应用…' : ''}
+              {t('task.filesHint')}
+              {busy ? t('task.applying') : ''}
             </p>
             <div className="flex shrink-0 gap-1">
               <Button
@@ -397,7 +400,7 @@ function TaskRow({ task }: { task: DownloadTask }) {
                   )
                 }
               >
-                全选
+                {t('task.selectAll')}
               </Button>
               <Button
                 size="sm"
@@ -414,7 +417,7 @@ function TaskRow({ task }: { task: DownloadTask }) {
                   )
                 }
               >
-                取消全选
+                {t('task.deselectAll')}
               </Button>
             </div>
           </div>
@@ -442,14 +445,14 @@ function TaskRow({ task }: { task: DownloadTask }) {
               </label>
               <span className="text-muted-foreground text-xs">
                 {f.complete
-                  ? '已完成'
+                  ? t('task.fileDone')
                   : !f.selected
-                    ? '未选择'
+                    ? t('task.fileUnselected')
                     : fileProgressLabel(f, bytes)}
               </span>
               {f.selected && f.complete && isVideoFile(f.path) && (
                 <Button size="sm" variant="outline" disabled={busy} onClick={() => play(f.index)}>
-                  播放
+                  {t('task.play')}
                 </Button>
               )}
             </div>
@@ -470,8 +473,8 @@ function TaskRow({ task }: { task: DownloadTask }) {
           }}
         >
           <DialogHeader>
-            <DialogTitle>移除下载任务？</DialogTitle>
-            <DialogDescription>默认保留已下载文件和播放记录。</DialogDescription>
+            <DialogTitle>{t('removeDialog.title')}</DialogTitle>
+            <DialogDescription>{t('removeDialog.description')}</DialogDescription>
           </DialogHeader>
           <label className="flex items-center gap-2 text-sm">
             <input
@@ -479,11 +482,11 @@ function TaskRow({ task }: { task: DownloadTask }) {
               checked={deleteFiles}
               onChange={(e) => setDeleteFiles(e.target.checked)}
             />
-            同时删除已下载文件
+            {t('removeDialog.deleteFiles')}
           </label>
           <DialogFooter>
             <Button variant="outline" onClick={() => setRemove(false)}>
-              取消
+              {t('common:action.cancel')}
             </Button>
             <Button
               variant="destructive"
@@ -499,7 +502,7 @@ function TaskRow({ task }: { task: DownloadTask }) {
                 )
               }
             >
-              移除
+              {t('removeDialog.confirm')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -518,6 +521,7 @@ function NewDownload({
   onClose: () => void
   onExisting: (id: string) => void
 }) {
+  const { t } = useTranslation(['downloads', 'common', 'app'])
   const [id] = useState(() => crypto.randomUUID())
   const [input, setInput] = useState('')
   const isHttp = /^https?:\/\//i.test(input.trim())
@@ -552,12 +556,12 @@ function NewDownload({
             .map((f) => f.index),
         )
       } catch (e) {
-        if (!cancelledRef.current) setError(e instanceof Error ? e.message : '获取信息失败')
+        if (!cancelledRef.current) setError(describeError(e, t('newDialog.fetchFailed')))
       } finally {
         setBusy(false)
       }
     },
-    [id],
+    [id, t],
   )
   useEffect(() => {
     cancelledRef.current = false
@@ -587,17 +591,17 @@ function NewDownload({
         }}
       >
         <DialogHeader>
-          <DialogTitle>{draft ? '选择下载内容' : '新建下载'}</DialogTitle>
+          <DialogTitle>{draft ? t('newDialog.selectTitle') : t('newDialog.title')}</DialogTitle>
           <DialogDescription>
-            {draft ? draft.name : '粘贴 HTTP/HTTPS 文件直链或磁力链接，也可选择 BT v1 种子文件。'}
+            {draft ? draft.name : t('newDialog.description')}
           </DialogDescription>
         </DialogHeader>
         {!draft ? (
           <>
             <Input
               autoFocus
-              aria-label="下载链接"
-              placeholder="https://… 或 magnet:?xt=urn:btih:…"
+              aria-label={t('newDialog.urlLabel')}
+              placeholder={t('newDialog.urlPlaceholder')}
               value={input}
               onChange={(e) => setInput(e.target.value)}
               disabled={busy}
@@ -614,11 +618,11 @@ function NewDownload({
                   .catch(downloadError)
               }}
             >
-              选择种子文件
+              {t('newDialog.chooseTorrent')}
             </Button>
             {busy && (
               <p role="status" className="text-muted-foreground text-sm">
-                正在获取文件信息，可取消后重试…
+                {t('newDialog.fetching')}
               </p>
             )}
           </>
@@ -630,10 +634,10 @@ function NewDownload({
                 variant="ghost"
                 onClick={() => setSelected(draft.files.map((f) => f.index))}
               >
-                全选
+                {t('task.selectAll')}
               </Button>
               <Button size="sm" variant="ghost" onClick={() => setSelected([])}>
-                取消全选
+                {t('task.deselectAll')}
               </Button>
             </div>
             <div className="max-h-60 overflow-y-auto rounded-lg border p-3">
@@ -656,16 +660,16 @@ function NewDownload({
               ))}
             </div>
             <p className="text-muted-foreground text-sm">
-              已选 {selected.length} 项 ·{' '}
+              {t('newDialog.selected', { count: selected.length })}{' '}
               {bytes(
                 draft.files
                   .filter((f) => selected.includes(f.index))
                   .reduce((n, f) => n + f.size, 0),
               )}
             </p>
-            <label className="text-sm">保存位置</label>
+            <label className="text-sm">{t('newDialog.saveTo')}</label>
             <div className="flex gap-2">
-              <Input aria-label="保存位置" value={directory} readOnly />
+              <Input aria-label={t('newDialog.saveTo')} value={directory} readOnly />
               <Button
                 variant="outline"
                 onClick={() => {
@@ -676,23 +680,22 @@ function NewDownload({
                     .catch(downloadError)
                 }}
               >
-                选择
+                {t('newDialog.choose')}
               </Button>
             </div>
             <p className="text-muted-foreground text-xs">
-              按种子原有文件或文件夹名保存，同名内容不会覆盖。
+              {t('newDialog.torrentHint')}
             </p>
           </>
         )}
         {!draft && isHttp && (
           <div className="space-y-2">
             <p className="text-muted-foreground text-xs">
-              同时下载最多 3 个 HTTP
-              文件，其余排队。重启后手动继续；续传取决于服务器支持，不支持时重新下载。
+              {t('newDialog.httpHint')}
             </p>
-            <label className="text-sm">保存目录</label>
+            <label className="text-sm">{t('newDialog.httpDirectory')}</label>
             <div className="flex gap-2">
-              <Input aria-label="HTTP 保存目录" readOnly value={directory} />
+              <Input aria-label={t('newDialog.httpDirectoryLabel')} readOnly value={directory} />
               <Button
                 variant="outline"
                 disabled={busy}
@@ -704,7 +707,7 @@ function NewDownload({
                     .catch(downloadError)
                 }}
               >
-                选择
+                {t('newDialog.choose')}
               </Button>
             </div>
           </div>
@@ -716,7 +719,7 @@ function NewDownload({
         )}
         <DialogFooter>
           <Button variant="outline" onClick={close}>
-            取消
+            {t('common:action.cancel')}
           </Button>
           <Button
             disabled={busy || (draft ? !selected.length || !directory : !input.trim())}
@@ -729,7 +732,7 @@ function NewDownload({
                 )
                   .then(onClose)
                   .catch((e) => {
-                    setError(e.message)
+                    setError(describeError(e, t('operationFailed')))
                     setBusy(false)
                   })
                 return
@@ -744,12 +747,12 @@ function NewDownload({
               )
                 .then(onClose)
                 .catch((e) => {
-                  setError(e.message)
+                  setError(describeError(e, t('operationFailed')))
                   setBusy(false)
                 })
             }}
           >
-            {draft || isHttp ? '开始下载' : '获取文件信息'}
+            {draft || isHttp ? t('newDialog.start') : t('newDialog.fetchInfo')}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -19,9 +19,11 @@ import {
 import { Input } from '@renderer/components/ui/input'
 import { ScrollArea } from '@renderer/components/ui/scrollArea'
 import { useToast } from '@renderer/components/ui/toast'
+import { CONTENT_LANG } from '@renderer/lib/i18n'
 import { cn } from '@renderer/lib/utils'
 import { useAtomValue } from 'jotai'
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import { LocalDanmakuFileButton } from '../../setting/items/damaku/LocalDanmakuFileButton'
 
@@ -43,6 +45,7 @@ export const MatchAnimeDialog: FC<MatchAnimeDialogProps> = (props) => {
   const cancelImportRef = useRef<(() => void) | null>(null)
   const [importing, setImporting] = useState(false)
   const { toast } = useToast()
+  const { t } = useTranslation('player')
   const { open } = useAtomValue(showMatchAnimeDialogAtom)
 
   useEffect(() => {
@@ -99,15 +102,19 @@ export const MatchAnimeDialog: FC<MatchAnimeDialogProps> = (props) => {
         }}
       >
         <DialogHeader>
-          <DialogTitle className="text-xl">选择弹幕</DialogTitle>
+          <DialogTitle className="text-xl">{t('matchDialog.title')}</DialogTitle>
           <DialogDescription>
             {props.allowLocalImport
-              ? '搜索在线弹幕库，或导入自己的弹幕文件'
-              : '搜索在线弹幕库并选择剧集'}
+              ? t('matchDialog.descriptionWithImport')
+              : t('matchDialog.description')}
           </DialogDescription>
         </DialogHeader>
         <div className="flex min-h-0 flex-col gap-3">
-          <Input placeholder="输入作品名称搜索" onChange={handleSearchAnime} disabled={importing} />
+          <Input
+            placeholder={t('matchDialog.searchPlaceholder')}
+            onChange={handleSearchAnime}
+            disabled={importing}
+          />
           <ScrollArea
             className={cn(
               'relative min-h-0 shrink rounded-md border px-4',
@@ -117,14 +124,15 @@ export const MatchAnimeDialog: FC<MatchAnimeDialogProps> = (props) => {
             <Accordion type="single" collapsible className="w-full">
               {accordionData?.length === 0 && (
                 <p className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
-                  暂无匹配的弹幕库
+                  {t('matchDialog.empty')}
                 </p>
               )}
               {accordionData?.map((match) => {
                 const { animeId, animeTitle } = match[0]
 
                 return (
-                  <AccordionItem key={animeId} value={`${animeId}`}>
+                  // 番剧与剧集标题来自弹弹play，固定按中文内容标注
+                  <AccordionItem key={animeId} value={`${animeId}`} lang={CONTENT_LANG}>
                     <AccordionTrigger disabled={importing}>{animeTitle}</AccordionTrigger>
                     <AccordionContent>
                       <ul className="mt-2 space-y-5">
@@ -142,8 +150,11 @@ export const MatchAnimeDialog: FC<MatchAnimeDialogProps> = (props) => {
                                 })
                               showMatchAnimeDialog(false)
                               toast({
-                                title: '已选择弹幕库',
-                                description: `已选择 ${animeTitle} ${item.episodeTitle}`,
+                                title: t('matchDialog.selectedTitle'),
+                                description: t('matchDialog.selectedDescription', {
+                                  anime: animeTitle ?? '',
+                                  episode: item.episodeTitle ?? '',
+                                }),
                               })
                             }}
                             className="hover:text-info"
@@ -170,7 +181,7 @@ export const MatchAnimeDialog: FC<MatchAnimeDialogProps> = (props) => {
                     showMatchAnimeDialog(false)
                   }}
                 />
-                <p className="text-muted-foreground text-xs">支持 B 站 XML / JSON 格式</p>
+                <p className="text-muted-foreground text-xs">{t('matchDialog.formats')}</p>
               </div>
             )}
             <Show when={isLoading}>
@@ -184,7 +195,7 @@ export const MatchAnimeDialog: FC<MatchAnimeDialogProps> = (props) => {
                 }}
               >
                 <i className="icon-[mingcute--play-circle-line] mr-1 text-lg" />
-                <span>稍后选择</span>
+                <span>{t('matchDialog.later')}</span>
               </Button>
             </Show>
           </div>

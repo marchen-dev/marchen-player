@@ -106,8 +106,11 @@ export interface TelemetryEventMap {
   /** 翻译引擎与模型的一次下载结果；cancelled 包含首次确认时取消与下载中途关闭翻译 */
   danmaku_translation_assets_downloaded: {
     result: 'success' | 'failed' | 'cancelled'
-    /** first_enable：首次开启并确认；auto_recover：开关已开但本机资源缺失；retry：失败后手动重试 */
-    trigger: 'first_enable' | 'auto_recover' | 'retry'
+    /**
+     * first_enable：首次开启并确认；auto_recover：开关已开但本机资源缺失；retry：失败后手动重试；
+     * preload：界面语言有对应模型，在用户开启翻译之前后台预下载
+     */
+    trigger: 'first_enable' | 'auto_recover' | 'retry' | 'preload'
     error_code?: string
     duration_ms: number
     /** 本次实际下载并落盘的字节数（解压后） */

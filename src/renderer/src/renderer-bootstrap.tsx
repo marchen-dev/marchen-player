@@ -8,6 +8,7 @@ import { reactRouter } from './router'
 import { writeRendererSnapshot } from './services/telemetry/diagnostic-snapshot'
 import { createReactRootErrorHandlers } from './services/telemetry/react-errors'
 import { installStableRouterTracing } from './services/telemetry/sentry/router-tracing'
+import { startTranslationPreload } from './services/translation/preload'
 import './styles/main.css'
 
 /** 挂载前确定界面语言，首屏直接用正确的语言渲染 */
@@ -29,4 +30,7 @@ export const mountRenderer = () => {
       <ClickToComponent />
     </>,
   )
+
+  // 界面语言有对应的翻译模型时，在空闲时预下载翻译资源；不影响首屏
+  startTranslationPreload()
 }

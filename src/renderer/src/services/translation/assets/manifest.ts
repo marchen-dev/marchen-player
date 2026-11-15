@@ -12,6 +12,9 @@ export type TranslationTarget = 'en'
 
 export const DEFAULT_TRANSLATION_TARGET: TranslationTarget = 'en'
 
+/** 全部可选的目标语言，顺序即下拉框里的显示顺序 */
+export const TRANSLATION_TARGETS: readonly TranslationTarget[] = ['en']
+
 /** 语言对标识：源语言固定为简体中文，繁体在送入引擎前统一转简体 */
 export type TranslationPairId = `zh-Hans>${TranslationTarget}`
 

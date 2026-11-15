@@ -22,8 +22,9 @@ import { usePlayerLoadingService } from '@renderer/services/player-loading/hooks
 import { captureFeatureUsed } from '@renderer/services/telemetry/features'
 import { reportOperationalError } from '@renderer/services/telemetry/operational-errors'
 import { useLiveQuery } from 'dexie-react-hooks'
-
 import { useCallback, useMemo, useState } from 'react'
+
+import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router'
 import { DetailOverlay } from './DetailOverlay'
 import { EmptyState } from './EmptyState'
@@ -109,6 +110,7 @@ async function loadLibrarySources(items: DB_Library[]): Promise<Map<number, Libr
 }
 
 export default function Library() {
+  const { t } = useTranslation(['library', 'player', 'app'])
   const navigate = useNavigate()
   const service = usePlayerLoadingService()
   const { showFailedToast } = usePlayAnimeFailedToast()
@@ -171,8 +173,8 @@ export default function Library() {
     (file: File) => {
       if (!checkIsVideoType(file.name)) {
         showFailedToast({
-          title: '格式错误',
-          description: '请选择 MP4、MKV、MOV、WebM 或 TS 等支持的视频文件',
+          title: t('player:home.invalidFormatTitle'),
+          description: t('player:home.invalidFormatDescription'),
         })
         return
       }
@@ -180,7 +182,7 @@ export default function Library() {
       captureFeatureUsed('library', 'drop_video')
       service.loadFromFile(file)
     },
-    [navigate, service, showFailedToast],
+    [navigate, service, showFailedToast, t],
   )
 
   // 直接播放下一集；无可播放（fileHash 缺失）时 fallback 打开详情让用户挑集
@@ -218,15 +220,15 @@ export default function Library() {
         void revealInFolder(item).then((ok) => {
           if (ok) return
           toast({
-            title: '无法定位文件',
-            description: '视频文件可能已被移动或删除',
+            title: t('player:history.revealFailedTitle'),
+            description: t('player:history.revealFailedDescription'),
             variant: 'destructive',
           })
         })
       },
       onRemove: (item) => {
         void confirm({
-          title: `从影视库移除「${item.title}」？播放记录会保留，再次播放时会重新加入。`,
+          title: t('removeConfirm', { title: item.title }),
           handleConfirm: () => {
             captureFeatureUsed('library', 'context_remove')
             // 详情正展示被移除的作品时一并关闭，避免停留在已删除条目上
@@ -236,10 +238,11 @@ export default function Library() {
         })
       },
     }),
-    [confirm, playEpisode, toast],
+    [confirm, playEpisode, t, toast],
   )
 
-  const headerState = useMemo(() => ({ title: '影视库', actions: null }), [])
+  const libraryTitle = t('app:routes.library')
+  const headerState = useMemo(() => ({ title: libraryTitle, actions: null }), [libraryTitle])
   usePageHeader(headerState)
 
   // 首次进入且查询未返回时只渲染空外壳，不把「加载中」误显示成空状态
@@ -261,7 +264,7 @@ export default function Library() {
         )}
 
         {continueWatching.length > 0 && (
-          <Rail title="继续观看" sub="CONTINUE WATCHING">
+          <Rail title={t('rail.continueWatching')} sub="CONTINUE WATCHING">
             {continueWatching.map((item) => (
               <LandscapeCard
                 key={item.animeId}
@@ -277,7 +280,7 @@ export default function Library() {
         )}
 
         <PosterGrid
-          title="所有作品"
+          title={t('rail.all')}
           sub={`LIBRARY · ${allShows.length}`}
           items={allShows}
           onCardClick={onCardClick}

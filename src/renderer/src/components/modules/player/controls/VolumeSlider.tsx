@@ -1,5 +1,6 @@
 import type { KeyboardEvent, PointerEvent } from 'react'
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { volumeFromPointer } from './volume-slider-math'
 
 export interface VolumeSliderProps {
@@ -19,6 +20,7 @@ export const VolumeSlider = ({
   onDraggingChange,
   className,
 }: VolumeSliderProps) => {
+  const { t } = useTranslation('player')
   const [dragValue, setDragValue] = useState<number | null>(null)
   const visibleValue = clamp(dragValue ?? value, 0, 1)
 
@@ -71,7 +73,7 @@ export const VolumeSlider = ({
       data-no-controller-drag
       role="slider"
       tabIndex={0}
-      aria-label="音量"
+      aria-label={t('controls.volume')}
       aria-valuemin={0}
       aria-valuemax={100}
       aria-valuenow={Math.round(visibleValue * 100)}

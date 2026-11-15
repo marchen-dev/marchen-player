@@ -1,4 +1,5 @@
 import type { FC } from 'react'
+import { useTranslation } from 'react-i18next'
 
 /**
  * library 主区的空状态。两种文案：
@@ -10,14 +11,15 @@ interface EmptyStateProps {
 }
 
 export const EmptyState: FC<EmptyStateProps> = ({ variant = 'empty' }) => {
+  const { t } = useTranslation('library')
   if (variant === 'no-match') {
     return (
       <div className="library-empty">
         <div className="library-empty-art">
           <SearchGlyph />
         </div>
-        <p className="library-empty-title">没有匹配项</p>
-        <p className="library-empty-sub">试试清除筛选或搜索条件</p>
+        <p className="library-empty-title">{t('empty.noMatchTitle')}</p>
+        <p className="library-empty-sub">{t('empty.noMatchSub')}</p>
       </div>
     )
   }
@@ -27,8 +29,8 @@ export const EmptyState: FC<EmptyStateProps> = ({ variant = 'empty' }) => {
       <div className="library-empty-art">
         <FilmGlyph />
       </div>
-      <p className="library-empty-title">影视库为空</p>
-      <p className="library-empty-sub">播放动画后会自动入库</p>
+      <p className="library-empty-title">{t('empty.title')}</p>
+      <p className="library-empty-sub">{t('empty.sub')}</p>
     </div>
   )
 }

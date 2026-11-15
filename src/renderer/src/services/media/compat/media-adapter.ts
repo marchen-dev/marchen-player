@@ -10,6 +10,7 @@ import type { SoundTouchNode } from '@soundtouchjs/audio-worklet'
 import type { CompatReply, CompatSource } from './protocol'
 import type { VideoFramePresenter } from './video-frame-presenter'
 import { RemoteMediaError } from '@marchen/shared/media/remote'
+import { SINGLE_THREAD_FALLBACK } from '@renderer/services/player-runtime/playback-info'
 import { Subject } from 'rxjs'
 import { closeAudioStretch, createAudioStretch } from './audio-stretch'
 import { CompatDecoderClient } from './client'
@@ -436,7 +437,7 @@ export class CompatMediaAdapter implements MediaPort {
       this.presentation.decodeThreads =
         reply.diagnostics.mode === 'threads' ? reply.diagnostics.configuredThreads : 1
       if (reply.diagnostics.configuredThreads > 1 && reply.diagnostics.mode !== 'threads')
-        this.presentation.fallbackReason = '多线程运行时不可用，已使用单线程'
+        this.presentation.fallbackReason = SINGLE_THREAD_FALLBACK
     }
     const memory = reply.diagnostics?.memory
     if (memory) {

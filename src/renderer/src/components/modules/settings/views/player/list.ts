@@ -38,29 +38,18 @@ export const danmakuFontSizeList = [
   })),
 ] satisfies SelectOption[]
 
+/**
+ * 持续时间与在屏密度的选项名是文字而不是数值，这里只存 id：
+ * 这是模块顶层的常量，存了文字就不会随语言切换更新。
+ * 名称在渲染时取 danmaku 命名空间的 `settings.durationOptions.<id>` / `settings.densityOptions.<id>`。
+ */
 export const danmakuDurationList = [
-  {
-    label: '极慢',
-    value: '17000',
-  },
-  {
-    label: '较慢',
-    value: '19000',
-  },
-  {
-    label: '适中',
-    value: '15000',
-    default: true,
-  },
-  {
-    label: '较快',
-    value: '13000',
-  },
-  {
-    label: '极快',
-    value: '10000',
-  },
-] satisfies SelectOption[]
+  { id: 'verySlow', value: '17000' },
+  { id: 'slow', value: '19000' },
+  { id: 'normal', value: '15000', default: true },
+  { id: 'fast', value: '13000' },
+  { id: 'veryFast', value: '10000' },
+] as const
 
 export const danmakuEndAreaList = [
   {
@@ -87,10 +76,10 @@ export const danmakuEndAreaList = [
 ] satisfies SelectOption[]
 
 export const danmakuDensityList = [
-  { label: '低（40 条）', value: '40' },
-  { label: '中（80 条）', value: '80', default: true },
-  { label: '高（120 条）', value: '120' },
-] satisfies SelectOption[]
+  { id: 'low', value: '40' },
+  { id: 'medium', value: '80', default: true },
+  { id: 'high', value: '120' },
+] as const
 
 // 与其余弹幕设置共用下拉样式，选回 100% 即恢复默认。
 export const danmakuOpacityList: SelectOption[] = Array.from({ length: 19 }, (_, index) => {

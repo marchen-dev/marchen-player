@@ -1,3 +1,4 @@
+import { t } from '@renderer/lib/i18n'
 import { getVideoGenerator } from '../media/compat/video-frame-presenter'
 
 /** 产品支持范围：Electron 和具备解码 API 的桌面 Chromium，暂不开放 Safari/Firefox。 */
@@ -9,9 +10,7 @@ export function detectCompatSupport(userAgent: string, electron: boolean, hasApi
         !/(?:Firefox|FxiOS|CriOS|EdgiOS)\//.test(userAgent)))
   return {
     supported,
-    reason: supported
-      ? undefined
-      : '当前浏览器暂不支持 兼容内核，请使用原生（H5）播放，或换用桌面 Chrome / Edge。',
+    reason: supported ? undefined : t('player:engine.compatUnsupported'),
   }
 }
 

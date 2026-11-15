@@ -1,5 +1,6 @@
 import type { FC, PropsWithChildren, WheelEvent } from 'react'
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
 /**
  * 横向滚动列表容器。
@@ -19,6 +20,7 @@ interface RailProps extends PropsWithChildren {
 }
 
 export const Rail: FC<RailProps> = ({ title, sub, children }) => {
+  const { t } = useTranslation('library')
   const trackRef = useRef<HTMLDivElement>(null)
   const [canPrev, setCanPrev] = useState(false)
   const [canNext, setCanNext] = useState(true)
@@ -67,7 +69,7 @@ export const Rail: FC<RailProps> = ({ title, sub, children }) => {
             type="button"
             onClick={() => scrollBy(-1)}
             disabled={!canPrev}
-            aria-label="向左滚动"
+            aria-label={t('rail.scrollLeft')}
           >
             <ArrowLeftGlyph />
           </button>
@@ -75,7 +77,7 @@ export const Rail: FC<RailProps> = ({ title, sub, children }) => {
             type="button"
             onClick={() => scrollBy(1)}
             disabled={!canNext}
-            aria-label="向右滚动"
+            aria-label={t('rail.scrollRight')}
           >
             <ArrowRightGlyph />
           </button>

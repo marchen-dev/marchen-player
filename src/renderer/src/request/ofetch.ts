@@ -1,5 +1,6 @@
 import { toast } from '@renderer/components/ui/toast'
 import { API_ROUTES, API_SIGN } from '@renderer/lib/env'
+import { t } from '@renderer/lib/i18n'
 import { getApiRouteClient } from './api-route'
 import { sendApiRequest } from './signed-fetch'
 
@@ -38,10 +39,10 @@ const request = async <T>(
       if (response?.status === 403) {
         toast({
           title: '403 Forbidden',
-          description: `接口请求被拒绝，请联系开发者 - ${response.url}`,
+          description: t('app:request.forbidden', { url: response.url ?? '' }),
         })
       } else if (response?.status !== 404) {
-        toast({ title: '接口请求失败', description: url })
+        toast({ title: t('app:request.failed'), description: url })
       }
     }
     throw error

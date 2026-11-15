@@ -18,6 +18,7 @@ import { selectAtom } from 'jotai/utils'
 
 import { Dialog } from 'radix-ui'
 import { createElement, Fragment, memo, useCallback, useEffect, useMemo, useRef } from 'react'
+import { useTranslation } from 'react-i18next'
 import { ButtonWithIcon } from '../../button'
 import { Divider } from '../../divider'
 import { MODAL_STACK_Z_INDEX, modalMotionConfig } from './constants'
@@ -33,6 +34,7 @@ interface ModalInternalProps extends PropsWithChildren {
 
 export const ModalInternal: FC<ModalInternalProps> = memo(({ ref, ...props }) => {
   const { item, index, isTop, onClose: onPropsClose, children } = props
+  const { t } = useTranslation('app')
   const setStack = useSetAtom(modalStackAtom)
   const close = useEventCallback(() => {
     setStack((p) => p.filter((stack) => stack.id !== item.id))
@@ -170,7 +172,7 @@ export const ModalInternal: FC<ModalInternalProps> = memo(({ ref, ...props }) =>
             <Dialog.Content
               asChild
               ref={modalContentRef}
-              aria-description={description ?? '弹窗内容'}
+              aria-description={description ?? t('modalFallbackDescription')}
               onCloseAutoFocus={(event) => {
                 if (!returnFocusRef?.current?.isConnected) return
                 event.preventDefault()

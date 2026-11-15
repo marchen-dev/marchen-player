@@ -104,7 +104,11 @@ async function lookupKind(sourceId: string): Promise<MediaSourceKind | undefined
 async function notifyContentChanged() {
   try {
     const { toast } = await import('@renderer/components/ui/toast')
-    toast({ title: '视频内容已变化', description: '已作为新视频重新匹配弹幕，旧进度已清除' })
+    const { t } = await import('@renderer/lib/i18n')
+    toast({
+      title: t('player:contentChanged.title'),
+      description: t('player:contentChanged.description'),
+    })
   } catch {
     /* 提示失败不影响加载 */
   }

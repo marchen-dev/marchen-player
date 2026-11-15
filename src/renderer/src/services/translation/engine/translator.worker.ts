@@ -151,6 +151,7 @@ globalThis.onmessage = async (event: MessageEvent<TranslatorRequest>) => {
       const start = performance.now()
       await initialize(request.assets, request.source, request.target)
       // 预热：首次翻译要分配工作区，耗时明显高于后续，放在初始化里一并完成
+      // eslint-disable-next-line marchen/no-hardcoded-ui-text -- 预热用的输入，不是界面文字
       engine!.translate('你好')
       post({ id: request.id, ok: true, type: 'init', initMs: performance.now() - start })
       return

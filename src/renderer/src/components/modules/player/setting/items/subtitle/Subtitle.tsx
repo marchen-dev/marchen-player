@@ -10,10 +10,12 @@ import {
   SelectValue,
 } from '@renderer/components/ui/select'
 import { useNativeSubtitles, usePlayerPortalContainer } from '@renderer/services/player-runtime'
+import { useTranslation } from 'react-i18next'
 
 import { SettingContainer } from '../../Container'
 
 export const Subtitle = () => {
+  const { t } = useTranslation('player')
   const [settings, setSettings] = usePlayerSettings()
   const {
     tracks,
@@ -35,14 +37,16 @@ export const Subtitle = () => {
 
   return (
     <SettingContainer>
-      {!embeddedSupported && <p className="text-sm text-white/60">远程视频暂不支持内嵌字幕</p>}
-      <FieldLayout title="字幕轨道">
+      {!embeddedSupported && (
+        <p className="text-sm text-white/60">{t('subtitle.remoteNoEmbedded')}</p>
+      )}
+      <FieldLayout title={t('subtitle.track')}>
         <Select value={pendingId ?? selectedId} onValueChange={(value) => void selectTrack(value)}>
           <SelectTrigger
-            aria-label="字幕轨道"
+            aria-label={t('subtitle.track')}
             className="w-56 border-white/11 bg-white/8 text-white focus:ring-[var(--player-settings-focus)] focus:ring-offset-0"
           >
-            <SelectValue placeholder="选择字幕轨道" />
+            <SelectValue placeholder={t('subtitle.trackPlaceholder')} />
           </SelectTrigger>
           <SelectContent
             container={portalContainer}
@@ -50,7 +54,7 @@ export const Subtitle = () => {
           >
             <SelectGroup>
               <SelectItem value="off" className="focus:bg-white/14 focus:text-white">
-                关闭字幕
+                {t('subtitle.off')}
               </SelectItem>
               {tracks.map((track) => (
                 <SelectItem
@@ -68,7 +72,7 @@ export const Subtitle = () => {
         </Select>
       </FieldLayout>
 
-      <FieldLayout title={`字幕大小：${settings.subtitleScale}%`}>
+      <FieldLayout title={t('subtitle.scale', { percent: settings.subtitleScale })}>
         <div className="flex items-center gap-3">
           <input
             type="range"
@@ -77,7 +81,7 @@ export const Subtitle = () => {
             step={5}
             value={settings.subtitleScale}
             disabled={bitmapSelected}
-            aria-label="字幕大小"
+            aria-label={t('subtitle.scaleLabel')}
             aria-valuetext={`${settings.subtitleScale}%`}
             aria-describedby={bitmapSelected ? 'subtitle-scale-bitmap-hint' : undefined}
             className="min-w-0 flex-1 accent-[var(--player-settings-accent)] disabled:opacity-40"
@@ -93,13 +97,13 @@ export const Subtitle = () => {
             className="border-white/11 bg-white/8 text-white hover:bg-white/14 hover:text-white"
             onClick={() => setSettings((previous) => ({ ...previous, subtitleScale: 100 }))}
           >
-            重置
+            {t('subtitle.reset')}
           </Button>
         </div>
       </FieldLayout>
       {bitmapSelected && (
         <p id="subtitle-scale-bitmap-hint" className="-mt-2 text-sm text-white/60">
-          图片字幕不支持调整大小
+          {t('subtitle.bitmapNoScale')}
         </p>
       )}
 
@@ -109,17 +113,23 @@ export const Subtitle = () => {
         className="border-white/11 bg-white/8 text-white hover:bg-white/14 hover:text-white"
         onClick={() => void importTrack()}
       >
-        导入外挂字幕…
+        {t('subtitle.import')}
       </Button>
 
-      <FieldLayout title={`时间偏移 ${timeOffset > 0 ? '+' : ''}${timeOffset.toFixed(1)} 秒`}>
+      <FieldLayout
+        // 右侧是占满剩余宽度的滑块，标题本来就换行显示；不加间距，保持滑块原来的宽度
+        className="gap-0"
+        title={t('subtitle.offset', {
+          offset: `${timeOffset > 0 ? '+' : ''}${timeOffset.toFixed(1)}`,
+        })}
+      >
         <input
           type="range"
           min={-9}
           max={9}
           step={0.5}
           value={timeOffset}
-          aria-label="字幕时间偏移"
+          aria-label={t('subtitle.offsetLabel')}
           className="w-full accent-[var(--player-settings-accent)]"
           onChange={(event) => void setTimeOffset(event.currentTarget.valueAsNumber)}
         />
@@ -128,17 +138,17 @@ export const Subtitle = () => {
       {loading && (embeddedSupported || loadingOperation !== 'catalog') && (
         <div className="flex items-center justify-between gap-3">
           <p role="status" className="text-sm text-white/60">
-            {loadingOperation === 'catalog' ? '正在读取字幕轨道…' : '正在读取字幕…'}
+            {loadingOperation === 'catalog' ? t('subtitle.loadingCatalog') : t('subtitle.loading')}
           </p>
           <Button type="button" variant="ghost" onClick={cancelLoading}>
-            取消读取
+            {t('subtitle.cancelLoading')}
           </Button>
         </div>
       )}
 
       {error && (
         <p role="status" className="text-sm text-red-400">
-          {error}，视频将继续无字幕播放。
+          {t('subtitle.errorSuffix', { error })}
         </p>
       )}
     </SettingContainer>

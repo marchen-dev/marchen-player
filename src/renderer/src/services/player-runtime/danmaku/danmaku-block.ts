@@ -1,11 +1,12 @@
+import type { DanmakuItem, DanmakuMode } from '@marchen/danmaku-engine'
+import type { DanmakuBlockRule, DanmakuBlockSettings } from './danmaku-block-settings'
 /**
  * 弹幕屏蔽的规则解析与判定，全部为纯函数。
  *
  * 渲染器与弹幕列表各自持有不同 id 空间的弹幕副本，但都通过这里的同一个 blocker 判定，
  * 因此两处对「哪些弹幕被屏蔽」的结论必然一致。判定只影响显示，原始弹幕不被改写。
  */
-import type { DanmakuItem, DanmakuMode } from '@marchen/danmaku-engine'
-import type { DanmakuBlockRule, DanmakuBlockSettings } from './danmaku-block-settings'
+import { t } from '@renderer/lib/i18n'
 
 import {
   DANMAKU_BLOCK_MODES,
@@ -34,7 +35,7 @@ const compileRegex = (pattern: string) => new RegExp(pattern, 'i')
  */
 export const parseBlockRuleInput = (input: string): BlockRuleParseResult => {
   const trimmed = input.trim()
-  if (!trimmed) return { ok: false, reason: 'empty', message: '请输入要屏蔽的内容' }
+  if (!trimmed) return { ok: false, reason: 'empty', message: t('danmaku:block.parse.empty') }
 
   if (trimmed.length >= 3 && trimmed.startsWith('/') && trimmed.endsWith('/')) {
     const pattern = trimmed.slice(1, -1)
@@ -42,7 +43,11 @@ export const parseBlockRuleInput = (input: string): BlockRuleParseResult => {
       compileRegex(pattern)
     } catch (error) {
       const detail = error instanceof Error ? error.message : String(error)
-      return { ok: false, reason: 'invalid_regex', message: `正则无效：${detail}` }
+      return {
+        ok: false,
+        reason: 'invalid_regex',
+        message: t('danmaku:block.parse.invalidRegex', { detail }),
+      }
     }
     return { ok: true, rule: { type: 'regex', pattern } }
   }
@@ -52,7 +57,7 @@ export const parseBlockRuleInput = (input: string): BlockRuleParseResult => {
     return {
       ok: false,
       reason: 'too_long',
-      message: `关键词不能超过 ${MAX_DANMAKU_BLOCK_KEYWORD_LENGTH} 个字符`,
+      message: t('danmaku:block.parse.tooLong', { max: MAX_DANMAKU_BLOCK_KEYWORD_LENGTH }),
     }
   }
   return { ok: true, rule: { type: 'keyword', pattern } }
@@ -131,13 +136,11 @@ export const blockDanmakuText = (settings: DanmakuBlockSettings, text: string): 
 export type DanmakuBlockHit =
   { kind: 'mode'; mode: DanmakuMode } | { kind: 'rule'; rule: DanmakuBlockRule }
 
-const MODE_NAMES: Record<DanmakuMode, string> = { scroll: '滚动', top: '顶部', bottom: '底部' }
-
 export const describeBlockHit = (hit: DanmakuBlockHit) => {
-  if (hit.kind === 'mode') return `已屏蔽${MODE_NAMES[hit.mode]}弹幕`
+  if (hit.kind === 'mode') return t(`danmaku:block.hit.${hit.mode}`)
   return hit.rule.type === 'regex'
-    ? `命中正则 ${formatBlockRule(hit.rule)}`
-    : `命中关键词「${hit.rule.pattern}」`
+    ? t('danmaku:block.hit.regex', { rule: formatBlockRule(hit.rule) })
+    : t('danmaku:block.hit.keyword', { keyword: hit.rule.pattern })
 }
 
 const escapeRegex = (text: string) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')

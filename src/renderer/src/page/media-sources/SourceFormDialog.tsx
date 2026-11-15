@@ -4,8 +4,10 @@ import { Button } from '@renderer/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@renderer/components/ui/dialog'
 import { Input } from '@renderer/components/ui/input'
 import { segmentedActiveClassName } from '@renderer/components/ui/tabs'
+import { describeError } from '@renderer/lib/errors'
 import { cn } from '@renderer/lib/utils'
 import { useId, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useSaveMediaSource } from './api'
 
 export type SourceFormRequest =
@@ -18,14 +20,6 @@ const URL_PLACEHOLDER: Record<MediaSourceKind, string> = {
   jellyfin: 'http://192.168.1.2:8096',
   emby: 'http://192.168.1.2:8096',
 }
-
-const URL_HINT: Record<MediaSourceKind, string> = {
-  webdav: '填写 WebDAV 根目录地址，例如 alist 的 /dav/',
-  jellyfin: '填写服务器地址，不需要带 /web',
-  emby: '填写服务器地址，不需要带 /web',
-}
-
-const TITLE = { add: '添加媒体源', edit: '编辑媒体源', relogin: '重新登录' } as const
 
 interface SourceFormDialogProps {
   request: SourceFormRequest | null
@@ -43,6 +37,7 @@ function SourceForm({
   onClose,
   onSaved,
 }: Omit<SourceFormDialogProps, 'request'> & { request: SourceFormRequest }) {
+  const { t } = useTranslation(['mediaSources', 'common'])
   const id = useId()
   const save = useSaveMediaSource()
   const current = request.mode !== 'add' ? request.source : undefined
@@ -77,8 +72,8 @@ function SourceForm({
       username: username.trim(),
       password,
     }
-    if (!input.url) return setError('请填写服务器地址')
-    if (passwordRequired && !password) return setError('请输入密码')
+    if (!input.url) return setError(t('form.urlRequired'))
+    if (passwordRequired && !password) return setError(t('form.passwordRequired'))
     setError('')
     save.mutate(
       request.mode === 'add'
@@ -88,7 +83,8 @@ function SourceForm({
           : { action: 'relogin', id: request.source.id, kind: request.source.kind, password },
       {
         onSuccess: (source) => onSaved(source),
-        onError: (cause) => setError(cause instanceof Error ? cause.message : '连接失败'),
+        onError: (cause) =>
+          setError(describeError(cause, t('form.connectFailed'), { domain: 'mediaSource' })),
       },
     )
   }
@@ -102,12 +98,10 @@ function SourceForm({
         onPointerDownOutside={(event) => event.preventDefault()}
       >
         <DialogHeader>
-          <DialogTitle>{TITLE[request.mode]}</DialogTitle>
+          <DialogTitle>{t(`form.title.${request.mode}`)}</DialogTitle>
         </DialogHeader>
         <p id={`${id}-description`} className="text-muted-foreground -mt-2 text-sm">
-          {relogin
-            ? `登录已失效，请重新输入「${current?.name}」的密码。`
-            : '保存前会先测试连接，账号信息只保存在本机。'}
+          {relogin ? t('form.reloginHint', { name: current?.name ?? '' }) : t('form.saveHint')}
         </p>
         <form
           className="space-y-4"
@@ -118,8 +112,12 @@ function SourceForm({
         >
           {!relogin && (
             <div className="space-y-2">
-              <span className="text-sm font-medium">类型</span>
-              <div className="bg-muted flex rounded-xl p-1" role="radiogroup" aria-label="类型">
+              <span className="text-sm font-medium">{t('form.kind')}</span>
+              <div
+                className="bg-muted flex rounded-xl p-1"
+                role="radiogroup"
+                aria-label={t('form.kind')}
+              >
                 {MEDIA_SOURCE_KINDS.map((value) => (
                   <Button
                     key={value}
@@ -143,7 +141,7 @@ function SourceForm({
           )}
           {!relogin && (
             <>
-              <Field id={`${id}-name`} label="名称">
+              <Field id={`${id}-name`} label={t('form.name')}>
                 <Input
                   id={`${id}-name`}
                   value={name}
@@ -153,7 +151,7 @@ function SourceForm({
                   onChange={(event) => setName(event.target.value)}
                 />
               </Field>
-              <Field id={`${id}-url`} label="服务器地址" hint={URL_HINT[kind]}>
+              <Field id={`${id}-url`} label={t('form.url')} hint={t(`form.urlHint.${kind}`)}>
                 <Input
                   id={`${id}-url`}
                   value={url}
@@ -167,7 +165,7 @@ function SourceForm({
                   }}
                 />
               </Field>
-              <Field id={`${id}-username`} label="用户名">
+              <Field id={`${id}-username`} label={t('form.username')}>
                 <Input
                   id={`${id}-username`}
                   value={username}
@@ -181,9 +179,9 @@ function SourceForm({
           )}
           <Field
             id={`${id}-password`}
-            label="密码"
+            label={t('form.password')}
             hint={
-              request.mode === 'edit' && !targetChanged ? '不修改地址和账号时可以留空' : undefined
+              request.mode === 'edit' && !targetChanged ? t('form.passwordOptionalHint') : undefined
             }
           >
             <Input
@@ -206,10 +204,14 @@ function SourceForm({
           )}
           <div className="flex justify-end gap-2">
             <Button type="button" variant="ghost" onClick={close} disabled={save.isPending}>
-              取消
+              {t('common:action.cancel')}
             </Button>
             <Button type="submit" disabled={save.isPending}>
-              {save.isPending ? '正在连接…' : relogin ? '登录' : '测试并保存'}
+              {save.isPending
+                ? t('form.connecting')
+                : relogin
+                  ? t('form.login')
+                  : t('form.testAndSave')}
             </Button>
           </div>
         </form>

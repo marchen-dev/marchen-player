@@ -1,12 +1,15 @@
 import { ipcClient } from '@renderer/lib/client'
+import { describeError } from '@renderer/lib/errors'
 import { captureExceptionOnce } from '@renderer/services/telemetry/error-dedupe'
 import { useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import { isRouteErrorResponse, useRouteError } from 'react-router'
 
 import { Button } from '../ui/button'
 
 export default function ErrorView() {
   const error = useRouteError()
+  const { t } = useTranslation(['app', 'errors'])
 
   useEffect(() => {
     captureExceptionOnce(error, {
@@ -19,22 +22,20 @@ export default function ErrorView() {
 
   const message = isRouteErrorResponse(error)
     ? error.statusText || String(error.status)
-    : error instanceof Error
-      ? error.message
-      : String(error)
+    : describeError(error, t('errors:generic.unknown'))
 
   return (
     <div className="flex h-screen flex-col items-center justify-center gap-5">
-      <p className="text-xl">糟糕发生错误了😭</p>
+      <p className="text-xl">{t('errorPage.title')}</p>
       <p className="text-lg">
-        错误信息: <i>{message}</i>
+        {t('errorPage.messageLabel')} <i>{message}</i>
       </p>
       <Button
         onClick={() => {
           ipcClient?.app.windowAction({ action: 'restart' })
         }}
       >
-        重新加载页面
+        {t('errorPage.reload')}
       </Button>
     </div>
   )

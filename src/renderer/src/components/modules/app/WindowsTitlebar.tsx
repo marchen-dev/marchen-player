@@ -1,15 +1,17 @@
 import { useWindowState, WindowState } from '@renderer/atoms/window'
 import { ipcClient } from '@renderer/lib/client'
+import { useTranslation } from 'react-i18next'
 
 export const Titlebar = () => {
   const windowState = useWindowState()
+  const { t } = useTranslation('app')
 
   return (
     <div className="no-drag-region -mr-4 flex h-full shrink-0 items-center">
       <button
         className="no-drag-region hover:bg-muted pointer-events-auto flex h-full w-[50px] items-center justify-center duration-200"
         type="button"
-        aria-label="最小化"
+        aria-label={t('titlebar.minimize')}
         onClick={() => {
           ipcClient?.app.windowAction({ action: 'minimize' })
         }}
@@ -19,7 +21,9 @@ export const Titlebar = () => {
 
       <button
         type="button"
-        aria-label={windowState === WindowState.MAXIMIZED ? '还原窗口' : '最大化'}
+        aria-label={
+          windowState === WindowState.MAXIMIZED ? t('titlebar.restore') : t('titlebar.maximize')
+        }
         className="no-drag-region hover:bg-muted pointer-events-auto flex h-full w-[50px] items-center justify-center duration-200"
         onClick={async () => {
           await ipcClient?.app.windowAction({ action: 'maximum' })
@@ -34,7 +38,7 @@ export const Titlebar = () => {
 
       <button
         type="button"
-        aria-label="关闭窗口"
+        aria-label={t('titlebar.close')}
         className="no-drag-region pointer-events-auto flex h-full w-[50px] items-center justify-center duration-200 hover:bg-red-500 hover:!text-white"
         onClick={() => {
           ipcClient?.app.windowAction({ action: 'close' })

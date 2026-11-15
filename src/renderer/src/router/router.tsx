@@ -13,7 +13,11 @@ import { RouteName } from '.'
 export interface SidebarRouteObject extends NonIndexRouteObject {
   meta?: {
     icon: string
-    title: string
+    /**
+     * 导航项名称在 app 命名空间里的键。路由表是模块顶层的常量，
+     * 存文字的话不会随语言切换更新，所以存键，渲染时再翻译。
+     */
+    titleKey: `routes.${'player' | 'library' | 'mediaSources' | 'downloads'}`
   }
 }
 
@@ -29,7 +33,7 @@ const allSidebarRoutes = [
     path: RouteName.PLAYER,
     meta: {
       icon: 'icon-[mingcute--video-camera-line]',
-      title: '视频播放',
+      titleKey: 'routes.player',
     },
     errorElement: <ErrorView />,
     element: <VideoPlayer />,
@@ -38,20 +42,20 @@ const allSidebarRoutes = [
     path: RouteName.LIBRARY,
     meta: {
       icon: 'icon-[mingcute--movie-line]',
-      title: '影视库',
+      titleKey: 'routes.library',
     },
     errorElement: <ErrorView />,
     element: <Library />,
   },
   {
     path: RouteName.MEDIA_SOURCES,
-    meta: { icon: 'icon-[mingcute--server-line]', title: '媒体源' },
+    meta: { icon: 'icon-[mingcute--server-line]', titleKey: 'routes.mediaSources' },
     errorElement: <ErrorView />,
     element: <MediaSources />,
   },
   {
     path: RouteName.DOWNLOADS,
-    meta: { icon: 'icon-[mingcute--download-2-line]', title: '下载' },
+    meta: { icon: 'icon-[mingcute--download-2-line]', titleKey: 'routes.downloads' },
     errorElement: <ErrorView />,
     element: <Downloads />,
   },
