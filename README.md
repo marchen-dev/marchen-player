@@ -5,7 +5,7 @@
 <h1 align="center">Marchen</h1>
 
 <p align="center">
-  <a href="README.md">简体中文</a> | English
+  English | <a href="README.zh-CN.md">简体中文</a>
 </p>
 
 <p align="center">
@@ -27,6 +27,7 @@
 
 - Identifies the anime and episode automatically and loads matching danmaku
 - Import local danmaku files or third-party links; convert Traditional Chinese to Simplified
+- Translates Chinese danmaku into English on your device, and works offline
 - In-house danmaku engine that stays smooth under dense danmaku
 
 ### Playback
@@ -48,6 +49,7 @@
 
 ### Others
 
+- Interface in English and Simplified Chinese, following your system language by default
 - Dark mode, in-app updates and feedback
 
 ## 👀 Screenshots
