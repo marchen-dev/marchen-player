@@ -47,8 +47,7 @@ export default {
         label: 'API route',
         current: 'Current route: {{route}}',
         currentAuto: 'Current route: {{route}} (selected automatically)',
-        // 下拉框宽度固定，「Auto (recommended)」放不下会被截断
-        auto: 'Automatic',
+        auto: 'Auto (recommended)',
       },
     },
     data: {

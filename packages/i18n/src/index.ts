@@ -7,7 +7,8 @@ export {
   MESSAGE_RESOURCES,
   registerPseudoLanguage,
 } from './create'
-export { formatNumber } from './format'
+export type { DateStyle } from './format'
+export { formatDate, formatNumber } from './format'
 export type { AppLanguage, LanguagePreference, RuntimeLanguage } from './languages'
 export {
   APP_LANGUAGES,
