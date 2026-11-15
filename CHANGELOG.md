@@ -1,15 +1,42 @@
 # CHANGELOG
 
 
+## [1.1.8](https://github.com/marchen-dev/marchen-player/compare/v1.1.7...v1.1.8) (2026-11-15)
+
+
+### Bug Fixes
+
+* **i18n:** 界面文案里的「本机」统一改为「本地」 ([7cf9725](https://github.com/marchen-dev/marchen-player/commit/7cf9725172ca5c5fc5946d0aa405b4c6491d462a))
+* **player:** 窗口尺寸变化时保留弹幕并在停稳后按新尺寸恢复 ([979e767](https://github.com/marchen-dev/marchen-player/commit/979e76772a3d53e2c727c0055e7b1bd35f671158))
+
+
+### Features
+
+* **danmaku:** 新增弹幕翻译服务并接入渲染器 ([e34f6d0](https://github.com/marchen-dev/marchen-player/commit/e34f6d09d88f571231c3513aded09dc4456a9d6c))
+* **danmaku:** 新增弹幕翻译设置入口、列表对照与翻译模型清理 ([3e81d93](https://github.com/marchen-dev/marchen-player/commit/3e81d93ef47558c09c51fdd1402cc901e4e52963))
+* **i18n:** renderer 接入界面语言 ([df4dc7a](https://github.com/marchen-dev/marchen-player/commit/df4dc7aaf056d17a1b0e03cabc9a1c7a81a2160d))
+* **i18n:** 主进程语言同步、镜像与应用菜单多语言 ([f7b7c14](https://github.com/marchen-dev/marchen-player/commit/f7b7c1460c7e4c3ab176e9e29dc513e8d1d7afbf))
+* **i18n:** 放开界面语言，正式构建跟随系统语言并提供语言选项 ([8acaf91](https://github.com/marchen-dev/marchen-player/commit/8acaf91728893ad9624975bb4ed2974db38bb910))
+* **i18n:** 文案包补全全部界面的简体中文与英文文案 ([3293ec5](https://github.com/marchen-dev/marchen-player/commit/3293ec53420dfdf53172b65183ebb12d7cb13f20))
+* **i18n:** 新增 @marchen/i18n 文案包与语言解析 ([67f3a32](https://github.com/marchen-dev/marchen-player/commit/67f3a32ebb8299bcb8243c10651b0e30a6195e4d))
+* **main:** 主进程的对话框与失败提示跟随界面语言，下载失败原因带错误码保存 ([fa00709](https://github.com/marchen-dev/marchen-player/commit/fa007097e44c10b69a5c340b5eeaaec9ac2537d2))
+* **player:** 数量格式、默认字幕轨道与弹幕字形跟随界面语言 ([278c1c3](https://github.com/marchen-dev/marchen-player/commit/278c1c3d096b456eb47b56189d9723e73b1d3388))
+* **renderer:** 播放器、影视库、媒体源、下载等全部界面迁移到文案包 ([2ff3abd](https://github.com/marchen-dev/marchen-player/commit/2ff3abd82a8e1a85b0be95c8fe71e50bf53a540c))
+* **settings:** 设置弹窗迁移到文案包并新增语言选项 ([545b7b2](https://github.com/marchen-dev/marchen-player/commit/545b7b2bb7d417ad5fabcf6108fb2ed951325515))
+* **shared:** 带错误码的用户错误，跨进程保留并按界面语言显示 ([261b736](https://github.com/marchen-dev/marchen-player/commit/261b736090c79dd2b8761d20398280f7f65fa61b))
+* **translation:** 接入 Bergamot 翻译引擎与后台调度 ([f86b428](https://github.com/marchen-dev/marchen-player/commit/f86b428832e5e16adf45c100662c9261dd7a05d8))
+* **translation:** 新增翻译资源清单、分段下载与本机存放 ([16f8ca0](https://github.com/marchen-dev/marchen-player/commit/16f8ca04e53f1a36d766ef6e85e13942acbdeb5d))
+* **ui:** 新增新功能 New 标记与登记表 ([79b4199](https://github.com/marchen-dev/marchen-player/commit/79b41991a61a62038d0108bc07d02a48b07ca20e))
+
 ## [1.1.7](https://github.com/marchen-dev/marchen-player/compare/v1.1.6...v1.1.7) (2026-11-12)
 
 
 ### Bug Fixes
 
-* **player:** 同步窗口按钮显隐并保留原生全屏退出入口 ([a22c8be](https://github.com/marchen-dev/marchen-player/commit/a22c8be46bd4e98570e3407913ef84d63b8c8ccb))
-* **player:** 收紧控制栏高度并在鼠标离窗时隐藏 ([b6cf3d4](https://github.com/marchen-dev/marchen-player/commit/b6cf3d4da43cf3f3930eb1b86b34e5fbdc8161b5))
 * **player:** 保留侧栏动画并在展开时隐藏 Windows 窗口按钮 ([579a569](https://github.com/marchen-dev/marchen-player/commit/579a56913a3f73e85301f4de6a71ec157da25ea3))
+* **player:** 同步窗口按钮显隐并保留原生全屏退出入口 ([a22c8be](https://github.com/marchen-dev/marchen-player/commit/a22c8be46bd4e98570e3407913ef84d63b8c8ccb))
 * **player:** 恢复 Windows 窗口按钮透明样式 ([cbc0ffe](https://github.com/marchen-dev/marchen-player/commit/cbc0ffe33b2f062a53b4350266bf2627846e64af))
+* **player:** 收紧控制栏高度并在鼠标离窗时隐藏 ([b6cf3d4](https://github.com/marchen-dev/marchen-player/commit/b6cf3d4da43cf3f3930eb1b86b34e5fbdc8161b5))
 
 ## [1.1.6](https://github.com/marchen-dev/marchen-player/compare/v1.1.5...v1.1.6) (2026-11-09)
 
@@ -126,11 +153,11 @@
 
 ### Features
 
-* **danmaku:** 支持全局不透明度调整 ([2d2feed](https://github.com/marchen-dev/marchen-player/commit/2d2feed6c2a770bbc6ddb0cb83d9e3198c26bbc5))
 * **danmaku:** 恢复 seek 后的弹幕快照与播放进度 ([91a5c22](https://github.com/marchen-dev/marchen-player/commit/91a5c22b721883691e5a3a0b1f7a00ccd42b0659))
-* **player:** 支持画中画与点击画面暂停播放 ([e0f4951](https://github.com/marchen-dev/marchen-player/commit/e0f4951f7e9d9c55d58f2a14539bba63536461c2))
+* **danmaku:** 支持全局不透明度调整 ([2d2feed](https://github.com/marchen-dev/marchen-player/commit/2d2feed6c2a770bbc6ddb0cb83d9e3198c26bbc5))
 * **player:** 打开播放列表与连播前重新扫描剧集 ([24d827f](https://github.com/marchen-dev/marchen-player/commit/24d827f323c7408100322817e4c2aee8b126c4d2))
 * **player:** 播放列表按文件名公共部分分组折叠 ([5a089a5](https://github.com/marchen-dev/marchen-player/commit/5a089a56c5ec24d017074c1e58ebfba66875d4fe))
+* **player:** 支持画中画与点击画面暂停播放 ([e0f4951](https://github.com/marchen-dev/marchen-player/commit/e0f4951f7e9d9c55d58f2a14539bba63536461c2))
 
 ## [1.0.5](https://github.com/marchen-dev/marchen-player/compare/v1.0.4...v1.0.5) (2026-10-10)
 
@@ -195,17 +222,17 @@
 
 ### Bug Fixes
 
-* 修复文件关联打开并简化弹幕复制与设置 ([d70c16c](https://github.com/marchen-dev/marchen-player/commit/d70c16cec8ba2aacfd74bf1673b12ad4dc0a2a28))
 * **ci:** 更新 Electron 44 原生模块 ABI 映射 ([47eb4c0](https://github.com/marchen-dev/marchen-player/commit/47eb4c0792b8fc1f26ec361cd558395534b54175))
 * **ci:** 补齐依赖构建审批并清理过期环境配置 ([c9cc865](https://github.com/marchen-dev/marchen-player/commit/c9cc865ffc92e6592b684297aa6c217d34245e35))
+* 修复文件关联打开并简化弹幕复制与设置 ([d70c16c](https://github.com/marchen-dev/marchen-player/commit/d70c16cec8ba2aacfd74bf1673b12ad4dc0a2a28))
 
 
 ### Features
 
-* 支持B站链接弹幕并完善播放器界面 ([7089c4c](https://github.com/marchen-dev/marchen-player/commit/7089c4c26b26dce3f613f8104565e0a122c88d54))
 * **downloads:** 支持 HTTP 并发下载并优化下载交互与主题 ([e8f04f0](https://github.com/marchen-dev/marchen-player/commit/e8f04f0781a45c40879bb4f417177ffb71d73396))
 * **downloads:** 新增 Electron BT 下载与播放联动 ([5489a55](https://github.com/marchen-dev/marchen-player/commit/5489a552f6104f8b606d0e7623ae17dadabcd274))
 * **player:** 显示远程读取进度与媒体传输信息 ([68ccada](https://github.com/marchen-dev/marchen-player/commit/68ccadaf2fe84bca3b8a24b202b71f7c7c866633))
+* 支持B站链接弹幕并完善播放器界面 ([7089c4c](https://github.com/marchen-dev/marchen-player/commit/7089c4c26b26dce3f613f8104565e0a122c88d54))
 
 # [1.0.0-alpha.1](https://github.com/marchen-dev/marchen-player/compare/v1.0.0-alpha.0...v1.0.0-alpha.1) (2026-09-27)
 
