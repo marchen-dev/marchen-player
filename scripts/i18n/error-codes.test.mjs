@@ -7,7 +7,7 @@
 //   2. 错误码必须写成字面量，否则这里查不到；
 //   3. 反过来，errors 里的错误码必须有地方在用，避免留下没人抛出的文案。
 import { readdirSync, readFileSync, statSync } from 'node:fs'
-import { join, relative } from 'node:path'
+import { join, relative, sep } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import errors from '../../packages/i18n/src/locales/zh-CN/errors.ts'
 
@@ -61,7 +61,8 @@ const used = new Map()
 const nonLiteral = []
 for (const dir of SOURCE_DIRS) {
   for (const path of walk(join(ROOT, dir))) {
-    const file = relative(ROOT, path)
+    // 统一成正斜杠：下面的排除规则与文件名判断都按正斜杠写，Windows 上 relative 给的是反斜杠
+    const file = relative(ROOT, path).split(sep).join('/')
     if (SKIP.test(file)) continue
     const source = readFileSync(path, 'utf8')
     for (const pattern of [LITERAL, OBJECT_CODE]) {
