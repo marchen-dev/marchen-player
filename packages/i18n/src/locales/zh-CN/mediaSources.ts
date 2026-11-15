@@ -56,7 +56,7 @@ export default {
       relogin: '重新登录',
     },
     reloginHint: '登录已失效，请重新输入「{{name}}」的密码。',
-    saveHint: '保存前会先测试连接，账号信息只保存在本机。',
+    saveHint: '保存前会先测试连接，账号信息只保存在本地。',
     kind: '类型',
     name: '名称',
     url: '服务器地址',

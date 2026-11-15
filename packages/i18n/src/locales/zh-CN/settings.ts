@@ -149,7 +149,7 @@ export default {
       description: '欢迎提交问题、建议或参与项目讨论',
       diagnostic: {
         label: '发送诊断反馈',
-        description: '附带本机日志，帮助定位播放、字幕或下载问题',
+        description: '附带本地日志，帮助定位播放、字幕或下载问题',
         action: '反馈问题…',
       },
       logs: {
