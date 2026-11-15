@@ -1,7 +1,6 @@
 import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { LANGUAGE_SWITCH_RELEASED } from '@marchen/i18n'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 const mocks = vi.hoisted(() => ({
@@ -131,7 +130,6 @@ describe('重置应用', () => {
   })
 })
 
-// 界面多语言放开（LANGUAGE_SWITCH_RELEASED 改为 true）之后，正式构建不再固定语言，这一组届时删除
 describe('主进程显示的对话框与失败说明', () => {
   /** 主进程命名空间里的全部文案键，逐个在两种语言下取值 */
   const mainKeys = async () => {
@@ -187,31 +185,5 @@ describe('主进程显示的对话框与失败说明', () => {
     expect(describeMainError(new UserError('unknown.code', '原说明'))).toBe('原说明')
     expect(describeMainError(new Error('net::ERR_FAILED'))).toBe('net::ERR_FAILED')
     expect(describeMainError('字符串')).toBe('字符串')
-  })
-})
-
-describe.skipIf(LANGUAGE_SWITCH_RELEASED)('发布开关未放开的正式构建', () => {
-  beforeEach(() => {
-    mocks.env.isDev = false
-  })
-
-  it('固定为简体中文，忽略系统语言与镜像', async () => {
-    mocks.systemLanguages = ['en-US']
-    writeFileSync(mirror(), '{"language":"en"}')
-    expect(quit((await load()).t)).toBe('退出 Marchen')
-  })
-
-  it('忽略页面上报的语言，也不改写镜像', async () => {
-    const { t, setMainLanguage } = await load()
-    setMainLanguage('en')
-    expect(quit(t)).toBe('退出 Marchen')
-    expect(readMirror()).toBeNull()
-  })
-
-  it('重置后仍是简体中文', async () => {
-    mocks.systemLanguages = ['en-US']
-    const { t, resetMainLanguage } = await load()
-    resetMainLanguage()
-    expect(quit(t)).toBe('退出 Marchen')
   })
 })

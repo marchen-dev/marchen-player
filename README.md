@@ -1,85 +1,85 @@
 <p align="center">
-  <img src="resources/icon.png" alt="Marchen 应用图标" width="128" height="128" />
+  <img src="resources/icon.png" alt="Marchen app icon" width="128" height="128" />
 </p>
 
 <h1 align="center">Marchen</h1>
 
 <p align="center">
-  简体中文 | <a href="README.en.md">English</a>
+  <a href="README.md">简体中文</a> | English
 </p>
 
 <p align="center">
-  动漫弹幕播放器，打开视频即自动匹配弹幕。<br />
-  支持本地视频、视频直链与 Jellyfin / Emby / WebDAV，提供桌面客户端和网页版。
+  An anime danmaku (bullet comment) player that matches danmaku automatically.<br />
+  Plays local files, direct links and Jellyfin / Emby / WebDAV, on desktop or in your browser.
 </p>
 
 <p align="center">
-  <a href="https://marchen.suemor.com">在线体验</a> | <a href="https://github.com/marchen-dev/marchen-player/releases/latest">下载客户端</a>
+  <a href="https://marchen.suemor.com">Try it online</a> | <a href="https://github.com/marchen-dev/marchen-player/releases/latest">Download</a>
 </p>
 
 <p align="center">
-  <img src="https://fastly.jsdelivr.net/gh/marchen-dev/marchen-player@main/docs/images/hero-20261012.jpg" alt="Marchen 影视库与弹幕播放" width="900" />
+  <img src="https://fastly.jsdelivr.net/gh/marchen-dev/marchen-player@main/docs/images/hero-20261012.jpg" alt="Marchen library and danmaku playback" width="900" />
 </p>
 
-## ✨ 特征
+## ✨ Features
 
-### 弹幕
+### Danmaku
 
-- 自动识别番剧和集数，匹配并加载弹幕
-- 可导入本地弹幕或第三方链接，繁体弹幕可转简体
-- 自研弹幕引擎，高密度弹幕下依然流畅
+- Identifies the anime and episode automatically and loads matching danmaku
+- Import local danmaku files or third-party links; convert Traditional Chinese to Simplified
+- In-house danmaku engine that stays smooth under dense danmaku
 
-### 播放
+### Playback
 
-- 支持本地视频和 HTTP/HTTPS 直链，MP4、MKV 等常见格式
-- 双播放内核：原生播放不了时，自动切换到基于 WebCodecs + WebAssembly 的兼容内核，在 Worker 中解码不卡界面
-- HEVC 无硬解时自动改用多线程软解，AC-3 / E-AC-3 / DTS 音频由 WebAssembly 解码
-- 支持内嵌字幕和外挂 ASS / SSA / SRT / VTT
+- Plays local videos and HTTP/HTTPS direct links in common formats such as MP4 and MKV
+- Dual playback engines: when the native engine can't play a file, it switches to a compatibility engine built on WebCodecs + WebAssembly, decoding in a Worker so the UI stays responsive
+- Falls back to multi-threaded software decoding when HEVC hardware decoding is unavailable; AC-3 / E-AC-3 / DTS audio is decoded via WebAssembly
+- Embedded subtitles and external ASS / SSA / SRT / VTT
 
-### 媒体源
+### Media Sources
 
-- 连接 Jellyfin、Emby、WebDAV，浏览即播，不经服务端转码
-- 自动连播、加载字幕、记住观看进度
+- Connect to Jellyfin, Emby and WebDAV, then browse and play without server-side transcoding
+- Autoplay next episode, load subtitles and remember watch progress
 
-### 影视库与下载
+### Library & Downloads
 
-- 影视库记录播放进度，随时继续观看
-- 支持磁力、BT 和 HTTP 下载，下完直接播放
+- The library remembers your progress so you can pick up where you left off
+- Download via magnet, BT or HTTP and play as soon as it finishes
 
-### 其他
+### Others
 
-- 深色模式、应用内更新与反馈
+- Dark mode, in-app updates and feedback
 
-## 👀 截图
+## 👀 Screenshots
 
-![弹幕播放](https://fastly.jsdelivr.net/gh/marchen-dev/marchen-player@main/docs/images/playback-preview-20261011.png)
+![Danmaku playback](https://fastly.jsdelivr.net/gh/marchen-dev/marchen-player@main/docs/images/playback-preview-20261011.png)
 
-![播放设置](https://fastly.jsdelivr.net/gh/marchen-dev/marchen-player@main/docs/images/playback-settings-preview-20261011.png)
+![Playback settings](https://fastly.jsdelivr.net/gh/marchen-dev/marchen-player@main/docs/images/playback-settings-preview-20261011.png)
 
-![下载管理](https://fastly.jsdelivr.net/gh/marchen-dev/marchen-player@main/docs/images/downloads.png)
+![Download manager](https://fastly.jsdelivr.net/gh/marchen-dev/marchen-player@main/docs/images/downloads.png)
 
-![深色影视库](https://fastly.jsdelivr.net/gh/marchen-dev/marchen-player@main/docs/images/library-dark.png)
+![Library in dark mode](https://fastly.jsdelivr.net/gh/marchen-dev/marchen-player@main/docs/images/library-dark.png)
 
-## 📦 下载
+## 📦 Download
 
-在 [Releases](https://github.com/marchen-dev/marchen-player/releases/latest) 中按系统选择安装包：
+Pick the installer for your system from [Releases](https://github.com/marchen-dev/marchen-player/releases/latest):
 
-| 系统 | 安装包 |
+| System | Installer |
 | --- | --- |
-| macOS 13+（Apple Silicon） | `.dmg` |
+| macOS 13+ (Apple Silicon) | `.dmg` |
 | Windows x64 | `setup.exe` |
-| Linux x64 | `amd64.deb`（Ubuntu / Debian）或 `x86_64.AppImage` |
-| Linux arm64 | `arm64.deb` 或 `arm64.AppImage` |
+| Linux x64 | `amd64.deb` (Ubuntu / Debian) or `x86_64.AppImage` |
+| Linux arm64 | `arm64.deb` or `arm64.AppImage` |
 
-### macOS 提示「已损坏，无法打开」
+### macOS: "Marchen is damaged and can't be opened"
 
-把应用拖进「应用程序」后，在终端执行：
+After moving the app to Applications, run in Terminal:
 
 ```bash
 xattr -dr com.apple.quarantine /Applications/Marchen.app
 ```
 
-## 🔧 开发
+## 🔧 Development
 
 ```bash
 corepack enable
@@ -92,14 +92,12 @@ pnpm install
 
 cp .env.example .env
 
-pnpm dev          # 客户端开发
+pnpm dev          # Desktop app development
 
-pnpm dev:web      # Web 开发，端口 1106
+pnpm dev:web      # Web development, port 1106
 ```
 
-
-
-## 📎 技术栈
+## 📎 Tech Stack
 
 - Electron
 - React
@@ -112,10 +110,9 @@ pnpm dev:web      # Web 开发，端口 1106
 - HTML5 Video / WebCodecs
 - RxJS
 
+## ❤️ Acknowledgements & License
 
-## ❤️ 致谢 & 许可
-
-- [弹弹play](https://www.dandanplay.com)
+- [dandanplay](https://www.dandanplay.com)
 - [MediaBunny](https://mediabunny.dev/)
 
 ![AGPLv3 License](https://img.shields.io/badge/License-AGPLv3-blue.svg)

@@ -40,6 +40,17 @@ vi.mock('electron-updater', () => ({
     },
   },
 }))
+// 主进程的界面语言在测试里固定为简体中文：真实模块要读系统语言与本机的语言镜像，
+// 这里的 electron 替身没有这些；断言里的文字也是简体中文
+vi.mock('./i18n', async () => {
+  const { createI18n } = await import('@marchen/i18n')
+  const i18n = createI18n({ language: 'zh-CN', namespaces: ['main', 'common', 'errors'] })
+  return {
+    t: i18n.t,
+    describeMainError: (error: unknown) => (error instanceof Error ? error.message : String(error)),
+    onMainLanguageChanged: () => () => {},
+  }
+})
 vi.mock('electron-log', () => ({ default: { error: vi.fn(), warn: vi.fn() } }))
 vi.mock('@main/lib/diagnostic-log', () => ({ writeLog: vi.fn() }))
 vi.mock('@main/windows/main', () => ({ getMainWindow: () => mocks.window }))

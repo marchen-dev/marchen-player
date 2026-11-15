@@ -131,7 +131,7 @@ idle → importing → hashing → matching → [waiting_user] → loading_danma
 ### 界面多语言
 
 - 支持简体中文（源语言）与 English。基于 i18next + react-i18next，文案、语言解析规则与实例配置集中在 `packages/i18n`，main 与 renderer 共用同一份。i18next 由根 `package.json` 提供，`packages/i18n` 不单独声明这个依赖（否则会装出第二份，类型扩展只对其中一份生效）。纯逻辑包（`player-loading`、`playback-core`、`danmaku-engine`、`shared`）不得引用 `@marchen/i18n`，它们只产出状态码与错误码。
-- **全部界面已迁移，尚未放开**：renderer 与 main 的界面文字都已走文案包，没有豁免名单。发布开关（`packages/i18n/src/languages.ts` 的 `LANGUAGE_SWITCH_RELEASED`）仍为 `false`：正式构建固定显示简体中文、不显示语言选项，开发态可以切换。把常量改为 `true` 即放开，这一步须由用户确认英文界面之后再做。
+- **全部界面已迁移并放开**（1.1.8 起）：renderer 与 main 的界面文字都已走文案包，没有豁免名单；正式构建跟随系统语言，设置里有语言选项。`packages/i18n/src/languages.ts` 的 `LANGUAGE_SWITCH_RELEASED` 是当初分步迁移时的发布开关，现为 `true`，只在需要整体回退到固定简体中文时才改。
 - **文案**放在 `packages/i18n/src/locales/<语言>/<命名空间>.ts`（`as const` 的对象），命名空间按界面区域划分。键按「区域.元素.用途」命名，不用文案本身当键；插值用具名变量，不拼接字符串；带数量的文案用 `count` 与单复数键（中文只写 `_other`，英文写 `_one` / `_other`）。键的类型来自简体中文，引用不存在的键、漏传插值变量在类型检查时报错；英文是否齐全由 `packages/i18n/tests/parity.test.ts` 检查。产品名（Marchen）与语言自称名不进文案文件。
 - **取用**：组件里 `useTranslation('命名空间')`，要用别的命名空间时传数组并写 `命名空间:键`；组件之外（全局提示、服务）从 `@renderer/lib/i18n` 引入 `t`，在调用时求值；主进程从 `@main/lib/i18n` 引入 `t`。数量用 `@renderer/lib/i18n` 的 `formatNumber`，不要写死 `toLocaleString('zh-CN')`。
 - **模块顶层的常量不存文字**：它们在 import 时求值，存了文字就不会随语言切换更新。存键或稳定 ID，渲染时再翻译（参考 `settings/tabs.tsx`、`DarkMode.tsx`）。调用了「组件外返回文案的函数」而自己没有用 `useTranslation` 的组件，用 `useLanguage()` 订阅语言变化。

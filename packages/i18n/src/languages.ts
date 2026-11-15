@@ -35,10 +35,10 @@ export const LANGUAGE_NATIVE_NAMES: Record<RuntimeLanguage, string> = {
  * 发布开关：界面多语言是否已对正式构建放开。
  *
  * 界面迁移分多个变更进行，全部完成前正式构建固定显示简体中文、不显示语言选项，
- * 避免线上出现「一半英文一半中文」。全部完成后把这里改成 true 即为放开。
- * 它描述的是「功能是否做完」，所以是代码常量而不是环境变量。
+ * 避免线上出现「一半英文一半中文」。全部界面已迁移，1.1.8 起放开：正式构建跟随系统语言，
+ * 设置里有语言选项。常量保留是为了万一需要整体回退时只改这一处。
  */
-export const LANGUAGE_SWITCH_RELEASED = false
+export const LANGUAGE_SWITCH_RELEASED = true
 
 /** 当前运行环境是否允许切换界面语言：开发态始终允许，正式构建取决于发布开关 */
 export const isLanguageSwitchEnabled = (isDev: boolean): boolean =>

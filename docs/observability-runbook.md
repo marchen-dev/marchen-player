@@ -138,7 +138,7 @@ FFmpeg/Gateway/media.generation 与 compat_fallback_triggered 为历史版本口
 
 ## 界面语言
 
-界面支持简体中文与 English（`2026-11` 起分步迁移）。在界面多语言整体放开之前，正式构建固定为简体中文，下面的属性在线上恒为 `zh-CN`、切换事件不会出现；放开之后才有区分度。
+界面支持简体中文与 English，1.1.8 起对正式构建放开（默认跟随系统语言）。更早的版本固定为简体中文，下面的属性在这些版本里恒为 `zh-CN`、切换事件不会出现。
 
 - 公共属性 `ui_language`：上报当时界面实际使用的语言，取值 `zh-CN` / `en`（开发态可能是 `pseudo`，即伪本地化）。它是「实际语言」而不是用户的偏好：偏好为跟随系统时，这里是解析后的结果。只有 renderer 的事件带这个属性，主进程的事件没有。
 - `feature_used(app_language, change, value)`：用户在设置里改了语言偏好，`value` 为所选项 `system` / `zh-CN` / `en`。启动时按偏好应用语言不触发。

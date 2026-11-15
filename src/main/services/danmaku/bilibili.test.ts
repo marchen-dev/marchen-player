@@ -16,6 +16,14 @@ const xml = (
 const signal = () => new AbortController().signal
 const episode = (id: number, cid: number) => ({ id, cid, title: String(id), long_title: '标题' })
 
+// 主进程的界面语言在测试里固定为简体中文：真实模块要读系统语言与本机的语言镜像（依赖 electron），
+// 断言里的标题也是简体中文
+vi.mock('../../lib/i18n', async () => {
+  const { createI18n } = await import('@marchen/i18n')
+  const i18n = createI18n({ language: 'zh-CN', namespaces: ['main', 'common', 'errors'] })
+  return { t: i18n.t }
+})
+
 describe('b 站链接弹幕', () => {
   it('保留分 P，剔除跟踪参数，拒绝错误链接', () => {
     const value = recognizeBilibili('https://www.bilibili.com/video/BV1wT8J6NEFS/?p=17&spm=x')!
