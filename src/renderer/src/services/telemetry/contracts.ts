@@ -21,6 +21,8 @@ export interface CommonTelemetryProperties {
   install_id?: string
   app_session_id: string
   playback_session_id?: string
+  /** 当前界面语言：zh-CN / en；开发态可能是 pseudo（伪本地化） */
+  ui_language?: string
 }
 
 /**

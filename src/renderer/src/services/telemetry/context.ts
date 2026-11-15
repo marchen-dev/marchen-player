@@ -29,6 +29,8 @@ export const createTelemetryContextStore = (options: {
   packageType?: string
   build?: TelemetryBuildInfo
   appSessionId?: string
+  /** 取当前界面语言；每次上报时现取，语言切换后的事件带的是新语言 */
+  language?: () => string
 }) => {
   const build = options.build ?? getTelemetryBuildInfo()
   const appSessionId = options.appSessionId ?? nanoid()
@@ -58,6 +60,7 @@ export const createTelemetryContextStore = (options: {
         install_id: installId,
         app_session_id: appSessionId,
         playback_session_id: playbackSessionId,
+        ui_language: options.language?.(),
       }
     },
   }

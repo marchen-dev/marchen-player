@@ -1,4 +1,5 @@
 import type { TelemetryClient } from './contracts'
+import { getLanguage } from '@renderer/lib/i18n'
 import { configureTelemetry, telemetry } from './client'
 import { createTelemetryContextStore } from './context'
 import { getRendererTelemetryIdentity } from './identity'
@@ -15,6 +16,7 @@ export const startTelemetrySession = async (options: {
     arch: identity.arch,
     packageType: identity.packageType,
     appSessionId: identity.appSessionId,
+    language: getLanguage,
   })
   const startedAt = Date.now()
   let ended = false

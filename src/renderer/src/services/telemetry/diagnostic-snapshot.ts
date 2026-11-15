@@ -1,5 +1,7 @@
+import { appSettingAtom } from '@renderer/atoms/settings/app'
 import { playerSettingAtom } from '@renderer/atoms/settings/player'
 import { jotaiStore } from '@renderer/atoms/store'
+import { getLanguage } from '@renderer/lib/i18n'
 import { getCompatSupport } from '@renderer/services/player-runtime/compat-support'
 
 import { writeLocalLog } from './local-log'
@@ -40,6 +42,9 @@ export function writeRendererSnapshot() {
         release: __MARCHEN_RELEASE__,
         userAgent: navigator.userAgent,
         language: navigator.language,
+        // 界面实际使用的语言与用户的偏好（跟随系统时两者不同）
+        uiLanguage: getLanguage(),
+        languagePreference: jotaiStore.get(appSettingAtom).language,
         crossOriginIsolated: globalThis.crossOriginIsolated,
         screen: `${screen.width}x${screen.height}@${devicePixelRatio}`,
         compat: getCompatSupport(),

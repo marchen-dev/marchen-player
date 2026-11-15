@@ -34,6 +34,7 @@ const COMMON_KEYS = new Set<keyof CommonTelemetryProperties>([
   'arch',
   'install_id',
   'app_session_id',
+  'ui_language',
 ])
 
 /** Web 端内存环形缓冲上限；不持久化，刷新即清空 */

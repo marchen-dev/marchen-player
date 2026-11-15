@@ -220,6 +220,28 @@ describe('telemetry context', () => {
     })
   })
 
+  it('界面语言在每次取公共属性时现取', () => {
+    let language = 'zh-CN'
+    const store = createTelemetryContextStore({
+      runtime: 'renderer',
+      platform: 'web',
+      arch: 'browser',
+      language: () => language,
+    })
+    expect(store.get().ui_language).toBe('zh-CN')
+    language = 'en'
+    expect(store.get().ui_language).toBe('en')
+  })
+
+  it('没有提供界面语言时不带该属性', () => {
+    const store = createTelemetryContextStore({
+      runtime: 'main',
+      platform: 'darwin',
+      arch: 'arm64',
+    })
+    expect(store.get().ui_language).toBeUndefined()
+  })
+
   it('creates a new app session for every store', () => {
     const options = { runtime: 'renderer' as const, platform: 'web', arch: 'browser' }
     expect(createTelemetryContextStore(options).appSessionId).not.toBe(
