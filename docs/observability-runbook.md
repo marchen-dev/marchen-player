@@ -110,6 +110,26 @@ FFmpeg/Gateway/media.generation 与 compat_fallback_triggered 为历史版本口
 - 规则内容与弹幕原文是高基数值，不进入事件属性。
 - **口径断点**：`feature_used(danmaku_copy, success | failed)` 的触发方式由"点击弹幕文字"改为"点击悬停工具条的复制图标"。复制需要先悬停约 150ms 再点图标，该变更上线前后的次数不可直接对比。
 
+## 弹幕翻译事件
+
+弹幕翻译在本机用 WASM 引擎完成，不产生任何翻译接口请求；唯一的网络行为是首次开启时从翻译资源存储桶下载引擎与模型。
+
+- `feature_used(danmaku_translation, action, value)`：`enable`（在下拉框选择某个目标语言，含首次确认通过）、`enable_cancelled`（首次下载确认时取消），这两个的 `value` 为目标语言（如 `en`）；`disable`（选择「不翻译」）、`retry`（下载失败或引擎出错后手动重试）不带 value。清除翻译模型为 `feature_used(settings, clear_translation_assets)`。
+- `danmaku_translation_assets_downloaded`（关键事件）：一次资源下载的结果。
+  - `result`：`success` / `failed` / `cancelled`（首次确认时取消，或下载途中关闭翻译、清除资源）。
+  - `trigger`：`first_enable`（首次开启并确认）、`auto_recover`（开关已开但本机资源缺失，例如被浏览器回收）、`retry`。
+  - `error_code`：仅失败时有，取值 `assets_network` / `assets_http` / `assets_integrity` / `assets_storage`。
+  - `duration_ms`、`bytes`（本次实际下载并落盘的解压后字节数；重试只补缺失文件，所以可能小于总量）。
+- `danmaku_translation_completed`（关键事件）：一集弹幕全部翻译完成；之后弹幕变化（重新匹配、增删来源、解除屏蔽）产生新的待翻译文本并再次翻完时会再报一次。
+  - `items`：需要翻译的弹幕条数（未屏蔽、含中文）；`unique_texts`：去重后的文本数；`translated_texts`：本次实际送入引擎的文本数（其余复用会话内已有译文）。
+  - `duration_ms`：从开始调度到全部完成；`engine_start_ms`：读取资源并加载引擎、模型的耗时；`target`：目标语言。
+  - 估算吞吐用 `translated_texts / duration_ms`，不要用 `items`：重复弹幕只翻一次。
+- 错误（`player` 域，fingerprint 为 `PLAYER_<错误码>`）：
+  - `translation.assets_download`：`assets_network` 属于用户网络环境，只记 warning 日志；`assets_http`、`assets_integrity`、`assets_storage` 按异常上报。`assets_integrity` 集中出现说明存储桶文件与 `assets/manifest.ts` 的哈希不一致，优先核对存储桶。
+  - `translation.engine_init`（`engine_init` / `engine_timeout` / `engine_crashed`）、`translation.engine_run`、`translation.assets_read`（读取本机资源失败）。引擎出错后不自动重启，弹幕回退原文，用户重试才再次加载。
+  - 用户取消、下载途中关闭翻译（`assets_aborted`、`engine_disposed`）是预期情况，不上报。
+- 弹幕原文与译文是高基数值，不进入事件属性。
+
 下载状态由根级观察器订阅，与当前路由无关；首次快照仅建立基线，不重报历史完成任务。整个渲染窗口关闭期间的状态变化不补报，因此这些事件不能用作跨应用会话的完整下载账本。完成／失败等状态事件、停滞及远程导入结果使用现有离线 outbox。
 
 下载事件属性仅使用白名单枚举和数值，以保证聚合维度稳定；下载页、弹窗、目录设置和错误详情与其他页面一样参与 PostHog 自动采集与两端回放，不做屏蔽。开发环境仍遵循既有 `VITE_TELEMETRY_DEBUG` 开关，不为验收自动开启线上上报。

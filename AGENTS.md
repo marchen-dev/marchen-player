@@ -110,6 +110,19 @@ idle → importing → hashing → matching → [waiting_user] → loading_danma
 - 生效方式是向引擎下发被屏蔽的 id 集合（`setBlockedIds`），不走 `replaceItems`：规则变化不清屏，只撤掉命中的在屏弹幕。`packages/danmaku-engine` 只认 id 集合，禁止把规则或 OpenCC 引入引擎包。
 - 画面上的复制与屏蔽在悬停工具条（`hover-toolbar.ts`）完成，工具条出现在文字正下方的鼠标位置，整个弹幕层只有一个工具条元素；禁止往池化的弹幕节点里加子元素，弹幕文字本身不响应点击。
 
+### 弹幕翻译
+
+- 把中文弹幕在本机翻译成英文显示，Electron 与 Web 共用 renderer 里的同一套实现（`services/translation/`），不经过主进程，也没有任何翻译接口。设置是全局偏好 `playerSettingAtom.danmakuTranslation`（`enabled` / `target`，当前只有 `en`），入口是播放器侧栏弹幕页的下拉框（「不翻译 / English」，语言名用该语言自己的写法），不存入单视频 HISTORY，译文也不持久化。
+- 引擎是 Mozilla 的 Bergamot WASM（Firefox 网页翻译同款，MPL-2.0）。胶水脚本 `services/translation/vendor/bergamot-translator.js` 是上游自动生成文件，原样收录、禁止修改，由 Worker 以 `?raw` 源码文本载入；升级时连同 `vendor/README.md`、清单里的引擎哈希一起替换。
+- 引擎 WASM 与模型不进安装包和 Web 构建：首次开启经用户确认后从存储桶（`VITE_TRANSLATION_ASSETS_URL`）下载 gzip 文件，流式解压并与 `assets/manifest.ts` 中写死的 SHA-256 比对，一致才写入 OPFS（`navigator.storage.getDirectory()` 下的 `translation/`）。清单里的哈希是完整性的唯一依据，改动必须与存储桶文件一起核对。禁止把模型或引擎二进制提交进仓库，禁止运行时拉取未校验的脚本。
+- 大文件分段下载（`assets/download.ts`）：先用 HEAD 取压缩后的大小，超过 8 MB 的文件按 8 MB 一段用 `Range: bytes=a-b` 请求、3 段并发，单段因网络中断或服务器临时错误（5xx / 408 / 429）失败时只重试这一段（最多两次），按顺序拼接后再解压校验；其余文件一个请求取完。原因是资源走跨境线路（Cloudflare，大陆没有节点），大陆用户下载 44 MB 的主模型可能要几十秒，慢线路上分段便于重试：整文件一个请求断了只能从头再来。HEAD 拿不到大小或服务器对 Range 回 200 时退回整文件下载。
+- 存储桶目录为 `engine/<版本>/bergamot-translator.wasm.gz` 与 `models/<语言对>/<版本>/*.gz`：文件以普通二进制返回、不叠加传输压缩，支持 HEAD 与 Range 请求（含带 `Range` 头的预检），允许 Web 各 Origin 与 `marchen://app` 跨域读取并暴露 `Content-Length`，带版本的路径不可变。未配置基址或环境缺少 WASM SIMD / Worker / `DecompressionStream` / OPFS 时功能显示为不支持，弹幕照常按原文显示。
+- 生效方式是给渲染器换「显示文本」的来源（`DomDanmakuRenderer.setTextResolver`），不走 `replaceItems`：译文陆续到达、开关切换都不清屏，在屏弹幕不变，之后出场的弹幕才读到译文；出场时译文未就绪就显示原文。测量、上屏、宽度缓存必须用同一份显示文本。`packages/danmaku-engine` 不感知翻译，禁止把翻译逻辑引入引擎包。
+- 屏蔽判定、悬停工具条的复制与屏蔽始终基于原文；显示的是译文时工具条多一行原文。弹幕列表原文与译文对照显示，搜索两者都匹配，译文在渲染与过滤时现查（`useTranslationLookup`），不写进行数据。
+- 调度是全量后台翻译（`schedule.ts`）：只翻含汉字且不含假名的文本，统一转简体后按文本去重，被屏蔽的不翻；每批从当前播放位置之后最近的未翻译文本取起，翻到片尾再回头，因此跳转无需特殊处理。Worker 内逐条调用引擎（比整批快约 40%）。
+- 引擎只在开关开启、资源就绪且播放页确有需要翻译的弹幕时加载；关闭翻译、离开播放页、清除资源时终止 Worker 释放内存。引擎出错后不自动重启。清除「翻译模型」会同时关闭开关；重置应用在 `resetApp` 里显式清空 OPFS。
+- 本功能的界面文案集中在 `services/translation/messages.ts`，服务层只产出状态码（`status.ts`）与数值，不在别处写面向用户的字符串，为后续界面多语言留口。新增目标语言时扩展 `assets/manifest.ts` 的语言对与 `TranslationTarget`。
+
 ### API 请求
 
 `ofetch` 封装于 `request/ofetch.ts`，API 模块在 `request/api/`（match、comment、bangumi、search），类型在 `request/models/`。主备 URL 从 `VITE_API_CLOUDFLARE_URL` / `VITE_API_EDGEONE_URL` 读取，在 `request/api-route-config.ts` 统一校验；两端启动与构建都要求有效 HTTPS 地址。
@@ -163,7 +176,7 @@ src/
 └── renderer/src/         # React 前端 / Web
     ├── components/{ui,modules/{player,settings,shared,app},layout,icons,common}
     ├── page/{player,library,media-sources,downloads}
-    ├── services/{player-runtime,player-loading,danmaku,media,telemetry}
+    ├── services/{player-runtime,player-loading,danmaku,media,telemetry,translation}
     ├── atoms/            # Jotai
     ├── hooks/  request/  database/  router/  providers/  initialize/  constants/  lib/
 
@@ -193,6 +206,7 @@ docs/                     # 发布、部署、可观测性文档
 - **异步流**：优先用 RxJS operator，避免命令式嵌套回调
 - **平台兼容**：考虑 Electron 与 Web 双端，Electron 专属逻辑用 `isWeb` 或 `ipcClient?.` 隔离
 - **端形态范围**：当前仅要求 Electron 与 Web 桌面端；无需适配手机、平板触控或移动端响应式布局，除非产品需求后续明确提出
+- **新功能标记**：需要提示用户的新功能在 `lib/new-features.ts` 的 `NEW_FEATURES` 登记功能 ID 与引入版本，标题旁放 `<NewBadge feature="..." />`（`components/common/NewBadge.tsx`，播放器深色界面上传 `playerMaterial`），并在用户实际用到该功能处调用 `markNewFeatureSeen`。显示规则集中在登记表：用过即消失，没用过则只在引入版本和其后一个补丁版本内显示；不要在组件里自行判断版本或另存状态
 - **指针样式**：交互元素默认保持系统箭头指针，不主动使用 `pointer`、`grab` 或 `grabbing`；确有产品需求时再局部例外
 - **颜色**：色阶与取值见 `src/renderer/src/styles/shadcn.css` 注释（深色 L0 background < L1 popover < L2 card < L3 muted/input < L4 accent）
   - 普通界面只用语义 token（`bg-background/card/popover/muted/accent/field/raised`、`text-foreground/muted-foreground`、`border-border/input` 等），不用 `zinc-*` / `neutral-*` / `slate-*` / `stone-*` / `gray-*` 原始色阶，不写任意色值
@@ -211,6 +225,7 @@ docs/                     # 发布、部署、可观测性文档
 | ----------------------------------------------------- | ---------------------------------------------------------------- |
 | `VITE_API_CLOUDFLARE_URL` / `VITE_API_EDGEONE_URL` | API 主备 HTTPS 基址（含 `/api/v2`），构建时注入 |
 | `VITE_API_SIGN_KID` / `VITE_API_SIGN_KEY` | API 请求签名的密钥编号与密钥（Web `w1`、桌面 `d1`），正式构建必填，会随客户端公开 |
+| `VITE_TRANSLATION_ASSETS_URL` | 弹幕翻译的引擎与模型存储桶基址（HTTPS，可选）；留空则弹幕翻译显示为不支持，格式非法时构建失败 |
 | `VITE_SENTRY_DSN`                                     | Sentry DSN                                                       |
 | `VITE_POSTHOG_KEY` / `VITE_POSTHOG_HOST`              | PostHog 客户端配置                                               |
 | `VITE_TELEMETRY_DEBUG`                                | 开发态是否上报遥测，默认 false                                   |
