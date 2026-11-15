@@ -8,10 +8,12 @@ import { AboutView } from './views/about/About'
 import { GeneralView } from './views/general/General'
 import { LabsView } from './views/labs/Labs'
 
+/**
+ * 设置分类。名称与说明不放在这里：这是模块顶层的常量，存了文字就不会随语言切换更新，
+ * 渲染时按 id 取 settings 命名空间下的 `tabs.<id>.label` / `tabs.<id>.description`。
+ */
 export interface SettingTabModel {
   id: AppSettingsSection
-  label: string
-  description: string
   icon: string
   component: ComponentType
 }
@@ -19,8 +21,6 @@ export interface SettingTabModel {
 export const settingTabs: SettingTabModel[] = [
   {
     id: 'general',
-    label: '通用',
-    description: '管理应用行为、外观与本地数据',
     icon: 'icon-[mingcute--settings-3-line]',
     component: GeneralView,
   },
@@ -28,8 +28,6 @@ export const settingTabs: SettingTabModel[] = [
     ? [
         {
           id: 'downloads' as const,
-          label: '下载',
-          description: '管理下载目录与传输设置',
           icon: 'icon-[mingcute--download-2-line]',
           component: DownloadSettingsView,
         },
@@ -37,15 +35,11 @@ export const settingTabs: SettingTabModel[] = [
     : []),
   {
     id: 'labs',
-    label: '实验室',
-    description: '抢先体验仍在开发中的功能',
     icon: 'icon-[mingcute--flask-line]',
     component: LabsView,
   },
   {
     id: 'about',
-    label: '关于',
-    description: '查看版本、更新与反馈渠道',
     icon: 'icon-[mingcute--information-line]',
     component: AboutView,
   },

@@ -22,8 +22,8 @@ import {
 } from '@renderer/services/storage'
 import { captureFeatureUsed } from '@renderer/services/telemetry/features'
 import { reportOperationalError } from '@renderer/services/telemetry/operational-errors'
-import { translationMessages } from '@renderer/services/translation/messages'
 import { useCallback, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import {
   SettingsActionRow,
@@ -33,11 +33,14 @@ import {
   SettingsSection,
 } from '../../components'
 import { DarkModeToggle } from './DarkMode'
+import { LanguageSetting } from './Language'
 
 export const GeneralView = () => {
   const [appSettings, setAppSettings] = useAppSettings()
   const [playerSettings, setPlayerSettings] = usePlayerSettings()
   const { toast } = useToast()
+  // 第一个命名空间的键直接写；通用词在 common 里，写成 `common:键`
+  const { t } = useTranslation(['settings', 'common'])
   const showConfirmationDialog = useConfirmationDialog()
 
   const { state: usage, refresh: refreshUsage } = useStorageUsage()
@@ -46,21 +49,21 @@ export const GeneralView = () => {
 
   const runClear = useCallback(
     async (target: ClearTarget) => {
-      const { label, action, run } = CLEAR_ACTIONS[target]
+      const { action, run } = CLEAR_ACTIONS[target]
       setClearing(target)
       try {
         await run()
         captureFeatureUsed('settings', action)
-        toast({ title: `已清除${label}` })
+        toast({ title: t(`general.data.items.${target}.cleared`) })
       } catch (error) {
         reportOperationalError(target === 'network' ? 'ipc' : 'player', `settings.${action}`, error)
-        toast({ title: `清除${label}失败`, variant: 'destructive' })
+        toast({ title: t(`general.data.items.${target}.failed`), variant: 'destructive' })
       } finally {
         setClearing(null)
         void refreshUsage()
       }
     },
-    [refreshUsage, toast],
+    [refreshUsage, t, toast],
   )
 
   // 各清除项的可释放大小；undefined 表示统计中、失败或当前平台不支持
@@ -75,13 +78,17 @@ export const GeneralView = () => {
       : { danmaku: undefined, thumbnail: undefined, network: undefined, translation: undefined }
 
   return (
-    <SettingsPage sectionId="general" title="通用" description="管理应用行为、外观与本地数据">
+    <SettingsPage
+      sectionId="general"
+      title={t('tabs.general.label')}
+      description={t('tabs.general.description')}
+    >
       {!isWeb && (
-        <SettingsSection title="应用">
+        <SettingsSection title={t('general.app.title')}>
           <SettingsGroup>
             <SettingsRow
-              label="开机自启"
-              description="登录系统后自动启动 Marchen"
+              label={t('general.app.launchAtLogin.label')}
+              description={t('general.app.launchAtLogin.description')}
               labelId="launch-at-login-label"
               descriptionId="launch-at-login-description"
             >
@@ -99,27 +106,28 @@ export const GeneralView = () => {
         </SettingsSection>
       )}
 
-      <SettingsSection title="外观">
+      <SettingsSection title={t('general.appearance.title')}>
         <SettingsGroup>
           <SettingsRow
-            label="主题"
-            description="跟随系统，或固定使用白天与夜间外观"
+            label={t('general.appearance.theme.label')}
+            description={t('general.appearance.theme.description')}
             labelId="theme-preference-label"
           >
             <div aria-labelledby="theme-preference-label">
               <DarkModeToggle />
             </div>
           </SettingsRow>
+          <LanguageSetting />
         </SettingsGroup>
       </SettingsSection>
 
-      <SettingsSection title="播放">
+      <SettingsSection title={t('general.playback.title')}>
         <SettingsGroup>
           <PlayerEngineRow />
           {/* 只影响之后打开的视频，加载开始时读取一次 */}
           <SettingsRow
-            label="优先播放视频"
-            description="先播放视频，弹幕在后台加载完成后接入；开头可能缺少弹幕"
+            label={t('general.playback.playFirst.label')}
+            description={t('general.playback.playFirst.description')}
             labelId="play-first-label"
             descriptionId="play-first-description"
           >
@@ -136,24 +144,25 @@ export const GeneralView = () => {
         </SettingsGroup>
       </SettingsSection>
 
-      <SettingsSection title="网络">
+      <SettingsSection title={t('general.network.title')}>
         <SettingsGroup>
           <ApiRouteSetting />
         </SettingsGroup>
       </SettingsSection>
 
-      <SettingsSection title="数据">
+      <SettingsSection title={t('general.data.title')}>
         <SettingsGroup>
           {CLEAR_TARGETS.filter((target) => !isWeb || target !== 'network').map((target) => (
             <SettingsActionRow
               key={target}
-              label={CLEAR_ACTIONS[target].label}
-              description={CLEAR_ACTIONS[target].description}
+              label={t(`general.data.items.${target}.label`)}
+              description={t(`general.data.items.${target}.description`)}
             >
               <span className="text-muted-foreground mr-3 text-xs tabular-nums">
                 {usage.status === 'loading'
-                  ? '计算中…'
-                  : sizes[target] != null && `约 ${formatBytes(sizes[target])}`}
+                  ? t('general.data.calculating')
+                  : sizes[target] != null &&
+                    t('general.data.size', { size: formatBytes(sizes[target]) })}
               </span>
               <Button
                 variant="outline"
@@ -161,13 +170,13 @@ export const GeneralView = () => {
                 disabled={clearing != null || sizes[target] === 0}
                 onClick={() => runClear(target)}
               >
-                清除
+                {t('common:action.clear')}
               </Button>
             </SettingsActionRow>
           ))}
           <SettingsActionRow
-            label="重置应用"
-            description="清除任务、记录与设置，保留视频文件"
+            label={t('general.data.reset.label')}
+            description={t('general.data.reset.description')}
             danger
           >
             <Button
@@ -175,12 +184,12 @@ export const GeneralView = () => {
               size="sm"
               onClick={() =>
                 showConfirmationDialog({
-                  title: '确定重置应用？此操作无法撤销。',
+                  title: t('general.data.reset.confirm'),
                   handleConfirm: resetApp,
                 })
               }
             >
-              重置应用
+              {t('general.data.reset.label')}
             </Button>
           </SettingsActionRow>
         </SettingsGroup>
@@ -194,36 +203,26 @@ type ClearTarget = 'danmaku' | 'thumbnail' | 'network' | 'translation'
 const CLEAR_TARGETS: ClearTarget[] = ['danmaku', 'thumbnail', 'network', 'translation']
 
 /**
- * 各缓存类清除项：行标题、埋点 action 与执行函数。
+ * 各缓存类清除项：埋点 action 与执行函数。行标题、说明与结果提示在渲染时按清除项取
+ * settings 命名空间下的 `general.data.items.<清除项>`，不放在这个模块顶层的常量里。
  * 弹幕缓存只清自动匹配弹幕，本地导入与外链弹幕保留（见 services/storage）。
  */
-const CLEAR_ACTIONS: Record<
-  ClearTarget,
-  { label: string; description: string; action: string; run: () => Promise<void> }
-> = {
+const CLEAR_ACTIONS: Record<ClearTarget, { action: string; run: () => Promise<void> }> = {
   danmaku: {
-    label: '弹幕缓存',
-    description: '下次播放时重新获取，导入的弹幕会保留',
     action: 'clear_danmaku_cache',
     run: clearAutoDanmakuCache,
   },
   thumbnail: {
-    label: '播放缩略图',
-    description: '继续观看改用作品海报',
     action: 'clear_thumbnails',
     run: clearThumbnails,
   },
   network: {
-    label: '网络缓存',
-    description: '海报等图片，需要时重新下载',
     action: 'clear_network_cache',
     run: async () => {
       await ipcClient?.app.clearNetworkCache()
     },
   },
   translation: {
-    label: translationMessages.storage.label,
-    description: translationMessages.storage.description,
     action: 'clear_translation_assets',
     run: clearTranslationAssets,
   },
@@ -232,14 +231,15 @@ const CLEAR_ACTIONS: Record<
 /** 「播放内核」使用与其他设置行相同的排版：标题与状态说明在左，下拉框在右 */
 const PlayerEngineRow = () => {
   const state = usePlayerEngineSetting()
+  const { t } = useTranslation('settings')
   return (
     <SettingsRow
-      label="播放内核"
+      label={t('playerEngine.label')}
       description={<PlayerEngineDescription state={state} />}
       labelId="player-engine-label"
       descriptionId="player-engine-description"
     >
-      <PlayerEngineSelect state={state} ariaLabel="播放内核" />
+      <PlayerEngineSelect state={state} ariaLabel={t('playerEngine.label')} />
     </SettingsRow>
   )
 }

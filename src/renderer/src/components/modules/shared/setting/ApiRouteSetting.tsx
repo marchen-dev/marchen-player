@@ -6,8 +6,10 @@ import { normalizeApiRouteMode } from '@renderer/request/api-route-client'
 import { captureFeatureUsed } from '@renderer/services/telemetry/features'
 import { useAtomValue } from 'jotai'
 import { useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import { SettingSelect } from './SettingSelect'
 
+/** 线路名是服务商的名字，不翻译 */
 const labels = { cloudflare: 'Cloudflare', edgeone: 'EdgeOne' }
 
 /**
@@ -17,26 +19,31 @@ const labels = { cloudflare: 'Cloudflare', edgeone: 'EdgeOne' }
 export const ApiRouteSetting = () => {
   const [settings, setSettings] = useAppSettings()
   const route = useAtomValue(apiPreferredRouteAtom)
+  const { t } = useTranslation('settings')
   useEffect(() => {
     getApiRouteClient()
   }, [])
   // 仅用于应用设置，使用标准设置行排版：当前线路作为说明排在标题下方
   return (
     <SettingsRow
-      label="API 线路"
+      label={t('general.network.apiRoute.label')}
       labelId="api-route-label"
       descriptionId="api-route-description"
       description={
         <span role="status" title={API_ROUTES[route]}>
-          当前线路：{labels[route]}
-          {settings.apiRouteMode === 'auto' && '（自动选择）'}
+          {t(
+            settings.apiRouteMode === 'auto'
+              ? 'general.network.apiRoute.currentAuto'
+              : 'general.network.apiRoute.current',
+            { route: labels[route] },
+          )}
         </span>
       }
     >
       <SettingSelect
-        ariaLabel="API 线路"
+        ariaLabel={t('general.network.apiRoute.label')}
         groups={[
-          { value: 'auto', label: '自动（推荐）' },
+          { value: 'auto', label: t('general.network.apiRoute.auto') },
           { value: 'cloudflare', label: 'Cloudflare' },
           { value: 'edgeone', label: 'EdgeOne' },
         ]}

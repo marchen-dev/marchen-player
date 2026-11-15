@@ -3,13 +3,11 @@ import { playerEngineStateAtom } from '@renderer/atoms/player-engine'
 import { usePlayerSettings } from '@renderer/atoms/settings/player'
 import { getCompatSupport } from '@renderer/services/player-runtime/compat-support'
 import { useAtomValue } from 'jotai'
+import { useTranslation } from 'react-i18next'
 import { SettingSelect } from './SettingSelect'
 
-const options = [
-  { value: 'auto', label: '自动' },
-  { value: 'native', label: '原生（H5）' },
-  { value: 'compat', label: '兼容内核' },
-]
+// 选项名在渲染时按 value 取 `playerEngine.options.<value>`，不放在模块顶层的常量里
+const options = ['auto', 'native', 'compat'] as const
 
 /**
  * 播放内核设置的数据与状态文案。应用设置（标准设置行）与播放器面板（毛玻璃纵向排版）
@@ -19,6 +17,7 @@ export const usePlayerEngineSetting = () => {
   const [settings, setSettings] = usePlayerSettings()
   const engine = useAtomValue(playerEngineStateAtom)
   const support = getCompatSupport()
+  const { t } = useTranslation('settings')
   const selected = engine?.pending ?? engine?.preference ?? settings.enginePreference ?? 'auto'
   const change = (value: string) => {
     const preference = value as EnginePreference
@@ -28,16 +27,20 @@ export const usePlayerEngineSetting = () => {
   }
   const statusText = engine?.switching
     ? engine.pending
-      ? '正在切换内核…'
-      : '正在准备播放…'
+      ? t('playerEngine.status.switching')
+      : t('playerEngine.status.preparing')
     : engine?.actual
-      ? `当前使用：${engine.actual === 'native' ? '原生（H5）' : '兼容内核'}`
-      : '下次打开视频时应用；自动模式优先使用原生播放。'
+      ? t('playerEngine.status.current', {
+          engine: t(`playerEngine.options.${engine.actual === 'native' ? 'native' : 'compat'}`),
+        })
+      : t('playerEngine.status.pending')
 
   return {
-    groups: options.map((option) => ({
-      ...option,
-      disabled: option.value === 'compat' && !support.supported,
+    label: t('playerEngine.label'),
+    groups: options.map((value) => ({
+      value,
+      label: t(`playerEngine.options.${value}`),
+      disabled: value === 'compat' && !support.supported,
     })),
     value: !support.supported && selected === 'compat' ? 'auto' : selected,
     change,
@@ -88,7 +91,7 @@ export const PlayerEngineSetting = ({
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between gap-4">
-        <span className="text-sm">播放内核</span>
+        <span className="text-sm">{state.label}</span>
         <SettingSelect
           groups={state.groups}
           value={state.value}

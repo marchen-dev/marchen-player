@@ -2,6 +2,7 @@ import type { AppSettingsSection } from '@marchen/shared/types/renderer-handlers
 import { resolveAppSettingsSection } from '@marchen/shared/types/renderer-handlers'
 import { jotaiStore } from '@renderer/atoms/store'
 import { modalStackAtom, useModalStack } from '@renderer/components/ui/modal'
+import { t } from '@renderer/lib/i18n'
 
 import { captureFeatureUsed } from '@renderer/services/telemetry/features'
 import { useCallback, useRef } from 'react'
@@ -24,8 +25,9 @@ export const useOpenAppSettings = () => {
       setCurrentSetting(section)
       present({
         id: 'SETTING',
-        title: '设置',
-        description: '管理 Marchen 的应用偏好、实验功能与版本信息',
+        // 打开时按当时的语言取；弹窗内可见的标题由 SettingModal 自己渲染并随语言更新
+        title: t('settings:dialog.title'),
+        description: t('settings:dialog.description'),
         returnFocusRef,
         overlay: false,
         CustomModalComponent: AppSettingsDialogShell,

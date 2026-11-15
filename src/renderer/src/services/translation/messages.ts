@@ -7,6 +7,7 @@
 import type { TranslationTarget } from './assets/manifest'
 import type { DanmakuTranslationStatus } from './status'
 import type { TranslationUnsupportedReason } from './support'
+import { formatNumber } from '@renderer/lib/i18n'
 
 /** 首次下载的大致体积（gzip 后），仅用于确认提示 */
 const APPROXIMATE_DOWNLOAD_SIZE = '50 MB'
@@ -59,9 +60,9 @@ export const translationMessages = {
       case 'starting':
         return '正在加载翻译引擎'
       case 'translating':
-        return `本集翻译中 ${status.done} / ${status.total}`
+        return `本集翻译中 ${formatNumber(status.done)} / ${formatNumber(status.total)}`
       case 'done':
-        return `本集已翻译 ${status.total} 条`
+        return `本集已翻译 ${formatNumber(status.total)} 条`
       case 'engine_failed':
         return '翻译引擎出错，弹幕按原文显示'
     }
@@ -76,9 +77,4 @@ export const translationMessages = {
 
   /** 悬停工具条里原文行的无障碍说明 */
   hoverOriginalLabel: '原文',
-
-  storage: {
-    label: '翻译模型',
-    description: '弹幕翻译使用的引擎与模型；清除后弹幕翻译会关闭',
-  },
 } as const

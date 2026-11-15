@@ -5,12 +5,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@renderer/components/u
 import { cn } from '@renderer/lib/utils'
 import { captureStablePageView } from '@renderer/services/telemetry/navigation'
 import { useEffect, useRef } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useLocation } from 'react-router'
 
 import { setCurrentSetting, useCurrentSetting } from './provider'
 import { settingTabs } from './tabs'
 
 export const SettingModal = () => {
+  const { t } = useTranslation('settings')
   const currentSection = useCurrentSetting()
   const { dismiss } = useCurrentModal()
   const location = useLocation()
@@ -45,21 +47,21 @@ export const SettingModal = () => {
       orientation="vertical"
       className="app-settings-layout"
     >
-      <aside className="app-settings-navigation" aria-label="设置分类">
+      <aside className="app-settings-navigation" aria-label={t('dialog.navigationLabel')}>
         <div className="app-settings-brand">
           <i className="icon-[mingcute--settings-7-line]" aria-hidden="true" />
-          <span>设置</span>
+          <span>{t('dialog.title')}</span>
         </div>
-        <TabsList className="app-settings-tabs" aria-label="设置分类">
+        <TabsList className="app-settings-tabs" aria-label={t('dialog.navigationLabel')}>
           {settingTabs.map((tab) => (
             <TabsTrigger
               key={tab.id}
               value={tab.id}
               className="app-settings-tab"
-              aria-label={tab.label}
+              aria-label={t(`tabs.${tab.id}.label`)}
             >
               <i className={cn(tab.icon, 'text-lg')} aria-hidden="true" />
-              <span>{tab.label}</span>
+              <span>{t(`tabs.${tab.id}.label`)}</span>
             </TabsTrigger>
           ))}
         </TabsList>
@@ -76,7 +78,7 @@ export const SettingModal = () => {
         type="button"
         variant="ghost"
         className="app-settings-close"
-        aria-label="关闭设置"
+        aria-label={t('dialog.close')}
         onClick={dismiss}
       >
         <i className="icon-[mingcute--close-line] text-xl" aria-hidden="true" />
