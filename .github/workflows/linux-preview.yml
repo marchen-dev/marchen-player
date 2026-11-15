@@ -26,6 +26,8 @@ jobs:
     env:
       VITE_API_CLOUDFLARE_URL: ${{ secrets.VITE_API_CLOUDFLARE_URL }}
       VITE_API_EDGEONE_URL: ${{ secrets.VITE_API_EDGEONE_URL }}
+      # 弹幕翻译的引擎与模型存储桶基址；预览构建不强制，未配置时包内弹幕翻译显示为不支持
+      VITE_TRANSLATION_ASSETS_URL: ${{ secrets.VITE_TRANSLATION_ASSETS_URL }}
       MARCHEN_COMMIT: ${{ github.sha }}
       MARCHEN_DIST: linux-${{ matrix.arch }}
       MARCHEN_ENVIRONMENT: preview

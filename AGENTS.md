@@ -225,7 +225,7 @@ docs/                     # 发布、部署、可观测性文档
 | ----------------------------------------------------- | ---------------------------------------------------------------- |
 | `VITE_API_CLOUDFLARE_URL` / `VITE_API_EDGEONE_URL` | API 主备 HTTPS 基址（含 `/api/v2`），构建时注入 |
 | `VITE_API_SIGN_KID` / `VITE_API_SIGN_KEY` | API 请求签名的密钥编号与密钥（Web `w1`、桌面 `d1`），正式构建必填，会随客户端公开 |
-| `VITE_TRANSLATION_ASSETS_URL` | 弹幕翻译的引擎与模型存储桶基址（HTTPS，可选）；留空则弹幕翻译显示为不支持，格式非法时构建失败 |
+| `VITE_TRANSLATION_ASSETS_URL` | 弹幕翻译的引擎与模型存储桶基址（HTTPS）；Web 正式构建与桌面发行必填，本地开发与 PR 检查可留空（弹幕翻译显示为不支持），格式非法时构建失败 |
 | `VITE_SENTRY_DSN`                                     | Sentry DSN                                                       |
 | `VITE_POSTHOG_KEY` / `VITE_POSTHOG_HOST`              | PostHog 客户端配置                                               |
 | `VITE_TELEMETRY_DEBUG`                                | 开发态是否上报遥测，默认 false                                   |

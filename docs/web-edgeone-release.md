@@ -18,6 +18,7 @@
 | MARCHEN_DEPLOY_ENV | 必填 preview 或 production，须与控制台目标环境一致 |
 | VITE_API_CLOUDFLARE_URL / VITE_API_EDGEONE_URL | 两条 API 基址，分别为 `https://dandan-proxy.suemor.cc/api/v2` / `https://dandan-proxy.suemor.com/api/v2`；都必填，须为有效 HTTPS 地址 |
 | VITE_API_SIGN_KID / VITE_API_SIGN_KEY | API 请求签名，必填：KID 为 `w1`，KEY 与 dandan-proxy `SIGN_KEYS` 中的 `w1` 一致。会随前端公开，只用于区分 Web 流量和轮换，不要复用真实密码 |
+| VITE_TRANSLATION_ASSETS_URL | 弹幕翻译的引擎与模型存储桶基址，填 `https://assets.suemor.cc/marchen/translation`；正式构建必填，缺失或格式非法时构建失败 |
 | VITE_SENTRY_DSN | 客户端 Sentry 项目配置 |
 | VITE_POSTHOG_KEY / VITE_POSTHOG_HOST | 产品事件采集；Web 的 HOST 填 PostHog 托管反向代理 `https://t.suemor.com`（CNAME 至 proxyhog，规避广告拦截），Electron 发行仍用 GitHub Secrets 中的官方地址 |
 | SENTRY_AUTH_TOKEN / SENTRY_ORG / SENTRY_PROJECT | 构建期 Source Map 上传；禁止添加 VITE_ 前缀 |

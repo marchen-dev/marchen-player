@@ -28,6 +28,15 @@ it('缺少正式配置时在构建和上传之前失败，不输出秘密值', (
   assert.ok(!`${result.stdout}${result.stderr}`.includes(env.SENTRY_AUTH_TOKEN))
 })
 
+it('翻译资源基址缺失时 Web 正式构建失败', () => {
+  const env = { ...process.env, VITE_TRANSLATION_ASSETS_URL: '' }
+  const result = spawnSync(process.execPath, ['scripts/web/release-build.mjs'], { env, encoding: 'utf8' })
+  assert.equal(result.status, 1)
+  assert.match(result.stderr, /VITE_TRANSLATION_ASSETS_URL/)
+  // 桌面发行同样列为必填，避免只改一处
+  assert.match(readFileSync('.github/workflows/release.yml', 'utf8'), /required=\([^)]*VITE_TRANSLATION_ASSETS_URL/)
+})
+
 it('edgeOne 只发布 out/web，所有资源声明相同 COEP，HashRouter 不吞掉缺失资源', () => {
   const config = JSON.parse(readFileSync('edgeone.json', 'utf8'))
   assert.equal(config.outputDirectory, 'out/web')
