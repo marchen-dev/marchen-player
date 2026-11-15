@@ -13,6 +13,9 @@ export const createSentryTelemetryClient = (): TelemetryClient => ({
   },
   capture(name, properties) {
     // 产品事件由 PostHog 负责；Sentry 仅保留最近的稳定业务状态作为 breadcrumb。
+    // 界面语言作为全局标签：之后的错误（含未捕获的）都能按语言筛选，例如「只在英文界面下出现」。
+    // 每个产品事件都带着当时的界面语言，启动事件设一次，切换语言后的下一个事件自然更新。
+    if (properties.ui_language) Sentry.setTag('ui_language', properties.ui_language)
     Sentry.addBreadcrumb({ category: 'product', message: name, data: properties, level: 'info' })
   },
   captureException(error, context) {

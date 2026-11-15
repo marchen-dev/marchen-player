@@ -141,6 +141,7 @@ FFmpeg/Gateway/media.generation 与 compat_fallback_triggered 为历史版本口
 界面支持简体中文与 English，1.1.8 起对正式构建放开（默认跟随系统语言）。更早的版本固定为简体中文，下面的属性在这些版本里恒为 `zh-CN`、切换事件不会出现。
 
 - 公共属性 `ui_language`：上报当时界面实际使用的语言，取值 `zh-CN` / `en`（开发态可能是 `pseudo`，即伪本地化）。它是「实际语言」而不是用户的偏好：偏好为跟随系统时，这里是解析后的结果。只有 renderer 的事件带这个属性，主进程的事件没有。
+- Sentry 的全局标签 `ui_language`（1.1.8 之后的版本）：取值同上，由 renderer 在每个产品事件上同步，所以启动后的错误（含未捕获的）都带这个标签，可以筛选「只在英文界面下出现的错误」。启动事件之前发生的错误、主进程的错误没有这个标签。
 - `feature_used(app_language, change, value)`：用户在设置里改了语言偏好，`value` 为所选项 `system` / `zh-CN` / `en`。启动时按偏好应用语言不触发。
 - 本机诊断日志的 `renderer_start` 快照里有 `uiLanguage`（实际语言）与 `languagePreference`（偏好），以及原有的 `language`（浏览器报告的语言）。排查「界面语言不对」先对这三个值。
 - 按语言拆分留存或功能使用率时用 `ui_language`；评估「有多少用户主动改过语言」用 `feature_used(app_language, change)`，两者口径不同。
