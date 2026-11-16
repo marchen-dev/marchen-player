@@ -27,6 +27,9 @@ import { AudioTrackSetting } from './items/AudioTrackSetting'
 import { Danmaku } from './items/damaku/Danmaku'
 import { Subtitle } from './items/subtitle/Subtitle'
 import { MediaTransferRows } from './MediaTransferRows'
+import { panelChoiceClassName } from './panel-choice'
+import { PanelCard, PanelSection } from './panel-layout'
+import { SegmentedControl } from './SegmentedControl'
 
 const PlayList = lazy(() => import('./items/playList/PlayList'))
 
@@ -125,7 +128,8 @@ export const PlayerSettingsPanel = ({
           >
             <TabsList
               aria-label={t('settingsPanel.tabsLabel')}
-              className="no-drag-region h-16 shrink-0 justify-start gap-1 rounded-none border-b border-white/11 bg-transparent px-5 pr-14"
+              // 右侧只给关闭按钮（right-4、约 18px）留够位置，最窄 380px 时中文四个带图标的标签也放得下
+              className="no-drag-region h-16 shrink-0 justify-start gap-1 rounded-none border-b border-white/11 bg-transparent px-5 pr-11"
             >
               {sections.map((section) => {
                 const label = t(`settingsPanel.tabs.${section}`)
@@ -136,9 +140,10 @@ export const PlayerSettingsPanel = ({
                     // 只显示文字的时候名称可能被截断，悬停能看到完整名称
                     title={showTabIcons ? undefined : label}
                     className={cn(
-                      'no-drag-region h-10 flex-1 gap-2 rounded-lg px-2 text-[var(--player-settings-muted)] shadow-none',
-                      // 名称较长、只显示文字时：允许在自己的格子里截断，不伸到右上角的关闭按钮下面。
-                      // 名称短（简体中文）时不加：四个标签等宽，加了会把四个字的「播放列表」截掉
+                      // 先按名称宽度占位，再平均分掉剩余空间铺满整行（flex-auto）：
+                      // 等分会把较长的英文名截掉，只按名称宽度排在宽侧栏里右侧又会空出一块。
+                      'no-drag-region h-10 flex-auto gap-1.5 rounded-lg px-2 text-[var(--player-settings-muted)] shadow-none',
+                      // 只显示文字时实在放不下才允许收缩截断（悬停看全名）；带图标时名称很短，不收缩
                       !showTabIcons && 'min-w-0',
                       'hover:bg-white/6 hover:text-[var(--player-settings-fg)]',
                       'focus-visible:ring-2 focus-visible:ring-[var(--player-settings-focus)] focus-visible:ring-offset-0',
@@ -245,27 +250,26 @@ const PlaybackSettings = ({
       </PanelSection>
 
       <PanelSection title={t('settingsPanel.speed')}>
-        <div className="grid grid-cols-3 gap-2">
-          {PLAYBACK_RATES.map((value) => (
-            <PanelChoice key={value} active={value === rate} onClick={() => onRateChange(value)}>
-              {value === 1 ? t('settingsPanel.speedNormal') : `${value}x`}
-            </PanelChoice>
-          ))}
-        </div>
+        <SegmentedControl
+          label={t('settingsPanel.speed')}
+          className="grid-cols-3"
+          value={rate}
+          options={PLAYBACK_RATES.map((value) => ({
+            value,
+            label: value === 1 ? t('settingsPanel.speedNormal') : `${value}x`,
+          }))}
+          onValueChange={onRateChange}
+        />
       </PanelSection>
 
       <PanelSection title={t('settingsPanel.rotation')}>
-        <div className="grid grid-cols-4 gap-2">
-          {ROTATIONS.map((value) => (
-            <PanelChoice
-              key={value}
-              active={value === rotation}
-              onClick={() => onRotationChange(value)}
-            >
-              {value}°
-            </PanelChoice>
-          ))}
-        </div>
+        <SegmentedControl
+          label={t('settingsPanel.rotation')}
+          className="grid-cols-4"
+          value={rotation}
+          options={ROTATIONS.map((value) => ({ value, label: `${value}°` }))}
+          onValueChange={onRotationChange}
+        />
       </PanelSection>
 
       <PanelSection title={t('settingsPanel.preferences')}>
@@ -329,15 +333,22 @@ const PlaybackSettings = ({
       </PanelSection>
 
       <PanelSection title={t('settingsPanel.controllerPosition.title')}>
-        <div className="grid grid-cols-4 gap-2">
-          {positionPresets.map((preset) => (
-            <PanelChoice
-              key={preset.id}
-              onClick={() => setSettings((current) => withControllerPosition(current, preset))}
-            >
-              {t(`settingsPanel.controllerPosition.${preset.id}`)}
-            </PanelChoice>
-          ))}
+        {/* 「重置」带图标，按内容宽度占位，三个位置预设平分剩余宽度；等分四格在最窄侧栏下会把「重置」折成两行 */}
+        <div className="grid grid-cols-[repeat(3,minmax(0,1fr))_auto] gap-2">
+          {positionPresets.map((preset) => {
+            const label = t(`settingsPanel.controllerPosition.${preset.id}`)
+            return (
+              <PanelChoice
+                key={preset.id}
+                // 文字过长（例如伪本地化）时在格子里截断，不把「重置」挤出侧栏
+                className="min-w-0 px-2"
+                title={label}
+                onClick={() => setSettings((current) => withControllerPosition(current, preset))}
+              >
+                <span className="truncate">{label}</span>
+              </PanelChoice>
+            )
+          })}
           <PanelChoice
             aria-label={t('settingsPanel.controllerPosition.resetLabel')}
             onClick={() =>
@@ -355,17 +366,6 @@ const PlaybackSettings = ({
   )
 }
 
-export const PanelSection = ({ title, children }: React.PropsWithChildren<{ title: string }>) => (
-  <section className="space-y-3">
-    <h3 className="text-sm font-semibold text-[var(--player-settings-fg)]">{title}</h3>
-    {children}
-  </section>
-)
-
-export const PanelCard = ({ children }: React.PropsWithChildren) => (
-  <div className="divide-y divide-white/11 rounded-xl bg-white/8 px-4">{children}</div>
-)
-
 export const PanelChoice = ({
   active,
   className,
@@ -374,14 +374,7 @@ export const PanelChoice = ({
   <button
     type="button"
     aria-pressed={active}
-    className={cn(
-      'flex min-h-10 items-center justify-center gap-1.5 rounded-lg border border-white/11 px-3 text-sm transition-colors',
-      'focus-visible:ring-2 focus-visible:ring-[var(--player-settings-focus)] focus-visible:outline-none',
-      active
-        ? 'bg-white/14 text-[var(--player-settings-fg)]'
-        : 'bg-white/6 text-[var(--player-settings-muted)] hover:bg-white/10 hover:text-[var(--player-settings-fg)]',
-      className,
-    )}
+    className={panelChoiceClassName(active, className)}
     {...props}
   />
 )

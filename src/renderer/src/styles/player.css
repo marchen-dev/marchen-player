@@ -36,7 +36,7 @@
   /* 品牌蓝只有一个来源，播放器强调色直接引用 */
   --player-settings-accent: var(--brand);
   --player-settings-focus: #64b5ff;
-  --player-settings-width: clamp(380px, 28vw, 440px);
+  --player-settings-width: clamp(380px, 25vw, 420px);
 }
 
 @supports not (backdrop-filter: blur(1px)) {

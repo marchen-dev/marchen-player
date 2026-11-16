@@ -1,16 +1,17 @@
 export default {
   settings: {
-    cardTitle: 'Danmaku',
+    groups: {
+      display: 'Display',
+      appearance: 'Appearance',
+      sources: 'Sources and rules',
+    },
     show: 'Show danmaku',
     traditionalToSimplified: 'Traditional to Simplified',
     traditionalToSimplifiedDisabled: "Doesn't apply while translation is on",
     fontSize: 'Font size',
-    fontSizePlaceholder: 'Danmaku font size',
     opacity: 'Opacity',
-    opacityPlaceholder: 'Danmaku opacity',
-    duration: 'Scroll speed',
-    durationPlaceholder: 'Danmaku scroll speed',
-    durationOptions: {
+    speed: 'Scroll speed',
+    speedOptions: {
       verySlow: 'Very slow',
       slow: 'Slow',
       normal: 'Normal',
@@ -18,14 +19,6 @@ export default {
       veryFast: 'Very fast',
     },
     area: 'Display area',
-    areaPlaceholder: 'Danmaku display area',
-    density: 'On-screen density',
-    densityPlaceholder: 'Danmaku density',
-    densityOptions: {
-      low: 'Low (40)',
-      medium: 'Medium (80)',
-      high: 'High (120)',
-    },
   },
   source: {
     title: 'Sources',
@@ -107,7 +100,8 @@ export default {
   block: {
     title: 'Danmaku blocking',
     addRule: 'Add a blocking rule',
-    manageRules: 'Manage {{total}} rules',
+    ruleCount_one: '{{count}} rule',
+    ruleCount_other: '{{count}} rules',
     blockedCount: '{{total}} blocked in this episode',
     enable: 'Enable blocking',
     modesTitle: 'Blocked types',
@@ -141,7 +135,6 @@ export default {
   list: {
     title: 'Danmaku list',
     empty: 'No danmaku',
-    viewAll: 'View all {{total}}',
     totalCount: '{{total}} in total',
     filteredCount: '{{shown}} / {{total}}',
     searchPlaceholder: 'Search danmaku',

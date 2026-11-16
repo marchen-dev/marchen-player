@@ -4,6 +4,7 @@ import type { FC } from 'react'
 import { LANGUAGE_NATIVE_NAMES } from '@marchen/i18n'
 import { usePlayerSettingsValue } from '@renderer/atoms/settings/player'
 import { NewBadge } from '@renderer/components/common/NewBadge'
+import { FieldLayout } from '@renderer/components/modules/settings/views/Layout'
 import { SettingSelect } from '@renderer/components/modules/shared/setting/SettingSelect'
 import { useTranslationDownloadConfirm } from '@renderer/components/modules/shared/TranslationDownloadConfirm'
 import { Button } from '@renderer/components/ui/button'
@@ -13,9 +14,8 @@ import { danmakuTranslation } from '@renderer/services/translation/service'
 import { useDanmakuTranslationStatus } from '@renderer/services/translation/status'
 import { describeTranslationStatus } from '@renderer/services/translation/status-text'
 import { useCallback, useEffect } from 'react'
-import { useTranslation } from 'react-i18next'
 
-import { FieldLayout } from '../Layout'
+import { useTranslation } from 'react-i18next'
 
 /** 下拉框里代表「不翻译」的取值 */
 const OFF = 'off'

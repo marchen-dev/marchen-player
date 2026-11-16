@@ -199,6 +199,10 @@ export default {
     speed: '播放速度',
     speedNormal: '正常',
     rotation: '画面旋转',
+    /** 滑块设置非默认值时出现的重置按钮 */
+    resetToDefault: '恢复默认',
+    /** 重置按钮的读屏名称，name 是设置项名称 */
+    resetToDefaultLabel: '{{name}}恢复默认',
     preferences: '播放偏好',
     autoNext: '自动续播下一集',
     bottomProgress: '控制器隐藏时显示底部进度',
@@ -272,13 +276,13 @@ export default {
     track: '字幕轨道',
     trackPlaceholder: '选择字幕轨道',
     off: '关闭字幕',
-    scale: '字幕大小：{{percent}}%',
+    /** 字幕页分组：字幕大小与时间偏移 */
+    adjust: '调整',
     scaleLabel: '字幕大小',
-    reset: '重置',
     bitmapNoScale: '图片字幕不支持调整大小',
     import: '导入外挂字幕…',
-    offset: '时间偏移 {{offset}} 秒',
-    offsetLabel: '字幕时间偏移',
+    offsetValue: '{{offset}} 秒',
+    offsetLabel: '时间偏移',
     loadingCatalog: '正在读取字幕轨道…',
     loading: '正在读取字幕…',
     cancelLoading: '取消读取',

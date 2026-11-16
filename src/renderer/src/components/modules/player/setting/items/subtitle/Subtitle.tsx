@@ -1,5 +1,4 @@
 import { usePlayerSettings } from '@renderer/atoms/settings/player'
-import { FieldLayout } from '@renderer/components/modules/settings/views/Layout'
 import { Button } from '@renderer/components/ui/button'
 import {
   Select,
@@ -12,7 +11,8 @@ import {
 import { useNativeSubtitles, usePlayerPortalContainer } from '@renderer/services/player-runtime'
 import { useTranslation } from 'react-i18next'
 
-import { SettingContainer } from '../../Container'
+import { PanelSection } from '../../panel-layout'
+import { SliderField } from '../../SliderField'
 
 export const Subtitle = () => {
   const { t } = useTranslation('player')
@@ -36,21 +36,25 @@ export const Subtitle = () => {
   const bitmapSelected = tracks.find((track) => track.id === selectedId)?.kind === 'bitmap'
 
   return (
-    <SettingContainer>
-      {!embeddedSupported && (
-        <p className="text-sm text-white/60">{t('subtitle.remoteNoEmbedded')}</p>
-      )}
-      <FieldLayout title={t('subtitle.track')}>
+    // 与弹幕页一致：分组标题 + 上下排。轨道名常带字幕组与语言（如「chs&jpn[字幕组] · zh-Hans」），
+    // 放在右侧半宽下拉框里总会被截断，所以下拉框占满整行
+    <div className="space-y-7">
+      <PanelSection title={t('subtitle.track')}>
+        {!embeddedSupported && (
+          <p className="text-sm text-[var(--player-settings-muted)]">
+            {t('subtitle.remoteNoEmbedded')}
+          </p>
+        )}
         <Select value={pendingId ?? selectedId} onValueChange={(value) => void selectTrack(value)}>
           <SelectTrigger
             aria-label={t('subtitle.track')}
-            className="w-56 border-white/11 bg-white/8 text-white focus:ring-[var(--player-settings-focus)] focus:ring-offset-0"
+            className="w-full border-white/11 bg-white/8 text-white focus:ring-[var(--player-settings-focus)] focus:ring-offset-0"
           >
             <SelectValue placeholder={t('subtitle.trackPlaceholder')} />
           </SelectTrigger>
           <SelectContent
             container={portalContainer}
-            className="border-white/11 bg-player-popover player-glass text-white"
+            className="bg-player-popover player-glass border-white/11 text-white"
           >
             <SelectGroup>
               <SelectItem value="off" className="focus:bg-white/14 focus:text-white">
@@ -70,87 +74,72 @@ export const Subtitle = () => {
             </SelectGroup>
           </SelectContent>
         </Select>
-      </FieldLayout>
 
-      <FieldLayout title={t('subtitle.scale', { percent: settings.subtitleScale })}>
-        <div className="flex items-center gap-3">
-          <input
-            type="range"
+        <Button
+          type="button"
+          variant="outline"
+          className="w-full border-white/11 bg-white/8 text-white hover:bg-white/14 hover:text-white"
+          onClick={() => void importTrack()}
+        >
+          {t('subtitle.import')}
+        </Button>
+
+        {loading && (embeddedSupported || loadingOperation !== 'catalog') && (
+          <div className="flex items-center justify-between gap-3">
+            <p role="status" className="text-sm text-[var(--player-settings-muted)]">
+              {loadingOperation === 'catalog'
+                ? t('subtitle.loadingCatalog')
+                : t('subtitle.loading')}
+            </p>
+            <Button type="button" variant="ghost" onClick={cancelLoading}>
+              {t('subtitle.cancelLoading')}
+            </Button>
+          </div>
+        )}
+
+        {error && (
+          <p role="status" className="text-sm text-red-400">
+            {t('subtitle.errorSuffix', { error })}
+          </p>
+        )}
+      </PanelSection>
+
+      <PanelSection title={t('subtitle.adjust')}>
+        <div className="space-y-5">
+          <SliderField
+            title={t('subtitle.scaleLabel')}
+            value={settings.subtitleScale}
+            defaultValue={100}
             min={50}
             max={200}
             step={5}
-            value={settings.subtitleScale}
             disabled={bitmapSelected}
-            aria-label={t('subtitle.scaleLabel')}
-            aria-valuetext={`${settings.subtitleScale}%`}
-            aria-describedby={bitmapSelected ? 'subtitle-scale-bitmap-hint' : undefined}
-            className="min-w-0 flex-1 accent-[var(--player-settings-accent)] disabled:opacity-40"
-            onChange={(event) => {
-              const subtitleScale = event.currentTarget.valueAsNumber
+            formatValue={(value) => `${value}%`}
+            onValueChange={(subtitleScale) =>
               setSettings((previous) => ({ ...previous, subtitleScale }))
-            }}
+            }
+            description={
+              bitmapSelected && (
+                <p className="mt-0.5 text-xs text-[var(--player-settings-muted)]">
+                  {t('subtitle.bitmapNoScale')}
+                </p>
+              )
+            }
           />
-          <Button
-            type="button"
-            variant="outline"
-            disabled={bitmapSelected || settings.subtitleScale === 100}
-            className="border-white/11 bg-white/8 text-white hover:bg-white/14 hover:text-white"
-            onClick={() => setSettings((previous) => ({ ...previous, subtitleScale: 100 }))}
-          >
-            {t('subtitle.reset')}
-          </Button>
+          <SliderField
+            title={t('subtitle.offsetLabel')}
+            value={timeOffset}
+            defaultValue={0}
+            min={-9}
+            max={9}
+            step={0.5}
+            formatValue={(value) =>
+              t('subtitle.offsetValue', { offset: `${value > 0 ? '+' : ''}${value.toFixed(1)}` })
+            }
+            onValueChange={(value) => void setTimeOffset(value)}
+          />
         </div>
-      </FieldLayout>
-      {bitmapSelected && (
-        <p id="subtitle-scale-bitmap-hint" className="-mt-2 text-sm text-white/60">
-          {t('subtitle.bitmapNoScale')}
-        </p>
-      )}
-
-      <Button
-        type="button"
-        variant="outline"
-        className="border-white/11 bg-white/8 text-white hover:bg-white/14 hover:text-white"
-        onClick={() => void importTrack()}
-      >
-        {t('subtitle.import')}
-      </Button>
-
-      <FieldLayout
-        // 右侧是占满剩余宽度的滑块，标题本来就换行显示；不加间距，保持滑块原来的宽度
-        className="gap-0"
-        title={t('subtitle.offset', {
-          offset: `${timeOffset > 0 ? '+' : ''}${timeOffset.toFixed(1)}`,
-        })}
-      >
-        <input
-          type="range"
-          min={-9}
-          max={9}
-          step={0.5}
-          value={timeOffset}
-          aria-label={t('subtitle.offsetLabel')}
-          className="w-full accent-[var(--player-settings-accent)]"
-          onChange={(event) => void setTimeOffset(event.currentTarget.valueAsNumber)}
-        />
-      </FieldLayout>
-
-      {loading && (embeddedSupported || loadingOperation !== 'catalog') && (
-        <div className="flex items-center justify-between gap-3">
-          <p role="status" className="text-sm text-white/60">
-            {loadingOperation === 'catalog' ? t('subtitle.loadingCatalog') : t('subtitle.loading')}
-          </p>
-          <Button type="button" variant="ghost" onClick={cancelLoading}>
-            {t('subtitle.cancelLoading')}
-          </Button>
-        </div>
-      )}
-
-      {error && (
-        <p role="status" className="text-sm text-red-400">
-          {t('subtitle.errorSuffix', { error })}
-        </p>
-      )}
-    </SettingContainer>
+      </PanelSection>
+    </div>
   )
 }

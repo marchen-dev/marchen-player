@@ -20,7 +20,8 @@ const SelectTrigger = ({
   <SelectPrimitive.Trigger
     ref={ref}
     className={cn(
-      'flex h-10 w-full cursor-default items-center justify-between rounded-md border',
+      // text-left：button 默认居中，过长的值被 line-clamp 截成一行时，首行会按断行位置居中而在左侧留出空白
+      'flex h-10 w-full cursor-default items-center justify-between rounded-md border text-left',
       'border-input bg-field ring-offset-background placeholder:text-muted-foreground px-3 py-2 text-sm focus:outline-none',
       'focus:ring-ring focus:ring-2 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1',
       className,

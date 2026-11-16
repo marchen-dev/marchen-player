@@ -18,7 +18,7 @@ export const MatchInfo = () => {
     'rounded-md px-2 py-1 text-xs text-white/70 hover:bg-white/10 hover:text-white focus-visible:ring-2 focus-visible:ring-[var(--player-settings-focus)] focus-visible:outline-none disabled:opacity-40'
 
   return (
-    <section data-player-match-info className="mb-6 space-y-3">
+    <section data-player-match-info className="space-y-3">
       <div className="flex items-center justify-between gap-3">
         <h3 className="text-sm font-semibold">{t('matchInfo.title')}</h3>
         <div className="flex items-center gap-1">

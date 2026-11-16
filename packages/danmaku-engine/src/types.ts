@@ -84,7 +84,7 @@ export const DEFAULT_DANMAKU_CONFIG: DanmakuConfig = {
   duration: 8,
   fontSize: 26,
   displayArea: 0.5,
-  maxOnScreen: 80,
+  maxOnScreen: 120,
   lookAhead: 0.08,
   laneGap: 12,
 }

@@ -1,10 +1,11 @@
 import type { EnginePreference } from '@renderer/services/player-runtime/engine-policy'
-import {
-  danmakuDurationList,
-  danmakuEndAreaList,
-  danmakuFontSizeList,
-} from '@renderer/components/modules/settings/views/player/list'
 import { setPlayFirstReader } from '@renderer/services/player-loading/play-first-policy'
+import {
+  DANMAKU_FONT_SCALE,
+  DEFAULT_DANMAKU_DISPLAY_AREA,
+  DEFAULT_DANMAKU_DURATION,
+  normalizeDanmakuAppearance,
+} from '@renderer/services/player-runtime/danmaku/appearance'
 import {
   createDefaultDanmakuBlockSettings,
   normalizeDanmakuBlockSettings,
@@ -21,11 +22,6 @@ import { useAtom, useAtomValue } from 'jotai'
 import { jotaiStore } from '../store'
 import { createSettingATom } from './helper'
 
-// 只关心取值与是否默认；选项的显示名称不在这里（部分列表只存 id，名称在渲染时翻译）
-const getSelectedDefaultValue = (list: ReadonlyArray<{ value: string; default?: boolean }>) => {
-  return list.find((item) => item.default)?.value
-}
-
 const createPlayerDefaultSettings = () => {
   return {
     enginePreference: 'auto' as EnginePreference,
@@ -35,15 +31,16 @@ const createPlayerDefaultSettings = () => {
     // 优先播放：导入后先开播，匹配与在线弹幕在后台接入；默认关闭以保证开头弹幕完整
     enablePlayFirst: false,
     enableDanmaku: true,
-    danmakuMaxOnScreen: '80',
     danmakuOpacity: 100,
     enableMiniProgress: true,
     // 默认允许单击画面切换播放 / 暂停；已保存的用户选择由设置归一化保留。
     enableClickToTogglePlay: true,
     controllerPosition: { xRatio: 0.5, yRatio: 0.72 },
-    danmakuFontSize: getSelectedDefaultValue(danmakuFontSizeList) ?? '26',
-    danmakuDuration: getSelectedDefaultValue(danmakuDurationList) ?? '15000',
-    danmakuEndArea: getSelectedDefaultValue(danmakuEndAreaList)!,
+    // 字号是百分比（100% = 26px）；旧版保存的像素字段 danmakuFontSize 在归一化时迁移
+    danmakuFontScale: DANMAKU_FONT_SCALE.default as number,
+    // 一条弹幕滚过屏幕的毫秒数，界面上按「弹幕速度」五档呈现
+    danmakuDuration: DEFAULT_DANMAKU_DURATION as string,
+    danmakuEndArea: DEFAULT_DANMAKU_DISPLAY_AREA as string,
     // 全局屏蔽规则，对所有视频与弹幕来源生效；只影响显示，不改写缓存与 HISTORY 中的弹幕
     danmakuBlock: createDefaultDanmakuBlockSettings(),
     // 弹幕翻译：全局开关与目标语言；只影响显示，不改写缓存与 HISTORY 中的弹幕
@@ -52,8 +49,13 @@ const createPlayerDefaultSettings = () => {
 }
 
 const playerSettingAtom = createSettingATom('player', createPlayerDefaultSettings, (settings) => ({
-  ...createPlayerDefaultSettings(),
-  ...settings,
+  // 外观字段迁移并删掉不再使用的旧字段（像素字号、在屏密度），其余字段原样合并。
+  // 字号不能先被默认值填上，否则旧版的像素字段永远轮不到迁移
+  ...normalizeDanmakuAppearance({
+    ...createPlayerDefaultSettings(),
+    ...settings,
+    danmakuFontScale: settings?.danmakuFontScale,
+  }),
   enginePreference: normalizeEnginePreference(settings?.enginePreference),
   subtitleScale: normalizeSubtitleScale(settings?.subtitleScale),
   danmakuOpacity: normalizeDanmakuOpacity(settings?.danmakuOpacity),

@@ -9,6 +9,7 @@ import { createDisplayTextResolver } from '@renderer/services/translation/displa
 import { danmakuTranslation } from '@renderer/services/translation/service'
 import { translationStore } from '@renderer/services/translation/translation-store'
 import { createContext, use, useCallback, useEffect, useMemo, useRef } from 'react'
+import { DANMAKU_MAX_ON_SCREEN, danmakuFontScaleToPx } from './appearance'
 import { blockDanmakuByText } from './block-danmaku-action'
 import { collectBlockedIds, createDanmakuBlocker, prepareBlockTexts } from './danmaku-block'
 import { DomDanmakuRenderer } from './dom-danmaku-renderer'
@@ -38,10 +39,9 @@ export const NativeDanmakuProvider = ({
   const {
     danmakuDuration,
     danmakuEndArea,
-    danmakuFontSize,
+    danmakuFontScale,
     danmakuOpacity,
     danmakuBlock,
-    danmakuMaxOnScreen,
     enableDanmaku,
     enableTraditionalToSimplified,
     danmakuTranslation: { enabled: translationEnabled },
@@ -55,19 +55,13 @@ export const NativeDanmakuProvider = ({
       // 悬停暂停固定开启，不读取历史设置中的关闭值。
       hoverPause: true,
       duration: Number(danmakuDuration) / 1_000,
-      fontSize: Number(danmakuFontSize),
+      fontSize: danmakuFontScaleToPx(danmakuFontScale),
       opacity: danmakuOpacity / 100,
       displayArea: Number(danmakuEndArea),
-      maxOnScreen: Number(danmakuMaxOnScreen),
+      // 同屏上限只是性能保护，不再由用户设置
+      maxOnScreen: DANMAKU_MAX_ON_SCREEN,
     }),
-    [
-      danmakuDuration,
-      danmakuEndArea,
-      danmakuFontSize,
-      danmakuOpacity,
-      danmakuMaxOnScreen,
-      enableDanmaku,
-    ],
+    [danmakuDuration, danmakuEndArea, danmakuFontScale, danmakuOpacity, enableDanmaku],
   )
   const comments = usePlayerLoadingSelector((state) =>
     state.step === 'ready' || state.step === 'reloading' ? state.mergedComments : [],

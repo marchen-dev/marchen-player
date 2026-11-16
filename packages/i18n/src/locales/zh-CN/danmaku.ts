@@ -6,18 +6,21 @@
  */
 export default {
   settings: {
-    cardTitle: '弹幕',
+    /** 播放侧栏弹幕页的分组标题 */
+    groups: {
+      display: '显示',
+      appearance: '外观',
+      sources: '来源与规则',
+    },
     show: '显示弹幕',
     traditionalToSimplified: '繁体转简体',
     /** 弹幕翻译开启时这个开关不适用，置灰并显示这句说明 */
     traditionalToSimplifiedDisabled: '翻译开启时不适用',
     fontSize: '字体大小',
-    fontSizePlaceholder: '弹幕字体大小',
     opacity: '不透明度',
-    opacityPlaceholder: '弹幕不透明度',
-    duration: '持续时间',
-    durationPlaceholder: '弹幕持续时间',
-    durationOptions: {
+    speed: '弹幕速度',
+    /** 弹幕速度五档，从慢到快 */
+    speedOptions: {
       verySlow: '极慢',
       slow: '较慢',
       normal: '适中',
@@ -25,14 +28,6 @@ export default {
       veryFast: '极快',
     },
     area: '显示区域',
-    areaPlaceholder: '弹幕显示区域',
-    density: '在屏密度',
-    densityPlaceholder: '弹幕密度',
-    densityOptions: {
-      low: '低（40 条）',
-      medium: '中（80 条）',
-      high: '高（120 条）',
-    },
   },
   source: {
     title: '来源',
@@ -117,7 +112,8 @@ export default {
   block: {
     title: '弹幕屏蔽',
     addRule: '添加屏蔽规则',
-    manageRules: '管理 {{total}} 条规则',
+    /** 入口行的摘要：已有规则数 */
+    ruleCount_other: '{{count}} 条规则',
     blockedCount: '本集已屏蔽 {{total}} 条',
     enable: '启用屏蔽',
     modesTitle: '屏蔽类型',
@@ -154,7 +150,6 @@ export default {
   list: {
     title: '弹幕列表',
     empty: '暂无弹幕',
-    viewAll: '查看全部 {{total}} 条',
     totalCount: '共 {{total}} 条',
     filteredCount: '{{shown}} / {{total}} 条',
     searchPlaceholder: '搜索弹幕内容',

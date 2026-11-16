@@ -111,7 +111,9 @@ describe('播放器 UI 回归', () => {
     const contextSource = readFileSync(new URL('../danmaku/context.tsx', import.meta.url), 'utf8')
     expect(contextSource).not.toContain('}, [settings])')
     expect(contextSource).not.toContain('settings.controllerPosition')
-    expect(contextSource).toContain('danmakuMaxOnScreen,')
+    // 同屏上限固定为常量，不再从设置读取
+    expect(contextSource).toContain('maxOnScreen: DANMAKU_MAX_ON_SCREEN')
+    expect(contextSource).not.toContain('danmakuMaxOnScreen')
     expect(contextSource).not.toContain('enableDanmakuHoverPause')
   })
 

@@ -1,7 +1,5 @@
 import type { DanmakuListRow } from '@renderer/services/player-runtime/danmaku/danmaku-list'
 import { usePlayerSettings } from '@renderer/atoms/settings/player'
-import { FieldLayout } from '@renderer/components/modules/settings/views/Layout'
-import { Button } from '@renderer/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@renderer/components/ui/dialog'
 import { Input } from '@renderer/components/ui/input'
 import { ScrollArea } from '@renderer/components/ui/scrollArea'
@@ -34,13 +32,14 @@ import { useTranslation } from 'react-i18next'
 
 import { formatTime } from '../../../../controls/utils'
 import { useDanmakuSourceConfig } from '../../../danmaku-source-context'
+import { EntryRow } from '../../../EntryRow'
 
 const ALL_SOURCES = '__all__'
 /** 单行弹幕的估算高度，长文本换行后由虚拟列表实测修正 */
 const ESTIMATED_ROW_HEIGHT = 36
 const CURRENT_ROW_REFRESH_INTERVAL = 500
 
-/** 「来源」下方的入口行：显示实际在用的弹幕总数，点击后弹窗查看全部弹幕 */
+/** 「来源与规则」卡片里的入口行：显示实际在用的弹幕总数，点击后弹窗查看全部弹幕 */
 export const DanmakuList = memo(() => {
   const { t } = useTranslation('danmaku')
   const { danmaku } = useDanmakuSourceConfig()
@@ -52,22 +51,20 @@ export const DanmakuList = memo(() => {
   )
 
   return (
-    <FieldLayout title={t('list.title')}>
-      <Button
-        className="max-w-[80%] min-w-0 border-white/11 bg-white/8 text-white hover:bg-white/14 hover:text-white"
-        variant="outline"
+    <>
+      <EntryRow
+        label={t('list.title')}
+        summary={
+          total === 0 ? t('list.empty') : t('source.itemCount', { total: formatNumber(total) })
+        }
         disabled={total === 0}
         onClick={() => {
           captureFeatureUsed('danmaku_list', 'open', total)
           setOpen(true)
         }}
-      >
-        <span className="truncate">
-          {total === 0 ? t('list.empty') : t('list.viewAll', { total: formatNumber(total) })}
-        </span>
-      </Button>
+      />
       <DanmakuListDialog open={open} onOpenChange={setOpen} />
-    </FieldLayout>
+    </>
   )
 })
 

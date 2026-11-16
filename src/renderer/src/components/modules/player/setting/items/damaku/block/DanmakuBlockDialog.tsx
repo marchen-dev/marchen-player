@@ -28,13 +28,14 @@ import { memo, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { useDanmakuSourceConfig } from '../../../danmaku-source-context'
+import { EntryRow } from '../../../EntryRow'
 
 /** 重复添加时已有标签的强调时长 */
 const HIGHLIGHT_DURATION = 1200
 
 const ruleKey = (rule: DanmakuBlockRule) => `${rule.type}:${rule.pattern}`
 
-/** 「弹幕列表」下方的入口行：显示规则数量，点击后弹窗管理全局屏蔽规则 */
+/** 「来源与规则」卡片里的入口行：显示规则数量，点击后弹窗管理全局屏蔽规则 */
 export const DanmakuBlock = memo(() => {
   const [{ danmakuBlock }] = usePlayerSettings()
   const [open, setOpen] = useState(false)
@@ -42,20 +43,14 @@ export const DanmakuBlock = memo(() => {
   const { t } = useTranslation('danmaku')
 
   return (
-    <FieldLayout title={t('block.title')}>
-      <Button
-        className="max-w-[80%] min-w-0 border-white/11 bg-white/8 text-white hover:bg-white/14 hover:text-white"
-        variant="outline"
+    <>
+      <EntryRow
+        label={t('block.title')}
+        summary={ruleCount === 0 ? t('block.addRule') : t('block.ruleCount', { count: ruleCount })}
         onClick={() => setOpen(true)}
-      >
-        <span className="truncate">
-          {ruleCount === 0
-            ? t('block.addRule')
-            : t('block.manageRules', { total: formatNumber(ruleCount) })}
-        </span>
-      </Button>
+      />
       <DanmakuBlockDialog open={open} onOpenChange={setOpen} />
-    </FieldLayout>
+    </>
   )
 })
 

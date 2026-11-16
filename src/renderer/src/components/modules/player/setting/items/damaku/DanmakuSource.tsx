@@ -1,7 +1,6 @@
 import type { Checkbox as CheckboxPrimitive } from 'radix-ui'
 import type { FC, PropsWithChildren } from 'react'
 import { hidePlayerSettingsPanel, videoAtom } from '@renderer/atoms/player'
-import { FieldLayout } from '@renderer/components/modules/settings/views/Layout'
 import { Badge } from '@renderer/components/ui/badge'
 import { Button } from '@renderer/components/ui/button'
 import { Checkbox } from '@renderer/components/ui/checkbox'
@@ -30,38 +29,35 @@ import { useTranslation } from 'react-i18next'
 
 import { showMatchAnimeDialog } from '../../../loading/dialog/hooks'
 import { danmakuSourceQueryKey, useDanmakuSourceConfig } from '../../danmaku-source-context'
+import { EntryRow } from '../../EntryRow'
 
 export const DanmakuSource = memo(() => {
   const { danmaku } = useDanmakuSourceConfig()
   const portalContainer = usePlayerPortalContainer()
   const { t } = useTranslation('danmaku')
   return (
-    <FieldLayout title={t('source.title')}>
-      <Popover>
-        <PopoverTrigger asChild>
-          <Button
-            className="max-w-[80%] min-w-0 border-white/11 bg-white/8 text-white hover:bg-white/14 hover:text-white"
-            variant="outline"
-            title={mostDanmakuPlatform(danmaku)}
-          >
-            <span className="truncate">{mostDanmakuPlatform(danmaku)}</span>
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent
-          container={portalContainer}
-          className="mx-2 w-80 border-white/11 bg-player-popover player-glass text-white shadow-xl"
-        >
-          <PopoverContentLayout title={t('source.title')}>
-            <SourceList />
-            <div className="flex flex-col gap-2.5">
-              <RematchDanmaku />
-              <ClearDanmakuCache />
-            </div>
-          </PopoverContentLayout>
-          <SelectPrimitive.Separator />
-        </PopoverContent>
-      </Popover>
-    </FieldLayout>
+    <Popover>
+      <PopoverTrigger asChild>
+        <EntryRow
+          label={t('source.title')}
+          summary={mostDanmakuPlatform(danmaku)}
+          summaryTitle={mostDanmakuPlatform(danmaku)}
+        />
+      </PopoverTrigger>
+      <PopoverContent
+        container={portalContainer}
+        className="bg-player-popover player-glass mx-2 w-80 border-white/11 text-white shadow-xl"
+      >
+        <PopoverContentLayout title={t('source.title')}>
+          <SourceList />
+          <div className="flex flex-col gap-2.5">
+            <RematchDanmaku />
+            <ClearDanmakuCache />
+          </div>
+        </PopoverContentLayout>
+        <SelectPrimitive.Separator />
+      </PopoverContent>
+    </Popover>
   )
 })
 
@@ -132,7 +128,7 @@ const SourceList = memo(() => {
                   container={portalContainer}
                   side="left"
                   sideOffset={10}
-                  className="max-w-80 border border-white/11 bg-player-popover player-glass text-sm leading-6 break-words whitespace-normal text-white shadow-lg"
+                  className="bg-player-popover player-glass max-w-80 border border-white/11 text-sm leading-6 break-words whitespace-normal text-white shadow-lg"
                 >
                   {danmakuPlatform}
                 </TooltipContent>
