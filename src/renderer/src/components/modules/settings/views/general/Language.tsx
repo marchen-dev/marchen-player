@@ -40,14 +40,7 @@ export const LanguageSetting = () => {
 
   return (
     <SettingsRow
-      // 地球图标与语言无关：看不懂当前界面语言的用户也能认出这一行是切换语言的
-      label={
-        // 用块级的 flex：行内的 inline-flex 会按基线对齐把这一行撑高 2px，下面的内容整体下移
-        <span className="flex items-center gap-1.5">
-          <i className="icon-[mingcute--earth-2-line] text-muted-foreground" aria-hidden />
-          {t('general.appearance.language.label')}
-        </span>
-      }
+      label={t('general.appearance.language.label')}
       description={t('general.appearance.language.description')}
       labelId="language-preference-label"
       descriptionId="language-preference-description"
