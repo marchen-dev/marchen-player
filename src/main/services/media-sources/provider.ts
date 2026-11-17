@@ -50,11 +50,19 @@ export interface ProviderFactory {
 
 export type ProviderFactories = Record<MediaSourceKind, ProviderFactory>
 
-/** 只接受不含账号密码的 HTTP(S) 地址；凭证一律走请求头。 */
+/** 判断输入是否显式写了协议（`xxx://`）；`nas.local:8096` 这种主机加端口不算。 */
+const EXPLICIT_SCHEME = /^[a-z][a-z\d+.-]*:\/\//i
+
+/**
+ * 只接受不含账号密码的 HTTP(S) 地址；凭证一律走请求头。
+ * 用户常直接填 `192.168.1.2:8096`，没写协议时按 http 补全：局域网媒体服务器默认就是 http，
+ * 需要 https 的会自己写全。
+ */
 export function normalizeServerUrl(value: string, trailingSlash: boolean): URL {
+  const trimmed = value.trim()
   let url: URL
   try {
-    url = new URL(value.trim())
+    url = new URL(EXPLICIT_SCHEME.test(trimmed) ? trimmed : `http://${trimmed}`)
   } catch {
     throw new MediaSourceError('invalid_input', '请输入有效的服务器地址')
   }
