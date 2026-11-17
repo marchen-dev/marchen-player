@@ -1,6 +1,15 @@
 # CHANGELOG
 
 
+## [1.1.9](https://github.com/marchen-dev/marchen-player/compare/v1.1.8...v1.1.9) (2026-11-17)
+
+
+### Features
+
+* **media-sources:** 服务器地址未写协议时默认补全 http:// ([4ac3670](https://github.com/marchen-dev/marchen-player/commit/4ac3670fbc8ce67daf057dac7ce6573a6c537b96))
+* **player:** 重构弹幕与字幕设置界面，改用滑块与分组布局 ([8b413bf](https://github.com/marchen-dev/marchen-player/commit/8b413bfba9298569deb26bade13d8aed46859177))
+* **update:** Windows / Linux AppImage 发现新版本后自动后台下载，安装仍由用户确认 ([3aaed67](https://github.com/marchen-dev/marchen-player/commit/3aaed67ecb3d283206f7304fdf564b87605943de))
+
 ## [1.1.8](https://github.com/marchen-dev/marchen-player/compare/v1.1.7...v1.1.8) (2026-11-15)
 
 
@@ -24,6 +33,7 @@
 * **renderer:** 播放器、影视库、媒体源、下载等全部界面迁移到文案包 ([2ff3abd](https://github.com/marchen-dev/marchen-player/commit/2ff3abd82a8e1a85b0be95c8fe71e50bf53a540c))
 * **settings:** 设置弹窗迁移到文案包并新增语言选项 ([545b7b2](https://github.com/marchen-dev/marchen-player/commit/545b7b2bb7d417ad5fabcf6108fb2ed951325515))
 * **shared:** 带错误码的用户错误，跨进程保留并按界面语言显示 ([261b736](https://github.com/marchen-dev/marchen-player/commit/261b736090c79dd2b8761d20398280f7f65fa61b))
+* **telemetry:** Sentry 增加界面语言标签，错误可按语言筛选 ([ad52865](https://github.com/marchen-dev/marchen-player/commit/ad5286565ea25485dc288eef466517628f711001))
 * **translation:** 接入 Bergamot 翻译引擎与后台调度 ([f86b428](https://github.com/marchen-dev/marchen-player/commit/f86b428832e5e16adf45c100662c9261dd7a05d8))
 * **translation:** 新增翻译资源清单、分段下载与本机存放 ([16f8ca0](https://github.com/marchen-dev/marchen-player/commit/16f8ca04e53f1a36d766ef6e85e13942acbdeb5d))
 * **ui:** 新增新功能 New 标记与登记表 ([79b4199](https://github.com/marchen-dev/marchen-player/commit/79b41991a61a62038d0108bc07d02a48b07ca20e))
