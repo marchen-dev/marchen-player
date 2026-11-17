@@ -1,27 +1,33 @@
-version: 1.1.8
+version: 1.1.9
 files:
-  - url: https://github.com/marchen-dev/marchen-player/releases/download/v1.1.8/Marchen-1.1.8-windows-x64-setup.exe
-    sha512: rYzv+lg56+DP/gdN+Y57Scl2w/8X3GPJqggCz3dlnwCf9Zu+hY0/rAhdcnCP3wSso4hFQZksqVXc2SkmkUGWKw==
-    size: 173509895
-path: https://github.com/marchen-dev/marchen-player/releases/download/v1.1.8/Marchen-1.1.8-windows-x64-setup.exe
-sha512: rYzv+lg56+DP/gdN+Y57Scl2w/8X3GPJqggCz3dlnwCf9Zu+hY0/rAhdcnCP3wSso4hFQZksqVXc2SkmkUGWKw==
-releaseNotes: "# Marchen 1.1.8\r
+  - url: https://github.com/marchen-dev/marchen-player/releases/download/v1.1.9/Marchen-1.1.9-windows-x64-setup.exe
+    sha512: jUdLS5l5oXT3vrzlUHYhHealapHOQz0diqE1upRjC6P2PS5P4NZ0U+INIBpKDpxJ735+FW/5d3e8yG9ILGXGNQ==
+    size: 173515538
+path: https://github.com/marchen-dev/marchen-player/releases/download/v1.1.9/Marchen-1.1.9-windows-x64-setup.exe
+sha512: jUdLS5l5oXT3vrzlUHYhHealapHOQz0diqE1upRjC6P2PS5P4NZ0U+INIBpKDpxJ735+FW/5d3e8yG9ILGXGNQ==
+releaseNotes: "# Marchen 1.1.9\r
 
   \r
 
-  ## 新功能\r
+  ## 播放器设置\r
 
   \r
 
-  - 界面新增 English，默认跟随系统语言，可在「设置 → 通用」里切换。\r
+  - 重新设计弹幕与字幕设置：字体大小、不透明度、弹幕速度改为滑块，可一键恢复默认；显示区域改为分段按钮。\r
 
-  - 新增弹幕翻译：把中文弹幕翻译成英文，本地翻译，离线可用，在弹幕设置里开启。\r
+  - 弹幕设置分为匹配、显示、外观、来源与规则四组，字幕设置分为字幕轨道与调整两组，更容易找到。\r
+
+  - 移除「在屏密度」选项，同屏弹幕上限固定为 120 条。\r
+
+  - 修复弹幕速度中「极慢」与「较慢」顺序颠倒的问题。\r
 
   \r
 
-  ## 修复\r
+  ## 更新与媒体源\r
 
   \r
 
-  - 修复调整窗口大小时弹幕被清空的问题。\r\n"
-releaseDate: 2026-11-15T18:06:28.058Z
+  - Windows 与 Linux AppImage 发现新版本后会在后台自动下载，下载完成后提示，由你决定何时安装。\r
+
+  - 添加媒体源时服务器地址可以省略 `http://`。\r\n"
+releaseDate: 2026-11-17T09:04:26.516Z

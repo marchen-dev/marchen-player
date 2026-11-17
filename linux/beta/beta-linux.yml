@@ -1,23 +1,26 @@
-version: 1.1.8
+version: 1.1.9
 files:
-  - url: https://github.com/marchen-dev/marchen-player/releases/download/v1.1.8/Marchen-1.1.8-linux-x86_64.AppImage
-    sha512: XSLEWVj3NetFg9oZpWpus7O1JawxbbYUqdy93IIVhJih6my+ZFs3zmiNC/Ukyn/SantsPqscMQjHDUVsp7OwdA==
-    size: 199626038
-    blockMapSize: 208202
-  - url: https://github.com/marchen-dev/marchen-player/releases/download/v1.1.8/Marchen-1.1.8-linux-amd64.deb
-    sha512: gHf/91oL01J3SBGci948TEkBVeDBvcPh1BhuOCyjGzTMi9w3P4cGfwJYIjCbMvIkwHHCgGEGX873SqDf5Yb8Cg==
-    size: 156381340
-path: https://github.com/marchen-dev/marchen-player/releases/download/v1.1.8/Marchen-1.1.8-linux-x86_64.AppImage
-sha512: XSLEWVj3NetFg9oZpWpus7O1JawxbbYUqdy93IIVhJih6my+ZFs3zmiNC/Ukyn/SantsPqscMQjHDUVsp7OwdA==
+  - url: https://github.com/marchen-dev/marchen-player/releases/download/v1.1.9/Marchen-1.1.9-linux-x86_64.AppImage
+    sha512: O0lAO5j/Efbv6J9T/zzs0W9/AkEB8krEufp9eu17XaBUCtoBk47Rhn2dlgXA5OGvxkTk1yHvEP7iMQYklxFKmQ==
+    size: 199621750
+    blockMapSize: 208010
+  - url: https://github.com/marchen-dev/marchen-player/releases/download/v1.1.9/Marchen-1.1.9-linux-amd64.deb
+    sha512: zHKsbgg1Vx8L4oa1Vl2dogKwfvGyg8l/EkQxbwNx41TC9KMFkqyuoIDpLTMbx9DfaLMml2ej7xQaZHlqvsLWfg==
+    size: 156546100
+path: https://github.com/marchen-dev/marchen-player/releases/download/v1.1.9/Marchen-1.1.9-linux-x86_64.AppImage
+sha512: O0lAO5j/Efbv6J9T/zzs0W9/AkEB8krEufp9eu17XaBUCtoBk47Rhn2dlgXA5OGvxkTk1yHvEP7iMQYklxFKmQ==
 releaseNotes: |
-  # Marchen 1.1.8
+  # Marchen 1.1.9
 
-  ## 新功能
+  ## 播放器设置
 
-  - 界面新增 English，默认跟随系统语言，可在「设置 → 通用」里切换。
-  - 新增弹幕翻译：把中文弹幕翻译成英文，本地翻译，离线可用，在弹幕设置里开启。
+  - 重新设计弹幕与字幕设置：字体大小、不透明度、弹幕速度改为滑块，可一键恢复默认；显示区域改为分段按钮。
+  - 弹幕设置分为匹配、显示、外观、来源与规则四组，字幕设置分为字幕轨道与调整两组，更容易找到。
+  - 移除「在屏密度」选项，同屏弹幕上限固定为 120 条。
+  - 修复弹幕速度中「极慢」与「较慢」顺序颠倒的问题。
 
-  ## 修复
+  ## 更新与媒体源
 
-  - 修复调整窗口大小时弹幕被清空的问题。
-releaseDate: 2026-11-15T18:06:18.357Z
+  - Windows 与 Linux AppImage 发现新版本后会在后台自动下载，下载完成后提示，由你决定何时安装。
+  - 添加媒体源时服务器地址可以省略 `http://`。
+releaseDate: 2026-11-17T09:02:47.068Z
