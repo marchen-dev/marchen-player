@@ -123,7 +123,7 @@ export default {
       descriptionManual:
         'New versions are checked automatically. This is a system package: download the new package and install it over the current one.',
       descriptionInApp:
-        'New versions are checked automatically. You decide when to download and install.',
+        'New versions are checked and downloaded automatically. You decide when to install.',
       phase: {
         idle: 'Not checked yet',
         checking: 'Checking for updates…',

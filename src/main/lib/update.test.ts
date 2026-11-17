@@ -88,7 +88,7 @@ afterEach(() => {
 })
 
 describe('桌面更新服务', () => {
-  it('windows 合并检查与下载、保留晚订阅快照，显式保存成功才安装', async () => {
+  it('windows 合并检查、发现新版本自动后台下载，显式保存成功才安装', async () => {
     vi.stubGlobal('process', { ...process, platform: 'win32' })
     const service = await import('./update')
     await service.autoUpdateInit()
@@ -101,20 +101,26 @@ describe('桌面更新服务', () => {
     const a = service.checkForDesktopUpdates()
     const b = service.checkForDesktopUpdates()
     expect(mocks.check).toHaveBeenCalledTimes(1)
-    mocks.events.get('update-available')!({ version: '0.2.0', releaseNotes: '更新说明' })
-    expect(service.getUpdateState()).toMatchObject({
-      phase: 'available',
-      version: '0.2.0',
-      revision: 1,
-    })
-    finish()
-    await Promise.all([a, b])
+    let finishDownload!: () => void
     mocks.download.mockReturnValue(
       new Promise<void>((resolve) => {
-        finish = resolve
+        finishDownload = resolve
       }),
     )
-    const download = service.downloadDesktopUpdate()
+    const states: string[] = []
+    mocks.send.mockImplementation((next: { phase: string }) => states.push(next.phase))
+    mocks.events.get('update-available')!({ version: '0.2.0', releaseNotes: '更新说明' })
+    // 先公布新版本，紧接着自动开始下载，不等用户点击
+    expect(states).toEqual(['available', 'downloading'])
+    expect(service.getUpdateState()).toMatchObject({
+      phase: 'downloading',
+      version: '0.2.0',
+      notes: '更新说明',
+    })
+    expect(mocks.download).toHaveBeenCalledTimes(1)
+    finish()
+    await Promise.all([a, b])
+    // 下载进行中再手动触发不会重复下载
     await service.downloadDesktopUpdate()
     expect(mocks.download).toHaveBeenCalledTimes(1)
     mocks.events.get('download-progress')!({
@@ -133,8 +139,10 @@ describe('桌面更新服务', () => {
     mocks.events.get('download-progress')!({ percent: 100 })
     expect(service.getUpdateState().phase).toBe('preparing')
     mocks.events.get('update-downloaded')!()
-    finish()
-    await download
+    finishDownload()
+    await vi.waitFor(() => expect(service.getUpdateState().phase).toBe('ready'))
+    // 下载完成不会自动安装
+    expect(mocks.install).not.toHaveBeenCalled()
     const installing = service.installDesktopUpdate()
     expect(mocks.install).not.toHaveBeenCalled()
     service.acknowledgeUpdateSave(mocks.prepare.mock.calls[0][0], true)
@@ -144,14 +152,15 @@ describe('桌面更新服务', () => {
     expect(updater.autoUpdater.autoInstallOnAppQuit).toBe(false)
     expect(updater.autoUpdater.autoDownload).toBe(false)
   })
-  it('windows 下载失败可重试，不把点击安装写成已更新', async () => {
+  it('windows 自动下载失败可手动重试，不把点击安装写成已更新', async () => {
     vi.stubGlobal('process', { ...process, platform: 'win32' })
     const service = await import('./update')
     await service.autoUpdateInit()
-    mocks.events.get('update-available')!({ version: '0.2.0' })
     mocks.download.mockRejectedValueOnce(new Error('断网')).mockResolvedValueOnce([])
-    await service.downloadDesktopUpdate()
-    expect(service.getUpdateState()).toMatchObject({ phase: 'error', error: '断网' })
+    mocks.events.get('update-available')!({ version: '0.2.0' })
+    await vi.waitFor(() =>
+      expect(service.getUpdateState()).toMatchObject({ phase: 'error', error: '断网' }),
+    )
     await service.downloadDesktopUpdate()
     expect(mocks.download).toHaveBeenCalledTimes(2)
     expect(mocks.install).not.toHaveBeenCalled()
@@ -170,9 +179,8 @@ describe('桌面更新服务', () => {
       provider: 'generic',
       url: expect.stringContaining('/linux/alpha/'),
     })
-    mocks.events.get('update-available')!({ version: '1.0.0-alpha.1' })
     mocks.download.mockResolvedValueOnce([])
-    await service.downloadDesktopUpdate()
+    mocks.events.get('update-available')!({ version: '1.0.0-alpha.1' })
     expect(mocks.download).toHaveBeenCalledTimes(1)
     mocks.events.get('update-downloaded')!()
     const installing = service.installDesktopUpdate()

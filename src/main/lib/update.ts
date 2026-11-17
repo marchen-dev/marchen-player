@@ -220,13 +220,17 @@ export async function autoUpdateInit() {
   updaterConfigured = true
   autoUpdater.on('error', failOrUpToDate)
   autoUpdater.on('checking-for-update', () => publish({ phase: 'checking', error: undefined }))
-  autoUpdater.on('update-available', (info) =>
+  autoUpdater.on('update-available', (info) => {
     publish({
       phase: 'available',
       version: info.version,
       notes: parseReleaseNotes(info.releaseNotes),
-    }),
-  )
+    })
+    // 发现新版本就在后台下载，下完由页面提示一次；安装仍须用户在关于页点击。
+    // 不用 electron-updater 的 autoDownload：走自己的 downloadDesktopUpdate 才能和手动重试共用同一个下载任务。
+    // deb（linux-manual）不能应用内替换，downloadDesktopUpdate 内部会直接跳过。
+    void downloadDesktopUpdate()
+  })
   autoUpdater.on('update-not-available', () =>
     publish({ phase: 'upToDate', version: undefined, notes: undefined, ...emptyProgress }),
   )

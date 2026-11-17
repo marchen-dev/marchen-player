@@ -124,7 +124,7 @@ export default {
       title: '软件更新',
       /** deb 等系统包由包管理器替换文件，应用内只提示新版本 */
       descriptionManual: '自动检查新版本；当前为系统安装包，请下载新版安装包后覆盖安装。',
-      descriptionInApp: '自动检查新版本，由你决定下载和安装。',
+      descriptionInApp: '自动检查并在后台下载新版本，由你决定何时安装。',
       phase: {
         idle: '尚未检查更新',
         checking: '正在检查更新…',
