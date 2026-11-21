@@ -1,6 +1,21 @@
 # CHANGELOG
 
 
+## [1.1.10](https://github.com/marchen-dev/marchen-player/compare/v1.1.9...v1.1.10) (2026-11-21)
+
+
+### Bug Fixes
+
+* **player:** 按实际播放时间预排兼容内核音频 ([3a28918](https://github.com/marchen-dev/marchen-player/commit/3a2891840ee9c78fa84ecac892a1d238947b5bd0))
+* **player:** 自动滚动展示链接弹幕导入反馈 ([8c451e9](https://github.com/marchen-dev/marchen-player/commit/8c451e9e4d638eecb3d714cb721727be7b617d6c))
+
+
+### Features
+
+* **player:** 在播放偏好中加入键盘快捷键弹窗 ([436c3c2](https://github.com/marchen-dev/marchen-player/commit/436c3c2f800aa8f42c0f9cfb82656ff574b9c39a))
+* **player:** 调整弹幕显示区域和字号滑块 ([56fc83d](https://github.com/marchen-dev/marchen-player/commit/56fc83d80b6208657ace13795a40d8497920ba22))
+* **player:** 长按右方向键临时切换至 3 倍速 ([f455256](https://github.com/marchen-dev/marchen-player/commit/f455256085a682e5ce9162960634f3de1b10200e))
+
 ## [1.1.9](https://github.com/marchen-dev/marchen-player/compare/v1.1.8...v1.1.9) (2026-11-17)
 
 
