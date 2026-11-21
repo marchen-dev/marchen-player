@@ -1,33 +1,31 @@
-version: 1.1.9
+version: 1.1.10
 files:
-  - url: https://github.com/marchen-dev/marchen-player/releases/download/v1.1.9/Marchen-1.1.9-windows-x64-setup.exe
-    sha512: jUdLS5l5oXT3vrzlUHYhHealapHOQz0diqE1upRjC6P2PS5P4NZ0U+INIBpKDpxJ735+FW/5d3e8yG9ILGXGNQ==
-    size: 173515538
-path: https://github.com/marchen-dev/marchen-player/releases/download/v1.1.9/Marchen-1.1.9-windows-x64-setup.exe
-sha512: jUdLS5l5oXT3vrzlUHYhHealapHOQz0diqE1upRjC6P2PS5P4NZ0U+INIBpKDpxJ735+FW/5d3e8yG9ILGXGNQ==
-releaseNotes: "# Marchen 1.1.9\r
+  - url: https://github.com/marchen-dev/marchen-player/releases/download/v1.1.10/Marchen-1.1.10-windows-x64-setup.exe
+    sha512: WN2rrH/p5l054FWY63YobnkyHaHkuknl0Qr9rE+G2rjFmd9AQb4sWubkG6NaNX6uN1s4djE1Ch46DsLGjutmbA==
+    size: 173517586
+path: https://github.com/marchen-dev/marchen-player/releases/download/v1.1.10/Marchen-1.1.10-windows-x64-setup.exe
+sha512: WN2rrH/p5l054FWY63YobnkyHaHkuknl0Qr9rE+G2rjFmd9AQb4sWubkG6NaNX6uN1s4djE1Ch46DsLGjutmbA==
+releaseNotes: "# Marchen 1.1.10\r
 
   \r
 
-  ## 播放器设置\r
+  ## 播放\r
 
   \r
 
-  - 重新设计弹幕与字幕设置：字体大小、不透明度、弹幕速度改为滑块，可一键恢复默认；显示区域改为分段按钮。\r
+  - 按住右方向键可临时以 3 倍速播放，松手后恢复原倍速。短按右方向键仍可快进 5 秒。\r
 
-  - 弹幕设置分为匹配、显示、外观、来源与规则四组，字幕设置分为字幕轨道与调整两组，更容易找到。\r
+  - 在「播放器设置 → 播放偏好」里可以查看键盘快捷键。\r
 
-  - 移除「在屏密度」选项，同屏弹幕上限固定为 120 条。\r
-
-  - 修复弹幕速度中「极慢」与「较慢」顺序颠倒的问题。\r
+  - 修复兼容内核在高倍速播放时可能出现的停顿。\r
 
   \r
 
-  ## 更新与媒体源\r
+  ## 弹幕\r
 
   \r
 
-  - Windows 与 Linux AppImage 发现新版本后会在后台自动下载，下载完成后提示，由你决定何时安装。\r
+  - 弹幕显示区域改用滑块调整，字号滑块的 100% 默认档位移到中央。\r
 
-  - 添加媒体源时服务器地址可以省略 `http://`。\r\n"
-releaseDate: 2026-11-17T09:04:26.516Z
+  - 从链接添加弹幕时，侧栏会按需滚动，让导入进度、选集控件或处理结果进入视野。\r\n"
+releaseDate: 2026-11-21T14:39:05.792Z
