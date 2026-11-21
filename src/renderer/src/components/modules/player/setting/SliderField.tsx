@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import type { KeyboardEvent, ReactNode } from 'react'
 import { Slider } from '@renderer/components/ui/slider'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@renderer/components/ui/Tooltip'
 import { useEventCallback } from '@renderer/hooks/use-event-callback'
@@ -14,6 +14,8 @@ interface SliderFieldProps {
   min: number
   max: number
   step: number
+  /** 默认值把滑轨平分，两侧各按原步长排列 */
+  centerDefault?: boolean
   /** 当前值的显示文字，标题行与读屏共用 */
   formatValue: (value: number) => string
   /** 写入设置。拖动中每帧最多调用一次，松手时再以最终值调用一次 */
@@ -36,6 +38,7 @@ export const SliderField = ({
   min,
   max,
   step,
+  centerDefault,
   formatValue,
   onValueChange,
   disabled,
@@ -57,6 +60,20 @@ export const SliderField = ({
 
   const shown = draft ?? value
   const shownText = formatValue(shown)
+  // 用两侧档位数的乘积作为半程长度，让每个档位都落在整数位置。
+  const stepsBelow = (defaultValue - min) / step
+  const stepsAbove = (max - defaultValue) / step
+  const midpoint = centerDefault ? stepsBelow * stepsAbove : 0
+  const toPosition = (value: number) =>
+    midpoint
+      ? midpoint +
+        ((value - defaultValue) / step) * (value < defaultValue ? stepsAbove : stepsBelow)
+      : value
+  const fromPosition = (position: number) =>
+    midpoint
+      ? defaultValue +
+        Math.round((position - midpoint) / (position < midpoint ? stepsAbove : stepsBelow)) * step
+      : position
 
   const scheduleCommit = (next: number) => {
     pendingRef.current = next
@@ -73,6 +90,19 @@ export const SliderField = ({
     pendingRef.current = null
     setDraft(null)
     commit(next)
+  }
+
+  const handleCenteredKeyDown = (event: KeyboardEvent) => {
+    const { key, shiftKey } = event
+    const decrease = key === 'ArrowLeft' || key === 'ArrowDown' || key === 'PageDown'
+    const increase = key === 'ArrowRight' || key === 'ArrowUp' || key === 'PageUp'
+    if (disabled || (!decrease && !increase)) return
+
+    // 键盘按字号步长调节，滑轨位置仅用于鼠标拖动和绘制。
+    event.preventDefault()
+    const steps = shiftKey || key === 'PageUp' || key === 'PageDown' ? 10 : 1
+    const next = shown + (decrease ? -1 : 1) * steps * step
+    commitNow(Math.min(max, Math.max(min, next)))
   }
 
   const resetLabel = t('settingsPanel.resetToDefaultLabel', { name: title })
@@ -122,19 +152,26 @@ export const SliderField = ({
         playerMaterial
         label={title}
         valueText={shownText}
-        min={min}
-        max={max}
-        step={step}
-        marks={[defaultValue]}
+        min={midpoint ? 0 : min}
+        max={midpoint ? midpoint * 2 : max}
+        step={midpoint ? 1 : step}
+        marks={[toPosition(defaultValue)]}
         disabled={disabled}
-        value={[shown]}
-        onValueChange={([next]) => {
-          if (next === undefined) return
+        value={[toPosition(shown)]}
+        onKeyDown={midpoint ? handleCenteredKeyDown : undefined}
+        onValueChange={([position]) => {
+          if (position === undefined) return
+          const next = fromPosition(position)
+          if (next === (pendingRef.current ?? value)) return
           setDraft(next)
           scheduleCommit(next)
         }}
-        onValueCommit={([next]) => {
-          if (next !== undefined) commitNow(next)
+        onValueCommit={([position]) => {
+          if (position !== undefined) commitNow(fromPosition(position))
+        }}
+        onLostPointerCapture={() => {
+          // 拖回起点时 Radix 不触发提交，也要结束这次拖动的草稿。
+          if (pendingRef.current !== null) commitNow(pendingRef.current)
         }}
       />
     </div>

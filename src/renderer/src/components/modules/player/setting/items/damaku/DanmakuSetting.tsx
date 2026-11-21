@@ -7,13 +7,13 @@ import {
   danmakuDisplayAreas,
   danmakuSpeedIndexOf,
   danmakuSpeedLevels,
+  DEFAULT_DANMAKU_DISPLAY_AREA,
   DEFAULT_DANMAKU_SPEED_INDEX,
 } from '@renderer/services/player-runtime/danmaku/appearance'
 import { captureFeatureUsed } from '@renderer/services/telemetry/features'
 import { useTranslation } from 'react-i18next'
 
 import { PanelCard, PanelRow, PanelSection } from '../../panel-layout'
-import { SegmentedControl } from '../../SegmentedControl'
 import { SliderField } from '../../SliderField'
 import { DanmakuTranslationRow } from './DanmakuTranslationRow'
 
@@ -85,7 +85,7 @@ export const DanmakuDisplaySettings = () => {
 }
 
 /**
- * 「外观」组：滑块与分段按钮，标题与当前值一行、控件占满下方整行。
+ * 「外观」组：标题与当前值一行，滑块占满下方整行。
  * 这些设置变化都不清屏（字号、速度、区域连续更新，见 requiresDanmakuLayoutReset）。
  */
 export const DanmakuAppearanceSettings = () => {
@@ -93,6 +93,8 @@ export const DanmakuAppearanceSettings = () => {
   const { t } = useTranslation('danmaku')
   const speedName = (index: number) =>
     t(`settings.speedOptions.${danmakuSpeedLevels[index]?.id ?? 'normal'}`)
+  const defaultAreaIndex = danmakuDisplayAreas.indexOf(DEFAULT_DANMAKU_DISPLAY_AREA)
+  const areaIndex = danmakuDisplayAreas.findIndex((value) => value === playerSetting.danmakuEndArea)
 
   return (
     <PanelSection title={t('settings.groups.appearance')}>
@@ -104,6 +106,7 @@ export const DanmakuAppearanceSettings = () => {
           min={DANMAKU_FONT_SCALE.min}
           max={DANMAKU_FONT_SCALE.max}
           step={DANMAKU_FONT_SCALE.step}
+          centerDefault
           formatValue={(value) => `${value}%`}
           onValueChange={(danmakuFontScale) =>
             setPlayerSetting((previous) => ({ ...previous, danmakuFontScale }))
@@ -136,21 +139,20 @@ export const DanmakuAppearanceSettings = () => {
             setPlayerSetting((previous) => ({ ...previous, danmakuDuration: level.value }))
           }}
         />
-        <div className="space-y-2">
-          <div className="text-sm">{t('settings.area')}</div>
-          <SegmentedControl
-            label={t('settings.area')}
-            className="grid-cols-5"
-            value={playerSetting.danmakuEndArea}
-            options={danmakuDisplayAreas.map((value) => ({
-              value,
-              label: `${Math.round(Number(value) * 100)}%`,
-            }))}
-            onValueChange={(danmakuEndArea) =>
-              setPlayerSetting((previous) => ({ ...previous, danmakuEndArea }))
-            }
-          />
-        </div>
+        <SliderField
+          title={t('settings.area')}
+          value={areaIndex === -1 ? defaultAreaIndex : areaIndex}
+          defaultValue={defaultAreaIndex}
+          min={0}
+          max={danmakuDisplayAreas.length - 1}
+          step={1}
+          formatValue={(index) => `${Math.round(Number(danmakuDisplayAreas[index]) * 100)}%`}
+          onValueChange={(index) => {
+            const danmakuEndArea = danmakuDisplayAreas[index]
+            if (!danmakuEndArea) return
+            setPlayerSetting((previous) => ({ ...previous, danmakuEndArea }))
+          }}
+        />
       </div>
     </PanelSection>
   )
