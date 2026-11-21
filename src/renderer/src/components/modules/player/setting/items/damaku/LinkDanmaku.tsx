@@ -18,7 +18,7 @@ import { getLinkImportController } from '@renderer/services/danmaku'
 import { getPlayerLoadingService } from '@renderer/services/player-loading'
 import { usePlayerLoadingSelector } from '@renderer/services/player-loading/hooks'
 import { usePlayerPortalContainer } from '@renderer/services/player-runtime'
-import { useEffect, useRef, useState, useSyncExternalStore } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } from 'react'
 import { useTranslation } from 'react-i18next'
 
 // 与字幕、来源控件保持同一套深色样式；焦点环不带 offset，避免在毛玻璃面板上出现白色双圈。
@@ -40,6 +40,9 @@ export function LinkDanmaku() {
   const snapshot = useSyncExternalStore(controller.subscribe, controller.getSnapshot)
   const [url, setUrl] = useState(snapshot.url)
   const [source, setSource] = useState('')
+  const sectionRef = useRef<HTMLElement>(null)
+  const feedbackRef = useRef<HTMLDivElement>(null)
+  const followedScrollTopRef = useRef<number | undefined>(undefined)
   const state = usePlayerLoadingSelector((value) => value)
   const entries =
     state.step === 'ready' || state.step === 'reloading'
@@ -48,10 +51,42 @@ export function LinkDanmaku() {
   const selected = entries.find((entry) => entry.source === source) ?? entries.at(-1)
   const busy = snapshot.status === 'loading' || snapshot.status === 'committing'
   const canSubmit = !busy && state.step === 'ready' && url.trim() !== ''
+  const { status } = snapshot
+  const progressStage = snapshot.progress?.stage
+
+  useLayoutEffect(() => {
+    if (followedScrollTopRef.current === undefined) return
+    const feedback = feedbackRef.current
+    const viewport = feedback?.closest<HTMLElement>('[data-radix-scroll-area-viewport]')
+    // 滚动位置若被用户改过，后续解析结果不再把用户拉回导入区。
+    if (
+      !feedback ||
+      !viewport ||
+      viewport.scrollTop !== followedScrollTopRef.current ||
+      status === 'cancelled'
+    ) {
+      followedScrollTopRef.current = undefined
+      return
+    }
+
+    const bounds = feedback.getBoundingClientRect()
+    const top = viewport.getBoundingClientRect().top + viewport.clientTop
+    const bottom = top + viewport.clientHeight
+    // 只滚动设置视口，尽量一次露出提示、选集控件和确认按钮。
+    if (bounds.height > viewport.clientHeight || bounds.top < top)
+      viewport.scrollTop += bounds.top - top
+    else if (bounds.bottom > bottom) viewport.scrollTop += bounds.bottom - bottom
+
+    followedScrollTopRef.current =
+      status === 'success' || status === 'error' ? undefined : viewport.scrollTop
+  }, [status, progressStage])
 
   // 新来源一律以 0 秒导入，偏移在导入后按实际观感调整。
   const submit = () => {
     if (!canSubmit) return
+    followedScrollTopRef.current = sectionRef.current?.closest<HTMLElement>(
+      '[data-radix-scroll-area-viewport]',
+    )?.scrollTop
     void controller.start(url.trim(), 0).then(() => {
       const added = controller.getSnapshot().source
       if (added) setSource(added)
@@ -59,7 +94,11 @@ export function LinkDanmaku() {
   }
 
   return (
-    <section className="space-y-3 border-t border-white/10 pt-4" aria-label={t('link.title')}>
+    <section
+      ref={sectionRef}
+      className="space-y-3 border-t border-white/10 pt-4"
+      aria-label={t('link.title')}
+    >
       {/* label 是行内元素，space-y 加在它身上的纵向外边距不生效；改为块级后与输入框的间距才是 12px */}
       <Label htmlFor="link-danmaku-url" className="block text-[var(--player-settings-muted)]">
         {t('link.title')}
@@ -90,20 +129,24 @@ export function LinkDanmaku() {
           {t('link.add')}
         </Button>
       </form>
-      <ImportStatus snapshot={snapshot} onCancel={controller.cancel} onRetry={submit} />
-      {snapshot.status === 'selecting' && snapshot.selection && (
-        <EpisodeSelection
-          key={snapshot.url}
-          selection={snapshot.selection}
-          disabled={state.step !== 'ready'}
-          onChoose={(episodeUrl) => {
-            setUrl(episodeUrl)
-            void controller.choose(episodeUrl).then(() => {
-              const added = controller.getSnapshot().source
-              if (added) setSource(added)
-            })
-          }}
-        />
+      {status !== 'idle' && (
+        <div ref={feedbackRef} className="space-y-3">
+          <ImportStatus snapshot={snapshot} onCancel={controller.cancel} onRetry={submit} />
+          {status === 'selecting' && snapshot.selection && (
+            <EpisodeSelection
+              key={snapshot.url}
+              selection={snapshot.selection}
+              disabled={state.step !== 'ready'}
+              onChoose={(episodeUrl) => {
+                setUrl(episodeUrl)
+                void controller.choose(episodeUrl).then(() => {
+                  const added = controller.getSnapshot().source
+                  if (added) setSource(added)
+                })
+              }}
+            />
+          )}
+        </div>
       )}
       {selected && <SourceOffset entries={entries} selected={selected} onSelect={setSource} />}
     </section>
@@ -135,7 +178,7 @@ function EpisodeSelection({
         </SelectTrigger>
         <SelectContent
           container={portalContainer}
-          className="border-white/11 bg-player-popover player-glass text-white"
+          className="bg-player-popover player-glass border-white/11 text-white"
         >
           <SelectGroup>
             {selection.episodes.map((item) => (
@@ -256,7 +299,7 @@ function SourceOffset({
           </SelectTrigger>
           <SelectContent
             container={portalContainer}
-            className="border-white/11 bg-player-popover player-glass text-white"
+            className="bg-player-popover player-glass border-white/11 text-white"
           >
             <SelectGroup>
               {entries.map((entry) => (
