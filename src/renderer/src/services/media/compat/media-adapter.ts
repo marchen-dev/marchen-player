@@ -17,6 +17,8 @@ import { CompatDecoderClient } from './client'
 
 type VideoReply = Extract<CompatReply, { type: 'video' }>
 type AudioReply = Extract<CompatReply, { type: 'audio' }>
+const AUDIO_AHEAD_SECONDS = 0.5
+
 export interface CompatResource {
   source: CompatSource
   assetBase: string
@@ -466,7 +468,8 @@ export class CompatMediaAdapter implements MediaPort {
         !this.snapshot.paused &&
         epoch === this.epoch &&
         !this.audioEnded &&
-        this.audioEnd - this.getSnapshot().currentTime < 0.5
+        // 按实际播放秒数预排。高倍速时按媒体秒数会低估所需队列，无法覆盖音频输出延迟。
+        (this.audioEnd - this.getSnapshot().currentTime) / this.snapshot.rate < AUDIO_AHEAD_SECONDS
       ) {
         const reply = this.nextAudio ?? (await this.client.request({ type: 'audio' }))
         this.nextAudio = undefined
@@ -482,7 +485,7 @@ export class CompatMediaAdapter implements MediaPort {
         }
         if (
           (reply.timestamp + reply.duration - this.getSnapshot().currentTime) / this.snapshot.rate >
-            0.5 &&
+            AUDIO_AHEAD_SECONDS &&
           this.nodes.size
         ) {
           this.nextAudio = reply
