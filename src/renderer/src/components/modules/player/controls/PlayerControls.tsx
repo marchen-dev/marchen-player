@@ -23,11 +23,9 @@ import { FloatingController } from './FloatingController'
 import { PlayerIconButton } from './PlayerIconButton'
 import { TimelineScrubber } from './TimelineScrubber'
 import { useControllerVisibility } from './useControllerVisibility'
-import { usePlayerShortcuts } from './usePlayerShortcuts'
+import { RIGHT_HOLD_RATE, usePlayerShortcuts } from './usePlayerShortcuts'
 import { formatTime } from './utils'
 import { VolumeSlider } from './VolumeSlider'
-
-const RIGHT_HOLD_RATE = 3
 
 export interface PlayerControlsProps {
   onClose: () => void

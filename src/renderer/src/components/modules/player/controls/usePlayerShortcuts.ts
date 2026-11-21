@@ -2,6 +2,7 @@ import type { RefObject } from 'react'
 import { useEffect, useEffectEvent } from 'react'
 
 const RIGHT_HOLD_DELAY_MS = 300
+export const RIGHT_HOLD_RATE = 3
 
 interface PlayerShortcutActions {
   togglePlayback: () => void

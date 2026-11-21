@@ -15,7 +15,10 @@ import { Sheet, SheetContent, SheetTitle } from '@renderer/components/ui/sheet'
 import { Switch } from '@renderer/components/ui/switch'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@renderer/components/ui/tabs'
 import { cn } from '@renderer/lib/utils'
-import { usePlayerPortalContainer } from '@renderer/services/player-runtime'
+import {
+  resolvePlayerControlAvailability,
+  usePlayerPortalContainer,
+} from '@renderer/services/player-runtime'
 import { createPlaybackInfoRows } from '@renderer/services/player-runtime/playback-info'
 import { captureFeatureUsed } from '@renderer/services/telemetry/features'
 import { useAtom, useSetAtom } from 'jotai'
@@ -26,6 +29,7 @@ import { AudioTrackSetting } from './items/AudioTrackSetting'
 
 import { Danmaku } from './items/damaku/Danmaku'
 import { Subtitle } from './items/subtitle/Subtitle'
+import { KeyboardShortcuts } from './KeyboardShortcuts'
 import { MediaTransferRows } from './MediaTransferRows'
 import { panelChoiceClassName } from './panel-choice'
 import { PanelCard, PanelSection } from './panel-layout'
@@ -329,6 +333,9 @@ const PlaybackSettings = ({
               </PanelChoice>
             </div>
           )}
+          <KeyboardShortcuts
+            fullscreenAvailable={resolvePlayerControlAvailability(capabilities).fullscreen}
+          />
         </PanelCard>
       </PanelSection>
 
