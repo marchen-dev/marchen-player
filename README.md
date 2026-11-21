@@ -112,6 +112,16 @@ pnpm dev:web      # Web development, port 1106
 - HTML5 Video / WebCodecs
 - RxJS
 
+## ⭐ Star History
+
+<a href="https://www.star-history.com/#marchen-dev/marchen-player&Date">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=marchen-dev/marchen-player&type=Date&theme=dark" />
+    <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=marchen-dev/marchen-player&type=Date" />
+    <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=marchen-dev/marchen-player&type=Date" />
+  </picture>
+</a>
+
 ## ❤️ Acknowledgements & License
 
 - [dandanplay](https://www.dandanplay.com)

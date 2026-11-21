@@ -115,6 +115,16 @@ pnpm dev:web      # Web 开发，端口 1106
 - RxJS
 
 
+## ⭐ Star 趋势
+
+<a href="https://www.star-history.com/#marchen-dev/marchen-player&Date">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=marchen-dev/marchen-player&type=Date&theme=dark" />
+    <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=marchen-dev/marchen-player&type=Date" />
+    <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=marchen-dev/marchen-player&type=Date" />
+  </picture>
+</a>
+
 ## ❤️ 致谢 & 许可
 
 - [弹弹play](https://www.dandanplay.com)
