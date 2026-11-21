@@ -27,6 +27,8 @@ import { usePlayerShortcuts } from './usePlayerShortcuts'
 import { formatTime } from './utils'
 import { VolumeSlider } from './VolumeSlider'
 
+const RIGHT_HOLD_RATE = 3
+
 export interface PlayerControlsProps {
   onClose: () => void
   capabilities: PlayerCapabilities
@@ -77,6 +79,7 @@ export const PlayerControls = ({
   const [hovered, setHovered] = useState(false)
   const [chromeHovered, setChromeHovered] = useState(false)
   const [focused, setFocused] = useState(false)
+  const [rightHoldActive, setRightHoldActive] = useState(false)
   const settingsPanelOpen = useAtomValue(playerSettingsPanelAtom).open
   const [{ enableMiniProgress, enableDanmaku }, setPlayerSettings] = usePlayerSettings()
   const hasDanmaku = usePlayerLoadingSelector(
@@ -92,6 +95,7 @@ export const PlayerControls = ({
   }, [hasDanmaku, setPlayerSettings])
 
   const playing = state.status === 'playing'
+  const sourceId = 'source' in state ? state.source?.id : undefined
   const currentTime = getCurrentTime(state)
   const duration = 'duration' in state ? state.duration : initialSnapshot.duration
   const rate = 'rate' in state ? state.rate : initialSnapshot.rate
@@ -118,6 +122,26 @@ export const PlayerControls = ({
     (offset: number) => commands.seek(clock.now() + offset),
     [clock, commands],
   )
+  const startRightHold = useCallback(() => {
+    const current = runtime.state
+    if (current.status !== 'playing') return
+
+    const { rate: previousRate, source } = current
+    if (previousRate !== RIGHT_HOLD_RATE) commands.setRate(RIGHT_HOLD_RATE)
+    setRightHoldActive(true)
+    return () => {
+      setRightHoldActive(false)
+      const latest = runtime.state
+      // 内核切换可能重建同一媒体的会话。换片后由新媒体自行初始化倍速。
+      if (
+        previousRate !== RIGHT_HOLD_RATE &&
+        'source' in latest &&
+        latest.source?.id === source.id
+      ) {
+        commands.setRate(previousRate)
+      }
+    }
+  }, [commands, runtime])
   const toggleMuted = useCallback(() => {
     setMuted((currentMuted) => {
       const next = !currentMuted
@@ -143,6 +167,7 @@ export const PlayerControls = ({
     () => ({
       togglePlayback: () => (playing ? commands.pause() : void commands.play()),
       seekBy,
+      startRightHold,
       changeVolume,
       toggleMuted,
       toggleDanmaku,
@@ -156,6 +181,7 @@ export const PlayerControls = ({
       onFullscreen,
       playing,
       seekBy,
+      startRightHold,
       toggleMuted,
       toggleDanmaku,
     ],
@@ -164,6 +190,7 @@ export const PlayerControls = ({
   usePlayerShortcuts({
     rootRef: controlsRef,
     blocked: settingsPanelOpen,
+    sourceId,
     actions: shortcutActions,
   })
 
@@ -333,6 +360,13 @@ export const PlayerControls = ({
           onRotationChange={onRotationChange ?? (() => {})}
           pictureInPicture={pictureInPicture}
         />
+        <div role="status" className="absolute inset-x-0 top-12 flex justify-center">
+          {rightHoldActive && (
+            <span className="bg-player-popover player-glass rounded-full px-3 py-1 text-sm font-medium text-[var(--player-fg)] tabular-nums">
+              {t('controls.holdSpeed', { rate: RIGHT_HOLD_RATE })}
+            </span>
+          )}
+        </div>
         {enableMiniProgress && playing && !visible && duration > 0 && (
           <div data-player-mini-progress aria-hidden className="absolute inset-x-0 bottom-0 h-0.5">
             <span

@@ -158,6 +158,7 @@ export default {
   },
   /** 播放中的控制栏：这些大多是按钮的悬停提示与读屏名称 */
   controls: {
+    holdSpeed: '{{rate}}×',
     label: '播放控制',
     mobileLabel: '移动端播放控制',
     drag: '拖动播放控制器',

@@ -145,6 +145,7 @@ export default {
     description: 'It was matched again as a new video, and the old progress was cleared',
   },
   controls: {
+    holdSpeed: '{{rate}}×',
     label: 'Playback controls',
     mobileLabel: 'Mobile playback controls',
     drag: 'Drag the playback controller',
